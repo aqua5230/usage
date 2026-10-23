@@ -170,3 +170,76 @@ def test_timer_is_daemon_and_fires_scheduler(monkeypatch: pytest.MonkeyPatch) ->
     timers[0].callback()
     assert calls == ["started", "refresh"]
     assert history_persist._timer is None
+
+
+@pytest.mark.parametrize("writer", ["snapshot", "ledger"])
+def test_concurrent_history_writes_preserve_both_entries(
+    monkeypatch: pytest.MonkeyPatch, writer: str
+) -> None:
+    read_entered = threading.Event()
+    release_first = threading.Event()
+    second_started = threading.Event()
+    second_done = threading.Event()
+    errors: list[BaseException] = []
+    if writer == "snapshot":
+        module: Any = usage_snapshot
+        reader_name = "_read_snapshot"
+
+        def write(entry: UsageEntry) -> None:
+            usage_snapshot.record_entries([entry])
+
+        path = usage_snapshot.SNAPSHOT_PATH
+    else:
+        module = reporter
+        reader_name = "_read_year_ledger"
+
+        def write(entry: UsageEntry) -> None:
+            reporter.persist_year_entries([entry], NOW.date())
+
+        path = reporter.YEAR_LEDGER_PATH
+    original_read = getattr(module, reader_name)
+
+    def paused_read() -> Any:
+        result = original_read()
+        if threading.current_thread().name == "first-writer":
+            read_entered.set()
+            assert release_first.wait(5)
+        return result
+
+    def run(entry: UsageEntry, second: bool = False) -> None:
+        try:
+            if second:
+                second_started.set()
+            write(entry)
+        except BaseException as exc:
+            errors.append(exc)
+        finally:
+            if second:
+                second_done.set()
+
+    monkeypatch.setattr(module, reader_name, paused_read)
+    first = threading.Thread(target=run, args=(_entry(session="first"),), name="first-writer")
+    second = threading.Thread(target=run, args=(_entry(NOW - timedelta(days=1), "second"), True))
+    first.start()
+    try:
+        assert read_entered.wait(5)
+        second.start()
+        assert second_started.wait(5)
+        # Unlocked code lets the second writer finish before the first replaces its file.
+        # Locked code holds the second writer until the first transaction completes.
+        second_done.wait(0.2)
+    finally:
+        release_first.set()
+        first.join(5)
+        if second.ident is not None:
+            second.join(5)
+    assert not first.is_alive() and not second.is_alive()
+    assert not errors
+    saved = json.loads(path.read_text())
+    if writer == "snapshot":
+        assert {row["session_id"] for row in saved["rows"]} == {"first", "second"}
+    else:
+        assert set(saved["days"]) == {
+            NOW.date().isoformat(),
+            (NOW - timedelta(days=1)).date().isoformat(),
+        }

@@ -27,7 +27,7 @@ import urllib.parse
 from base64 import b64decode
 from binascii import Error as Base64Error
 from contextlib import suppress
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime, timedelta
 from email.utils import parsedate_to_datetime
 from pathlib import Path
@@ -237,6 +237,24 @@ def _carry_missing_groups(probed: AgyQuotaResult, cached: AgyQuotaResult | None)
     ]
     if not missing:
         return probed
+    cached_at = _parse_timestamp(cached.fetched_at)
+    probed_at = _parse_timestamp(probed.fetched_at)
+    elapsed = (
+        max(0, int((probed_at - cached_at).total_seconds() // 60))
+        if cached_at is not None and probed_at is not None
+        else 0
+    )
+
+    def age_window(window: AgyQuotaWindow | None) -> AgyQuotaWindow | None:
+        if window is None or window.resets_in_minutes is None or elapsed == 0:
+            return window
+        minutes = max(0, window.resets_in_minutes - elapsed)
+        return replace(window, resets_in_minutes=minutes, resets_in=_format_resets_in(minutes))
+
+    missing = [
+        replace(group, weekly=age_window(group.weekly), five_hour=age_window(group.five_hour))
+        for group in missing
+    ]
     order = {group.name: index for index, group in enumerate(cached.groups)}
     groups = sorted([*probed.groups, *missing], key=lambda group: order.get(group.name, 0))
     return AgyQuotaResult(groups=groups, fetched_at=probed.fetched_at)

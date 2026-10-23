@@ -16,6 +16,7 @@ import logging
 import os
 from pathlib import Path
 import tempfile
+import threading
 import time
 from typing import Any, NotRequired, TypedDict, cast
 
@@ -45,6 +46,7 @@ YEAR_LEDGER_PATH = YEAR_CACHE_PATH.with_name("year_ledger.json")
 YEAR_CACHE_TTL_SECONDS = 6 * 3600
 _YEAR_CACHE_SCHEMA = 6
 _YEAR_LEDGER_SCHEMA = 1
+_year_ledger_lock = threading.Lock()
 _YEAR_LEDGER_TRIM_BUFFER_DAYS = 60
 
 
@@ -675,18 +677,21 @@ def _merge_year_ledger(
     *,
     trim_before: date,
 ) -> _YearLedger:
-    ledger = _read_year_ledger()
-    days = ledger["days"]
-    for day_key, current_day in current_days.items():
-        ledger_day = days.get(day_key)
-        if ledger_day is None or current_day["total_tokens"] >= ledger_day["total_tokens"]:
-            days[day_key] = current_day
+    with _year_ledger_lock:
+        ledger = _read_year_ledger()
+        days = ledger["days"]
+        for day_key, current_day in current_days.items():
+            ledger_day = days.get(day_key)
+            if ledger_day is None or current_day["total_tokens"] >= ledger_day["total_tokens"]:
+                days[day_key] = current_day
 
-    ledger["days"] = {
-        day_key: day for day_key, day in days.items() if date.fromisoformat(day_key) >= trim_before
-    }
-    _write_year_ledger(ledger)
-    return ledger
+        ledger["days"] = {
+            day_key: day
+            for day_key, day in days.items()
+            if date.fromisoformat(day_key) >= trim_before
+        }
+        _write_year_ledger(ledger)
+        return ledger
 
 
 def _build_year_output_from_ledger(

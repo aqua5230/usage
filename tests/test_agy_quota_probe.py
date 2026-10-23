@@ -1074,3 +1074,36 @@ def test_assemble_groups_argon_missing_windows() -> None:
     assert groups[0].name == "GEMINI 4 ARGON"
     assert groups[0].weekly == AgyQuotaWindow(100.0, None, None)
     assert groups[0].five_hour is None
+
+
+@pytest.mark.parametrize("minutes, expected", [(5, 0), (25, 15)])
+def test_carry_ages_both_reset_countdowns(minutes: int, expected: int) -> None:
+    fetched = datetime(2026, 1, 1, 11, 50, tzinfo=UTC)
+    window = AgyQuotaWindow(20, f"{minutes}m", minutes)
+    cached = AgyQuotaResult(
+        [AgyQuotaGroup("GEMINI MODELS", [], window, window)], fetched.isoformat()
+    )
+    agy_quota_probe._carry_missing_groups(cached, None)
+    merged = agy_quota_probe._carry_missing_groups(
+        _only_claude(fetched + timedelta(minutes=10)), cached
+    )
+    group = next(group for group in merged.groups if group.name == "GEMINI MODELS")
+    for carried in (group.weekly, group.five_hour):
+        assert carried is not None
+        assert carried.resets_in_minutes == expected
+        assert carried.resets_in == f"{expected}m"
+    assert cached.groups[0].weekly == window
+    if expected:
+        # A future reset keeps the same absolute time after rebasing.
+        assert datetime.fromisoformat(merged.fetched_at) + timedelta(minutes=expected) == (
+            fetched + timedelta(minutes=minutes)
+        )
+    else:
+        from menubar.agy import project_quota
+
+        projection = project_quota(
+            merged, "en", now=datetime.fromisoformat(merged.fetched_at).timestamp()
+        )
+        assert projection is not None
+        assert projection.weekly.reset_done
+        assert projection.session.reset_done

@@ -1695,6 +1695,7 @@ class _WindowsTrayController:
             agy_rows=(agy.session, agy.weekly),
             agy_group_name=agy.group_name,
             agy_group_switchable=agy.group_switchable,
+            agy_weekly_only=agy.weekly_only,
             grok_row=grok.weekly,
             muse_rows=(muse.session, muse.weekly),
             muse_stale=muse.stale,
@@ -2375,6 +2376,7 @@ class _WindowsTrayController:
                         self.latest_state.agy_weekly = projection.weekly
                         self.latest_state.agy_group_name = projection.group_name
                         self.latest_state.agy_group_switchable = projection.group_switchable
+                        self.latest_state.agy_weekly_only = projection.weekly_only
                         self.latest_state.agy_stale = projection.stale
                     self.inject_state(force=True)
             elif action == "switch_panel":

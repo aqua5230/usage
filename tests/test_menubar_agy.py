@@ -626,3 +626,16 @@ def test_project_quota_missing_argon_falls_back_to_gemini() -> None:
     assert projection.group_name == "GEMINI MODELS"
     assert projection.weekly_only is False
     assert projection.session.percent_text == "60% used"
+
+
+def test_missing_gemini_fallback_prefers_claude_over_argon() -> None:
+    quota = AgyQuotaResult(
+        groups=[
+            _group("GEMINI 4 ARGON", session_remaining=0, weekly_remaining=0),
+            _group("CLAUDE AND GPT MODELS", session_remaining=70, weekly_remaining=70),
+        ],
+        fetched_at="2026-01-01T00:00:00+00:00",
+    )
+    projection = menubar_agy.project_quota(quota, "en", now=1_767_225_600.0)
+    assert projection is not None
+    assert projection.group_name == "CLAUDE AND GPT MODELS"
