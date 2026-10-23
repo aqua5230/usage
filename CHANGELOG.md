@@ -5,6 +5,14 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.34.7] - 2026-10-23
+
+### Fixed
+- **Antigravity countdowns no longer slip later when Google skips a quota group.** When one quota response leaves out a model group, usage keeps showing it for up to 30 minutes. The kept reading was treated as brand new, so its reset countdown moved later by however long ago it was fetched. It now counts down from the original reading.
+- **The Gemini ⇄ button can always switch back.** With only the Claude / GPT and Argon groups present, switching to Argon left the button stuck there, because the next press asked for Gemini and fell back to Argon again. The button now cycles only through the groups Antigravity reports.
+- **Argon's compact card shows the right rows after switching groups.** Argon has a weekly limit only, so its compact card hides the 5-hour row. Switching groups on macOS kept the previous group's choice until the next refresh, and the Windows tray never applied it.
+- **Saved usage history no longer loses days when a report is built during a background save.** Both write `~/.usage/usage_snapshot.json` and `~/.usage/year_ledger.json`; if they overlapped, the one that finished last could drop what the other had just saved.
+
 ## [0.34.6] - 2026-10-23
 
 ### Changed
