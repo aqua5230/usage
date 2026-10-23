@@ -6,6 +6,232 @@
       "name": "Claude Code",
       "versions": [
         {
+          "version": "2.1.309",
+          "period": "2026-10-22",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "ultrareview 嚴格檢查工作區信任，未獲授權立即中斷",
+                "en": "ultrareview Enforces Workspace Trust Checks, Halting Immediately Without Authorization"
+              },
+              "body": {
+                "zh-TW": "當你在終端機使用 `claude ultrareview` 進行進階程式碼審查時，工具現在會主動確認目前工作區是否值得信任。在一般終端機下它會跳出確認提問，若沒有互動終端或在自動化環境則會直接拒絕執行。在自動化腳本中，你必須加入不帶參數的 `--trust-workspace` 旗標（需放在 PR 編號或基準分支後面）。或者設定環境變數（執行時讀取的設定值）`CLAUDE_CODE_DISABLE_ULTRAREVIEW_TRUST_CHECK=1`。⟦好比大樓警衛室只讓登記過的訪客上樓，以前審查員可能直接走進私人辦公室，現在必須先刷卡確認訪客名單，未登記者一律在門外擋下。⟧當你在持續整合伺服器上排程跑深度審查，卻發現指令中斷時，可按上述位置補上信任旗標，通過工作區信任檢查。",
+                "en": "When you run advanced code reviews in the terminal using `claude ultrareview`, the tool now actively verifies whether the current workspace is trusted. In a standard terminal, it prompts for confirmation, but it directly refuses execution if there is no interactive terminal or inside an automated environment. In automated scripts, you must include the `--trust-workspace` flag with no arguments (placed after the PR number or base branch). Alternatively, you can set the environment variable (configuration values read at runtime) `CLAUDE_CODE_DISABLE_ULTRAREVIEW_TRUST_CHECK=1`. ⟦Picture a building security desk that only allows registered visitors upstairs: where reviewers could previously walk straight into private offices, they must now badge in against the visitor log, and anyone unlisted is stopped at the door.⟧ When a scheduled in-depth review on a continuous integration server stops unexpectedly, add the trust flag in the position described above to pass the workspace trust check."
+              },
+              "original": "Changed `claude ultrareview` to require workspace trust: it asks on a terminal, else refuses; scripts pass `--trust-workspace`, which takes no value (put a PR number or base branch before it), or set `CLAUDE_CODE_DISABLE_ULTRAREVIEW_TRUST_CHECK=1`"
+            },
+            {
+              "title": {
+                "zh-TW": "/claude-api 技能換裝多代理人架構，預設啟用動態工作流程",
+                "en": "/claude-api Skill Adopts Multi-Agent Architecture, Enabling Dynamic Workflows by Default"
+              },
+              "body": {
+                "zh-TW": "當你透過 `/claude-api` 技能規劃雲端代理人團隊時，背後生成團隊的底層範本已經升級。以往工具會採用舊有的協調員架構（coordinator）。現在改以 `multiagent_20261001` 架構建立 Managed Agents（由平台託管的代理人）子團隊，並預設開啟動態工作流程。⟦宛如專案工作室調整團隊編制，以前沿用舊的組織方式，現在改用新的團隊組織方式。⟧當你需要為多步驟任務設計多個助理分工時，直接呼叫 `/claude-api`，產出的代理人團隊就會採用這套架構，動態工作流程也已預設開啟。",
+                "en": "When you design cloud agent teams through the `/claude-api` skill, the underlying template generating those teams has been upgraded. Previously, the tool relied on the legacy coordinator architecture. It now builds Managed Agents (agents hosted by the platform) subteams using the `multiagent_20261001` architecture, with dynamic workflows enabled by default. ⟦A project studio reorganizes its staffing: where it previously relied on an older organizational setup, it now adopts a new team structure.⟧ When you need to delegate multi-step tasks across multiple assistants, call `/claude-api` directly, and the generated agent team will use this architecture with dynamic workflows turned on by default."
+              },
+              "original": "Changed the `/claude-api` skill to build Managed Agents subagent teams on `multiagent_20261001` with dynamic workflows on by default, instead of `coordinator`"
+            },
+            {
+              "title": {
+                "zh-TW": "sed -i 採用標準指令確認，修改內容不再交由 /rewind 復原",
+                "en": "sed -i Adopts Standard Command Prompts, Leaving Edits Outside /rewind Restoration"
+              },
+              "body": {
+                "zh-TW": "在對話中要求 Claude 直接批次替換檔案文字時，`sed -i` 指令的執行與確認流程有了調整。以前這類就地修改指令會跳出模擬的檔案編輯預覽，現在它改為顯示標準的 Bash 執行提示，並依照輸入的原文直接運行。與其他透過 Bash 進行的修改一樣，執行過後的檔案變更不會再被 `/rewind` 指令復原。⟦跟在便條紙上動筆塗改一樣，以前動筆前會先在旁邊墊一張描圖紙給你看預覽，現在直接按指令在紙上落筆。⟧如果你打算在大量程式碼中批次取代變數名稱，執行前請確認修改內容，因為 `/rewind` 不會復原這類修改。",
+                "en": "When you ask Claude to batch-replace file text in a conversation, the execution and confirmation flow for the `sed -i` command has been adjusted. Previously, this in-place modification command displayed a simulated file edit preview. It now displays a standard Bash execution prompt and runs directly with the verbatim input. Like other modifications made through Bash, resulting file changes will no longer be restored by the `/rewind` command. ⟦Think of writing corrections on a notepad: where you once placed tracing paper over the page to preview changes, you now put pen directly to paper as instructed.⟧ If you plan to batch-replace variable names across extensive code, verify your changes before running, because `/rewind` will not undo these modifications."
+              },
+              "original": "Changed `sed -i` to get the standard Bash prompt and run as written, not a simulated file-edit preview; like other Bash edits, it is no longer restored by `/rewind`"
+            },
+            {
+              "title": {
+                "zh-TW": "補強沙盒隔離防線，嚴格限制設定檔與捷徑路徑寫入",
+                "en": "Sandbox Isolation Hardened with Stricter Write Limits on Configs and Symlinks"
+              },
+              "body": {
+                "zh-TW": "當你在 macOS 與 Linux 上啟用沙盒執行指令時，多項環境隔離與檔案寫入的防護邊界獲得了修正。沙盒內的 Bash 指令以前會在執行前於沙盒外載入 Shell 啟動檔，現在不會在隔離環境外偷跑。當目錄透過符號連結（指向真實位置的捷徑檔）連接時，macOS 的 `denyWrite` 規則現在會確實比對目標的真實位置，設定檔儲存庫的防寫限制也不會被捷徑繞過。沙盒指令與自動核准的修改不再能更動由 `--mcp-config` 指定的 MCP（讓 AI 連接外部工具的協定）設定檔。在 Linux 環境中，背景指令即使存活超過原本的工作階段，沙盒禁止寫入的防線也不再提早解除。若沙盒處於啟用但無法運作的狀態，排除於沙盒外的指令在寫入允許清單的路徑前會主動跳出確認，並直接拒絕未隔離的備援操作。",
+                "en": "When you enable sandboxing to run commands on macOS and Linux, several protection boundaries for environment isolation and file writes have been fixed. Bash commands inside the sandbox previously loaded Shell startup files outside the sandbox before execution. They no longer run outside the isolated environment. When directories are connected via symlinks (shortcut files pointing to real locations), macOS `denyWrite` rules now accurately match the real target location, preventing shortcuts from bypassing write restrictions on configuration repositories. Sandboxed commands and auto-approved modifications can no longer alter MCP (Model Context Protocol, enabling AI to connect with external tools) configuration files specified by `--mcp-config`. In Linux environments, even if background commands outlive their original session, write-prohibition boundaries in the sandbox are no longer lifted prematurely. If the sandbox is enabled but non-functional, commands exempted from the sandbox will prompt for confirmation before writing to allowlisted paths, while un-isolated fallback operations are rejected outright."
+              },
+              "original": "Fixed sandboxed Bash commands on macOS and Linux running the shell's startup files outside the sandbox before each command\nFixed macOS sandbox `denyWrite` glob patterns not applying at a path's real location when the pattern's folder is reached through a symlink\nFixed sandboxed commands and auto-accepted edits being able to modify the MCP config file passed with `--mcp-config`\nFixed profile store write protection not applying when the config directory is reached through a symlink\nLinux: Fixed sandbox write denies lifting when a background command outlived the session\nChanged commands the settings exclude from the sandbox to ask before writing to its write-list paths while the sandbox is enabled but cannot run; the unsandboxed fallback is refused there"
+            },
+            {
+              "title": {
+                "zh-TW": "終端機強化指令審核，嚴防重導向與目錄切換繞過授權",
+                "en": "Terminal Strengthens Command Auditing, Blocking Redirection and Directory Changes Bypasses"
+              },
+              "body": {
+                "zh-TW": "當 Claude 在終端機執行複合指令或刪除檔案時，幾處曾會漏掉權限提示或錯誤信任狀態的盲點已全數修復。Bash 權限檢查以前會盲目信任由指令設定的變數，即使該指令的輸出重導向根本無法開啟；現在不會再誤判為成功。當指令在執行 git 前先變更目錄，若 `cd` 被包裝或帶有前綴，Bash 檢查現在會像一般 `cd` 一樣確實跳出確認提示。當複合指令包含子 Shell 時，`Edit(path)` 阻擋規則現在能確實攔截指向該路徑的重導向寫入。在 Windows 上，若 `Set-Location` 或 `cd` 目標為當前目錄但帶有額外參數，PowerShell 權限檢查不再自動放行，而是會跳出核准詢問。桌面應用程式與 VS Code 在略過權限模式下若遇到危險的 `rm` 與 `rmdir` 指令，現在會直接拒絕並附上改寫建議，避免無人值守的工作階段卡在確認畫面。",
+                "en": "When Claude runs compound commands or deletes files in the terminal, several blind spots that previously missed permission prompts or falsely trusted state have been fixed. Bash permission checks previously blindly trusted variables set by a command even if output redirection failed to open. They no longer misjudge such executions as successful. When a command changes directories before running git, Bash checks now properly prompt for confirmation if `cd` is wrapped or prefixed, matching standard `cd` behavior. When compound commands contain subshells, `Edit(path)` blocking rules now reliably intercept redirection writes targeting that path. On Windows, if `Set-Location` or `cd` targets the current directory with extra arguments, PowerShell permission checks no longer auto-approve the command, prompting for confirmation instead. When dangerous `rm` and `rmdir` commands run in bypass permissions mode, the desktop app and VS Code now reject them directly with rewrite suggestions, preventing unattended sessions from stalling on confirmation prompts."
+              },
+              "original": "Fixed the Bash permission check trusting a variable set by a command whose redirect can fail to open\nFixed Bash permission checks not prompting for some compound commands that change directory before running git when the `cd` is wrapped or prefixed, as they do for a plain `cd`\nFixed an `Edit(path)` deny rule not blocking a Bash redirect to that path in some commands that also held a subshell\nWindows: Fixed PowerShell permission checks auto-approving some `Set-Location` or `cd` commands that target the current directory and carry extra arguments; these now prompt for approval\nChanged the dangerous `rm` and `rmdir` prompt in bypass permissions mode in the Desktop app and VS Code to deny the command at once with a rewrite hint, so unattended sessions keep going"
+            },
+            {
+              "title": {
+                "zh-TW": "收緊工作樹隔離防護，Git 操作提速並預先載入物件",
+                "en": "Worktree Isolation Guard Tightened, Accelerating Git Operations and Pre-fetching Objects"
+              },
+              "body": {
+                "zh-TW": "當你啟用隔離環境讓多個對話平行處理不同任務時，版本控制與工作目錄的邊界防護有了重要改善。工作樹（Git 讓同一專案平行開多份副本的功能）隔離的工作階段中，先前部分帶有語系前綴、原本應被隔離守衛拒絕的指令會被放行，現在已修正；zsh 下原本會漏網的算術運算指令也會被阻擋。由 Claude Code 建立的工作樹與分支簽出，現在會像其他 Git 操作一樣主動忽略替換參照（replace refs）。Windows 上多項內部 Git 指令變快；在所有平台上，這些指令的錯誤訊息都改以英文顯示，不受 Git 語言設定影響。在一般複製品或設定了 Bash 沙盒的部分複製品中，建立與重複使用工作樹時不再隨選抓取物件；這類部分複製品會先抓取物件，再建立或重複使用工作樹。",
+                "en": "When you enable isolated environments so multiple conversations can handle different tasks in parallel, boundary protections for version control and working directories have improved significantly. Inside sessions isolated by worktrees (Git features that maintain parallel copies of the same project), commands with locale prefixes that should have been rejected by the isolation guard previously slipped through, but this is now fixed. Arithmetic commands under zsh that previously went unnoticed are also blocked. Worktrees and branch checkouts created by Claude Code now actively ignore replace references, matching other Git operations. Multiple internal Git commands are faster on Windows. Across all platforms, error messages from these commands are now displayed in English, regardless of Git locale settings. In standard clones or partial clones configured with Bash sandboxing, creating and reusing worktrees no longer fetches objects on demand. Such partial clones now pre-fetch objects before creating or reusing a worktree."
+              },
+              "original": "Fixed worktree-isolated sessions accepting some locale-prefixed commands the isolation guard should refuse\nFixed worktree-isolated sessions on zsh accepting some arithmetic commands that the isolation guard should refuse\nFixed worktrees and branch checkouts that Claude Code creates so they ignore git replace refs, as its other git operations already do\nImproved the speed of many git commands Claude Code runs for itself on Windows; on every platform, errors from those commands now show in English even when git is set to another language\nChanged worktree creation and reuse so git no longer fetches objects on demand, in ordinary clones and in partial clones with a Bash sandbox configured; such a partial clone fetches them first"
+            },
+            {
+              "title": {
+                "zh-TW": "/claude-api 擴充雲端追蹤支援，查核即時文件並開放授權令牌",
+                "en": "/claude-api Expands Cloud Tracing Support, Verifying Live Docs and Enabling Auth Tokens"
+              },
+              "body": {
+                "zh-TW": "當你請 `/claude-api` 技能協助配置雲端服務與鏈路追蹤時，多項說明準確度與追蹤設定已獲得改善。技能說明不再誤稱 `ant beta:worker poll --on-work` 會傳遞追蹤上下文。修正 C# 追蹤配置遺漏雲端平台客戶端跨度（spans）的瑕疵。修正原本聲稱 AWS 上的 Claude Platform 請求跨度無法加入呼叫端追蹤的錯誤說法。要求加入 OpenTelemetry 時，技能現在會在 SDK 追蹤之外同時主動提供 API 追蹤選項。技能在回覆功能不受支援前，會先連線查核最新即時官方文件。服務帳號金鑰與工作負載身分同盟的授權令牌（用來驗證身分的數位令牌），現在已可用於管理 OpenTelemetry 的輸出目的地。",
+                "en": "When you ask the `/claude-api` skill to configure cloud services and distributed tracing, several documentation accuracies and tracing settings have been improved. The skill description no longer mistakenly claims that `ant beta:worker poll --on-work` propagates trace context. It fixes an issue in C# tracing setups where cloud platform client spans were omitted. It corrects the inaccurate claim that Claude Platform request spans on AWS cannot join caller traces. When asked to add OpenTelemetry, the skill now proactively provides API tracing options alongside SDK tracing. Before responding that a feature is unsupported, the skill now connects online to verify against current official documentation. Service account keys and authorization tokens (digital credentials used for identity verification) from workload identity federation can now be used to manage OpenTelemetry export destinations."
+              },
+              "original": "Fixed the /claude-api skill saying that `ant beta:worker poll --on-work` passes trace context to the command\nFixed the /claude-api skill's C# tracing setup missing spans from the cloud platform clients\nFixed the /claude-api skill saying that API spans for requests to Claude Platform on AWS can't join the caller's trace\nImproved the /claude-api skill to offer API tracing alongside SDK tracing when asked to add OpenTelemetry\nImproved the /claude-api skill to check the live docs before saying a feature is unsupported\nUpdated the /claude-api skill: service account keys and Workload Identity Federation tokens can now manage OpenTelemetry destinations"
+            },
+            {
+              "title": {
+                "zh-TW": "技能命名支援目錄前綴區隔，資料圖表導入新版對比標準",
+                "en": "Skill Names Support Directory Prefixes, Introducing Modern Contrast Standards to Dataviz"
+              },
+              "body": {
+                "zh-TW": "當你在專案中載入多組外掛或自訂技能時，技能重複衝突與檔案讀取例外處理已得到修復。透過 `--add-dir` 載入的技能若與既有技能同名，以前會無法使用，現在會自動加上前綴顯示為 `<folder>:<name>`。在終端機 Shell 變更檔案後，`/verify` 與 `/code-review` 不再發生找不到巢狀套件自身技能的問題。從 claude.ai 同步的外掛與技能，在遭遇磁碟讀取錯誤時不會再於工作階段中途莫名被整組移除。內建的 dataviz 資料視覺化技能正式支援 APCA 文字對比度演算標準（在需要符合 AA 規範處仍維持 WCAG 2 比例），調色盤驗證腳本新增 `apca(text, background)` 函式，並能指引圖表著色區塊內的標籤該搭配白色或接近黑色。",
+                "en": "When you load multiple plugins or custom skills into a project, duplicate skill collisions and file-read exception handling have been resolved. If a skill loaded via `--add-dir` shares the same name as an existing skill, it was previously unusable. It is now automatically prefixed as `<folder>:<name>`. After modifying files in the terminal Shell, `/verify` and `/code-review` no longer encounter issues locating skills belonging to nested packages. Plugins and skills synced from claude.ai are no longer removed entirely mid-session when encountering disk read errors. The built-in dataviz skill officially supports the APCA text contrast algorithm standard (while maintaining WCAG 2 ratios where AA compliance is required). Its palette verification script introduces the `apca(text, background)` function and guides whether labels inside shaded chart regions should pair with white or near-black."
+              },
+              "original": "Fixed a skill in an `--add-dir` folder being unreachable when another skill already held its name; it is now offered as `<folder>:<name>`\nFixed `/verify` and `/code-review` not finding a nested package's own skill when its files were changed from the shell\nFixed plugins and skills synced from claude.ai being removed, sometimes mid-session, after a disk read error\nUpdated the bundled dataviz skill to accept APCA as a text-contrast measure (keeping WCAG 2 ratios where AA conformance is required), add an `apca(text, background)` function to its palette validator scripts, and say whether a label inside a colored chart fill should be white or near-black"
+            },
+            {
+              "title": {
+                "zh-TW": "修正對話送出與檢視快捷鍵，工具預覽文字妥善處理表情符號",
+                "en": "Shortcut Keys for Sending and Viewing Fixed, with Better Emoji Handling in Tool Previews"
+              },
+              "body": {
+                "zh-TW": "當你在終端機快速輸入文字與切換畫面時，快捷鍵的觸發反應與對話紀錄排版獲得了修正。以前在模型回覆開始前按下 ctrl+enter 立即送出，訊息只會進入排隊；若在提示詞掛鉤（特定事件發生時被觸發的小程式）執行期間按下，還會重啟掛鉤並將訊息留在等待佇列，現在已徹底修正。在 `!` 開頭的 Shell 模式下，綁定快捷鍵的斜線指令不再錯誤地被丟進系統 Shell 中執行。按下 ctrl+o 時，來自其他代理人與工作階段中等待投遞的訊息，現在會完整標記為等待狀態並顯示在紀錄下方。工具輸出的長預覽文字若剛好截斷在表情符號中間，以往會導致工作階段紀錄損毀而無法被 `jq` 解析，現在已修正截斷處理。",
+                "en": "When you quickly type text and switch views in the terminal, shortcut responsiveness and transcript formatting have been fixed. Previously, pressing ctrl+enter to send immediately before the model began responding merely queued the message. If pressed while prompt hooks (small programs triggered by specific events) were executing, it restarted the hook and left the message stranded in the queue, which is now resolved. In Shell mode prefixed with `!`, slash commands bound to shortcuts are no longer erroneously forwarded to the system Shell for execution. When pressing ctrl+o, pending messages awaiting delivery from other agents and sessions are now fully flagged as pending and displayed at the bottom of the log. If long preview text from tool output was truncated in the middle of an emoji, it previously corrupted the session transcript and prevented `jq` from parsing it, which has now been fixed."
+              },
+              "original": "Fixed ctrl+enter (send now) only queuing a message when pressed before the response had started, and restarting a prompt's hooks while leaving the message queued when pressed while those hooks were running\nFixed key-bound slash commands running in the shell from `!` mode\nFixed ctrl+o not showing messages from other agents and sessions that are still waiting to be delivered; they now appear in full under the transcript, marked as waiting\nFixed long tool output previews being cut through an emoji, leaving session transcripts that `jq` could not parse"
+            },
+            {
+              "title": {
+                "zh-TW": "隊友代理人繼承工具限制，自架執行器接軌中斷操作",
+                "en": "Teammate Agents Inherit Tool Restrictions, Bridging Interrupted Operations on Self-Hosted Runners"
+              },
+              "body": {
+                "zh-TW": "當你啟動分割視窗的隊友代理人或在自架伺服器上執行任務時，跨代理人設定傳遞與狀態銜接更為一致。分割視窗中的隊友代理人現在會確實繼承隊長在指令列指定的工具禁用規則與 `--tools` 限制。透過 `/rename` 重新命名的工作階段，在 VS Code 視窗重新載入或非互動式 `--resume` 恢復後，不會再以隨機產生的名稱顯示給其他對話。若該回合透過 `/code-review --fix`、子代理人或 Shell 指令修改了已納入檢查點的檔案，`/rewind` 清單不再誤顯示「沒有程式碼變更」。在自架執行器環境中，若首個提示詞仍在子代理人中運作，`--startup-timeout-min` 不會誤殺工作階段，但凍結的行程仍會被停止。當工作階段轉移到新的自架執行器時，Claude 現在能清楚看見被中斷的工具呼叫，並將其標記為結果未知。",
+                "en": "When you launch split-pane teammate agents or run tasks on self-hosted servers, cross-agent configuration propagation and state transitions are more consistent. Teammate agents in split panes now properly inherit tool disablement rules and `--tools` restrictions specified on the command line by the lead agent. Sessions renamed via `/rename` no longer revert to randomly generated names when viewed from other conversations after a VS Code window reload or a non-interactive `--resume`. If a turn modifies checkpointed files through `/code-review --fix`, subagents, or Shell commands, the `/rewind` list no longer erroneously displays 'no code changes'. In self-hosted runner environments, `--startup-timeout-min` will not terminate the session prematurely if the initial prompt is still active in a subagent, though frozen processes are still stopped. When a session transitions to a new self-hosted runner, Claude can now clearly see interrupted tool calls and mark them as having an unknown result."
+              },
+              "original": "Fixed split-pane agent teammates not inheriting the tool deny and `--tools` rules given on the leader's command line\nFixed sessions renamed with `/rename` appearing to other sessions under a generated name after a VS Code window reload or a non-interactive `--resume`\nFixed the `/rewind` list showing \"No code changes\" for a turn that changed checkpointed files through `/code-review --fix`, a subagent or a shell command\nSelf-hosted runner: Fixed `--startup-timeout-min` stopping a session whose first prompt, such as `/code-review`, was still working in a subagent; a frozen process is still stopped\nSelf-hosted runner: Improved sessions that move to a new runner: Claude now sees the tool call that was interrupted, marked as outcome unknown"
+            },
+            {
+              "title": {
+                "zh-TW": "修復 PowerShell 掛鉤阻擋機制，別名模型自動解析",
+                "en": "PowerShell Hook Blocking Fixed, Aliased Models Automatically Resolve"
+              },
+              "body": {
+                "zh-TW": "當你在工作流程中設定自訂掛鉤（特定事件發生時被觸發的小程式）以攔截工具或步驟時，Windows 與模組載入的相容性獲得了提升。在 PowerShell 中運行的掛鉤程式若以代碼 2 結束，以往無法成功阻擋操作，現在已能正確攔截。在未安裝 Git for Windows 的 Windows 環境中，指定使用 PowerShell 的工具前置與權限請求掛鉤也不再因缺少該工具而直接失守放行。自訂模組的 `turn.step` 掛鉤中若以別名（例如 `haiku`）指定模型，以前每次請求都會失敗，現在會正確解析出對應模型。當掛鉤模組因巢狀過深而無法載入時，錯誤訊息現在會明確點名出問題的檔案路徑，不再只印出簡略的堆疊溢位提示。",
+                "en": "When configuring custom hooks (small programs triggered when specific events occur) in your workflow to intercept tools or steps, compatibility with Windows and module loading has improved. Hook programs running in PowerShell that exit with code 2 previously failed to block operations, but now intercept them correctly. On Windows environments where Git for Windows is not installed, pre-tool and permission-request hooks specifying PowerShell no longer fail open simply due to the missing tool. If a model is specified by an alias (such as `haiku`) in the `turn.step` hook of a custom module, requests that previously failed every time now correctly resolve the corresponding model. When a hook module fails to load due to excessive nesting, error messages now explicitly identify the problematic file path instead of printing a terse stack overflow notice."
+              },
+              "original": "Fixed hooks that run in PowerShell not blocking when the hook's program exits with code 2, and on Windows `PreToolUse` and `PermissionRequest` hooks with `\"shell\": \"powershell\"` failing open when Git for Windows isn't installed\nFixed a mod's `turn.step` hook that names a model by alias, such as `haiku`, failing every request with a model error: the alias now resolves to its model\nImproved the error when a hooks module is nested too deep to load: it now names the file instead of showing a bare stack-overflow message"
+            },
+            {
+              "title": {
+                "zh-TW": "大型說明檔避免重複壓縮，成品發布與權限不再頻繁卡關",
+                "en": "Large Instruction Files Avoid Repeated Compaction, Artifact Publishing and Permissions No Longer Stall"
+              },
+              "body": {
+                "zh-TW": "當對話中包含大量說明文件或正在發布網頁成品時，對話壓縮與成品更新流程不再反覆打擾。讀取受大型巢狀 `CLAUDE.md` 管轄的檔案後，工作階段以前會陷入反覆壓縮對話的循環；現在若巢狀說明檔超出容量上限，工具只會載入檔案開頭部分。發布或更新成品時，以往部分包含特定縮減程式碼（minified scripts）或未被預先讀取的常見頁面會遭到拒絕，現在已能正常發布。在同一個回合中，若對話曾觸發過內容壓縮，Claude 以前會在後續每次更新成品時不斷重複要求授權，這個問題現在已經修復。",
+                "en": "When conversations involve extensive documentation or web artifacts are being published, conversation compaction and artifact update flows no longer cause repeated interruptions. After reading files governed by a large nested `CLAUDE.md`, sessions previously fell into loops of repeatedly compacting conversations. If a nested instructions file exceeds the size limit, the tool now loads only the initial portion of the file. When publishing or updating artifacts, certain common pages containing specific minified scripts or pages that were not preread previously faced rejection, but can now be published normally. If a conversation triggered content compaction within the same turn, Claude previously asked for permission repeatedly on every subsequent artifact update, an issue that is now fixed."
+              },
+              "original": "Fixed sessions compacting repeatedly after reading files under a very large nested CLAUDE.md; a nested CLAUDE.md over the size limit now loads only its start\nFixed artifact publishes and updates being refused for some ordinary pages, such as pages with certain minified scripts or artifacts Claude could not read first\nFixed Claude asking for permission on each artifact update for the rest of a turn after the conversation was compacted in that turn"
+            },
+            {
+              "title": {
+                "zh-TW": "桌面工作階段維持連線，遠端狀態列與停用工具不再錯亂",
+                "en": "Desktop Sessions Stay Connected, Remote Status Line and Disabled Tools No Longer Misbehave"
+              },
+              "body": {
+                "zh-TW": "當你透過桌面應用程式或遠端控制操作 Claude Code 時，帳號狀態與背景連線的穩定度得到了改善。在列印模式與 SDK 工作階段中，已經停用的 MCP（讓 AI 連接外部工具的協定）伺服器，以前會在後續跳出權限提示時被意外重新連線，現在已維持關閉。在由 Claude 桌面應用程式託管的工作階段中，網路連線重新整理時對話訊息偶爾遺失的問題已經排除。當同一台電腦上的終端機登入了不同帳號或組織時，桌面應用程式中的工作階段以前會遺失部分功能，現在不會再因此缺少功能。針對非 Git 儲存庫的普通資料夾，`claude remote-control` 的狀態列（顯示在終端機最底下的狀態列）不再將分支名稱錯誤顯示為 `HEAD`。",
+                "en": "When operating Claude Code through the desktop app or remote control, the stability of account status and background connections has improved. In print mode and SDK sessions, disabled MCP (a protocol that connects AI to external tools) servers previously reconnected unexpectedly when permission prompts appeared later, but now remain closed. In sessions hosted by the Claude desktop app, an issue where conversation messages were occasionally lost during network refreshes has been eliminated. When terminals on the same computer are logged into different accounts or organizations, sessions inside the desktop app previously lost certain features, but will no longer miss capabilities as a result. For standard folders that are not Git repositories, the status line (the bar displayed at the bottom of the terminal) of `claude remote-control` no longer mistakenly shows the branch name as `HEAD`."
+              },
+              "original": "Fixed a disabled MCP server being reconnected by a later permission prompt in print and SDK sessions\nFixed messages from a Claude Desktop-hosted session sometimes being lost when its connection refreshed\nFixed features missing from Claude Code sessions in the Claude desktop app when the terminal on the same computer was signed in to a different account or organization\nFixed the `claude remote-control` status line showing `HEAD` as the branch for a folder that is not in a git repository"
+            },
+            {
+              "title": {
+                "zh-TW": "隱私設定即時同步，意見回饋與 GitHub 標記精確呈現",
+                "en": "Privacy Settings Sync in Real Time, Feedback and GitHub Mentions Render Accurately"
+              },
+              "body": {
+                "zh-TW": "當你在終端機檢查隱私設定或向官方回報問題時，回傳的訊息說明與對外發布內容更加清晰。輸入 `/privacy-settings` 時，以前可能顯示過期的「協助改善我們的 AI 模型」開關狀態；現在會即時呈現最新設定，無法取得設定時也會明確告知。當你所屬的組織未開放意見回饋時，送出 `/feedback` 不再只顯示含糊的「請稍後再試」，而是會顯示伺服器提供的具體原因並指引回報錯誤的管道。含有大量紀錄的超大 `/feedback` 報告在傳送失敗時，現在會自動改為排除對話紀錄後重新送出，不再直接報錯中斷。在發布 Pull Request、議題或留言時，Claude 不會再將角色名稱或佔位符寫成 `@` 標籤，避免意外通知到無關的 GitHub 使用者。",
+                "en": "When checking privacy settings in the terminal or reporting issues to the team, returned explanations and public content are much clearer. Running `/privacy-settings` previously might have displayed an outdated toggle state for helping improve AI models, but now displays current settings in real time and clearly states when settings cannot be retrieved. When feedback is not enabled for your organization, submitting `/feedback` no longer merely displays a vague request to try again later, instead presenting the specific reason provided by the server and directing you to bug-reporting channels. When an oversized `/feedback` report containing extensive logs fails to transmit, it now automatically retries after excluding conversation transcripts, rather than aborting directly with an error. When publishing pull requests, issues, or comments, Claude no longer formats role names or placeholders as `@` mentions, preventing unintended notifications to unrelated GitHub users."
+              },
+              "original": "Fixed `/privacy-settings` showing an out-of-date \"Help improve our AI models\" value; it now also says when the setting can't be fetched\nFixed feedback saying \"try again later\" when your organization does not accept feedback; it now shows the server's reason and where to report a bug\nFixed oversized /feedback reports failing instead of being resent without the transcript\nFixed Claude notifying unrelated GitHub users by writing role names and placeholders as mentions in PRs, issues and comments"
+            },
+            {
+              "title": {
+                "zh-TW": "磁碟空間滿載提供清理指引，修復串流逾時與工具安裝彈窗",
+                "en": "Full Disk Space Provides Cleanup Guidance, Streaming Timeouts and Tool Installation Popups Fixed"
+              },
+              "body": {
+                "zh-TW": "當底層系統空間不足或身處特定雲端環境時，錯誤提示與連線等待機制變得更為實用。在共用 `/proc` 的 Linux 沙盒中，讀取工具讀取特定 PDF 頁面範圍不再誤報檔案不存在。在 Amazon Bedrock 將 `ANTHROPIC_BEDROCK_BASE_URL` 設為預設端點時，細粒度串流不會再被錯誤關閉。透過僅發送保持連線訊號（keepalive pings）的閘道連線時，等待 API 回覆提示不再閃爍，非 Anthropic 後端會等待 45 秒。在未安裝 Xcode，也未安裝 Command Line Tools（命令列開發工具）的 Mac 上，啟動 Claude Code 不再每次跳出安裝視窗。磁碟滿載導致 Bash 指令中斷時，會說明原因並點名應釋放空間的資料夾；暫存空間已滿時啟動也會顯示清楚訊息而非晦澀代碼。",
+                "en": "When the underlying system is low on space or running in specific cloud environments, error prompts and connection waiting mechanisms are more practical. Inside Linux sandboxes sharing `/proc`, the read tool no longer falsely reports that files do not exist when reading specific PDF page ranges. When Amazon Bedrock configures `ANTHROPIC_BEDROCK_BASE_URL` as the default endpoint, fine-grained streaming is no longer mistakenly disabled. When connecting through gateways that only send keepalive pings, the prompt waiting for API responses no longer flickers, and non-Anthropic backends wait for 45 seconds. On a Mac with neither Xcode nor Command Line Tools (developer tools for the command line) installed, launching Claude Code no longer triggers an installation popup every time. When Bash commands abort because the disk is full, the tool explains the reason and names the folder where space should be freed. Starting up when temporary storage is full also displays a clear message rather than cryptic codes."
+              },
+              "original": "Fixed Read reporting \"File does not exist\" for PDF page ranges in Linux sandboxes that share the parent's `/proc`\nFixed fine-grained tool streaming staying off on Amazon Bedrock when `ANTHROPIC_BEDROCK_BASE_URL` is set to the default `bedrock-runtime.<region>.amazonaws.com` endpoint\nFixed the \"Waiting for API response\" hint flickering behind gateways that send only keepalive pings: routes off Anthropic's backend now wait 45 seconds\nmacOS: Fixed the \"Install Command Line Developer Tools\" dialog opening each time Claude Code starts on a Mac without Xcode or the Command Line Tools\nImproved disk-full handling: a Bash command cut off by a full disk now says so and names the folder to free up, and starting on a full temp volume prints a clear message, not a raw ENOSPC error"
+            },
+            {
+              "title": {
+                "zh-TW": "VS Code 聊天面板長訊息支援摺疊，快取損壞自動修復",
+                "en": "VS Code Chat Panel Supports Collapsing Long Messages, Corrupted Cache Automatically Recovers"
+              },
+              "body": {
+                "zh-TW": "當你在 VS Code 側邊面板中使用 Claude Code 時，幾處版面繪製與快取異常已經獲得排除。當編輯器因快取（把算過或查過的結果暫存起來直接用）了不完整的檔案而導致 Claude 面板一片空白時，擴充套件現在會自行恢復，或明確提示問題原因與手動解決方法。像 `/goal` 這類過長的斜線指令提示詞，現在會像其他長訊息一樣自動摺疊在展開按鈕後方，即使把聊天面板調窄，長訊息也不會撐破版面。輸入框上方標示來自特定外掛的提示標籤，不再錯誤遮擋斜線指令與 `@` 標註的選單。貼上複製的 LaTeX 數學公式時，不再產生多餘的空白清單項目、空白段落或程式碼區塊，編號清單也不會再被強制從 1 重新起算。",
+                "en": "When using Claude Code in the VS Code side panel, several layout rendering and caching anomalies have been resolved. When the editor caches an incomplete file and causes the Claude panel to go completely blank, the extension now recovers on its own or clearly explains the cause and manual resolution. Lengthy slash command prompts such as `/goal` now automatically collapse behind an expand button just like other long messages, and narrowing the chat panel will no longer cause long messages to break the layout. Hint tags above the input box indicating specific plugins no longer mistakenly obscure menus for slash commands or `@` mentions. Pasting copied LaTeX mathematical formulas no longer creates superfluous empty list items, blank paragraphs, or code blocks, and numbered lists are no longer forced to restart from 1."
+              },
+              "original": "[VSCode] Fixed the Claude panel staying blank after the editor cached an incomplete copy of its files; it now recovers by itself, or says what went wrong and how to fix it\n[VSCode] Fixed long slash-command messages such as `/goal` filling the chat panel; they now fold behind Show more like other prompts (anthropics/claude-code#97469)\n[VSCode] Fixed long messages not folding behind Show more after the chat panel is made narrower\n[VSCode] Fixed a mod's \"From the … plugin\" label above the prompt being drawn over the slash command and @-mention menus (anthropics/claude-code#102981)\n[VSCode] Fixed an empty list item, paragraph or code block, and list items renumbered from 1, when pasting copied LaTeX math"
+            },
+            {
+              "title": {
+                "zh-TW": "VS Code 編輯等待時間縮短，憑證警告提示與空紀錄修復",
+                "en": "VS Code Edit Wait Time Shortened, Certificate Warning Guidance and Empty Logs Fixed"
+              },
+              "body": {
+                "zh-TW": "當你在 VS Code 中編修程式碼或發出語音指令時，操作延遲與背景紀錄邏輯獲得了調整。聽寫或套件自身請求的憑證（確認連線對象身分的證明）驗證失敗時，例如經過會檢查加密流量的代理伺服器，日誌現在會提供處理指引。每次開啟新對話卻未發送訊息時，歷史紀錄不再被空工作階段塞滿。若在 `~/.claude/keybindings.json` 的 Chat 區段將 `\"ctrl+j\"` 設為 `null`，在聊天輸入框按下 Ctrl+J 不再強制換行，改交由 VS Code 與作業系統處理。當組織不接受意見回饋時，錯誤提示不再只回傳 HTTP 狀態碼，會顯示具體原因。聊天面板中的編輯與寫入速度加快，每次編輯後等待偵測新問題的時間從原本的 1 至 1.5 秒縮短為多數情況下的 0.75 秒。",
+                "en": "When editing code or issuing voice commands in VS Code, operational latency and background logging logic have been adjusted. When certificate verification (checking digital proof of the connection target's identity) fails for dictation or extension requests, such as when passing through a proxy that inspects encrypted traffic, logs now provide troubleshooting guidance. Opening a new conversation without sending a message no longer clutters history with empty sessions. If `\"ctrl+j\"` is set to `null` in the Chat section of `~/.claude/keybindings.json`, pressing Ctrl+J in the chat input box no longer forces a newline, deferring handling to VS Code and the operating system. When an organization does not accept feedback, error prompts no longer return only an HTTP status code, displaying the specific reason instead. Editing and writing in the chat panel are faster, reducing the wait time to detect new problems after each edit from 1 to 1.5 seconds down to 0.75 seconds in most cases."
+              },
+              "original": "[VSCode] Added a log warning that says what to do when dictation or the extension's own requests fail certificate verification, such as behind a TLS-inspecting proxy\n[VSCode] Fixed Session history filling up with empty \"Untitled\" sessions each time you start a new session without sending a message\n[VSCode] Fixed Ctrl+J in the chat input always inserting a newline: it is now left to VS Code and the OS when \"ctrl+j\" is set to null in the Chat context of ~/.claude/keybindings.json\n[VSCode] Fixed the feedback error showing only an HTTP status when your organization does not accept feedback\n[VSCode] Improved Edit and Write speed in the chat panel: the wait for new problems after each edit is now 0.75 seconds in most cases, down from 1 to 1.5 seconds"
+            },
+            {
+              "title": {
+                "zh-TW": "雲端工作階段修正環境變數引號，管理介面與變更清單明朗化",
+                "en": "Cloud Sessions Fix Environment Variable Quotes, Admin Interface and Changes List Clarified"
+              },
+              "body": {
+                "zh-TW": "當你在瀏覽器管理雲端工作階段與連線設定時，表單填寫與文件顯示體驗有了改善。在例行表單中新增連接器時，清單在載入期間不再誤報沒有可用的連接器。雲端環境編輯器不再打亂變數順序，當數值同時包含單引號與雙引號時，也不會再多餘地自動補上反斜線。管理設定中的自架環境對話框獲得調整，標題、分頁標籤與按鈕在滾動時會固定在可視範圍，只有中間內容會捲動。雲端工作階段中的閱讀文件工具列不再顯示跳脫後的 JSON 原始碼，而是會呈現易讀的排版內容。變更面板現在會主動標明目前是僅列出已推送的提交，還是僅顯示 Claude 的檔案修改。",
+                "en": "When managing cloud sessions and connection settings in the browser, the experience for filling out forms and viewing documents has improved. When adding connectors in routine forms, the list no longer falsely claims that no connectors are available while loading. The cloud environment editor no longer scrambles variable order, nor does it insert redundant backslashes when values contain both single and double quotes. The self-hosted environment dialog in administrative settings has been adjusted so that headers, tabs, and buttons stay pinned in view while scrolling, leaving only the middle content scrollable. The document-reading toolbar in cloud sessions no longer displays escaped raw JSON, rendering cleanly formatted content instead. The changes panel now explicitly clarifies whether it is listing only pushed commits or displaying only file modifications made by Claude."
+              },
+              "original": "[Cloud sessions] Fixed the Add connector list in routine forms saying no connectors were available while they were still loading\n[Cloud sessions] Fixed the cloud environment editor shuffling environment variables and adding backslashes to values that contain both kinds of quote\n[Cloud sessions] Fixed the self-hosted environment details dialog in admin settings so its title, tabs and buttons stay in view while only the content scrolls\n[Cloud sessions] Fixed the \"read documentation\" tool row in cloud sessions, which showed escaped JSON instead of a readable page\n[Cloud sessions] Improved a cloud session's Changes pane, which now says when it lists only pushed commits or only Claude's edits"
+            },
+            {
+              "title": {
+                "zh-TW": "Slack 標註草稿正確轉發頻道，審核按鈕支援重啟對話",
+                "en": "Slack Channel Drafts Dispatch Correctly, Review Buttons Support Restarting Sessions"
+              },
+              "body": {
+                "zh-TW": "當你的團隊在 Slack 頻道中使用 Claude 進行協作時，訊息派送與互動卡片的穩定性顯著提升。你在頻道中核准的草稿，以前可能被 Claude 誤貼到私訊中；現在沒有指明頻道的貼文會被直接拒絕，確保內容確實發布至指定的頻道。在審核卡片上按下核准或拒絕時，若背後的工作階段已經停止，你的操作現在會自動重啟該工作階段繼續執行。在工作區轉移至不同 Claude 組織後（包括 Enterprise Grid 上的未共用頻道），Claude 不會再漏看頻道中未被標註的討論訊息。在對討論串發布回覆之前，Claude 現在會先讀取其他人剛發送的最新留言，避免發言內容脫節。管理後台的 Slack 設定頁面若載入失敗，不再誤報尚未連接工作區，而是會顯示錯誤訊息並提供重試按鈕。",
+                "en": "When your team collaborates with Claude inside Slack channels, the reliability of message dispatching and interactive cards has significantly improved. Drafts approved in a channel were previously at risk of being mistakenly posted by Claude into direct messages. Posts without a specified channel are now rejected outright, ensuring content is delivered to the designated channel. When clicking approve or reject on a review card, if the underlying session has stopped, your action now automatically restarts that session to proceed. After workspaces are migrated to a different Claude organization (including unshared channels on Enterprise Grid), Claude no longer misses unmentioned discussion messages in channels. Before posting replies to a thread, Claude now reads the latest comments just posted by others, preventing disjointed responses. If the admin Slack settings page fails to load, it no longer falsely reports that no workspace is connected, instead displaying an error message alongside a retry button."
+              },
+              "original": "[Claude Tag] Fixed Claude in Slack posting a draft you approved for a channel into your DM by mistake; a post with no channel is now refused so it can go to the approved channel\n[Claude Tag] Fixed Allow and Deny on Claude's approval cards in Slack doing nothing when the session had stopped; your answer now restarts the session\n[Claude Tag] Fixed Claude ignoring untagged messages in a Slack channel after its workspace moved to a different Claude organization, including unshared channels on Enterprise Grid\n[Claude Tag] Fixed Claude in a Slack channel posting a threaded reply before reading a newer message someone had just added to that thread\n[Claude Tag] Fixed the Slack page in Claude Tag admin settings saying no workspaces were connected when the list failed to load; it now shows an error with a Retry button"
+            },
+            {
+              "title": {
+                "zh-TW": "PR 審查檢查標記自動補全，手動停止審查及時關閉檢查",
+                "en": "Pull Request Review Check Marks Automatically Backfilled, Manual Stops Promptly Close Checks"
+              },
+              "body": {
+                "zh-TW": "當你在 GitHub Pull Request 上等待自動程式碼審查時，檢查狀態更新結果現在更為準確。當審查已經順利完成，但先前建立檢查狀態的嘗試曾失敗過，工具在最終重試時現在會確實補上已完成的檢查標記，不再讓 PR 懸空呈現沒有檢查結果的狀態。若在審查執行期間推播了新的程式碼並在後方排隊，即使輸入了 `@claude review stop` 手動停止，以往排隊的審查仍會被啟動；現在排隊的檢查會立即關閉，並具體註明被停止的原因。⟦如同公文簽核系統在審批完畢後自動蓋上最終核准章，中途撤回的案件也會立刻標記撤回原因，避免審核進度懸而未決。⟧",
+                "en": "When waiting for automated code reviews on GitHub pull requests, check status updates are now more accurate. When a review finishes successfully but earlier attempts to create the check status failed, the tool on its final retry now reliably backfills the completed check mark, preventing the pull request from hanging in a state with no check results. If new code is pushed during an ongoing review and queued up behind it, typing `@claude review stop` to halt the review manually previously still allowed queued reviews to start. Queued checks are now closed immediately with the specific cancellation reason noted. ⟦Just as an official document approval system automatically applies a final approval stamp once sign-off is complete, any case recalled midway is immediately marked with the withdrawal reason to prevent review progress from remaining in limbo.⟧"
+              },
+              "original": "[Code Review] Fixed a finished review showing no check on the pull request when earlier tries to create it failed; a final try now adds a completed check\n[Code Review] Fixed a push queued behind a running review still starting a review after `@claude review stop`; its check now closes and says why"
+            }
+          ]
+        },
+        {
           "version": "2.1.307",
           "period": "2026-10-21",
           "items": [
@@ -170,166 +396,6 @@
               "original": "Fixed an API error being replaced by \"prompt is too long\", and an unneeded compaction, in sessions with many MCP tools"
             }
           ]
-        },
-        {
-          "version": "2.1.305",
-          "period": "2026-10-20",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "新增 `sandbox.allowNestedUserNamespaces`，Linux 沙盒裡也能跑 Chromium",
-                "en": "New `sandbox.allowNestedUserNamespaces` lets Chromium run inside the Linux sandbox"
-              },
-              "body": {
-                "zh-TW": "在 Linux 上請 Claude 開 Chromium 跑網頁測試，或用 rootless podman 開容器，指令常在 sandbox（把指令關在隔離區執行的保護）裡卡住。這兩種程式都得自己建立 user namespace（Linux 讓程式擁有一套獨立身分的機制）。現在可以在 settings.json 加上 `{\"sandbox\": {\"allowNestedUserNamespaces\": true}}` 放行。⟦把隔離病房的鑰匙也交給病人，以前門鎖死、該做的檢查做不了，現在檢查做得了，但病人也能自己開門走出去。⟧官方寫得很明白：打開後，這些指令能繞過沙盒的檔案保護，所以確定需要再開。",
-                "en": "On Linux, asking Claude to launch Chromium for web tests or start containers with rootless podman often got stuck inside the sandbox (the protection that runs commands in an isolated area). Both programs need to create their own user namespaces (a Linux feature that gives a program its own separate identity). You can now allow it by adding `{\"sandbox\": {\"allowNestedUserNamespaces\": true}}` to settings.json. ⟦Handing the patient the key to the isolation ward means the tests that were blocked behind a locked door can finally run, but the patient can also walk out on their own.⟧ The changelog is explicit: once on, these commands can get around the sandbox's file protections, so turn it on only when you need it."
-              },
-              "original": "Added `sandbox.allowNestedUserNamespaces` so sandboxed commands on Linux can create user namespaces (Chromium, rootless podman); this lets them get around the sandbox's file protections"
-            },
-            {
-              "title": {
-                "zh-TW": "新增 `CLAUDE_CODE_RETRY_WATCHDOG_USAGE_LIMIT_RECHECK_MS`，用量上限提早解除也接得上",
-                "en": "New `CLAUDE_CODE_RETRY_WATCHDOG_USAGE_LIMIT_RECHECK_MS` catches usage limits lifted early"
-              },
-              "body": {
-                "zh-TW": "睡前開著無人看管的重試模式 `CLAUDE_CODE_RETRY_WATCHDOG`，讓 Claude 通宵跑長任務，半夜撞到用量上限，它就一路等到重置時間才繼續。可是上限有時在重置前就解除了，它卻不會發現，白白多等好幾個小時。新的環境變數 `CLAUDE_CODE_RETRY_WATCHDOG_USAGE_LIMIT_RECHECK_MS` 讓它在等待期間重新檢查上限，名稱結尾的 MS 代表單位是毫秒。用法是啟動前在終端機打 `export CLAUDE_CODE_RETRY_WATCHDOG_USAGE_LIMIT_RECHECK_MS=600000`，600000 毫秒就是 10 分鐘。⟦排餐廳候位時，以前只能等店員預告的時間才回來，現在每隔一陣子探頭問一次，一有空位就入座。⟧",
-                "en": "Before bed you turn on unattended retry mode, `CLAUDE_CODE_RETRY_WATCHDOG`, so Claude can grind through a long task overnight; when it hits a usage limit, it waits all the way to the reset time. But limits are sometimes lifted before the reset, and it never noticed, wasting hours. The new environment variable `CLAUDE_CODE_RETRY_WATCHDOG_USAGE_LIMIT_RECHECK_MS` makes it recheck the limit while waiting; the MS at the end means the unit is milliseconds. Set it in the terminal before starting with `export CLAUDE_CODE_RETRY_WATCHDOG_USAGE_LIMIT_RECHECK_MS=600000`, where 600000 milliseconds is 10 minutes. ⟦Waiting for a restaurant table, you used to come back only at the time the host quoted; now you poke your head in every so often and sit down as soon as a table frees up.⟧"
-              },
-              "original": "Added `CLAUDE_CODE_RETRY_WATCHDOG_USAGE_LIMIT_RECHECK_MS` so unattended retry mode (`CLAUDE_CODE_RETRY_WATCHDOG`) notices a usage limit that was lifted before its reset"
-            },
-            {
-              "title": {
-                "zh-TW": "工具搜尋被端點或閘道拒絕時，請求不再全部失敗",
-                "en": "Requests no longer all fail when an endpoint or gateway rejects tool search"
-              },
-              "body": {
-                "zh-TW": "升到 2.1.304 之後，透過雲端供應商或公司閘道（轉送 AI 請求的中間站）用 Claude Code 的人，可能每問一句都直接失敗。Vertex、Bedrock 等供應商的端點或閘道會拒絕 tool search（讓 Claude 需要時才搜尋載入工具的功能）；閘道禁用 ToolSearch，或 `--tools` 沒列它時也一樣。這是 2.1.304 帶進來的退步，現在 Claude Code 遇到這種情況，會拿掉它再重試。",
-                "en": "After upgrading to 2.1.304, anyone using Claude Code through a cloud provider or a company gateway (a relay that forwards AI requests) may have seen every single request fail. The endpoints of providers such as Vertex and Bedrock, or a gateway, rejected tool search (the feature that lets Claude look up and load tools only when needed); the same happened behind gateways that disallowed ToolSearch or left it out of `--tools`. This was a 2.1.304 regression, and Claude Code now retries without it."
-              },
-              "original": "Fixed every request failing on Vertex, Bedrock and other providers when the endpoint or a gateway rejects tool search, and behind gateways with ToolSearch disallowed or left out of `--tools` (a 2.1.304 regression): Claude Code now retries without it"
-            },
-            {
-              "title": {
-                "zh-TW": "`/usage` 的警告附上一行修法，按 `f` 直接套用",
-                "en": "`/usage` warnings come with one-line fixes you apply with `f`"
-              },
-              "body": {
-                "zh-TW": "打 `/usage` 看用量時，底下常冒出幾條警告，以前你得自己查是哪個設定造成、又該怎麼改。現在每條警告都濃縮成一行修法，並寫明來自哪裡；看完按 `f`，這些修法就會直接套用。⟦汽車儀表板以前只亮一顆看不懂的燈，現在燈旁直接寫「左前輪胎壓偏低，按這裡預約補氣」。⟧同樣的修法也會出現在 VS Code 和 `/doctor` 裡，在哪邊看到就在哪邊修，不必記住要回哪個畫面處理。",
-                "en": "When you type `/usage` to check your usage, a few warnings often show up underneath, and you used to have to work out which setting caused each one and how to fix it. Now each warning is a one-line fix that names its source; press `f` and the fixes are applied. ⟦A dashboard that used to light up one cryptic lamp now prints \"front-left tire low, tap here to book air\" right beside it.⟧ The same fixes also appear in VS Code and `/doctor`, so you can fix them wherever you spot them."
-              },
-              "original": "Improved `/usage`: each warning is now a one-line fix that names its source, and `f` applies the fixes; the same fixes appear in VS Code and `/doctor`"
-            },
-            {
-              "title": {
-                "zh-TW": "`allowedMcpServers` 不再篩部分受管 MCP 伺服器，Desktop 掛載外掛也收緊權限",
-                "en": "`allowedMcpServers` stops filtering some managed MCP servers, and Desktop-mounted plugins lose their tool grants"
-              },
-              "body": {
-                "zh-TW": "公司 IT 用受管設定（組織統一下發、員工改不了的設定）管 Claude Code 的話，有兩處行為改了。`managed-mcp.json` 裡的 stdio MCP 伺服器若只在 `env` 用到 `${VAR}`，`allowedMcpServers` 白名單不再篩它，所以名單沒列到的這類伺服器，升級後會開始載入。想繼續擋，就寫進 `deniedMcpServers`。另一處是 Claude Desktop 以路徑掛載的外掛：組織設了 `allowManagedPermissionRulesOnly` 時，外掛自帶的 `allowed-tools` 不再保留。⟦大樓門禁換了規則，白名單沒寫到的某類訪客以前擋在門外，現在直接放行，要擋得另外列黑名單；外包廠商自帶的通行證，在大樓只認管理處證件時也不再算數。⟧",
-                "en": "If your company's IT manages Claude Code through managed settings (rules pushed by the organization that employees cannot change), two behaviors change. In `managed-mcp.json`, stdio MCP servers that use `${VAR}` only in `env` are no longer filtered by the `allowedMcpServers` allowlist, so one your allowlist left out now loads after upgrading. To keep it off, add it to `deniedMcpServers`. The other change covers plugins Claude Desktop mounts by path: when your organization sets `allowManagedPermissionRulesOnly`, they no longer keep their own `allowed-tools`. ⟦A building changed its access rules: one kind of visitor missing from the guest list used to be turned away and now walks right in unless put on a blocklist, while a contractor's own pass stops counting once the building accepts only badges from the management office.⟧"
-              },
-              "original": "Changed `allowedMcpServers` to stop filtering `managed-mcp.json` stdio servers that use `${VAR}` only in `env`: one your allowlist left out now loads on upgrade; use `deniedMcpServers` to keep it off\nChanged plugins that Claude Desktop mounts by path to no longer keep their `allowed-tools` when your organization's managed settings set `allowManagedPermissionRulesOnly`"
-            },
-            {
-              "title": {
-                "zh-TW": "`/effort` 對大小寫不同的模型名也生效，磁碟滿的錯誤改講白話",
-                "en": "`/effort` applies despite model-name case differences, and full-disk errors speak plainly"
-              },
-              "body": {
-                "zh-TW": "在終端機裡最常撞到的幾個小毛病，這版一次修掉。模型名跟 `modelOverrides` 裡的值只差大小寫，或多一個 `[1m]` 標記時，`/effort` 和 `/autocompact` 的設定以前不會套用，現在會。磁碟滿了還叫 Claude 跑 Bash 指令，以前只丟出一串帶 `ENOSPC` 的檔案路徑，現在直接說磁碟已滿、指令沒有執行。終端機視窗窄的時候，`/usage` 的列不再被切掉。啟動警告以前會以原始文字印在標誌上方，現在改寫進除錯紀錄；完全沒限制任何東西的權限規則，會在橫幅下方以警告列顯示。",
-                "en": "This release clears out several small annoyances you hit right in the terminal. When a model name differed from a `modelOverrides` value only by letter case or a `[1m]` tag, `/effort` and `/autocompact` settings did not apply; now they do. Running a Bash command on a full disk used to fail with nothing but a raw `ENOSPC` file path; the error now says the disk is full and that nothing ran. In narrow terminals, `/usage` rows are no longer cut off. Startup warnings used to print as raw text above the logo; they now go to the debug log, and permission rules that restrict nothing show as warning rows under the banner."
-              },
-              "original": "Fixed `/effort` and `/autocompact` settings not applying when the model name differed from a `modelOverrides` value by letter case or a `[1m]` tag\nFixed Bash commands on a full disk failing with a raw `ENOSPC` file path: the error now says the disk is full and that nothing ran\nFixed `/usage` rows being cut off in narrow terminals\nFixed startup warnings printing as raw text above the logo: they now go to the debug log, and permission rules that restrict nothing show as warning rows under the banner"
-            },
-            {
-              "title": {
-                "zh-TW": "螢幕閱讀器不再把搜尋框念成電話錄音機，`/artifacts` 刪除改用數字確認",
-                "en": "Screen readers stop calling the search box a telephone recorder, and `/artifacts` delete uses number keys"
-              },
-              "body": {
-                "zh-TW": "用螢幕閱讀器（把畫面文字念出來的輔助軟體）的人，以前會聽到一些莫名其妙的念法。搜尋框原本顯示一個符號，VoiceOver 會念成「telephone recorder」，現在改顯示「Search:」。被標亮的提示文字，例如 Ctrl+R 搜尋的符合處和「ultrathink」，字中間也不再冒出空格。MCP 的同意對話框也調整了，你本來要用來送出提示的 Enter，比較不會被誤當成按下 Accept。`/artifacts` 的刪除確認改成按 1 或 Enter 保留、按 2 刪除、按 Esc 取消，`y` 和 `n` 不再能回答它。",
-                "en": "If you use a screen reader (assistive software that reads the screen aloud), you may have heard some baffling announcements. Search boxes used to show a symbol that VoiceOver read as \"telephone recorder\"; they now say \"Search:\". Highlighted prompt text, such as Ctrl+R search matches and \"ultrathink\", no longer has spaces inside words. MCP consent dialogs were adjusted too, so an Enter meant to send your prompt is less likely to be taken as Accept. The `/artifacts` delete confirmation now takes 1 or Enter to keep, 2 to delete and Esc to cancel; `y` and `n` no longer answer it."
-              },
-              "original": "Fixed screen reader mode: search boxes now say \"Search:\" instead of a symbol VoiceOver read as \"telephone recorder\", and highlighted prompt text, such as Ctrl+R search matches and \"ultrathink\", no longer has spaces inside words\nImproved MCP consent dialogs so an Enter meant for the prompt is less likely to be taken as Accept\nChanged the `/artifacts` delete confirmation to take 1 or Enter to keep, 2 to delete, and Esc to cancel; `y` and `n` no longer answer it"
-            },
-            {
-              "title": {
-                "zh-TW": "子代理換備援模型後，Claude 不再報錯模型名",
-                "en": "Claude names the right model after a subagent switches to a fallback"
-              },
-              "body": {
-                "zh-TW": "讓 Claude 分派子代理（替主對話分頭做事的小幫手）的人，可能遇過下面幾種怪事。子代理切換到備援模型後，Claude 以前會講錯是哪個模型做的，現在會講對。在 bare repository（只有版本紀錄、沒有工作檔案的 Git 倉庫）開新 worktree，以前有時從本機 HEAD 起頭，而不是預設分支；沒改過東西的子代理 worktree 有時也沒被清掉。排程的 Cowork 雲端工作階段裡，子代理用 WebFetch 碰到要核准的網址卻沒人在場，以前每個都乾等五分鐘，這版修掉更多這類情況。Workflow 續跑時，已完成的 `pipeline()` 和 `parallel()` 代理不再重跑，改從執行紀錄取結果。",
-                "en": "If you have Claude hand work to subagents (helpers that split off tasks from the main conversation), you may have seen a few oddities. After a subagent switched to a fallback model, Claude used to name the wrong model for its work; now it names the right one. New worktrees in a bare repository (a Git repository with history but no working files) sometimes started from local HEAD instead of the default branch, and unchanged subagent worktrees were sometimes not cleaned up. In scheduled Cowork cloud sessions, each subagent whose WebFetch needed a URL approval nobody was there to give used to wait five minutes; this release fixes more of those cases. When a Workflow resumes, already-completed `pipeline()` and `parallel()` agents no longer rerun and are served from the run's journal instead."
-              },
-              "original": "Fixed new worktrees in a bare repository sometimes starting from local HEAD instead of the default branch, and unchanged subagent worktrees sometimes not being cleaned up\nFixed Claude naming the wrong model for a subagent's work after the subagent switched to a fallback model\nFixed more cases of scheduled Cowork cloud sessions waiting five minutes for each subagent whose WebFetch needed a URL approval that nobody was there to give\nFixed Workflow resume re-running already-completed `pipeline()` and `parallel()` agents instead of serving them from the run's journal"
-            },
-            {
-              "title": {
-                "zh-TW": "雲端工作階段的 MCP 伺服器不再被同名設定蓋掉",
-                "en": "MCP servers in cloud sessions are no longer replaced by same-named settings"
-              },
-              "body": {
-                "zh-TW": "說好的設定用到一半被換掉，是雲端工作階段裡最難查的狀況。由雲端工作階段、或 SDK 的 `setMcpServers` 傳進來的 MCP 伺服器，以前跑到一半會被你自己設定裡同名的伺服器取代，現在不會。compaction（把舊對話濃縮成摘要）為了塞得下而略過最舊的訊息時，雲端工作階段和隊友以前不會告訴 Claude，現在會。用 Remote Control 搭配 `/resume` 切換對話後，`/resume` 清單不再留下空的「(session)」項目。Remote Control 的啟動模式訊息也講清楚了：按 `w` 會說新模式已存給這個資料夾，之後 `claude remote-control` 沿用它啟動時，會告訴你設定從哪來。",
-                "en": "A setting that gets swapped out halfway through is one of the hardest things to track down in a cloud session. An MCP server passed in by a cloud session or by the SDK's `setMcpServers` used to be replaced later in the session by a same-named server from your own settings; it no longer is. When a compaction (condensing older conversation into a summary) had to leave the oldest messages out to fit, cloud sessions and teammates did not tell Claude; now they do. After switching conversations with `/resume` under Remote Control, the `/resume` list no longer keeps empty \"(session)\" entries. Remote Control's spawn-mode messages are clearer too: pressing `w` says the new mode is saved for the folder, and a later `claude remote-control` start that uses the saved mode says where it came from."
-              },
-              "original": "Fixed an MCP server passed by a cloud session or by the SDK's `setMcpServers` being replaced later in the session by a same-named server from your own settings\nFixed cloud sessions and teammates not telling Claude when a compaction had to leave the oldest messages out of its summary to fit\nFixed Remote Control leaving empty \"(session)\" entries in `/resume` after switching conversations with `/resume`\nRemote Control: Improved the spawn-mode messages: pressing `w` now says the new mode is saved for the folder, and a later `claude remote-control` start that uses the saved mode says where it came from"
-            },
-            {
-              "title": {
-                "zh-TW": "mod 的圖片在 iTerm2 畫得出來，停靠窗格最多佔 45% 寬",
-                "en": "A mod's image draws in iTerm2, and docked panes stay within 45% width"
-              },
-              "body": {
-                "zh-TW": "自己寫 mod（替 Claude Code 介面加料的擴充）的人，會碰到這兩處改動。在 iTerm2 3.5 以上、開啟全螢幕繪製時，mod 裡的 `Image` 以前只顯示 `alt` 替代文字，現在能畫出圖片。mod 停靠在旁邊的窗格，現在最多佔終端機寬度的 45%；就算寬度是從更寬的終端機沿用過來的，也照樣限制。⟦檯燈底座以前可能大到佔掉半張桌子，搬到小桌也維持原尺寸，現在底座最多佔四成多，留下的桌面給你寫字。⟧",
-                "en": "If you write mods (extensions that add to Claude Code's interface), two changes affect you. In iTerm2 3.5 and later with fullscreen rendering, a mod's `Image` used to show only its `alt` text; it now draws the picture. A mod's docked pane now stays within 45% of the terminal's width, even when the width was kept from a wider terminal. ⟦A desk lamp whose base could hog half the desk, and kept that size when moved to a smaller desk, now takes up a bit over four-tenths at most, leaving the rest for your writing.⟧"
-              },
-              "original": "Improved a mod's `Image` to draw its picture in iTerm2 3.5 and later with fullscreen rendering, where it showed only its `alt` text\nChanged a mod's docked pane to stay within 45% of the terminal's width, including a width kept from a wider terminal"
-            },
-            {
-              "title": {
-                "zh-TW": "VS Code 顯示正在執行啟動 hook，逾時訊息改先指向紀錄",
-                "en": "VS Code shows when start-up hooks run, and timeout messages point to logs first"
-              },
-              "body": {
-                "zh-TW": "在 VS Code 用 Claude Code、又設了啟動 hook（特定時機自動觸發的小程式）的人，以前開新工作階段時只看到畫面卡著。現在 SessionStart 或 Setup hook 執行期間，轉圈圈旁會顯示「Running start-up hooks」，螢幕閱讀器也會念出來。你的 `spinnerVerbs` 設定把內建動詞換成短字時，「Compacting...」以前會被截斷，現在完整顯示。工作階段沒有及時啟動、又沒有 hook 在跑時，提示訊息以前先叫你檢查登入和網路，現在改成先指向輸出紀錄，並列出可能原因。",
-                "en": "If you use Claude Code in VS Code with start-up hooks (small programs triggered automatically at certain moments), opening a new session used to just look frozen. Now, while SessionStart or Setup hooks run, the spinner shows \"Running start-up hooks\", and screen readers announce it. When your `spinnerVerbs` setting swaps the built-in verbs for short ones, \"Compacting...\" used to get cut off; it now shows in full. When a session does not start in time and no hook is running, the message used to send you to sign-in and network first; it now leads with the output logs and lists possible causes."
-              },
-              "original": "[VSCode] Added a \"Running start-up hooks\" spinner status, with a screen reader announcement, while SessionStart or Setup hooks run\n[VSCode] Fixed the spinner cutting off \"Compacting...\" when your `spinnerVerbs` setting replaces the built-in verbs with short ones\n[VSCode] Changed the message shown when a session does not start in time and no hook is running: it now leads with the output logs and lists causes instead of pointing to sign-in and network first"
-            },
-            {
-              "title": {
-                "zh-TW": "自架 runner 三處卡關修好，刪除自架環境會說明影響",
-                "en": "Three self-hosted runner snags fixed, and deleting a self-hosted environment explains the impact"
-              },
-              "body": {
-                "zh-TW": "在自己機器上架 runner（替雲端工作階段實際跑任務的執行器）的團隊，這版修了三個卡住的地方。啟動腳本只把 stdout 分享給 runner 或協調程式時，只要設了 `TERM`，以前會以 `Resource temporarily unavailable` 失敗，這是 2.1.300 的退步。git 憑證程式或 askpass 程式透過 `GIT_CONFIG` 讀設定時，從 2.1.296 起存取不了儲存庫，現在好了。runner 在背景啟動的程式一直開著輸出時，協調程式以前會把 spawn-runner hook 誤報為逾時。管理頁面也修了兩處：Cloud environments 頁面不再用「installs packages」錯誤拒存既有環境；刪除自架環境時，會說明是什麼擋住刪除、刪了影響什麼。",
-                "en": "Teams running a self-hosted runner (the executor that actually carries out tasks for cloud sessions on your own machine) get three snags fixed. A start script that shares only its stdout with the runner or orchestrator used to fail with `Resource temporarily unavailable` when `TERM` was set, a 2.1.300 regression. Since 2.1.296, repository access failed when a git credential helper or askpass program read its settings through `GIT_CONFIG`; that works again. When a runner the orchestrator started in the background kept its output open, the orchestrator used to report the spawn-runner hook as timed out. Two admin pages were fixed as well: the Cloud environments page no longer refuses to save an existing environment with an \"installs packages\" error, and deleting a self-hosted environment now says what blocks the delete and what it will affect."
-              },
-              "original": "Self-hosted runner: Fixed a start script that shares only its stdout with the runner or orchestrator failing with `Resource temporarily unavailable` when `TERM` is set (a 2.1.300 regression)\nSelf-hosted runner: Fixed repository access failing since 2.1.296 when a git credential helper or askpass program reads its settings through `GIT_CONFIG`\nSelf-hosted runner: Fixed the orchestrator reporting a spawn-runner hook as timed out when a runner it started in the background kept its output open\n[Cloud sessions] Fixed the Cloud environments admin page wrongly refusing to save an existing environment with an \"installs packages\" error\n[Cloud sessions] Improved deleting a self-hosted environment so the dialog and error messages say what blocks the delete and what it will affect"
-            },
-            {
-              "title": {
-                "zh-TW": "Claude Tag 的 Slack 例行任務不再假裝已發文",
-                "en": "Claude Tag routines in Slack stop pretending they posted"
-              },
-              "body": {
-                "zh-TW": "在 Slack 用 Claude Tag（在 Slack 裡呼叫 Claude 的整合）設例行任務的人，最怕以為有發、其實沒發。在 Slack 私訊討論串設的例行任務，以前只要同串另一個任務重啟了對話，它就不再發文；現在兩個都會照常發。對話結束後，討論串裡的例行任務以前會回報成功卻沒發文，現在會略過這次執行並通知建立者。管理員這邊也有三處：「Add place」搜尋現在找得到 Claude 還沒加入的公開頻道，可直接從那裡設定；搬到別的 GitHub 帳號的儲存庫，可以重新加進存取組合；大型組織的管理頁面在頻道清單還沒載完時，也能編輯外掛、skill 和組合。",
-                "en": "If you set up routines with Claude Tag (the integration that lets you call Claude inside Slack), the worst case is thinking a post went out when it did not. A routine set up in a Slack DM thread used to stop posting once another routine in that thread restarted the conversation; now both keep posting. Routines set up in a Slack thread used to report success without posting after the conversation ended; those runs are now skipped and the creator is told. Admins get three changes: the Add place search now finds public channels Claude has not joined so you can set one up from there, a repository that moved to another GitHub account can be added to access bundles again, and in large organizations plugin, skill and bundle edits work while the channel list is still loading."
-              },
-              "original": "[Claude Tag] Added public Slack channels Claude hasn't joined to the Claude Tag admin Add place search, so admins can set one up from there\n[Claude Tag] Fixed Claude Tag access bundles so a repository that moved to another GitHub account can be added again\n[Claude Tag] Fixed a routine set up in a Slack DM thread no longer posting after another routine in that thread restarted the conversation; both now keep posting there\n[Claude Tag] Fixed routines set up in a Slack thread reporting success without posting after the conversation ended; those runs are now skipped and the creator is told\n[Claude Tag] Improved Claude Tag admin pages in large organizations so plugin, skill and bundle edits work while the channel list is still loading"
-            },
-            {
-              "title": {
-                "zh-TW": "Code Review 會審到最新的 commit，有未解決問題時不先說 LGTM",
-                "en": "Code Review reviews the newest commit and skips LGTM while blockers remain"
-              },
-              "body": {
-                "zh-TW": "在 GitHub 上讓 Claude 幫忙審 pull request（請人合併你改動的申請）的人，可能遇過審到一半又推了好幾次新改動。以前 Code Review 這時有時沒審到最新那個 commit，現在會。重審時，如果先前擋住合併的問題還沒解決，它也不再一開頭就寫 LGTM（看起來沒問題）。⟦請老師批改作文時你邊改邊交新版，以前老師可能批到舊版，錯字還沒訂正就先寫「很好」；現在他會批最新那份，錯字沒改完也不先誇。⟧",
-                "en": "If Claude reviews your pull requests (proposals to merge your changes) on GitHub, you may have pushed several new changes while a review was still running. Code Review then sometimes skipped the newest commit; now it reviews it. On a re-review, it also no longer opens with LGTM (looks good to me) while earlier blocking findings are still open. ⟦Handing a teacher new drafts of your essay mid-grading used to mean they might mark an old one and write \"great job\" before the typos were fixed; now they grade the latest draft and hold the praise until the fixes are in.⟧"
-              },
-              "original": "[Code Review] Fixed Code Review sometimes not reviewing the newest commit when several pushes landed on a pull request during a review\n[Code Review] Changed Code Review re-reviews so they no longer open with LGTM while earlier blocking findings are still open"
-            }
-          ]
         }
       ]
     },
@@ -337,6 +403,111 @@
       "id": "codex",
       "name": "Codex",
       "versions": [
+        {
+          "version": "0.164.0",
+          "period": "2026-10-23",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "/presets 新增十組快捷欄位，常用提示詞與指令隨選即用",
+                "en": "/presets adds ten shortcut slots for instant access to frequent prompts and commands"
+              },
+              "body": {
+                "zh-TW": "當你反覆在對話中輸入相同的檢查指令或固定提問時，重新打字往往耗費時間。⟦宛若汽車音響上的電台記憶功能，以前想聽固定頻道每次都要手動調頻，現在可以選取已儲存的頻道。⟧現在你可以打 `/presets` 將常用的提示詞與斜線指令儲存到十個編號欄位中。呼叫時還會跳出專屬的鍵盤選單，讓你透過鍵盤快速選取所需的預設項目。例如每次開始整理報告時，就能透過鍵盤選單選取儲存好的審查指令，省去反覆翻找與複製貼上的麻煩。",
+                "en": "When you repeatedly enter the same inspection commands or standard questions during a conversation, retyping them is often time-consuming. ⟦Picture a car radio with station presets, where listening to a favorite channel once required manual tuning each time, but now only takes selecting a saved station.⟧ You can now type `/presets` to store frequently used prompts and slash commands into ten numbered slots. Invoking it brings up a dedicated keyboard menu so you can quickly choose the preset you need. For example, whenever you start compiling a report, you can select a saved review command through the keyboard menu, eliminating the hassle of searching around and copy-pasting."
+              },
+              "original": "Save reusable prompts and slash commands in ten numbered `/presets` slots, with a keyboard menu for quick access. (#54380, #54381)"
+            },
+            {
+              "title": {
+                "zh-TW": "/model 與 /permissions 支援行內參數，單行直接套用設定",
+                "en": "/model and /permissions support inline arguments to apply settings in one command"
+              },
+              "body": {
+                "zh-TW": "臨時需要切換模型或調整執行權限時，你可以把要用的設定直接接在指令後面。⟦如同在義式咖啡機直接轉動濃淡旋鈕，以前分開調整的出杯速度與風味濃度，現在點選飲品時順手一扭就能一併指定。⟧現在打 `/model` 或 `/permissions` 時，可以直接在同一行指令接上參數。你能直接在指令後方指定模型名稱、運算速度與推理解題力度（reasoning effort）。如果需要變更授權層級，也可以透過行內參數指定權限設定檔（permission profile）。這讓你輸入一行指令就能立刻切換到所需的執行環境。",
+                "en": "When you need to switch models or adjust execution permissions on the fly, you can append your desired settings directly to the command. ⟦Think of turning a brew strength knob on an espresso machine, where cup speed and flavor intensity once had to be adjusted separately, but now can be set with a quick twist when selecting a beverage.⟧ When typing `/model` or `/permissions`, you can now pass arguments directly on the same line. You can specify the model name, compute speed, and reasoning effort right after the command. If you need to change authorization levels, you can also specify a permission profile through inline arguments. This lets you switch immediately to the required runtime environment with a single command."
+              },
+              "original": "Set model, reasoning effort, speed, and permission profiles directly with inline `/model` and `/permissions` arguments. (#54378, #54383)"
+            },
+            {
+              "title": {
+                "zh-TW": "支援 Kitty 與 Sixel 協定，全螢幕紀錄直接預覽圖片",
+                "en": "Kitty and Sixel protocols supported to preview images directly in fullscreen logs"
+              },
+              "body": {
+                "zh-TW": "在純文字終端機中請 AI 產生或查看圖片時，常常必須切換到外部檢視器才能確認成果。⟦彷彿按下數位相機快門後直接在電子觀景窗回放相片，以前非得把記憶卡插進電腦螢幕才能檢視構圖，現在眼睛不用離開目鏡就能看清影像細節。⟧如果你的終端機支援 Kitty 或 Sixel 圖形協定，現在全螢幕對話紀錄中可以直接預覽圖片。無論是讓工具讀取既有的本機圖檔，或是由模型新產生的圖片，畫面都會直接在紀錄中渲染顯示，不必再特地跳出視窗開啟檔案。",
+                "en": "When asking AI to generate or inspect images in a plain-text terminal, you often have to switch to an external viewer to verify results. ⟦Much like checking a digital camera's electronic viewfinder right after pressing the shutter, where reviewing composition once required plugging a memory card into a computer monitor, you can now inspect image details without taking your eye off the eyepiece.⟧ If your terminal supports the Kitty or Sixel graphics protocol, you can now preview images directly inside fullscreen conversation transcripts. Whether the tool reads an existing local image file or displays a new image generated by the model, the graphic renders directly within the log without opening an external window."
+              },
+              "original": "Preview viewed and generated images in the fullscreen transcript on terminals supporting Kitty or Sixel graphics. (#54216)"
+            },
+            {
+              "title": {
+                "zh-TW": "企業級 MCP 支援專用登入與帳號授權，納入金鑰用戶端",
+                "en": "Enterprise MCP supports dedicated login and account authorization with secret client access"
+              },
+              "body": {
+                "zh-TW": "企業團隊在將內部系統串接至外部工具時，往往受限於嚴格的身分核驗與安全規範。⟦跟持員工證進入特約商務中心一樣，以前訪客通道只能辨識一般識別貼紙，現在閘門不僅支援企業總部的數位權限卡，也能核對附帶安全密鑰的專屬通行條。⟧現在企業級 MCP（Model Context Protocol，讓 AI 連接外部工具的協定）連線支援更多元的驗證方式。你可以使用符合資格的 Codex 帳號授權直接通行，或是使用專屬登入通道完成驗證。對於需要用戶端密鑰（client secret）的 OAuth 用戶端，現在也能順利通過身分確認，安全連接各項企業服務。",
+                "en": "When enterprise teams connect internal systems to external tools, they are often constrained by strict identity verification and security policies. ⟦Just as entering a partner business center with an employee badge once only supported basic visitor decals, the gate now accepts corporate digital access cards as well as dedicated passes with security keys.⟧ Enterprise MCP (a protocol connecting AI to external tools) connections now support more diverse authentication methods. You can authenticate directly using eligible Codex account authorization or complete verification through dedicated login channels. OAuth clients requiring client secrets can now also pass identity verification smoothly and securely connect to various enterprise services."
+              },
+              "original": "Authenticate enterprise MCP connections using eligible Codex account grants or dedicated sign-in, including OAuth clients requiring secrets. (#55334, #55859, #56001)"
+            },
+            {
+              "title": {
+                "zh-TW": "Amazon Bedrock 設定精靈預設啟用，自動整合 AWS 登入方式",
+                "en": "Amazon Bedrock setup wizard enabled by default to integrate AWS login methods"
+              },
+              "body": {
+                "zh-TW": "初次在工具中設定雲端模型提供者時，複雜的認證流程常讓人無所適從。⟦好比智慧電視初次開機的引導流程，以前要自己翻出網路線與遙控器代碼手動輸入，現在一開機就自動跳出連線精靈，還會把同品牌的登入選項整合在同一個畫面。⟧現在 Amazon Bedrock 的設定引導精靈改為預設開啟。當系統偵測到環境中的憑證時，API 金鑰輸入選項會自動與其他 AWS 登入方式歸類在同一個區塊，讓你清楚檢視並選取合適的登入途徑，不必再四處尋找設定入口。",
+                "en": "When configuring a cloud model provider in the tool for the first time, complex authentication flows can feel overwhelming. ⟦Consider the initial setup guide of a smart TV, where you once had to find Ethernet cables and enter remote codes manually, but now a setup wizard appears automatically and brings brand login options together on one screen.⟧ The configuration setup wizard for Amazon Bedrock is now enabled by default. When credentials are detected in the environment, the API key input option is automatically grouped into the same section alongside other AWS login methods. This allows you to clearly view and select the appropriate sign-in path without searching around for configuration menus."
+              },
+              "original": "The Amazon Bedrock setup wizard is now enabled by default, with API key entry grouped alongside other AWS sign-in methods when credentials are detected. (#56033, #56023)"
+            },
+            {
+              "title": {
+                "zh-TW": "對話壓縮失敗自動備援，恢復工作階段完整保留討論串設定",
+                "en": "Compaction failures fall back smoothly while resumed sessions preserve thread settings"
+              },
+              "body": {
+                "zh-TW": "長時間與 AI 討論累積了大量對話紀錄時，背後的摘要壓縮機制是維持流暢對答的關鍵。⟦就像編輯長篇文件時的自動存檔機制，以前存檔失敗會在草稿夾留下一半的殘缺摘要，重開檔案時個人偏好也被重設成原廠設定；現在即使背景壓縮失敗也會平穩備援，重新開啟時還能精準還原原本的排版。⟧現在對話歷史壓縮（compaction）若不幸失敗，不會再於對話紀錄中留下半截殘缺的摘要內容，背景壓縮失敗時也會安全備援而不引發程式異常崩潰。恢復工作階段（session）時，工具現在能確實找到已壓縮的歷史紀錄，並完整復原原本討論串儲存的設定，而不是擅自將它們覆蓋成全域預設值。",
+                "en": "When extensive discussions with AI accumulate substantial conversation history, the underlying summary compaction mechanism is essential for maintaining smooth exchanges. ⟦Like an autosave feature while editing a long document, where a save failure once left a broken half-summary in drafts and reset personal preferences to factory defaults upon reopening, background compaction failures now fall back smoothly and restore original layouts upon relaunch.⟧ If conversation history compaction fails, it no longer leaves partial summary fragments in transcripts, and background compaction failures now fall back safely without triggering crashes. When resuming a session, the tool reliably finds compacted history and fully restores the thread's saved settings instead of overwriting them with global defaults."
+              },
+              "original": "Failed compaction no longer leaves partial summaries in conversation history, and background compaction failures fall back without panicking. (#53932, #55581)\nResuming sessions now finds compressed histories and restores saved thread settings instead of replacing them with global defaults. (#54008, #55923)"
+            },
+            {
+              "title": {
+                "zh-TW": "自動清理未使用的安裝與市集暫存，設定日誌上限釋放磁碟空間",
+                "en": "Prune unused installs and marketplace caches while capping daemon logs to free disk space"
+              },
+              "body": {
+                "zh-TW": "工具在背景持續運作或頻繁下載外掛後，磁碟空間常常在不知不覺間被暫存檔案佔滿。⟦類似手機定期執行儲存空間大掃除，以前沒在用的舊版本與未再使用的檔案包會一直堆在角落，背景服務的紀錄簿也無限膨脹；現在清理工具會主動清空廢棄包裝，並替紀錄簿設下頁數上限。⟧現在工具加入了多項磁碟維護機制來降低空間佔用。系統會主動修剪不再使用的安裝版本，清理市集中已棄置的 checkout（取出的檔案副本）。同時替常駐程式（daemon）的日誌檔案設定大小上限，防止日誌無限制增長消耗硬碟空間。",
+                "en": "When tools run continuously in the background or download plugins frequently, disk space often fills up unnoticed with temporary files. ⟦Similar to periodic storage cleanups on a smartphone, where unused old versions and abandoned package archives once piled up in corners while background logs grew without bound, cleanup tools now purge obsolete packages and cap log pages.⟧ The tool now includes several disk maintenance mechanisms to reduce disk usage. The system actively prunes unused installation versions and cleans up abandoned marketplace checkouts (extracted working copies of files). It also sets a size limit on daemon log files to prevent logs from growing indefinitely and consuming disk storage."
+              },
+              "original": "Reduced disk usage by pruning unused installations, cleaning abandoned marketplace checkouts, and bounding daemon logs. (#53827, #55149, #55689, #55690, #55856)"
+            },
+            {
+              "title": {
+                "zh-TW": "強化執行環境安全防護，遮蔽終端機憑證並嚴格檢驗路徑",
+                "en": "Harden runtime security by masking terminal credentials and strictly validating paths"
+              },
+              "body": {
+                "zh-TW": "在執行腳本或調用系統環境時，防止敏感資訊外洩與防堵潛在執行漏洞是保障系統安全的核心關鍵。\n\n終端機操作方面，支援的遠端 Bash 指令與 Zsh 快照工作階段（session）現在會自動遮蔽各類憑證，包含來自自訂提供者的敏感認證金鑰，避免機密在紀錄或螢幕輸出中曝光。\n\n沙盒防護也有所強化，針對 macOS 系統上大小寫變形的中繼資料路徑，以及用來尋找執行檔的符號連結（symlink，指向另一個位置的捷徑檔），都加入了嚴格的檢驗機制，防止路徑被惡意替換。\n\n內嵌的 JavaScript 執行環境也完成更新，為最佳化後的 `Array.sort` 排序操作加入安全檢查，防範異常。以前在遠端執行或排查腳本時容易擔心金鑰外洩或路徑被掉包，現在各個執行環節都有專門的安全防線把關。",
+                "en": "When executing scripts or invoking system environments, preventing sensitive information leaks and closing potential execution vulnerabilities are essential to securing the system.\n\nFor terminal operations, supported remote Bash commands and Zsh snapshot sessions now automatically mask various credentials, including sensitive authentication keys from custom providers, preventing secrets from being exposed in logs or screen output.\n\nSandbox defenses have also been strengthened by adding strict validation mechanisms against case-variant metadata paths on macOS and symlinks (shortcut files pointing to another location) used to locate executables, preventing paths from being maliciously substituted.\n\nThe embedded JavaScript runtime has also been updated to add safety checks to optimized `Array.sort` operations, guarding against anomalies. While running or debugging scripts remotely once raised concerns about leaked keys or swapped paths, dedicated security safeguards now protect each execution stage."
+              },
+              "original": "Mask credentials during supported remote Bash commands and Zsh snapshot sessions, including credentials from custom providers. (#54309, #54432, #56049)\nHardened sandbox checks for case-variant metadata paths on macOS and replaceable symlinks used to locate executables. (#54273, #55384)\nUpdated the embedded JavaScript runtime with safety checks for optimized `Array.sort` operations. (#54519)"
+            },
+            {
+              "title": {
+                "zh-TW": "Windows 支援代理伺服器驗證，指令列設定覆寫與排隊流程修復",
+                "en": "Windows supports proxy authentication alongside fixes for CLI config overrides and prompt queuing"
+              },
+              "body": {
+                "zh-TW": "在企業網路環境或複雜的指令列流程中，連線驗證與參數傳遞的正確性直接影響工作進展。\n\n在 Windows 系統中，HTTPS 與 WebSocket 連線現在能正確處理代理伺服器（proxy）的驗證要求，自動使用已登入使用者的 Negotiate 或 NTLM 憑證完成身分查核，避免連線失敗中斷。\n\n在終端機執行多層子指令時，若在不同層級重複帶入 `-c` 或 `--config` 參數，現在各層級的設定覆寫值都會完整保留，不再被意外覆蓋或遺失。\n\n排隊等待執行的提示詞也調整了執行邏輯，現在會確實等候前方擱置中的權限確認選單完成選擇，才會繼續往下執行。以前遇到內網代理或連續提問時容易卡在連線中斷或權限錯亂，現在整套指令與排程流程都能順暢運行。",
+                "en": "In enterprise network environments or complex command-line workflows, the reliability of connection authentication and parameter passing directly impacts work progress.\n\nOn Windows, HTTPS and WebSocket connections now properly handle proxy authentication challenges by automatically verifying identities with the logged-in user's Negotiate or NTLM credentials, preventing connection failures.\n\nWhen running nested subcommands in the terminal with `-c` or `--config` arguments repeated across different levels, configuration overrides at each tier are now fully preserved instead of being accidentally overwritten or lost.\n\nQueued prompts have also received updated execution logic, now reliably waiting for preceding pending permission menus to finish their selection before continuing execution. While corporate proxies or consecutive prompts once led to dropped connections or permission mix-ups, the entire command and scheduling pipeline now runs smoothly."
+              },
+              "original": "Windows HTTPS and WebSocket connections now handle proxy authentication challenges using the signed-in user’s Negotiate or NTLM credentials. (#55994, #56000)\nCLI configuration overrides are preserved when `-c` or `--config` appears at multiple subcommand levels. (#56022)\nQueued prompts now wait for pending permission selections to resolve before continuing. (#55682)"
+            }
+          ]
+        },
         {
           "version": "0.163.0",
           "period": "2026-10-15",
@@ -500,144 +671,6 @@
                 "en": "If you are used to letting tools run continuously in the background, you no longer need to worry about programs getting stuck at startup when entering commands in a new window. Previously, whenever the running background server and the command-line interface (tools operated with text commands) had different default settings, startup would fail with an error. Now, compatibility checks only run when the command line explicitly overrides features, and the startup failure issue has been fixed. While users were previously locked out due to differing default values, the tool can now launch smoothly even when background configurations differ."
               },
               "original": "Fixed startup failures caused by differences between a running background server's feature settings and CLI defaults. Compatibility checks now apply only to explicit command-line feature overrides. (#52648)"
-            }
-          ]
-        },
-        {
-          "version": "0.162.0",
-          "period": "2026-10-08",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "支援管理 Git 工作樹，平行開發多分支",
-                "en": "Support for Managing Git Worktrees to Develop Multiple Branches in Parallel"
-              },
-              "body": {
-                "zh-TW": "當你想在同一個專案同時開發不同功能，又不想頻繁切換分支打斷進度時，現在可以在受信任的本機專案中使用專屬工具。只要開啟工作樹功能，AI 就能直接建立並列出託管的 Git 工作樹（worktree，讓同一專案平行開多份副本的功能）。⟦好比在圖畫紙旁多鋪一張描圖紙，以前想畫草稿必須擦掉原本的線條，現在能同時畫兩張草圖而且隨時對照。⟧",
-                "en": "When you want to develop different features in the same project simultaneously without interrupting progress by frequently switching branches, dedicated tools are now available in trusted local projects. Once the worktree feature is enabled, the AI can directly create and list managed Git worktrees (parallel copies of the same project managed by Git). ⟦Picture laying an extra sheet of tracing paper beside your drawing paper: whereas sketching a new idea previously meant erasing original lines, you can now work on two drafts simultaneously and cross-reference them at any time.⟧"
-              },
-              "original": "Add tools for creating and listing managed Git worktrees from trusted local projects when the worktrees feature is enabled. (#50148)"
-            },
-            {
-              "title": {
-                "zh-TW": "按鍵釘選重要任務，集中在置頂群組",
-                "en": "Pin Important Tasks via Keystroke to Group Them at the Top"
-              },
-              "body": {
-                "zh-TW": "當你在代理人的命令中心同時追蹤好幾個任務，想把當前最重要的項目固定在顯眼處時，現在只要按下鍵盤上的 p 鍵就能快速釘選。只要伺服器支援這項功能，被釘選的任務就會統一歸入共用的 Pinned 群組中，方便你隨時回頭檢視這些項目的處理進度。⟦像在辦公白板上貼便利貼，以前待辦項目一多很容易被新任務洗下去，現在能把要緊的事釘在最上方的專用區域，一眼就能看清。⟧",
-                "en": "When tracking multiple tasks simultaneously in the agent command center and looking to keep the most critical items prominent, you can now press the p key on your keyboard to pin them quickly. As long as the server supports this capability, pinned tasks are consolidated into a shared Pinned group, making it easy to review their progress at any time. ⟦Like placing sticky notes on an office whiteboard, where a growing list of to-dos once got buried under incoming tasks, you can now pin pressing items to a dedicated top section for immediate visibility.⟧"
-              },
-              "original": "Pin tasks in the agent Command Center with `p` and keep them in a shared Pinned group when supported by the server. (#51500)"
-            },
-            {
-              "title": {
-                "zh-TW": "終端介面複製更靈活，滾輪速度隨意調",
-                "en": "Flexible Terminal UI Copying and Adjustable Scroll Speed"
-              },
-              "body": {
-                "zh-TW": "在終端介面翻看長篇對話時，如果你想快速抓出某段程式碼或重點回覆，現在的操作方式更加順手。你可以直接輸入 /copy 來選取並複製對話紀錄區塊，或是按下 Ctrl+Insert 複製目前滑鼠反白的文字。如果覺得終端介面捲動太快或太慢，還可以在設定中加入 tui.mouse_scroll_speed 調整滑鼠滾輪的捲動速度。⟦彷彿看長篇電子書時換了順手的翻頁器，以前選字複製經常受限於視窗操作，現在能精準抓取段落還能微調捲動步調。⟧",
-                "en": "When browsing long conversations in the terminal UI, extracting specific code snippets or key responses is now much smoother. You can enter /copy to select and copy conversation blocks, or press Ctrl+Insert to copy text currently highlighted by the mouse. If the terminal UI scrolls too fast or too slow, you can also add tui.mouse_scroll_speed in the settings to adjust the mouse wheel scroll speed. ⟦Think of switching to a handy page-turner while reading a long e-book, where selecting and copying text was once constrained by window interactions, but you can now capture exact passages and fine-tune your scrolling pace.⟧"
-              },
-              "original": "Navigate and copy transcript blocks with `/copy`, use `Ctrl+Insert` to copy selections, and tune mouse-wheel scrolling with `tui.mouse_scroll_speed`. (#50434, #50215, #50209)"
-            },
-            {
-              "title": {
-                "zh-TW": "終端各類提示網址皆可點，跨行連結不中斷",
-                "en": "Clickable Terminal Prompt URLs with Unbroken Multi-Line Links"
-              },
-              "body": {
-                "zh-TW": "當 AI 在終端機跳出確認提問或警告訊息並附上參考網址時，你現在不必再手動反白複製。不論網址出現在確認標頭、提問清單、警告橫幅、驗證提示，還是 MCP（Model Context Protocol，讓 AI 連接外部工具的協定）提示中，都能直接點擊開啟。就算網址太長被終端機自動折到下一行，連結依然能完整點開而不會斷成兩截。⟦好似在紙本書的註腳旁附上完整 QR 碼，以前長網址印成兩行容易抄錯，現在直接掃描就能連到正確網頁。⟧",
-                "en": "When the AI displays confirmation questions or warning messages in the terminal with reference URLs, you no longer need to manually highlight and copy them. Whether a URL appears in a confirmation header, question list, warning banner, verification prompt, or an MCP (Model Context Protocol, a protocol that connects AI to external tools) prompt, you can click to open it directly. Even if a URL is long and wrapped to the next line by the terminal, the link still opens completely without breaking in two. ⟦A printed book includes a complete QR code next to its footnotes: whereas long URLs split across two lines were once prone to copying errors, scanning directly now opens the exact page.⟧"
-              },
-              "original": "Make URLs clickable in approval headers, questions, MCP prompts, warnings, banners, and verification prompts, including when links wrap across lines. (#51439, #51449, #51450, #51451, #51452, #51458)"
-            },
-            {
-              "title": {
-                "zh-TW": "自訂模型支援聯網搜尋，可開啟遠端壓縮",
-                "en": "Custom Models Gain Web Access and Remote Compaction Support"
-              },
-              "body": {
-                "zh-TW": "如果你串接了相容於 Responses 介面的自訂模型供應商，現在能替它們啟用更多進階能力。你可以直接為這些自訂模型設定即時聯網功能（live web access），讓模型取得最新網路資訊。還可設定遠端壓縮能力（remote compaction），讓對話內容的濃縮由遠端處理。⟦如同替外聘的專家助理配置即時百科與秘書，你可以替他配上查詢新資料的工具，也可以安排秘書協助濃縮紀錄。⟧",
-                "en": "If you connect custom model providers compatible with the Responses API, you can now enable more advanced capabilities for them. You can configure live web access directly for these custom models so they can retrieve the latest web information. You can also configure remote compaction so that conversation summaries are processed remotely. ⟦Equipping an external expert assistant with an updated encyclopedia and a secretary allows you to provide tools for looking up fresh data while also assigning a secretary to condense conversation logs.⟧"
-              },
-              "original": "Configure live web access and remote compaction capabilities for custom Responses-compatible model providers. (#50459)"
-            },
-            {
-              "title": {
-                "zh-TW": "JavaScript 支援非同步串流，程式模式工具可排序",
-                "en": "JavaScript Async Streaming Support and Ranked Tools in Code Mode"
-              },
-              "body": {
-                "zh-TW": "在撰寫自動化腳本或使用程式模式（Code Mode）處理大量工具時，開發體驗得到了進一步強化。這次新增了 JavaScript 輔助工具，能在多個非同步操作（Promise）各自完成時立即串流回傳結果，不必苦等全部做完才一次收到。此外在 Code Mode 中，你還可以主動啟用排序工具搜尋功能，讓系統依照關聯度推薦最合適的工具。⟦跟外送點餐即時收到每道菜出餐通知一樣，以前得等整桌菜炒完才送上來，現在哪道先好就能先拿到並更快找到餐具。⟧",
-                "en": "When writing automation scripts or handling numerous tools in Code Mode, the development experience is further enhanced. New JavaScript helper utilities now stream results back immediately as multiple asynchronous operations (Promise instances) complete individually, without waiting for every task to finish. Furthermore, in Code Mode, you can actively enable ranked tool search so the system recommends the most relevant tools by relevance. ⟦Food delivery orders send real-time alerts as each dish leaves the kitchen: instead of waiting for the entire table of dishes to be cooked before serving, you receive each item as it is ready and locate utensils much faster.⟧"
-              },
-              "original": "Add JavaScript helpers for streaming promise results as they settle, plus opt-in ranked tool search in Code Mode. (#51126, #51209)"
-            },
-            {
-              "title": {
-                "zh-TW": "終端對話遵循預設模型，保留手動指定參數",
-                "en": "Terminal Sessions Follow Default Models While Preserving Manual Overrides"
-              },
-              "body": {
-                "zh-TW": "當你開啟新的終端對話時，系統現在會優先採用伺服器端設定的模型與推理摘要預設值。以前新建對話可能忽略伺服器給定的預設配置，現在系統會完整遵循這些預設選項。假使你在啟動時手動傳入了特定參數，系統也會優先保留你明確指定的覆寫值，不會被預設設定強行蓋過。⟦宛若走進連鎖餐廳用餐，以前廚房常搞錯標準配方，現在預設會照標準菜單出餐，但也依然遵循你點單時註明的客製需求。⟧",
-                "en": "When starting a new terminal conversation, the system now prioritizes server-configured defaults for models and reasoning summaries. Whereas creating a new conversation previously could ignore default server settings, the system now adheres fully to these defaults. If you manually pass specific parameters at launch, the system also prioritizes and retains your explicit override values instead of overwriting them with defaults. ⟦Dining at a chain restaurant illustrates the change: while the kitchen previously could mix up standard recipes, it now serves according to the standard menu by default while still honoring any custom preferences specified on your order.⟧"
-              },
-              "original": "Respect server model and reasoning-summary defaults for new TUI threads while retaining explicit launch overrides. (#50013, #50811, #50913)"
-            },
-            {
-              "title": {
-                "zh-TW": "套用補丁保留換行格式，Windows 檔案不跑版",
-                "en": "Patch Application Preserves Line Endings Without Corrupting Windows Files"
-              },
-              "body": {
-                "zh-TW": "在 Windows 環境下修補程式碼時，你不再需要特地手動指定設定來維持原本的換行格式。以前執行 apply_patch 更新檔案時，若未額外開啟選項，既有的 CRLF（Windows 標準換行符號）可能會被改掉；現在 apply_patch 會自動保留檔案原有的換行格式。這個問題已經修好，能避免檔案送出版控時多出整份換行差異。⟦跟維護舊文件一樣，以前每次送出修訂都得額外勾選保留原本排版，否則換行符號會被洗掉；現在直接套用也能原樣留存。⟧",
-                "en": "When patching code in Windows environments, you no longer need to manually specify settings to preserve original line endings. Previously, updating files with apply_patch could alter existing CRLF line endings (the standard Windows line-ending format) unless an extra option was enabled; apply_patch now automatically preserves the file's original line endings. This issue is resolved, preventing unintended diffs across the entire file when committing changes to version control. ⟦Maintaining legacy documents once required ticking an extra box on every revision to keep original formatting from getting overwritten, but applying edits now preserves line endings automatically.⟧"
-              },
-              "original": "Preserve existing CRLF line endings in `apply_patch` updates without requiring an opt-in. (#51203)"
-            },
-            {
-              "title": {
-                "zh-TW": "Linux 沙箱啟動防護強化，嚴格落實檔案隔離",
-                "en": "Enhanced Linux Sandbox Startup Protections and Enforced File Isolation"
-              },
-              "body": {
-                "zh-TW": "在 Linux 環境中使用安全沙箱隔離執行環境時，系統修復了多項攸關啟動與檔案存取的安全限制。當設定了多個禁止存取的檔案時，沙箱以前可能無法順利啟動，現在啟動流程已修復。沙箱現在會拒絕可被寫入的建構執行檔。也修正了 ripgrep 設定，確保搜尋配置不會削弱禁止規則（deny-glob）的檔案遮罩防護。⟦就像保險庫修好了門禁名單一多就卡住的問題，也拒用能被改動的門禁安裝工具，並讓查找物品的設定不會削弱禁止存取的名單。⟧",
-                "en": "When using the security sandbox to isolate execution environments on Linux, the system fixed several security constraints related to startup and file access. The sandbox previously could fail to start when multiple denied files were configured, but this startup process is now fixed. Sandboxes now reject writable executables used to construct the sandbox. The ripgrep configuration was also corrected to ensure search settings do not weaken deny-glob file mask protections. ⟦A bank vault fixes a stall that occurred whenever access denial lists grew too long, rejects modifiable installation tools, and ensures search settings never undermine restricted lists.⟧"
-              },
-              "original": "Fix Linux sandbox startup with multiple denied files, reject writable sandbox-construction executables, and keep ripgrep configuration from weakening deny-glob masks. (#50059, #51211, #51407, #51527)"
-            },
-            {
-              "title": {
-                "zh-TW": "Windows 10 磁碟存取恢復，沙箱暫存權限一致",
-                "en": "Restored Windows 10 Drive Access and Consistent Sandbox Temp Permissions"
-              },
-              "body": {
-                "zh-TW": "如果你在 Windows 10 系統上執行指令或使用沙箱隔離環境，先前遇到的路徑找不到與權限錯誤已獲得修復。現在恢復了一般磁碟代號（如常見的 C 槽與 D 槽）檔案存取能力，讀寫既有檔案不再出錯。Windows 沙箱內的暫存目錄權限也調整為與子行程（subprocess，由主程式啟動的附屬運作程序）環境一致，避免程式在執行時因權限不符而卡住。⟦有如拿到了相符的門禁卡，以前在 Windows 10 容易讀不到磁碟或被暫存目錄擋在門外，現在權限一致後各項操作都能順利通行。⟧",
-                "en": "If you run commands or use sandboxed environments on Windows 10, previously encountered missing path and permission errors are now resolved. Standard drive letter file access (such as common C: and D: drives) is restored, preventing errors when reading or writing existing files. Permissions for temporary directories inside the Windows sandbox are also aligned with environments of subprocesses (child processes started by the main program), preventing programs from hanging due to permission mismatches during execution. ⟦Obtaining a matching keycard resolves previous hurdles on Windows 10 where drives were unreadable or temp directories locked you out, ensuring all operations proceed smoothly with consistent permissions.⟧"
-              },
-              "original": "Restore ordinary drive-letter file access on Windows 10 and match Windows sandbox temp permissions to the child process environment. (#51511, #51512)"
-            },
-            {
-              "title": {
-                "zh-TW": "遵循伺服器建議時間重試",
-                "en": "Retrying Requests Following Server Recommendations"
-              },
-              "body": {
-                "zh-TW": "使用 Codex 時，送出的請求或即時連線若失敗，你可能需要等一段時間才能重試。Responses（傳送模型請求的介面）的可重試失敗，現在會遵循伺服器的 Retry-After 建議。這個標頭會告訴用戶端應等待多久再試。WebSocket（維持雙向即時通訊的連線）的可重試失敗也適用：依照建議時間等待後再重試。⟦好比撥打客服電話遇到忙線，聽到語音建議稍後再撥，就依照建議等候，再重新撥打。⟧",
-                "en": "When using Codex, if a sent request or real-time connection fails, you may need to wait for a while before retrying. Retryable failures for Responses (the interface for sending model requests) now follow the server's Retry-After recommendation. This header tells the client how long to wait before trying again. Retryable failures for WebSocket connections (which maintain two-way, real-time communication) also follow this rule by waiting for the suggested duration before retrying. ⟦When dialing a busy customer service line, a caller follows the automated voice prompt to wait for the suggested time before calling back.⟧"
-              },
-              "original": "Honor server `Retry-After` advice for retryable Responses and WebSocket failures. (#50418, #51440)"
-            },
-            {
-              "title": {
-                "zh-TW": "Windows 安裝程式附帶數位簽章，版本下載更安全",
-                "en": "Windows Installers Include Digital Signatures for Safer Version Downloads"
-              },
-              "body": {
-                "zh-TW": "在 Windows 下安裝或更新系統時，安裝腳本與版本下載機制現在具備更高的安全性與相容性。Windows 發行版本現在附帶已簽署的 PowerShell 安裝程式。當環境中存在 PowerShell 7 模組路徑時，舊版透過 Windows PowerShell 安裝可能發生的壓縮檔校驗碼驗證失敗問題也已修好。下載管理方面，系統現在能防止舊版或預覽版本意外覆蓋較新的穩定版下載目標與安裝別名。⟦猶如官方包裹附上可核對來源的簽名，以前可能誤把舊包裹拿來替換新品，現在不會了。⟧",
-                "en": "When installing or updating the system on Windows, installer scripts and version download mechanisms now offer higher security and compatibility. Windows releases now include a signed PowerShell installer. When PowerShell 7 module paths exist in the environment, archive checksum verification failures that previously occurred when installing through Windows PowerShell are now fixed. For download management, the system now prevents older or preview versions from accidentally overwriting newer stable download targets and installation aliases. ⟦Receiving an official package with a verifiable signature ensures that old parcels are no longer mistakenly used to replace brand-new items.⟧"
-              },
-              "original": "Fix archive checksum verification when installing through Windows PowerShell with PowerShell 7 module paths present. (#51257)\nPublish a signed PowerShell installer with Windows releases. (#51158)\nKeep older stable releases and prereleases from replacing newer stable download targets or installer aliases. (#51186, #51425)"
             }
           ]
         }
