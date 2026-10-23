@@ -6,7 +6,7 @@
 
 ### Claude Code, Codex, Antigravity, Grok CLI, Muse Code 할당량이 언제나 화면에.
 
-`usage`는 5시간 및 주간 한도를 macOS 메뉴 막대나 Windows 시스템 트레이에 녹색부터 빨간색까지의 색상으로 표시합니다. 긴 리팩터링 도중에 한도에 부딪혀서야 잔여량이 부족했다는 걸 알게 되는 건 난감한 일입니다. 이제 미리 확인할 수 있습니다. 실행할 명령도, 열 페이지도 없습니다.
+`usage`는 5시간 및 주간 한도를 macOS 메뉴 막대나 Windows 시스템 트레이에 표시하고, 한도에 가까워지면 빨간색으로 알려 줍니다. 긴 리팩터링 도중에 한도에 부딪혀서야 잔여량이 부족했다는 걸 알게 되는 건 난감한 일입니다. 이제 미리 확인할 수 있습니다. 실행할 명령도, 열 페이지도 없습니다.
 
 [繁體中文](README.zh-TW.md) · [简体中文](README.zh-CN.md) · [English](../README.md) · [日本語](README.ja.md) · 한국어 &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [공식 사이트](https://aqua5230.github.io/usage/)
 
@@ -26,7 +26,7 @@
 </p>
 
 - **모든 할당량을 한눈에:** Claude Code, Codex, Antigravity, Muse Code의 세션 및 주간 한도와 리셋 카운트다운, 그리고 Grok CLI의 주간 크레딧.
-- **컴퓨터에 이미 있는 데이터 읽기:** Claude Code, Codex, Grok CLI, Muse Code의 토큰과 비용은 로컬 로그에서 가져옵니다. Antigravity 할당량은 CLI가 이미 저장해 둔 로그인 정보를 사용해 Google 공식 엔드포인트에서 가져옵니다. Muse 할당량은 로그인된 Muse CLI로 백그라운드에서 소규모 모델 호출을 한 번 실행해 가져옵니다.
+- **컴퓨터에 이미 있는 데이터 읽기:** Claude Code, Codex, Grok CLI, Muse Code의 토큰과 비용은 로컬 로그에서 가져옵니다. Antigravity 할당량은 먼저 자체 CLI에서 가져오고(모델 호출 없음), 안 되면 CLI가 이미 저장해 둔 로그인 정보로 Google 공식 엔드포인트에서 가져옵니다. Muse 할당량은 로그인된 Muse CLI로 백그라운드에서 소규모 모델 호출을 한 번 실행해 가져옵니다.
 - **token이 낭비되기 전에 경고:** Claude Code 상태 줄이 컨텍스트 창 비대화와 식은 prompt cache를 미리 알립니다. 배너는 Claude 또는 Codex의 장애를 표시합니다.
 - **Claude Code 내부 도우미:** 사이드 패널, 더 간결한 답변, 새 세션을 위한 진행 상황 인계, 할당량 인식 계획. 모두 선택 사항입니다.
 - **보고서와 16가지 테마:** token 추세와 비용을 보여주는 HTML 보고서, 그리고 선택할 수 있는 16가지 패널 테마.
@@ -73,7 +73,7 @@ uvx usage-cli
 Codex를 사용한 적이 있다면 `usage`가 기록을 자동으로 가져옵니다. Claude Code의 경우 앱 팝오버에서 **"Set Up Status Line"** 버튼을 클릭하여 동기화 hook을 설치하세요.
 그런 다음 해당 도구를 다시 시작하세요(macOS에서는 Claude Code를 Cmd+Q로 완전히 종료한 뒤 다시 열고, Windows에서는 터미널을 다시 시작하거나 새 세션을 시작합니다).
 
-동일한 버튼은 Antigravity CLI와 Grok CLI가 설치되어 있을 때 해당 상태 줄도 함께 설정하며, 설치되어 있지 않으면 아무것도 기록하지 않습니다. 직접 설정해 둔 상태 줄은 먼저 백업되며 스위치를 끌 때 복원됩니다.
+동일한 버튼은 Antigravity CLI와 Grok CLI가 설치되어 있을 때 해당 상태 줄도 함께 설정하며, 설치되어 있지 않으면 아무것도 기록하지 않습니다. 직접 설정해 둔 상태 줄은 먼저 백업되며 스위치를 끌 때 복원됩니다. 스위치는 **⚙ 설정 → Claude Code → 상태 표시줄로 사용량 동기화**에 있으며, 끄면 Claude 할당량이 더 이상 업데이트되지 않습니다.
 
 설정이 완료되면 Claude Code 창 하단에 다음과 같은 상태 줄이 표시됩니다.
 
@@ -85,8 +85,8 @@ Codex를 사용한 적이 있다면 `usage`가 기록을 자동으로 가져옵�
 
 ### 화면 표시
 
-- **메뉴 막대 모니터:** 할당량이 녹색부터 빨간색까지 색상으로 구분됩니다. 전체 세션, 주간, 프로젝트별 내역이 필요하면 클릭하세요. macOS 메뉴 막대에는 세션 사용률이 높은 도구를 최대 3개까지 Claude → Codex → Antigravity → Grok → Muse 순서로 표시하며, 패널에는 모두 표시합니다.
-- **Antigravity 카드:** 기본적으로 Gemini 풀을 표시합니다. `Gemini ⇄` 태그를 누르면 별도의 Claude / GPT 풀로 전환되며 선택이 기억됩니다.
+- **메뉴 막대 모니터:** 할당량이 한도에 가까워지면 빨간색으로 표시됩니다. 전체 세션, 주간, 프로젝트별 내역이 필요하면 클릭하세요. macOS 메뉴 막대에는 세션 사용률이 높은 도구를 최대 3개까지 Claude → Codex → Antigravity → Grok → Muse 순서로 표시하며, 패널에는 모두 표시합니다.
+- **Antigravity 카드:** 기본적으로 Gemini 풀을 표시합니다. `Gemini ⇄` 태그를 누를 때마다 별도의 Claude / GPT 풀과 Gemini 4 Argon 풀로 차례로 전환되며 선택이 기억됩니다. Argon은 주간 한도만 있습니다.
 - **Grok CLI 카드:** Grok CLI 로컬 디버그 로그에서 읽어온 주간 크레딧 비율입니다. 해당 token 역시 비용과 프로젝트 총계에 반영됩니다.
 - **Muse Code 카드:** 5시간(Session) 및 주간 할당량과 리셋 카운트다운을 표시합니다. 할당량 테마 15개 모두에서 지원하며, 메뉴 막대 항목과 선택 가능한 잔량 부족·소진·회복 알림을 제공합니다. Muse가 설치되지 않으면 자동으로 숨깁니다. 토큰과 비용은 계속 오늘 비용, 프로젝트 합계, 보고서, CLI에 반영됩니다.
 - **서비스 장애 경고:** Claude Code, Claude API 또는 Codex API에 장애나 성능 저하가 발생하면 공개 상태 페이지에서 읽어온 주황색/빨간색 경고 배너가 표시됩니다.
@@ -107,10 +107,10 @@ Codex를 사용한 적이 있다면 `usage`가 기록을 자동으로 가져옵�
 
 ### 보고서 및 기타
 
-- **HTML 보고서:** 일간 및 주간 token 추세, 프로젝트 순위, 비용, 기여 히트맵이 포함된 Year in Review를 제공합니다. 완전히 오프라인에서 .html, .csv 또는 .png로 내보낼 수 있으며 프로젝트 이름 마스킹도 지원합니다.
+- **HTML 보고서:** 일간 및 주간 token 추세, 프로젝트 순위, 비용, 기여 히트맵이 포함된 Year in Review를 제공합니다. 완전히 오프라인에서 .html, .csv 또는 .png로 내보낼 수 있으며 프로젝트 이름 마스킹도 지원합니다. Claude Code에서 Codex나 Antigravity로 작업을 맡기면, 어떤 대화가 각 도구의 주간 할당량을 얼마나 썼는지도 보여 줍니다.
 - **터미널 통합:** `usage status --json`은 Claude Code, Codex, Antigravity, Grok, Muse 할당량을 Starship, tmux 또는 자체 스크립트에 전달합니다. [미리 준비된 스니펫](DEVELOPMENT.md#quota-status-for-other-tools-usage-status).
-- **AI 업데이트 일보:** 매일 공개되는 [웹 페이지](https://aqua5230.github.io/ai-updates/)에서 Claude Code, Codex, Antigravity의 변경 사항을 5개 언어의 알기 쉬운 요약으로 제공합니다.
-- **자유로운 레이아웃:** 패널을 원하는 위치로 드래그하고, 할당량 카드를 드래그해 순서를 바꾸며, 16가지 테마를 전환할 수 있습니다. UI는 시스템 언어(번체 중국어, 간체 중국어, 영어, 일본어, 한국어)를 따릅니다. 할당량 카드가 4개 이상이면 모두 간결한 레이아웃으로 바뀌며, 3개 이하면 기존 레이아웃을 유지합니다.
+- **AI 업데이트 일보:** 매일 공개되는 [웹 페이지](https://aqua5230.github.io/ai-updates/)에서 Claude Code, Codex, Antigravity, Grok Build, Muse Code, GitHub CLI 및 usage 자체의 변경 사항을 5개 언어의 알기 쉬운 요약으로 제공합니다.
+- **자유로운 레이아웃:** 패널을 원하는 위치로 드래그하고, 할당량 카드를 드래그해 순서를 바꾸며, **⚙ 설정 → 패널 전환**에서 16가지 테마를 전환할 수 있습니다. UI는 시스템 언어(번체 중국어, 간체 중국어, 영어, 일본어, 한국어)를 따릅니다. 할당량 카드가 4개 이상이면 모두 간결한 레이아웃으로 바뀌며, 3개 이하면 기존 레이아웃을 유지합니다.
 
 <details>
 <summary>임계값, 버전 및 세부 사항</summary>
@@ -125,7 +125,7 @@ Codex를 사용한 적이 있다면 `usage`가 기록을 자동으로 가져옵�
 - **진행 상황 컨시어지:** 캐시가 만료될 만큼 오래 둔 대화를 `/resume`으로 다시 열면 다음 메시지에서 다시 보낼 토큰 수를 알려 주고 먼저 `/compact`를 권합니다.
 - **초보자 모드(macOS/Windows):** 전문 용어가 UI 언어로 입력창 위에 표시됩니다. 9를 누르면 "이해함"으로 표시됩니다. 건너뛴 용어는 1일, 3일, 7일 뒤에 다시 나옵니다. 이해한 용어는 7일, 21일, 60일 뒤에 객관식 한 문제로 다시 나오며(하루 최대 한 문제), 틀리면 그 용어는 다시 힌트로 돌아갑니다. `/terms`로 용어 기록을 열 수 있습니다. 용어 고르기는 Claude Code를 통해 Claude Haiku에 맡기며, 5시간 할당량이 90% 이상이면 자동으로 멈춥니다.
 - **할당량 인식 모드(macOS/Windows):** 5시간 할당량이 80%, 90%, 95%를 넘거나 주간 할당량이 95%를 넘으면, Claude Code에 남은 양과 재설정 시각을 한 줄로 알려 줍니다. Claude Code, Codex, Antigravity, Muse를 모두 지원하며, 각 단계는 한 대화에서 한 번만 알리고, 각 할당량과 모델 그룹을 별도로 처리하므로 소진된 할당량은 해당 모델에서 실행되는 작업에만 영향을 줍니다.
-- **5시간 세션 자동 시작:** Claude는 Haiku, Antigravity는 Gemini 3.8 Flash Low, Codex는 가장 저렴한 모델을 사용합니다. 소모되는 할당량은 무시할 수 있는 수준입니다.
+- **5시간 세션 자동 시작:** Claude는 Haiku, Antigravity는 Gemini 3.8 Flash Low, Codex는 가장 저렴한 모델을 사용합니다. 소모되는 할당량은 무시할 수 있는 수준입니다. Claude와 Codex로 보내는 메시지는 직접 설정한 훅을 실행하지 않으며 `claude --resume`과 `codex resume` 목록에도 남지 않습니다.
 - **패널:** 다른 앱으로 포커스가 이동해도 사라지지 않으며, 메뉴 막대 아이콘을 다시 클릭하거나 Esc 키를 눌러야 닫힙니다. 카드 순서는 할당량 카드가 있는 모든 테마(World Cup 2026 제외)에서 공유되며 다시 시작해도 유지됩니다.
 - **HTML 보고서:** "최근 작업" 섹션에는 Claude Code가 최근 대화에 붙인 이름이 나열되며, 마스킹 기능은 이 제목들도 함께 가려줍니다.
 - **AI 업데이트 일보:** 미심사 항목은 공식 원문을 보여줍니다. 전체 기록이 보존됩니다.
@@ -196,19 +196,18 @@ UI에서 직접 **16가지 시각 테마**를 전환하세요.
 
 ## 비교
 
+2026년 10월 기준. ccusage와 TokenTracker는 훨씬 많은 AI 도구를 지원하며, `usage`는 다섯 가지 도구와 그 할당량에 집중합니다.
+
 | 기능 | usage | ccusage | TokenTracker |
 |---------|:-----:|:-------:|:------------:|
-| 화면에 항상 표시 | ✅ | — | ✅ |
-| macOS 메뉴 막대 및 Windows 시스템 트레이 | ✅ | — | macOS 전용 |
-| Claude Code 및 Codex 사용량 | ✅ | ✅ | ✅ |
-| Antigravity 사용량(Gemini 및 Claude / GPT) | ✅ | — | — |
-| Grok CLI 사용량 | ✅ | — | — |
-| Muse Code 할당량·토큰·비용 | ✅ | — | — |
-| Claude Code 및 Codex 서비스 상태 경고 | ✅ | — | — |
-| HTML 심층 보고서 및 UI | ✅ | ✅ | — |
-| Claude Code 도우미(Token 절약기, 진행 상황 컨시어지, 초보자 및 할당량 인식 모드, 상태 점검) | ✅ | — | — |
+| 메뉴 막대 또는 시스템 트레이 앱 | macOS, Windows | — | macOS, Windows, Linux |
+| 토큰 및 비용 보고서 | ✅ | ✅ | ✅ |
+| 실시간 5시간 및 주간 할당량 | ✅ | Claude 5시간 블록 추정만 | ✅ |
+| Muse Code 할당량 | ✅ | — | — |
+| 공식 상태 페이지의 서비스 상태 | Claude, Codex | — | 8곳 |
+| Claude Code 도우미(Token 절약기, 진행 상황 컨시어지, 초보자 및 할당량 인식 모드, 사이드 패널, 상태 점검) | ✅ | — | — |
 | AI 업데이트 일보 | ✅ | — | — |
-| 오픈 소스 라이선스 | AGPL-3.0 | MIT | — |
+| 오픈 소스 라이선스 | AGPL-3.0 | MIT | MIT |
 
 ## 적합하지 않은 경우
 
@@ -249,7 +248,7 @@ Windows에서도 핵심 기능을 모두 네이티브로 사용할 수 있습니
 
 - **로컬 로그:** Claude Code, Codex, Grok CLI, Muse Code 토큰과 비용 수치는 컴퓨터의 로컬 로그 파일에서 읽습니다. 그 내용은 절대 업로드되지 않습니다.
 - **Claude Desktop:** Claude Code CLI나 상태 줄이 없어도 Claude 데스크톱을 열어 두면 `usage`가 로컬 플랜 사용 기록을 읽습니다. 쿠키, 로그인 토큰, API 호출이 필요하지 않습니다. 재설정 시간은 로컬 캐시에서 확인될 때만 표시되며 결코 추정하지 않습니다.
-- **Antigravity**는 실제로 사용하는 경우에만 네트워크 연결이 필요합니다: 할당량은 Antigravity CLI가 로그인 후 저장한 OAuth 자격 증명으로 Google의 공식 할당량 엔드포인트에 조회해 가져옵니다——CLI 버전에 따라 macOS 키체인, Windows 자격 증명 관리자, 또는 로컬 token 파일에서 읽습니다. `usage`는 그 자격 증명을 다시 쓰지 않으며, 갱신된 access token도 메모리에만 보관합니다. 이 호출 자체는 할당량 메타데이터를 읽습니다.
+- **Antigravity**는 실제로 사용하는 경우에만 네트워크 연결이 필요합니다: 할당량은 먼저 `agy -p /usage`(모델 호출 없음)로 Antigravity CLI에서 가져오고, 실패할 때만 Antigravity CLI가 로그인 후 저장한 OAuth 자격 증명으로 Google의 공식 할당량 엔드포인트에 조회해 가져옵니다——CLI 버전에 따라 macOS 키체인, Windows 자격 증명 관리자, 또는 로컬 token 파일에서 읽습니다. `usage`는 그 자격 증명을 다시 쓰지 않으며, 갱신된 access token도 메모리에만 보관합니다. 이 호출 자체는 할당량 메타데이터를 읽습니다.
 - **Muse 할당량:** Muse는 로컬에 할당량 파일을 저장하지 않습니다. `usage`는 Muse 자체 로그인으로 `muse exec --json`을 실행하고 반환된 할당량을 `~/.usage/muse_quota.json`에 저장합니다. Muse에 연결해 실제 모델을 호출하므로 Muse 할당량을 조금 사용합니다. 빈 폴더에서 `--no-session-log`와 함께 실행합니다. Muse가 설치되어 있고 대화가 있으면 첫 스냅샷을 가져옵니다. 이후에는 스냅샷이 30분을 넘었고 더 새로운 Muse 대화가 있을 때만 실행합니다. 실패 후에는 최소 30분을 기다리고 새로운 Muse 사용이 있어야 다시 시도합니다. ‘섹션 숨기기’에서 Muse 카드를 숨길 수 있습니다.
 - **기타 백그라운드 네트워크 활동:** 장애를 알리기 위한 Claude와 Codex의 공개 상태 페이지, 비용 추정을 위한 공개 모델 가격표(오프라인에서는 내장 가격 사용), 그리고 가끔 GitHub에서 새 버전을 확인하는 작업입니다.
 - **초보자 모드**는 켰을 때만 네트워크를 사용합니다: 본인의 Claude Code 로그인으로 Claude Code의 최신 답변을 Claude Haiku에 보내 용어를 고릅니다. 용어 목록은 `~/.usage/glossary.json`에 보관됩니다.
