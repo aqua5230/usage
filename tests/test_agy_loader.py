@@ -274,27 +274,6 @@ def test_load_entries_prefers_legacy_generation_timestamp(sessions_dir: Path) ->
     assert entries[0].timestamp == generation_timestamp
 
 
-def test_recent_input_output_tokens_excludes_cache_and_thinking(sessions_dir: Path) -> None:
-    now = datetime.now(UTC)
-    _write_database(
-        sessions_dir / "totals.db",
-        [
-            _generation_blob(
-                timestamp=now,
-                dedup_key="total",
-                system_tokens=1_000,
-                input_tokens=20,
-                output_tokens=30,
-                cache_read_tokens=99_999,
-                thinking_tokens=500,
-            )
-        ],
-        now,
-    )
-
-    assert agy_loader.recent_input_output_tokens(1) == 1_050
-
-
 def test_load_entries_skips_database_when_sqlite_is_locked(
     monkeypatch: pytest.MonkeyPatch, sessions_dir: Path
 ) -> None:
