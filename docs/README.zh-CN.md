@@ -6,7 +6,7 @@
 
 ### 你的 Claude Code、Codex、Antigravity、Grok CLI 和 Muse Code 配额，一直都在屏幕上。
 
-`usage` 把 5 小时和每周限额放在 macOS 菜单栏或 Windows 系统托盘中，用绿到红的颜色表示。重构做到一半才发现配额用完，很难受；现在你会提前看到。不用跑命令，也不用开页面。
+`usage` 把 5 小时和每周限额放在 macOS 菜单栏或 Windows 系统托盘中，额度快用完时变红提醒。重构做到一半才发现配额用完，很难受；现在你会提前看到。不用跑命令，也不用开页面。
 
 [繁體中文](README.zh-TW.md) · 简体中文 · [English](../README.md) · [日本語](README.ja.md) · [한국어](README.ko.md) &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [官方介绍页](https://aqua5230.github.io/usage/)
 
@@ -26,7 +26,7 @@
 </p>
 
 - **各项配额一览：** Claude Code、Codex、Antigravity、Muse Code 的会话与每周限额及重置倒计时，加上 Grok CLI 的每周配额。
-- **读取你电脑上已有数据：** Claude Code、Codex、Grok CLI、Muse Code 的 token 与费用来自本地日志。Antigravity 配额来自 Google 官方接口，使用的是其 CLI 本就保存在本机的登录身份。Muse 额度则通过已登录的 Muse 命令行工具，在后台发送一次很小的请求获取。
+- **读取你电脑上已有数据：** Claude Code、Codex、Grok CLI、Muse Code 的 token 与费用来自本地日志。Antigravity 配额先问它自己的 CLI（不调用模型），不行再用该 CLI 本就保存在本机的登录身份向 Google 官方接口查询。Muse 额度则通过已登录的 Muse 命令行工具，在后台发送一次很小的请求获取。
 - **在 token 浪费前提醒：** Claude Code 状态栏会在上下文窗口膨胀和 prompt 缓存变冷前发出提醒。横幅会显示 Claude 或 Codex 故障。
 - **Claude Code 内置辅助：** 侧边面板、更短的回复、新会话的进度交接，以及额度感知规划。全部可选。
 - **报告与 16 款主题：** 展示 token 趋势和费用的 HTML 报告，以及 16 款可供选择的面板主题。
@@ -73,7 +73,7 @@ uvx usage-cli
 如果你用过 Codex，`usage` 会自动读取其历史记录。对于 Claude Code，请在应用弹出面板中点击 **“Set Up Status Line”** 按钮以安装同步 hook。
 之后重启相应工具（macOS 请将 Claude Code 用 Cmd+Q 完全退出后重新打开；Windows 请重启终端或重新开启会话）。
 
-同一颗按钮在你装了 Antigravity CLI 与 Grok CLI 时，也会一并帮它们设置状态栏；没装的话什么都不会写入。你自己在那边设置过的状态栏会先备份起来，关掉开关时还原。
+同一颗按钮在你装了 Antigravity CLI 与 Grok CLI 时，也会一并帮它们设置状态栏；没装的话什么都不会写入。你自己在那边设置过的状态栏会先备份起来，关掉开关时还原。开关在“⚙ 设置 → Claude Code → 状态栏同步额度”；关掉后 Claude 额度就不再更新。
 
 设置完成后，Claude Code 窗口底部会显示如下状态栏：
 
@@ -85,8 +85,8 @@ uvx usage-cli
 
 ### 屏幕显示
 
-- **菜单栏监视器：** 配额以绿色到红色的颜色编码显示。点击即可查看完整的会话、每周和各项目明细。macOS 菜单栏最多显示会话用量最高的三家，按 Claude → Codex → Antigravity → Grok → Muse 排列；面板仍显示全部。
-- **Antigravity 卡片：** 默认显示 Gemini 配额池。点击“Gemini ⇄”标签即可切换到独立的 Claude / GPT 配额池，选择会被记住。
+- **菜单栏监视器：** 配额快用完时变红提醒。点击即可查看完整的会话、每周和各项目明细。macOS 菜单栏最多显示会话用量最高的三家，按 Claude → Codex → Antigravity → Grok → Muse 排列；面板仍显示全部。
+- **Antigravity 卡片：** 默认显示 Gemini 配额池。点击“Gemini ⇄”标签可依次切换到独立的 Claude / GPT 与 Gemini 4 Argon 配额池，选择会被记住。Argon 只有每周限额。
 - **Grok CLI 卡片：** 从 Grok CLI 本地调试日志读取的每周配额百分比。其 token 用量也会计入费用与项目总计。
 - **Muse Code 卡片：** 显示 5 小时（Session）与每周额度、重置倒计时。15 款额度主题都有，支持菜单栏项目，以及可选的即将耗尽、已耗尽与已恢复通知。没装 Muse 就自动隐藏。token 与费用仍计入今日费用、项目总计、报告与 CLI。
 - **服务故障警示：** 当 Claude Code、Claude API 或 Codex API 发生故障或性能降级时显示橘红横幅，读取自其公开状态页。
@@ -107,10 +107,10 @@ uvx usage-cli
 
 ### 报告与更多
 
-- **HTML 报告：** 每日和每周 token 趋势、项目排名、费用，以及带有贡献热图的年度回顾。完全离线导出为 .html、.csv 或 .png，支持可选的项目名称遮蔽。
+- **HTML 报告：** 每日和每周 token 趋势、项目排名、费用，以及带有贡献热图的年度回顾。完全离线导出为 .html、.csv 或 .png，支持可选的项目名称遮蔽。如果你从 Claude Code 把工作派给 Codex 或 Antigravity，报告会列出哪些对话用掉了各家多少每周额度。
 - **终端集成：** `usage status --json` 会将你的 Claude Code、Codex、Antigravity、Grok 和 Muse 额度交给 Starship、tmux 或你自己的脚本。[现成的片段](DEVELOPMENT.md#quota-status-for-other-tools-usage-status)。
-- **AI 更新日报：** 每日公开[网页](https://aqua5230.github.io/ai-updates/)，涵盖 Claude Code、Codex 和 Antigravity 的变更，并提供五种语言的白话摘要。
-- **个性布局：** 面板可自由拖动到任意位置，拖拽配额卡重新排序，并可在 16 款主题间切换。界面自动匹配系统语言：繁体中文、简体中文、英语、日语或韩语。同时显示四张以上额度卡时，全部自动改用精简布局；三张以下保持原样。
+- **AI 更新日报：** 每日公开[网页](https://aqua5230.github.io/ai-updates/)，涵盖 Claude Code、Codex、Antigravity、Grok Build、Muse Code、GitHub CLI 以及 usage 本身的变更，并提供五种语言的白话摘要。
+- **个性布局：** 面板可自由拖动到任意位置，拖拽配额卡重新排序，并可从“⚙ 设置 → 切换面板”在 16 款主题间切换。界面自动匹配系统语言：繁体中文、简体中文、英语、日语或韩语。同时显示四张以上额度卡时，全部自动改用精简布局；三张以下保持原样。
 
 <details>
 <summary>阈值、版本及详细说明</summary>
@@ -125,7 +125,7 @@ uvx usage-cli
 - **进度管家：** 当你用 `/resume` 接回放置过久导致缓存已过期的对话时，它会提示下一条消息需要重新发送多少 token，并建议先执行 `/compact`。
 - **新手模式（macOS 和 Windows）：** 术语会以你的界面语言出现在输入框上方。按 9 标成“懂了”；跳过的术语会在 1、3、7 天后再出现。标成懂了的术语，会在 7、21、60 天后变成一道选择题小测验，一天最多一题；答错就回到提示里。输入 `/terms` 可以查看术语记录。挑术语会通过你的 Claude Code 请 Claude Haiku 帮忙，并在 5 小时额度达到 90% 以上时自动暂停。
 - **额度感知模式（macOS 和 Windows）：** 5 小时额度超过 80%、90%、95%，或周额度超过 95% 时，Claude Code 会收到一行字，写明还剩多少、几点重置。Claude Code、Codex、Antigravity 和 Muse 的额度都会看，每一级在同一个对话里只说一次，且各个额度和模型组分别独立处理，因此用尽的额度只影响运行在其上的工作。
-- **自动启动 5 小时计时：** Claude 用 Haiku、Antigravity 用 Gemini 3.8 Flash Low、Codex 用最省成本的模型。消耗的额度微乎其微。
+- **自动启动 5 小时计时：** Claude 用 Haiku、Antigravity 用 Gemini 3.8 Flash Low、Codex 用最省成本的模型。消耗的额度微乎其微。Claude 与 Codex 的这条消息不会触发你自己设置的 hook，也不会出现在 `claude --resume` 与 `codex resume` 的列表里。
 - **面板：** 切换到其他 App 时也不会消失；再次点击菜单栏图标或按 Esc 键即可关闭。卡片顺序在所有包含配额卡的主题间共享（除 World Cup 2026 之外），并在重启后保留。
 - **HTML 报告：** “最近在做什么”一区列出 Claude Code 为你近期对话取的名字，遮蔽功能也会涵盖这些标题。
 - **AI 更新日报：** 未审核的项目显示原始来源文本。保留完整历史。
@@ -196,19 +196,18 @@ uvx usage-cli
 
 ## 对比
 
+2026 年 10 月核对。ccusage 和 TokenTracker 支持的 AI 工具多得多；`usage` 专注于五个工具及其额度。
+
 | 功能 | usage | ccusage | TokenTracker |
 |---------|:-----:|:-------:|:------------:|
-| 始终显示在屏幕上 | ✅ | — | ✅ |
-| macOS 菜单栏与 Windows 系统托盘 | ✅ | — | 仅限 macOS |
-| Claude Code 与 Codex 用量 | ✅ | ✅ | ✅ |
-| Antigravity 用量（Gemini 与 Claude / GPT） | ✅ | — | — |
-| Grok CLI 用量 | ✅ | — | — |
-| Muse Code 额度、token 与费用 | ✅ | — | — |
-| Claude Code 与 Codex 服务状态警示 | ✅ | — | — |
-| HTML 深度报告与界面 | ✅ | ✅ | — |
-| Claude Code 辅助功能（Token 节省器、进度管家、新手与额度感知模式、健康检查） | ✅ | — | — |
+| 菜单栏或系统托盘应用 | macOS、Windows | — | macOS、Windows、Linux |
+| token 与费用报告 | ✅ | ✅ | ✅ |
+| 实时 5 小时与每周额度 | ✅ | 仅估算 Claude 5 小时区段 | ✅ |
+| Muse Code 额度 | ✅ | — | — |
+| 官方状态页的服务状态 | Claude、Codex | — | 8 家 |
+| Claude Code 辅助功能（Token 节省器、进度管家、新手与额度感知模式、侧边面板、健康检查） | ✅ | — | — |
 | AI 更新日报 | ✅ | — | — |
-| 开源许可证 | AGPL-3.0 | MIT | — |
+| 开源许可证 | AGPL-3.0 | MIT | MIT |
 
 ## 不适合谁
 
@@ -249,7 +248,7 @@ Windows 原生支持完整核心功能：提供与 macOS 相同的 16 款主题�
 
 - **本地日志：** Claude Code、Codex、Grok CLI 和 Muse Code 的 token 与费用数值从你电脑上的日志文件读取。其内容绝不会被上传。
 - **Claude 桌面版：** 无需 Claude Code CLI 或状态栏，保持 Claude 桌面版打开，`usage` 即可读取其本地 plan-usage 历史记录。不需要 Cookie、登录令牌或 API 调用。重置时间仅在其本地缓存确认时才会显示；绝不推测时间。
-- **Antigravity** 仅在你使用时才需要联网：配额通过 Antigravity CLI 登录后保存的 OAuth 凭据向 Google 官方配额接口查询——依 CLI 版本不同，该凭据读自 macOS 钥匙串、Windows 凭据管理器或本地 token 文件。`usage` 绝不写回该凭据，任何刷新后的 access token 也仅保留在内存中；该调用本身仅读取配额元数据。
+- **Antigravity** 仅在你使用时才需要联网：配额先用 `agy -p /usage` 询问 Antigravity CLI（不调用模型）；失败时才通过 Antigravity CLI 登录后保存的 OAuth 凭据向 Google 官方配额接口查询——依 CLI 版本不同，该凭据读自 macOS 钥匙串、Windows 凭据管理器或本地 token 文件。`usage` 绝不写回该凭据，任何刷新后的 access token 也仅保留在内存中；该调用本身仅读取配额元数据。
 - **Muse 额度：** Muse 本地没有额度文件。`usage` 使用 Muse 自己的登录执行 `muse exec --json`，将返回额度存到 `~/.usage/muse_quota.json`。这会连接 Muse，实际调用一次模型，消耗少量 Muse 额度。探测在空文件夹运行，带有 `--no-session-log`。安装 Muse 且有对话时会获取第一份快照；之后只在快照超过 30 分钟且有更新的 Muse 对话时探测。失败后至少等 30 分钟，还要有新的 Muse 用量才重试。可在“隐藏区块”关闭 Muse 额度卡。
 - **其他后台网络活动：** 用于标记故障的 Claude 与 Codex 公开状态页、用于估算费用的公开模型价格表（离线时使用内置价格），以及偶尔在 GitHub 检查新版本。
 - **新手模式**仅在你开启时才会联网：通过你自己的 Claude Code 登录将 Claude Code 最新一条回答发送给 Claude Haiku 挑术语。你的术语列表保存在 `~/.usage/glossary.json`。

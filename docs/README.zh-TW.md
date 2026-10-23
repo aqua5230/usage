@@ -6,7 +6,7 @@
 
 ### 你的 Claude Code、Codex、Antigravity、Grok CLI 與 Muse Code 額度，一直都在畫面上。
 
-`usage` 把 5 小時與每週限額放在 macOS 選單列或 Windows 系統匣，用綠到紅的顏色表示。重構做到一半才發現額度用完，很難受；現在你會先看到。不用跑指令，也不用開頁面。
+`usage` 把 5 小時與每週限額放在 macOS 選單列或 Windows 系統匣，額度快用完時轉紅提醒。重構做到一半才發現額度用完，很難受；現在你會先看到。不用跑指令，也不用開頁面。
 
 繁體中文 · [简体中文](README.zh-CN.md) · [English](../README.md) · [日本語](README.ja.md) · [한국어](README.ko.md) &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [官方介紹頁](https://aqua5230.github.io/usage/)
 
@@ -26,7 +26,7 @@
 </p>
 
 - **所有額度一眼看完：** Claude Code、Codex、Antigravity、Muse Code 的 Session 與每週額度加重置倒數，還有 Grok CLI 的每週額度。
-- **讀你機器上本來就有的資料：** Claude Code、Codex、Grok CLI、Muse Code 的 token 與花費讀自本機紀錄檔。Antigravity 額度來自 Google 官方端點，用的是它的 CLI 本來就存著的登入身分。Muse 額度則透過已登入的 Muse 命令列工具，在背景送一次很小的請求取得。
+- **讀你機器上本來就有的資料：** Claude Code、Codex、Grok CLI、Muse Code 的 token 與花費讀自本機紀錄檔。Antigravity 額度先問它自己的 CLI（不呼叫模型），不行再用該 CLI 本來就存著的登入身分向 Google 官方端點查。Muse 額度則透過已登入的 Muse 命令列工具，在背景送一次很小的請求取得。
 - **token 浪費前先提醒：** Claude Code 狀態列會在對話窗快膨脹、提示快取快冷掉時提醒你。Claude 或 Codex 故障時會跳警示橫幅。
 - **Claude Code 裡的小幫手：** 側邊面板、精簡回覆、開新對話自動接回進度、看額度規劃任務。全部可選。
 - **報表與 16 款主題：** token 趨勢與花費的 HTML 報表，還有 16 款面板主題可以挑。
@@ -73,7 +73,7 @@ uvx usage-cli
 如果你用過 Codex，它會自動讀到資料。若是 Claude Code，請點選單彈窗內的**「設定狀態列 (Set Up Status Line)」**按鈕來安裝同步 hook。
 完成後請重開相關工具（macOS 請將 Claude Code 用 Cmd+Q 完全結束後重開；Windows 請重啟終端機或重開對話）。
 
-同一顆按鈕在你裝了 Antigravity CLI 與 Grok CLI 時，也會一併幫它們設定狀態列；沒裝的話什麼都不會寫入。你自己在那邊設定過的狀態列會先備份起來，關掉開關時還原。
+同一顆按鈕在你裝了 Antigravity CLI 與 Grok CLI 時，也會一併幫它們設定狀態列；沒裝的話什麼都不會寫入。你自己在那邊設定過的狀態列會先備份起來，關掉開關時還原。開關在「⚙ 設定 → Claude Code → 狀態列同步額度」；關掉後 Claude 額度就不會再更新。
 
 設定完成後，Claude Code 視窗底部會出現這樣的狀態列：
 
@@ -85,8 +85,8 @@ uvx usage-cli
 
 ### 畫面上
 
-- **選單列監控：** 額度常駐選單列，綠到紅表示警戒程度。點開能看 Session、每週與各專案用量。macOS 選單列最多顯示 Session 用量最高的三家，依 Claude → Codex → Antigravity → Grok → Muse 排列；面板仍顯示全部。
-- **Antigravity 卡片：** 預設顯示 Gemini 額度。點標題旁的「Gemini ⇄」標籤就切到另一組 Claude / GPT 額度，選擇會記住。
+- **選單列監控：** 額度常駐選單列，快用完時轉紅提醒。點開能看 Session、每週與各專案用量。macOS 選單列最多顯示 Session 用量最高的三家，依 Claude → Codex → Antigravity → Grok → Muse 排列；面板仍顯示全部。
+- **Antigravity 卡片：** 預設顯示 Gemini 額度。點標題旁的「Gemini ⇄」標籤，會依序切到另外的 Claude / GPT 與 Gemini 4 Argon 額度，選擇會記住。Argon 只有每週限額。
 - **Grok CLI 卡片：** 讀 Grok CLI 寫在本機的除錯紀錄，算出每週額度百分比。它的 token 也會算進花費與專案總計。
 - **Muse Code 卡片：** 顯示 5 小時（Session）與每週額度、重置倒數。15 款額度主題都有，支援選單列項目，以及可選的快用完、已用完與已恢復通知。沒裝 Muse 就自動隱藏。token 與花費仍計入今日花費、專案總計、報表與 CLI。
 - **故障警示：** Claude Code、Claude API 或 Codex API 故障或效能降級時，會顯示橘紅警示橫幅，資料讀自官方公開狀態頁。
@@ -107,10 +107,10 @@ uvx usage-cli
 
 ### 報表與其他
 
-- **HTML 報表：** 每日與每週 token 趨勢、專案排行、花費，以及附貢獻熱力圖的 Year in Review。全程離線另存 .html／.csv／.png，可選擇隱藏專案名稱。
+- **HTML 報表：** 每日與每週 token 趨勢、專案排行、花費，以及附貢獻熱力圖的 Year in Review。全程離線另存 .html／.csv／.png，可選擇隱藏專案名稱。如果你從 Claude Code 把工作派給 Codex 或 Antigravity，報表會列出哪些對話用掉各家多少每週額度。
 - **終端機整合：** `usage status --json` 把 Claude Code、Codex、Antigravity、Grok 與 Muse 的額度交給 Starship、tmux 或你自己的腳本。[現成的設定片段](DEVELOPMENT.zh-TW.md#給其他工具讀的配額狀態usage-status)。
-- **AI 更新日報：** 每天更新的公開[網頁](https://aqua5230.github.io/ai-updates/)，整理 Claude Code、Codex、Antigravity 的更新，附五種語言的白話摘要。
-- **照你的習慣擺：** 面板拖到哪都行，額度卡拖曳排序，16 款主題隨時切換。介面跟隨系統語言：繁中、簡中、英、日、韓。同時顯示四張以上額度卡時，全部自動改用精簡版面；三張以下維持原樣。
+- **AI 更新日報：** 每天更新的公開[網頁](https://aqua5230.github.io/ai-updates/)，整理 Claude Code、Codex、Antigravity、Grok Build、Muse Code、GitHub CLI 與 usage 本身的更新，附五種語言的白話摘要。
+- **照你的習慣擺：** 面板拖到哪都行，額度卡拖曳排序，16 款主題隨時從「⚙ 設定 → 更換面板」切換。介面跟隨系統語言：繁中、簡中、英、日、韓。同時顯示四張以上額度卡時，全部自動改用精簡版面；三張以下維持原樣。
 
 <details>
 <summary>門檻、版本與細節</summary>
@@ -125,7 +125,7 @@ uvx usage-cli
 - **進度管家：** 用 `/resume` 接回放太久、快取已過期的對話時，會先提醒下一句要重送多少 token，建議先 `/compact`。
 - **新手模式（macOS／Windows）：** 名詞顯示在輸入框上方，語言跟介面一樣。按 9 標成「懂了」；略過的名詞會在 1、3、7 天後再出現。標成懂了的名詞，會在 7、21、60 天後變成一題選擇題小考，一天最多一題；答錯就回到提示裡。打 `/terms` 可以看名詞紀錄。挑名詞會透過你的 Claude Code 請 Claude Haiku 幫忙；5 小時額度到 90% 以上時會自動暫停。
 - **額度感知模式（macOS／Windows）：** 5 小時額度超過 80%、90%、95%，或週額度超過 95% 時，Claude Code 會收到一行字，寫著還剩多少、幾點重置。Claude Code、Codex、Antigravity、Muse 的額度都看，每一級在同一個對話只說一次。每份額度、每個模型組各自獨立，用完的那份只影響會用到它的工作。
-- **自動啟動 5 小時計時：** Claude 用 Haiku、Antigravity 用 Gemini 3.8 Flash Low、Codex 用最省成本的模型。用掉的額度小到可以忽略。
+- **自動啟動 5 小時計時：** Claude 用 Haiku、Antigravity 用 Gemini 3.8 Flash Low、Codex 用最省成本的模型。用掉的額度小到可以忽略。Claude 與 Codex 的這則訊息不會觸發你自己設的 hook，也不會出現在 `claude --resume` 與 `codex resume` 的清單裡。
 - **面板：** 點到別的 App 也不會消失，要再點一次選單列圖示或按 Esc 才關。額度卡排序在所有包含額度卡的主題間共用（除 World Cup 2026 之外），重開也會記住。
 - **HTML 報表：** 「最近在做什麼」一區列出 Claude Code 為你近期對話取的名字，隱藏專案名稱時這些標題也一併遮蔽。
 - **AI 更新日報：** 未審核的更新顯示官方原文，保留完整歷史。
@@ -196,19 +196,18 @@ uvx usage-cli
 
 ## 跟其他工具比較
 
+2026 年 10 月核對。ccusage 和 TokenTracker 支援的 AI 工具多得多；`usage` 專注在五個工具和它們的額度。
+
 | 功能 | usage | ccusage | TokenTracker |
 |------|:-----:|:-------:|:------------:|
-| 一直在螢幕上 | ✅ | — | ✅ |
-| macOS 選單列與 Windows 系統匣 | ✅ | — | 僅 macOS |
-| Claude Code 與 Codex 支援 | ✅ | ✅ | ✅ |
-| Antigravity 支援（Gemini 與 Claude / GPT） | ✅ | — | — |
-| Grok CLI 支援 | ✅ | — | — |
-| Muse Code 額度、token 與花費 | ✅ | — | — |
-| Claude Code 與 Codex 服務狀態警示 | ✅ | — | — |
-| HTML 深度報告與 UI 面板 | ✅ | ✅ | — |
-| Claude Code 小幫手（省 token 模式、進度管家、新手與額度感知模式、浪費健檢） | ✅ | — | — |
+| 選單列或系統匣 App | macOS、Windows | — | macOS、Windows、Linux |
+| token 與花費報表 | ✅ | ✅ | ✅ |
+| 即時 5 小時與每週額度 | ✅ | 只估算 Claude 5 小時區段 | ✅ |
+| Muse Code 額度 | ✅ | — | — |
+| 官方狀態頁的服務狀態 | Claude、Codex | — | 8 家 |
+| Claude Code 小幫手（省 token 模式、進度管家、新手與額度感知模式、側邊面板、浪費健檢） | ✅ | — | — |
 | AI 更新日報 | ✅ | — | — |
-| 開源授權 | AGPL-3.0 | MIT | — |
+| 開源授權 | AGPL-3.0 | MIT | MIT |
 
 ## 不適合誰
 
@@ -249,7 +248,7 @@ Windows 可完整使用核心功能：系統匣 UI（與 macOS 相同的 16 款�
 
 - **本機紀錄：** Claude Code、Codex、Grok CLI 與 Muse Code 的 token 與花費數字讀自你機器上的紀錄檔，內容不會被上傳。
 - **Claude 桌面版：** 沒裝 Claude Code CLI、也沒設定狀態列時，保持 Claude 桌面版開啟，`usage` 會讀它的本機額度歷史。不需要 Cookie、登入權杖或 API 呼叫。重置時間只在本機快取能確認時才顯示，不推測。
-- **Antigravity** 需要連網，而且只有你真的使用它才會發生：額度是用 Antigravity CLI 登入後存下的 OAuth 憑證，向 Google 官方額度端點查詢——依 CLI 版本不同，這個憑證讀自 macOS Keychain、Windows 認證管理員，或本機 token 檔。`usage` 只讀取這個憑證而不寫回，任何刷新後的 access token 也只留在記憶體中；這個呼叫本身讀取額度資訊。
+- **Antigravity** 需要連網，而且只有你真的使用它才會發生：額度先用 `agy -p /usage` 問 Antigravity CLI（不呼叫模型）；失敗時才用 Antigravity CLI 登入後存下的 OAuth 憑證，向 Google 官方額度端點查詢——依 CLI 版本不同，這個憑證讀自 macOS Keychain、Windows 認證管理員，或本機 token 檔。`usage` 只讀取這個憑證而不寫回，任何刷新後的 access token 也只留在記憶體中；這個呼叫本身讀取額度資訊。
 - **Muse 額度：** Muse 本機沒有額度檔。`usage` 用 Muse 自己的登入執行 `muse exec --json`，把回傳額度存到 `~/.usage/muse_quota.json`。這會連到 Muse，真的呼叫一次模型，用掉一點 Muse 額度。探測在空資料夾執行，帶有 `--no-session-log`。裝了 Muse 且有對話時會取得第一份快照；之後只在快照超過 30 分鐘且有更新的 Muse 對話時探測。失敗後至少等 30 分鐘，還要有新的 Muse 用量才重試。可在「隱藏區塊」關掉 Muse 額度卡。
 - **其他背景連網：** 用來標示故障的 Claude 與 Codex 公開狀態頁、估算成本用的公開價格表（斷網會用內建預設），以及偶爾檢查 GitHub 版本更新。
 - **新手模式**只有你打開才會連網：它透過你自己的 Claude Code 登入，把 Claude Code 最新一則回答送給 Claude Haiku 挑名詞。你的名詞紀錄存在 `~/.usage/glossary.json`。
