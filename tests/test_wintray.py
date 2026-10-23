@@ -27,6 +27,7 @@ from loaders.claude_usage import PollOutcome, PollState
 from menubar import agy as menubar_agy
 from menubar import prefs as menubar_prefs
 from menubar import state as menubar_state
+from panels.payload import _state_payload
 from quota import quota_snapshot
 from quota.notifications import NotificationEvent
 from updates import checker as update_checker
@@ -2829,14 +2830,17 @@ def test_build_state_reuses_history_scan_for_codex_rate_limits(
     assert rate_limit_scans == [candidates]
 
 
+@pytest.mark.parametrize("weekly_only", [False, True])
 def test_build_state_fetches_relevant_service_feeds_and_builds_banner(
     monkeypatch: pytest.MonkeyPatch,
+    weekly_only: bool,
 ) -> None:
     controller = wintray._WindowsTrayController(mock=True, interval=60)
     controller.language = "en"
     row = _state().codex_session
     projection = menubar_agy.AgyQuotaProjection(
-        group_name="Gemini",
+        group_name="GEMINI 4 ARGON" if weekly_only else "Gemini",
+        weekly_only=weekly_only,
         session=row,
         weekly=row,
         stale=None,
@@ -2894,6 +2898,7 @@ def test_build_state_fetches_relevant_service_feeds_and_builds_banner(
     assert calls[0].component_names == ("Claude Code", "Claude API (api.anthropic.com)")
     assert calls[1].status_url == "https://status.openai.com/api/v2/components.json"
     assert calls[1].component_names == ("Codex API",)
+    assert state.agy_weekly_only is weekly_only
     assert state.service_alerts == ("⚠ Claude service issue: Major outage",)
 
 
@@ -3966,3 +3971,27 @@ def test_muse_notification_uses_muse_name(monkeypatch: pytest.MonkeyPatch) -> No
     controller._send_quota_notification(NotificationEvent("warn", "muse_session", 90.0), state)
     assert "Muse" in shown[0]
     assert "91%" in shown[0]
+
+
+def test_panel_switch_updates_argon_weekly_only(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(prefs, "PREFERENCES_FILE", tmp_path / "preferences.json")
+    window = AgyQuotaWindow(75, "60m", 60)
+    quota = AgyQuotaResult(
+        [
+            AgyQuotaGroup("GEMINI MODELS", [], window, window),
+            AgyQuotaGroup("GEMINI 4 ARGON", [], window, None),
+        ],
+        "2026-01-01T00:00:00+00:00",
+    )
+    monkeypatch.setattr(menubar_agy, "_last_quota", quota)
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    for group, expected in [("argon", True), ("gemini", False)]:
+        controller.handle_panel_message(
+            json.dumps({"action": "set_agy_quota_group", "group": group})
+        )
+        assert controller.latest_state.agy_weekly_only is expected
+        agy = cast(dict[str, object], _state_payload(controller.latest_state)["agy"])
+        assert agy["weeklyOnly"] is expected
+        assert agy["availableGroups"] == ["gemini", "argon"]

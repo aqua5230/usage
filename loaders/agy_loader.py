@@ -176,11 +176,6 @@ def flush_caches_on_terminate() -> None:
     _flush_caches_on_terminate(lambda: _flush_caches_to_disk(force=True))
 
 
-def recent_input_output_tokens(hours_back: int) -> int:
-    """Return recent input plus output tokens, excluding cache-read and thinking."""
-    return sum(entry.input_tokens + entry.output_tokens for entry in load_entries(hours_back))
-
-
 def _load_database(
     path: Path,
     cutoff: datetime | None,

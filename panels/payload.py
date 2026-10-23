@@ -91,6 +91,8 @@ def _row_payload(row: QuotaRowState) -> dict[str, object]:
 def _state_payload(
     state: PopoverState, *, system_accent_color: str | None = None
 ) -> dict[str, object]:
+    from menubar.agy import quota_group_keys
+
     codex_rows = {
         key: _row_payload(row)
         for key, row in (("session", state.codex_session), ("weekly", state.codex_weekly))
@@ -131,6 +133,7 @@ def _state_payload(
             "weekly": _row_payload(state.agy_weekly),
             "groupName": state.agy_group_name,
             "groupSwitchable": state.agy_group_switchable,
+            "availableGroups": quota_group_keys(),
             "weeklyOnly": state.agy_weekly_only,
             "stale": state.agy_stale,
         },

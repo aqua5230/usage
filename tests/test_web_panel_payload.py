@@ -20,7 +20,7 @@ from quota.burn_rate import BurnRateTracker
 from usage_common import prefs
 
 
-def test_state_payload_includes_agy_card_data() -> None:
+def test_state_payload_includes_agy_card_data(monkeypatch: pytest.MonkeyPatch) -> None:
     quota = AgyQuotaResult(
         groups=[
             AgyQuotaGroup(
@@ -40,6 +40,7 @@ def test_state_payload_includes_agy_card_data() -> None:
         ],
         fetched_at="2026-01-01T00:00:00+00:00",
     )
+    monkeypatch.setattr(menubar_agy, "_last_quota", quota)
     projection = menubar_agy.project_quota(quota, "en", now=1_767_225_600.0)
     assert projection is not None
     state = menubar._empty_state("en")
@@ -81,6 +82,7 @@ def test_state_payload_includes_agy_card_data() -> None:
         },
         "groupName": "GEMINI MODELS",
         "groupSwitchable": False,
+        "availableGroups": ["gemini"],
         "weeklyOnly": False,
         "stale": None,
     }
@@ -301,3 +303,52 @@ def test_reset_row_payload_uses_display_value() -> None:
     assert payload["resetText"] == payload["resetTextCompact"] == "Reset"
     assert payload["warning"] is False
     assert row.percent == 100.0
+
+
+@pytest.mark.parametrize("include_gemini", [False, True])
+def test_shared_payload_lists_available_agy_groups(
+    monkeypatch: pytest.MonkeyPatch, include_gemini: bool
+) -> None:
+    names = ["CLAUDE AND GPT MODELS", "GEMINI 4 ARGON"]
+    expected = ["claude_gpt", "argon"]
+    if include_gemini:
+        names.insert(0, "GEMINI MODELS")
+        expected.insert(0, "gemini")
+    quota = AgyQuotaResult(
+        [AgyQuotaGroup(name, [], None, None) for name in reversed(names)],
+        datetime.now(UTC).isoformat(),
+    )
+    monkeypatch.setattr(menubar_agy, "_last_quota", quota)
+    agy = cast(dict[str, object], _state_payload(menubar._empty_state("en"))["agy"])
+    assert agy["availableGroups"] == expected
+
+
+def test_bridge_switch_updates_argon_weekly_only(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(prefs, "PREFERENCES_FILE", tmp_path / "preferences.json")
+    window = AgyQuotaWindow(75, "60m", 60)
+    quota = AgyQuotaResult(
+        [
+            AgyQuotaGroup("GEMINI MODELS", [], window, window),
+            AgyQuotaGroup("GEMINI 4 ARGON", [], window, None),
+        ],
+        datetime.now(UTC).isoformat(),
+    )
+    monkeypatch.setattr(menubar_agy, "_last_quota", quota)
+    state = menubar._empty_state("en")
+    bridge = UsageScriptBridge.alloc().init()
+    bridge.delegate = SimpleNamespace(
+        latest_state=state,
+        burn_rate_trackers={"agy_session": BurnRateTracker(), "agy_weekly": BurnRateTracker()},
+        popover_controller=SimpleNamespace(setState_=lambda _state: None),
+    )
+    for group, expected in [("argon", True), ("gemini", False)]:
+        bridge.userContentController_didReceiveScriptMessage_(
+            None,
+            SimpleNamespace(
+                body=lambda group=group: '{"action":"set_agy_quota_group","group":"' + group + '"}'
+            ),
+        )
+        assert state.agy_weekly_only is expected
+        assert cast(dict[str, object], _state_payload(state)["agy"])["weeklyOnly"] is expected

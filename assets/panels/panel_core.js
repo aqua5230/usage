@@ -367,12 +367,13 @@
       }
       const groupButton = document.querySelector('[data-action="set_agy_quota_group"]');
       if (groupButton) {
-        groupButton.hidden = !(agy && agy.groupSwitchable);
         const groupName = (agy && agy.groupName) || "";
         const current = /argon/i.test(groupName) ? "argon"
           : /claude/i.test(groupName) ? "claude_gpt" : "gemini";
         groupButton.textContent = t("agy_group_" + current);
-        groupButton.dataset.group = { gemini: "claude_gpt", claude_gpt: "argon", argon: "gemini" }[current];
+        const available = (agy && agy.availableGroups) || [];
+        groupButton.hidden = !(agy && agy.groupSwitchable && available.length > 1);
+        groupButton.dataset.group = available[(available.indexOf(current) + 1) % available.length] || current;
         groupButton.title = t("agy_group_switch_tooltip");
         groupButton.setAttribute("aria-label", t("agy_group_switch_tooltip"));
       }

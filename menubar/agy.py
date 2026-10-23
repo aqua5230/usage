@@ -82,9 +82,10 @@ def project_quota(
     preferred = next(
         (group for group in quota.groups if _matches_group(group.name, group_preference)), None
     )
+    fallback_groups = [group for group in quota.groups if not _matches_group(group.name, "argon")]
     selected = preferred or next(
-        (group for group in quota.groups if "gemini" in group.name.lower()),
-        min(quota.groups, key=_group_remaining_percent),
+        (group for group in quota.groups if _matches_group(group.name, "gemini")),
+        min(fallback_groups or quota.groups, key=_group_remaining_percent),
     )
     current_time = time.time() if now is None else now
     age_minutes = _cache_age_minutes(quota.fetched_at, current_time)
@@ -197,6 +198,16 @@ def reproject_cached_quota(
         burn_rate_trackers=burn_rate_trackers,
         group_preference=_agy_quota_group(),
     )
+
+
+def quota_group_keys() -> list[str]:
+    """Available toggle targets from the last quota, shared by both panel hosts."""
+    quota = _last_quota
+    return [
+        key
+        for key in ("gemini", "claude_gpt", "argon")
+        if quota is not None and any(_matches_group(group.name, key) for group in quota.groups)
+    ]
 
 
 def _matches_group(name: str, preference: str) -> bool:
