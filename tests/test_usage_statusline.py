@@ -10,6 +10,7 @@ import errno
 import io
 import json
 import os
+import subprocess
 import sys
 import tempfile
 import time
@@ -226,23 +227,25 @@ def test_exclusive_lock_times_out_when_another_process_holds_it(
     tmp_path: Path,
 ) -> None:
     lock_path = tmp_path / "usage-status.lock"
-    fcntl = vars(usage_statusline).get("fcntl")
-    assert fcntl is not None
-    ready_read, ready_write = os.pipe()
-    # os.fork is POSIX-only; this test is skipped on Windows, but mypy still
-    # type-checks the line there.
-    child_pid = os.fork()  # type: ignore[attr-defined]
-    if child_pid == 0:
-        os.close(ready_read)
-        lock_fd = os.open(lock_path, os.O_CREAT | os.O_RDWR, 0o600)
-        fcntl.flock(lock_fd, fcntl.LOCK_EX)
-        os.write(ready_write, b"1")
-        time.sleep(0.3)
-        os._exit(0)
-
-    os.close(ready_write)
+    # A fresh interpreter holds the lock until we close its stdin. os.fork()
+    # here would warn: pytest's process is already multi-threaded.
+    holder = subprocess.Popen(
+        [
+            sys.executable,
+            "-c",
+            "import fcntl, os, sys\n"
+            "fd = os.open(sys.argv[1], os.O_CREAT | os.O_RDWR, 0o600)\n"
+            "fcntl.flock(fd, fcntl.LOCK_EX)\n"
+            "print('1', flush=True)\n"
+            "sys.stdin.read()\n",
+            str(lock_path),
+        ],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+    )
+    assert holder.stdin is not None and holder.stdout is not None
     try:
-        assert os.read(ready_read, 1) == b"1"
+        assert holder.stdout.readline() == b"1\n"
         monkeypatch.setattr(usage_statusline, "_LOCK_TIMEOUT_S", 0.01)
         lock_fd = os.open(lock_path, os.O_CREAT | os.O_RDWR, 0o600)
         try:
@@ -253,8 +256,9 @@ def test_exclusive_lock_times_out_when_another_process_holds_it(
         finally:
             os.close(lock_fd)
     finally:
-        os.close(ready_read)
-        os.waitpid(child_pid, 0)
+        holder.stdin.close()
+        holder.wait(timeout=5)
+        holder.stdout.close()
 
 
 def test_acquire_msvcrt_lock_waits_out_a_contended_lock(
