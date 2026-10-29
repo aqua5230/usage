@@ -23,6 +23,7 @@ PRICE_FIELDS = (
     "cache_read_input_token_cost",
 )
 MAINSTREAM_CLAUDE_RE = re.compile(r"^claude-(?:opus|sonnet|haiku|fable)-(?:4|5)(?:-|$)")
+MAINSTREAM_CODEX_RE = re.compile(r"^gpt-\d+(?:\.\d+)?-(?:astra|sol|terra|luna)(?:-|$)")
 
 
 @dataclass(frozen=True)
@@ -69,7 +70,8 @@ def compare_pricing(
     missing_fallback = sorted(
         model
         for model in upstream.keys() - fallback.keys()
-        if MAINSTREAM_CLAUDE_RE.match(model) and pricing._resolve_model_key(model, fallback) is None
+        if (MAINSTREAM_CLAUDE_RE.match(model) or MAINSTREAM_CODEX_RE.match(model))
+        and pricing._resolve_model_key(model, fallback) is None
     )
     return ComparisonResult(
         tuple(mismatches),

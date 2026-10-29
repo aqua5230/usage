@@ -126,7 +126,7 @@ def test_parse_setup_app_resources() -> None:
     resources = parse_setup_app_resources()
 
     assert "i18n.json" in resources
-    assert "assets/windows" in resources
+    assert "assets/panels" in resources
 
 
 def test_local_data_files_are_declared_as_py2app_resources() -> None:
