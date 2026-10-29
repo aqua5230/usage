@@ -8,6 +8,8 @@
 
 from __future__ import annotations
 
+import math
+import time
 from collections.abc import Callable
 from typing import Any, Protocol
 
@@ -27,7 +29,7 @@ from menubar.chrome import (
     _menubar_icon_attachment_string,
     _muse_menubar_icon,
 )
-from menubar.state import PopoverState, _format_percent
+from menubar.state import PopoverState, QuotaRowState, _format_percent
 
 
 class _TitleApp(Protocol):
@@ -36,6 +38,11 @@ class _TitleApp(Protocol):
     _last_button_title_key: tuple[str] | None
     _last_plain_title_key: tuple[str] | None
     status_item: Any
+    interval: float
+
+    def _reschedule_poll_timer(self, interval: float) -> None: ...
+
+    def _panel_window_is_visible(self) -> bool: ...
 
 
 _MENUBAR_FONT: Any = None
@@ -65,10 +72,43 @@ def _menubar_text_string(app: _TitleApp, text: str) -> Any:
 
 # A wider strip slides behind the notch; the panel still lists every source.
 _MENUBAR_MAX_ITEMS = 3
+SLOW_POLL_INTERVAL_S = 300.0
 
 
-def _menubar_items(app: _TitleApp, state: PopoverState) -> list[tuple[Callable[[], Any], str]]:
-    """Visible (icon loader, percent text) pairs, keeping the highest-usage sources in order."""
+def _format_countdown(seconds: float) -> str:
+    minutes = math.ceil(seconds / 60)
+    if minutes >= 1440:
+        return f"{minutes // 1440}d{minutes % 1440 // 60}h"
+    if minutes >= 60:
+        return f"{minutes // 60}h{minutes % 60}m"
+    return f"{minutes}m"
+
+
+def _quota_countdown(rows: tuple[QuotaRowState, ...], now: float) -> str | None:
+    full = [row for row in rows if row.display_percent is not None and row.display_percent >= 100]
+    if not full:
+        return None
+    resets = []
+    for row in full:
+        if row.resets_at is None or row.resets_at <= now:
+            return None
+        resets.append(row.resets_at)
+    return _format_countdown(max(resets) - now)
+
+
+def menubar_poll_interval(app: _TitleApp, state: PopoverState) -> float:
+    if app._panel_window_is_visible() or any(
+        text != "--" and not text.endswith("%") for _icon, text in _menubar_items(app, state)
+    ):
+        return app.interval
+    return max(app.interval, SLOW_POLL_INTERVAL_S)
+
+
+def _menubar_items(
+    app: _TitleApp, state: PopoverState, now: float | None = None
+) -> list[tuple[Callable[[], Any], str]]:
+    """Visible icon/text pairs, keeping the highest-usage sources in order."""
+    now = time.time() if now is None else now
     items: list[tuple[Callable[[], Any], float | None]] = []
     if not state.hide_claude:
         items.append((_claude_menubar_icon, state.claude_session.display_percent))
@@ -85,15 +125,29 @@ def _menubar_items(app: _TitleApp, state: PopoverState) -> list[tuple[Callable[[
     ):
         if not hidden and percent is not None:
             items.append((icon, percent))
+    rows_by_icon = {
+        _claude_menubar_icon: (state.claude_session, state.claude_weekly),
+        _codex_menubar_icon: (state.codex_session, state.codex_weekly),
+        _agy_menubar_icon: (state.agy_session, state.agy_weekly),
+        _grok_menubar_icon: (state.grok_weekly,),
+        _muse_menubar_icon: (state.muse_session, state.muse_weekly),
+    }
+    countdowns = [_quota_countdown(rows_by_icon[icon], now) for icon, _percent in items]
     if len(items) > _MENUBAR_MAX_ITEMS:
         # Stable sort, so ties keep the fixed order; an unknown "--" ranks last.
-        ranks = [-1.0 if percent is None else percent for _icon, percent in items]
+        ranks = [
+            100.0 if countdowns[i] is not None else -1.0 if percent is None else percent
+            for i, (_icon, percent) in enumerate(items)
+        ]
         ranked = sorted(range(len(items)), key=ranks.__getitem__, reverse=True)
-        items = [items[i] for i in sorted(ranked[:_MENUBAR_MAX_ITEMS])]
-    return [
-        (icon, "--" if percent is None else f"{_format_percent(percent)}%")
-        for icon, percent in items
+        selected = sorted(ranked[:_MENUBAR_MAX_ITEMS])
+    else:
+        selected = list(range(len(items)))
+    rendered = [
+        (icon, countdown or ("--" if percent is None else f"{_format_percent(percent)}%"))
+        for (icon, percent), countdown in zip(items, countdowns, strict=True)
     ]
+    return [rendered[i] for i in selected]
 
 
 def _menubar_attributed_title(app: _TitleApp, state: PopoverState) -> Any:
@@ -110,6 +164,7 @@ def _menubar_attributed_title(app: _TitleApp, state: PopoverState) -> Any:
 
 
 def _set_button_title(app: _TitleApp, state: PopoverState) -> None:
+    app._reschedule_poll_timer(menubar_poll_interval(app, state))
     title = _compose_title(app, state)
     title_key = (title,)
     if app._last_button_title_key == title_key:

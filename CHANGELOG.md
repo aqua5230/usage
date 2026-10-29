@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [Unreleased]
+
+### Added
+- **A used-up quota now shows how long until it comes back.** When a tool's 5-hour or weekly quota reaches 100%, the menu bar shows the time left, such as `2h55m`, instead of a stuck `100%`. If both are used up, it counts down to the later reset; if the reset time is unknown, it keeps showing `100%`. While a countdown is shown, the menu bar refreshes every minute instead of every five. The Claude Code status line does the same in red and keeps the time left even in a narrow terminal.
+
 ## [0.34.9] - 2026-10-30
 
 ### Security

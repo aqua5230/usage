@@ -189,7 +189,6 @@ __all__ = [
 ]
 
 UPDATE_ALERT_BODY_LIMIT = 2000
-SLOW_POLL_INTERVAL_S = 300.0
 
 logger = logging.getLogger(__name__)
 
@@ -317,7 +316,7 @@ class AppDelegate(NSObject):
 
         self._request_notification_authorization()
         self._refresh()
-        self._reschedule_poll_timer(max(self.interval, SLOW_POLL_INTERVAL_S))
+        self._reschedule_poll_timer(menubar_title.menubar_poll_interval(self, self.latest_state))
         self._fs_stream = setup_fsevents(self)
         self._history_source_tracker.set_incremental_enabled(self._fs_stream is not None)
         warm_up_pricing(self._refresh_after_pricing_warm_up)
@@ -378,7 +377,7 @@ class AppDelegate(NSObject):
 
     def _panel_window_did_hide(self) -> None:
         self.popover_controller.evictInactivePanelViews()
-        self._reschedule_poll_timer(max(self.interval, SLOW_POLL_INTERVAL_S))
+        self._reschedule_poll_timer(menubar_title.menubar_poll_interval(self, self.latest_state))
 
     def windowDidMove_(self, notification: Any) -> None:
         if notification.object() is self.popover and self._panel_window_is_visible():

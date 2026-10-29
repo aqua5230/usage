@@ -69,7 +69,7 @@ else:
 fcntl = _fcntl
 msvcrt = _msvcrt
 
-__version__ = "1.14"
+__version__ = "1.15"
 
 STATUS_FILE = os.path.expanduser("~/.claude/usage-status.json")
 LOCK_FILE = os.path.expanduser("~/.claude/usage-status.lock")
@@ -996,9 +996,15 @@ def _render_core(data: Dict[str, Any], now: datetime) -> str:
                 if reset_dt.date() != datetime.fromtimestamp(now.timestamp()).date():
                     clock = f"{reset_dt.month}/{reset_dt.day} {clock}"
                 if lang in ("zh-TW", "zh-CN"):
-                    reset_str = f" {clock}({_t('remaining_prefix')}{fmt_duration(remain)})"
+                    remaining = f"{_t('remaining_prefix')}{fmt_duration(remain)}"
                 else:
-                    reset_str = f" {clock}({fmt_duration(remain)} {_t('remaining_prefix')})"
+                    remaining = f"{fmt_duration(remain)} {_t('remaining_prefix')}"
+                if pct_float >= 100:
+                    prefix = f"{C['blue']}{label}:{C['reset']}{C['red']}"
+                    compact = f"{prefix}{remaining}{C['reset']}"
+                    rl_parts.append((f"{prefix}{clock}({remaining}){C['reset']}", compact, compact))
+                    continue
+                reset_str = f" {clock}({remaining})"
                 reset_str = f" {C['dim']}{reset_str[1:]}{C['reset']}"
         rl_parts.append(
             (
