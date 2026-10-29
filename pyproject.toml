@@ -64,6 +64,10 @@ dev = [
 ]
 build = [
     "py2app>=0.28; sys_platform == 'darwin'",
+    "pyinstaller>=6.22.3; sys_platform == 'win32'",
+    # The [build-system] backend, locked here so release.yml can build the
+    # PyPI wheel with --no-build-isolation instead of fetching an unpinned one.
+    "setuptools>=84.0.0",
 ]
 
 [tool.ruff]
