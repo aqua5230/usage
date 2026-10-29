@@ -5,7 +5,7 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [Unreleased]
+## [0.34.9] - 2026-10-30
 
 ### Security
 - **Downloaded macOS apps now pass signature verification.** The release zip stored copies in place of the symlinks inside the bundled Python framework, so every download through v0.34.8, Homebrew installs included, failed `codesign --verify` with "bundle format is ambiguous", and any later tampering could not be told apart. Releases are now zipped with `ditto`, which keeps the symlinks, and the release job verifies the zipped app's signature before publishing. The download is about 9 MB smaller.
