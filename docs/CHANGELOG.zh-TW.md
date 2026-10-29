@@ -4,6 +4,11 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [Unreleased]
+
+### 修正
+- **面板標題的 g、y 不會再被切掉下半截。** 預設、摺紙、彩繪玻璃、手繪筆記、心電圖和視窗 95 面板裡，「Antigravity」、「Project Usage」這類標題的字尾會被截掉，因為裁長標題用的框比字還矮。現在框留了空間給字尾，版面位置不變。
+
 ## [0.34.7] - 2026-10-23
 
 ### 修正
