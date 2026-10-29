@@ -65,7 +65,6 @@ if __name__ == "__main__":
             "assets/usage_uhoh.wav",
             "assets/critters",
             "assets/panels",
-            "assets/windows",
             "i18n.json",
             "claude_pane",
             "pyproject.toml",
