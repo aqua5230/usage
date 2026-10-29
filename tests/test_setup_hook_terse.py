@@ -361,6 +361,22 @@ def test_setup_codex_terse_keeps_unreadable_hooks_json_unchanged(
     assert not terse_paths.codex_terse_target.exists()
 
 
+@pytest.mark.parametrize("content", ["features = { hooks = false }\n", "features.hooks = false\n"])
+def test_setup_codex_terse_preserves_unsupported_features_syntax(
+    terse_paths: TerseHookPaths, caplog: pytest.LogCaptureFixture, content: str
+) -> None:
+    terse_paths.codex_config.write_text(content, encoding="utf-8")
+
+    session_hooks._setup_codex_terse()
+
+    actual = terse_paths.codex_config.read_text(encoding="utf-8")
+    assert actual == content
+    assert tomllib.loads(actual)["features"]["hooks"] is False
+    assert "Could not enable Codex hooks" in caplog.text
+    assert len(caplog.records) == 1
+    assert caplog.records[0].levelname == "WARNING"
+
+
 def test_setup_codex_terse_creates_missing_hooks_json(terse_paths: TerseHookPaths) -> None:
     terse_paths.codex_config.write_text('model = "gpt-5"\n', encoding="utf-8")
 

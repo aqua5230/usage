@@ -11,6 +11,7 @@ from __future__ import annotations
 import contextlib
 import io
 import json
+import logging
 import os
 import re
 import shutil
@@ -545,6 +546,11 @@ def _setup_codex_terse() -> None:
         new_content = _ensure_table_line(content, "features", _FEATURES_HOOKS_REGEX, "hooks = true")
         if new_content != content:
             _atomic_write_text(CODEX_CONFIG, new_content)
+        else:
+            logging.getLogger(__name__).warning(
+                "Could not enable Codex hooks in %s: config update failed TOML validation",
+                CODEX_CONFIG,
+            )
 
     hooks = data.get("hooks")
     if not isinstance(hooks, dict):
