@@ -106,6 +106,7 @@ class QuotaRowState:
     available: bool = True
     reset_text_compact: str = ""
     reset_done: bool = False
+    resets_at: float | None = None
 
     # Keep percent unchanged for quota notifications; renderers use display_percent.
 
@@ -1083,6 +1084,7 @@ def _quota_row(
         warning=warning,
         available=True,
         reset_done=time_to_reset <= 0,
+        resets_at=resets_at,
     )
     if warning_seconds is not None:
         row.reset_text_compact = _t(

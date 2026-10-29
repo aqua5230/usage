@@ -1512,3 +1512,52 @@ def test_mix_sweeps_stale_files_when_a_new_session_starts(tmp_path: Path) -> Non
     transcript.write_bytes(_mix_record({"type": "image"}))
     assert usage_statusline.read_mix({"session_id": "one", "transcript_path": str(transcript)})
     assert sorted(p.name for p in mix_dir.iterdir()) == ["fresh.json", "one.json"]
+
+
+@pytest.mark.parametrize("lang", ["zh-TW", "zh-CN", "en"])
+@pytest.mark.parametrize("width", [200, 16, 1])
+@pytest.mark.parametrize("percent", [99, 100, 101])
+@pytest.mark.parametrize("reset", [None, -60, 0, 10500, 274200])
+def test_render_quota_countdown_variants(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    lang: str,
+    width: int,
+    percent: int,
+    reset: int | None,
+) -> None:
+    monkeypatch.setenv("TT_LANG", lang)
+    monkeypatch.setattr(usage_statusline, "get_width", lambda: width)
+    monkeypatch.setattr(usage_statusline, "read_mix", lambda _data: None)
+    monkeypatch.setattr(usage_statusline, "PREFERENCES_FILE", str(tmp_path / "update.json"))
+    monkeypatch.setattr(usage_statusline, "CONTEXT_BURN_FILE", str(tmp_path / "burn.json"))
+    now = datetime(2026, 1, 1, 23, tzinfo=UTC)
+    resets_at = None if reset is None else now.timestamp() + reset
+    payload = {"rate_limits": {"five_hour": {"used_percentage": percent, "resets_at": resets_at}}}
+    colors = usage_statusline.C
+    prefix = f"{colors['blue']}{usage_statusline._t('five_hour')}:{colors['reset']}"
+    suffix = ""
+    remaining = ""
+    clock = ""
+    if reset is not None and reset > 0:
+        remaining = usage_statusline.fmt_duration(reset)
+        remaining = (
+            usage_statusline._t("remaining_prefix") + remaining
+            if lang in ("zh-TW", "zh-CN")
+            else remaining + " " + usage_statusline._t("remaining_prefix")
+        )
+        assert resets_at is not None
+        reset_dt = datetime.fromtimestamp(resets_at)
+        clock = f"{reset_dt:%H:%M}"
+        if reset_dt.date() != datetime.fromtimestamp(now.timestamp()).date():
+            clock = f"{reset_dt.month}/{reset_dt.day} {clock}"
+        suffix = f" {colors['dim']}{clock}({remaining}){colors['reset']}"
+    if percent >= 100 and remaining:
+        content = f"{clock}({remaining})" if width == 200 else remaining
+        expected = f"{prefix}{colors['red']}{content}{colors['reset']}"
+    else:
+        bar = usage_statusline.progress_bar(percent, 8 if width >= 100 else 4)
+        expected = prefix + (f"{percent}%" if width == 1 else bar)
+        if width == 200:
+            expected += suffix
+    assert usage_statusline._render_core(payload, now) == expected

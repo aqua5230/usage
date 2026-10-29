@@ -2363,9 +2363,13 @@ def test_set_button_title_skips_unchanged_visible_state(
     delegate.codex_5h_pct = 12
     monkeypatch.setattr(menubar_title, "_menubar_attributed_title", lambda app, current: object())
 
+    intervals: list[float] = []
+    monkeypatch.setattr(delegate, "_panel_window_is_visible", lambda: False)
+    monkeypatch.setattr(delegate, "_reschedule_poll_timer", intervals.append)
     menubar_title._set_button_title(delegate, state)
     menubar_title._set_button_title(delegate, state)
 
+    assert intervals == [300.0, 300.0]
     assert len(button.titles) == 1
     assert len(button.attributed_titles) == 1
 
@@ -3312,7 +3316,12 @@ def test_panel_window_hide_prunes_cache_and_keeps_slow_poll() -> None:
     controller = SimpleNamespace(evictInactivePanelViews=Mock())
     reschedule = Mock()
     delegate = SimpleNamespace(
-        popover_controller=controller, interval=60, _reschedule_poll_timer=reschedule
+        popover_controller=controller,
+        interval=60,
+        _reschedule_poll_timer=reschedule,
+        _panel_window_is_visible=lambda: False,
+        latest_state=menubar._empty_state(),
+        codex_5h_pct=None,
     )
     menubar.AppDelegate._panel_window_did_hide(cast(Any, delegate))
     controller.evictInactivePanelViews.assert_called_once_with()
@@ -3419,3 +3428,128 @@ def test_refresh_preserves_muse_on_success_and_fetch_error(
         assert "OSError" in result.status_text
     else:
         assert result.status_text == _t("en", "status_text", value=_t("en", "status_no_data"))
+
+
+@pytest.mark.parametrize(
+    ("seconds", "expected"),
+    [
+        (0, "0m"),
+        (59, "1m"),
+        (60, "1m"),
+        (3599, "1h0m"),
+        (3600, "1h0m"),
+        (10500, "2h55m"),
+        (86400, "1d0h"),
+        (273000, "3d3h"),
+        (274200, "3d4h"),
+    ],
+)
+def test_menubar_countdown_format(seconds: float, expected: str) -> None:
+    assert menubar_title._format_countdown(seconds) == expected
+
+
+@pytest.mark.parametrize("tool", ["claude", "codex", "agy", "grok", "muse"])
+@pytest.mark.parametrize(
+    ("session_pct", "session_reset", "weekly_pct", "weekly_reset", "expected"),
+    [
+        (100, 10500, 30, None, "2h55m"),
+        (30, None, 100, 274200, "3d4h"),
+        (100, 10500, 100, 274200, "3d4h"),
+        (100, None, 30, None, "100%"),
+        (100, 0, 30, None, "100%"),
+        (100, -60, 30, None, "100%"),
+        (100, 10500, 100, None, "100%"),
+        (100, 10500, 100, 0, "100%"),
+        (30, None, 99, 10500, "30%"),
+    ],
+)
+def test_menubar_tool_countdown(
+    monkeypatch: pytest.MonkeyPatch,
+    tool: str,
+    session_pct: float,
+    session_reset: float | None,
+    weekly_pct: float,
+    weekly_reset: float | None,
+    expected: str,
+) -> None:
+    monkeypatch.setattr(menubar, "_load_preferences", lambda: {})
+    state = menubar._empty_state()
+    for name in ("claude", "codex", "agy", "grok", "muse"):
+        setattr(state, f"hide_{name}", name != tool)
+    now = 1000000.0
+    if tool == "grok":
+        # Grok has only a weekly row; exercise the session cases on that row.
+        rows = [(state.grok_weekly, session_pct, session_reset)]
+        expected = "2h55m" if session_pct >= 100 and session_reset == 10500 else f"{session_pct}%"
+    else:
+        rows = [
+            (getattr(state, f"{tool}_session"), session_pct, session_reset),
+            (getattr(state, f"{tool}_weekly"), weekly_pct, weekly_reset),
+        ]
+    for row, percent, reset in rows:
+        row.percent = percent
+        row.reset_done = False
+        row.resets_at = None if reset is None else now + reset
+    app = cast(Any, SimpleNamespace(codex_5h_pct=session_pct))
+    assert [text for _icon, text in menubar_title._menubar_items(app, state, now)] == [expected]
+
+
+@pytest.mark.parametrize(
+    ("visible", "reset", "interval", "expected"),
+    [
+        (False, 10500, 60, 60),
+        (False, None, 60, 300),
+        (False, 0, 60, 300),
+        (True, None, 60, 60),
+        (False, None, 600, 600),
+    ],
+)
+def test_menubar_poll_interval(
+    monkeypatch: pytest.MonkeyPatch,
+    visible: bool,
+    reset: float | None,
+    interval: float,
+    expected: float,
+) -> None:
+    monkeypatch.setattr(menubar, "_load_preferences", lambda: {})
+    monkeypatch.setattr(time, "time", lambda: 1000000.0)
+    state = menubar._empty_state()
+    state.claude_session.percent = 100
+    state.claude_session.resets_at = None if reset is None else 1000000.0 + reset
+    app = cast(
+        Any,
+        SimpleNamespace(
+            codex_5h_pct=None,
+            interval=interval,
+            _panel_window_is_visible=lambda: visible,
+        ),
+    )
+    assert menubar_title.menubar_poll_interval(app, state) == expected
+    state.hide_claude = True
+    if not visible:
+        assert menubar_title.menubar_poll_interval(app, state) == max(interval, 300)
+
+
+def test_menubar_countdown_ranks_as_full_and_preserves_codex_path(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(menubar, "_load_preferences", lambda: {})
+    state = menubar._empty_state()
+    state.claude_session.percent = 30
+    state.claude_weekly.percent = 100
+    state.claude_weekly.resets_at = 1010500.0
+    state.codex_session.percent = 80
+    state.agy_session.percent = 60
+    state.muse_session.percent = 50
+    state.hide_agy = state.hide_muse = False
+    app = cast(Any, SimpleNamespace(codex_5h_pct=40))
+    assert [text for _icon, text in menubar_title._menubar_items(app, state, 1000000)] == [
+        "2h55m",
+        "60%",
+        "50%",
+    ]
+    state.hide_agy = state.hide_muse = True
+    assert [text for _icon, text in menubar_title._menubar_items(app, state, 1000000)] == [
+        "2h55m",
+        "40%",
+    ]
