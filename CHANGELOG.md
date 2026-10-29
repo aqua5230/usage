@@ -5,10 +5,22 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [Unreleased]
+## [0.34.8] - 2026-10-30
+
+### Security
+- **A masked report no longer leaks project names.** When you hid project names and downloaded the HTML report, each project row still carried its real name in a hidden accessibility label, readable by anyone who opened the file's source. Masking now also covers those labels, tooltips and image descriptions.
+- **Names in an exported CSV no longer run as spreadsheet formulas.** A project or model name starting with `=`, `+`, `-` or `@` was written as-is, so Excel could treat it as a formula. Such names now start with an apostrophe and stay plain text.
+- **A downloaded project can no longer use its Git settings to run a program through Progress Concierge.** Progress Concierge runs `git status` in your project when a session starts, and a repository's own `.git/config` can tell Git to launch a file-system monitor program. usage now switches that monitor off for its check.
+- **The macOS app keeps a valid code signature after it runs.** Python wrote its compiled caches into the app on first launch, which broke the signature and made any later tampering impossible to tell apart. The caches are now built before signing, so nothing inside the app changes while it runs. The app is about 2 MB larger.
+- **Releases are built only from locked, hash-verified build tools.** The PyPI package is built in a step that cannot publish, from a pinned build backend, and the Windows build pins PyInstaller the same way. October's supply-chain attacks published poisoned packages through hijacked release pipelines; this closes that path here. The setuptools used to build the macOS app is also updated to 84.2.1 for GHSA-xmj3-9gf7-h52w.
 
 ### Fixed
+- **Turning on Token Saver no longer breaks some Codex configs.** If `~/.codex/config.toml` wrote the features setting as `features = { hooks = false }` or `features.hooks = false`, usage added a second `[features]` section and Codex then refused to load the file. usage now checks the edited file first and leaves it untouched if the edit would not parse.
+- **GPT-6.1 Terra is priced while offline.** Codex's new GPT-6.1 Terra model counted as $0 whenever the price table could not be downloaded. The built-in fallback now carries its price, $1 / $5 per million input / output tokens.
 - **Panel titles no longer cut off the bottoms of g and y.** In the Default, Origami, Stained Glass, Sketchbook, Heart Monitor and Windows 95 panels, titles such as "Antigravity" and "Project Usage" lost the tails of their descenders, because the box that trims long titles was shorter than the letters. The box now has room for them; the layout does not move.
+
+### Removed
+- **The app no longer bundles the retired AI Council window.** Its page was left behind when the feature was removed in v0.30.11, and nothing loaded it.
 
 ## [0.34.7] - 2026-10-23
 
