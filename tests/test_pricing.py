@@ -467,6 +467,8 @@ def test_compare_fallback_pricing_reports_all_difference_categories() -> None:
         },
         "claude-sonnet-5": {"input_cost_per_token": 1.0},
         "anthropic/claude-haiku-5": {"input_cost_per_token": 1.0},
+        "gpt-6.1-terra": {"input_cost_per_token": 1.0},
+        "azure/gpt-6.1-terra": {"input_cost_per_token": 1.0},
     }
 
     result = CHECK_FALLBACK_PRICING["compare_pricing"](fallback, upstream)
@@ -476,7 +478,7 @@ def test_compare_fallback_pricing_reports_all_difference_categories() -> None:
         for mismatch in result.mismatches
     ] == [("claude-opus-5", "output_cost_per_token", 9.0, 2.0)]
     assert result.missing_upstream == ("claude-fable-5",)
-    assert result.missing_fallback == ("claude-sonnet-5",)
+    assert result.missing_fallback == ("claude-sonnet-5", "gpt-6.1-terra")
     assert result.has_differences is True
 
 
