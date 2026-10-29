@@ -1070,14 +1070,22 @@ def _ensure_table_line(content: str, name: str, line_regex: re.Pattern[str], lin
     """Make sure ``line`` is in table ``name``: replace an existing ``line_regex`` match if
     present, else insert ``line`` fresh. Appends a new ``[name]`` table at EOF when the table
     itself is absent."""
+
+    def validated(candidate: str) -> str:
+        try:
+            tomllib.loads(candidate)
+        except tomllib.TOMLDecodeError:
+            return content
+        return candidate
+
     table = _find_table(content, name)
     if table is None:
-        return content.rstrip() + f"\n\n[{name}]\n{line}\n"
+        return validated(content.rstrip() + f"\n\n[{name}]\n{line}\n")
     start, end = _table_section(content, table)
     section = content[start:end]
     if line_regex.search(section):
-        return content[:start] + line_regex.sub(line, section, count=1) + content[end:]
-    return content[:start] + f"\n{line}" + content[start:]
+        return validated(content[:start] + line_regex.sub(line, section, count=1) + content[end:])
+    return validated(content[:start] + f"\n{line}" + content[start:])
 
 
 def _insert_tui_status_line(content: str, replacement: str) -> str:

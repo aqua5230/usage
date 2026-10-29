@@ -851,6 +851,25 @@ for (const [peak, ceiling] of [
   assert.equal(axisEnv.trendSection.querySelector('.daily-y-label').textContent, ceiling);
 }
 console.log('daily chart: date range rebuilds pricing; tokens/cost toggle redraws');
+
+// Name fields must stay text in spreadsheet apps; numeric fields remain numeric.
+for (const name of ['=1+1', '-cmd', '+cmd', '@cmd', '\tcmd', '\rcmd', '=1,"x"']) {
+  const formulaCube = {
+    dates: ['2026-05-21'],
+    agents: [{id: 'codex', name: 'Codex'}],
+    models: [{name, cost_known: true}],
+    projects: [name],
+    rows: [[0, 0, 0, 0, 10, 0, 0, 0, -3, 1]],
+  };
+  run(makeEnvironment(formulaCube, {}));
+  const safeName = "'" + name;
+  const field = /[",\r\n]/.test(safeName)
+    ? `"${safeName.replace(/"/g, '""')}"` : safeName;
+  assert.equal(
+    window.usageReportFilter.buildCsv(false),
+    `type,name,share_pct,tokens,cost_usd\r\nproject,${field},100.0,10,-3.00\r\nmodel,${field},100.0,10,-3.00\r\n`
+  );
+}
 """
 
 

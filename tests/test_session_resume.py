@@ -296,6 +296,48 @@ def test_git_dirty_includes_untracked_directory_and_keeps_other_paths(tmp_path: 
     assert "new-feature" in files
 
 
+def test_git_dirty_disables_repository_fsmonitor(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("GIT_CONFIG_NOSYSTEM", "1")
+    monkeypatch.setenv("GIT_CONFIG_GLOBAL", os.devnull)
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    subprocess.run(["git", "init", str(repo)], check=True, capture_output=True)
+    (repo / "tracked.py").write_text("before\n", encoding="utf-8")
+    subprocess.run(["git", "-C", str(repo), "add", "."], check=True)
+    subprocess.run(
+        [
+            "git",
+            "-C",
+            str(repo),
+            "-c",
+            "user.name=Test User",
+            "-c",
+            "user.email=test@example.com",
+            "-c",
+            "commit.gpgsign=false",
+            "commit",
+            "-m",
+            "initial",
+        ],
+        check=True,
+        capture_output=True,
+    )
+    monitor = tmp_path / "fsmonitor"
+    marker = tmp_path / "fsmonitor.marker"
+    monitor.write_text('#!/bin/sh\n: > "$0.marker"\n', encoding="utf-8")
+    monitor.chmod(0o700)
+    subprocess.run(["git", "-C", str(repo), "config", "core.fsmonitor", str(monitor)], check=True)
+    (repo / "tracked.py").write_text("after\n", encoding="utf-8")
+
+    dirty = mod._git_dirty(str(repo))
+
+    assert not marker.exists()
+    assert dirty is not None
+    assert dirty[1:] == (1, ["tracked.py"])
+
+
 def test_build_prompt_reads_previous_session(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:

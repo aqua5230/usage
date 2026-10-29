@@ -7,6 +7,8 @@
 from __future__ import annotations
 
 import base64
+import csv
+import io
 import os
 import re
 import sys
@@ -797,6 +799,19 @@ def test_build_csv_data_contains_projects_and_models() -> None:
     assert "project,usage,70.2,1646859,32.07\r\n" in csv_text
     assert "project,client<portal>,20.1,471482,9.18\r\n" in csv_text
     assert "model,claude-sonnet-4,52.4,1229345,23.91\r\n" in csv_text
+
+
+@pytest.mark.parametrize("name", ["=1+1", "-cmd", "+cmd", "@cmd", "\tcmd", "\rcmd", '=1,"x"'])
+def test_build_csv_data_escapes_formula_names_only(name: str) -> None:
+    data = {
+        "by_project": [{"project": name, "pct": -1.5, "tokens": -2, "cost": -3.0}],
+        "by_model": [{"model": name, "pct": -1.5, "tokens": -2, "cost": -3.0}],
+    }
+
+    rows = list(csv.reader(io.StringIO(html_report._build_csv_data(data, "en"))))
+
+    assert rows[1] == ["project", "'" + name, "-1.5", "-2", "-3.00"]
+    assert rows[2] == ["model", "'" + name, "-1.5", "-2", "-3.00"]
 
 
 def test_build_csv_data_masks_project_names() -> None:

@@ -984,6 +984,26 @@ async function withShareableReport(maskProjects, callback) {
       restores.push({el, original: el.textContent});
       el.textContent = '—';
     });
+    const masks = new Map();
+    restores.forEach(({el, original}) => {
+      const name = (original || '').trim();
+      if (name && original !== el.textContent && !masks.has(name)) masks.set(name, el.textContent);
+    });
+    const names = Array.from(masks.keys()).sort((a, b) => b.length - a.length);
+    if (names.length) {
+      const pattern = new RegExp(names.map((name) => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'g');
+      reportRoot.querySelectorAll('*').forEach((el) => {
+        ['aria-label', 'aria-description', 'title', 'alt'].forEach((attribute) => {
+          const original = el.getAttribute(attribute);
+          if (original === null) return;
+          const masked = original.replace(pattern, (name) => masks.get(name));
+          if (masked !== original) {
+            restores.push({el, attribute, original});
+            el.setAttribute(attribute, masked);
+          }
+        });
+      });
+    }
     ['#usage-csv-data', '#usage-cube-data', '#usage-session-data'].forEach((selector) => {
       const dataNode = document.querySelector(selector);
       if (dataNode) {
@@ -1003,7 +1023,8 @@ async function withShareableReport(maskProjects, callback) {
       item.parent.insertBefore(item.el, item.next);
     });
     restores.forEach((item) => {
-      item.el.textContent = item.original;
+      if (item.attribute) item.el.setAttribute(item.attribute, item.original);
+      else item.el.textContent = item.original;
     });
   }
 }
@@ -2310,7 +2331,8 @@ document.addEventListener('click', async (e) => {
   }
 
   function csvField(value) {
-    const text = String(value);
+    let text = String(value);
+    if (/^[=+\-@\t\r]/.test(text)) text = "'" + text;
     if (/[",\r\n]/.test(text)) return `"${text.replace(/"/g, '""')}"`;
     return text;
   }
