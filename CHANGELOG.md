@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [Unreleased]
+
+### Fixed
+- **Panel titles no longer cut off the bottoms of g and y.** In the Default, Origami, Stained Glass, Sketchbook, Heart Monitor and Windows 95 panels, titles such as "Antigravity" and "Project Usage" lost the tails of their descenders, because the box that trims long titles was shorter than the letters. The box now has room for them; the layout does not move.
+
 ## [0.34.7] - 2026-10-23
 
 ### Fixed

@@ -215,6 +215,9 @@
       line-height: 1;
       font-weight: 800;
       text-shadow: 0 1px 8px var(--shadow);
+      /* Room for descenders (g, y) inside the ellipsis clip; the negative margin keeps the layout unchanged. */
+      padding-block: 0.2em;
+      margin-block: -0.2em;
     }
 
     .codex-stale {
