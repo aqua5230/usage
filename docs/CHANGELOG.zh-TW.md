@@ -4,6 +4,11 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [Unreleased]
+
+### 安全性
+- **下載的 macOS app 現在能通過簽章驗證。** release 的 zip 把內建 Python 框架裡的捷徑存成了檔案複本，所以到 v0.34.8 為止的每一份下載（包括 Homebrew 安裝的）都過不了 `codesign --verify`，會顯示「bundle format is ambiguous」，之後被竄改也分辨不出來。現在改用 `ditto` 壓縮、保留捷徑，發布前也會先驗證壓縮後 app 的簽章。下載檔大約小 9 MB。
+
 ## [0.34.8] - 2026-10-30
 
 ### 安全性
