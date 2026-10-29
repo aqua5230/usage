@@ -39,6 +39,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ steps.ref.outputs.ref }}
+          persist-credentials: false
 
       - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
 
@@ -50,7 +51,9 @@ jobs:
         if: github.event_name == 'push'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: uv run python scripts/check_release_version.py "${{ github.repository }}" "${{ github.ref_name }}"
+          REPOSITORY: ${{ github.repository }}
+          REF_NAME: ${{ github.ref_name }}
+        run: uv run python scripts/check_release_version.py "$REPOSITORY" "$REF_NAME"
 
       - name: Run ruff
         run: uv run ruff check .
@@ -92,6 +95,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ steps.ref.outputs.ref }}
+          persist-credentials: false
 
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
@@ -239,6 +243,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ steps.ref.outputs.ref }}
+          persist-credentials: false
 
       - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
 
@@ -246,8 +251,7 @@ jobs:
 
       - name: Install Windows build dependencies
         run: |
-          uv sync --frozen --group dev --extra windows
-          uv pip install pyinstaller
+          uv sync --frozen --group dev --group build --extra windows
 
       - name: Resolve version
         id: version
@@ -385,15 +389,14 @@ jobs:
           git push
 
   # Trusted Publishing: PyPI trusts this workflow via OIDC, so no API token is
-  # stored anywhere. --check-url skips files already on PyPI, which makes a
-  # re-run of the same tag a no-op instead of an error.
-  publish-pypi:
+  # stored anywhere. Building happens here, without id-token and from the
+  # locked build backend, so nothing the build runs can mint a PyPI token;
+  # publish-pypi only uploads the artifact this job produced.
+  build-pypi:
     needs: test
     runs-on: ubuntu-latest
-    environment: pypi
     permissions:
       contents: read
-      id-token: write
     steps:
       - name: Resolve ref
         id: ref
@@ -411,9 +414,34 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ steps.ref.outputs.ref }}
+          persist-credentials: false
 
       - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
 
-      - run: uv build
+      - run: uv sync --frozen --only-group build
+
+      - run: uv build --no-build-isolation --offline
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: pypi-dist
+          path: dist/
+          if-no-files-found: error
+
+  # --check-url skips files already on PyPI, which makes a re-run of the same
+  # tag a no-op instead of an error.
+  publish-pypi:
+    needs: build-pypi
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: pypi-dist
+          path: dist/
+
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
 
       - run: uv publish --trusted-publishing always --check-url https://pypi.org/simple/
