@@ -1277,23 +1277,29 @@ def _build_csv_data(data: Mapping[str, Any], lang: str, *, mask_projects: bool =
     writer = csv.writer(out, lineterminator="\r\n")
     writer.writerow(["type", "name", "share_pct", "tokens", "cost_usd"])
     for idx, item in enumerate(data.get("by_project", []), start=1):
+        name = f"Project {idx}" if mask_projects else _display_name(item.get("project"), lang)
+        if name.startswith(("=", "+", "-", "@", "\t", "\r")):
+            name = "'" + name
         writer.writerow(
             [
                 "project",
-                f"Project {idx}" if mask_projects else _display_name(item.get("project"), lang),
+                name,
                 f"{float(item.get('pct', 0.0)):.1f}",
                 str(int(item.get("tokens", 0))),
                 _csv_cost(float(item.get("cost", 0.0))),
             ]
         )
     for model_item in data.get("by_model", []):
+        name = _display_name(model_item.get("model"), lang)
+        if name.startswith(("=", "+", "-", "@", "\t", "\r")):
+            name = "'" + name
         cost_val = (
             None if not model_item.get("cost_known", True) else float(model_item.get("cost", 0.0))
         )
         writer.writerow(
             [
                 "model",
-                _display_name(model_item.get("model"), lang),
+                name,
                 f"{float(model_item.get('pct', 0.0)):.1f}",
                 str(int(model_item.get("tokens", 0))),
                 _csv_cost(cost_val),
