@@ -148,9 +148,17 @@ jobs:
       - name: Smoke-test the .app bundle
         run: ./scripts/smoke_test_app.sh dist/usage.app
 
+      # ditto keeps Python.framework's symlinks. `zip -r` stored copies of their
+      # targets instead, so every download through v0.34.8 failed codesign
+      # with "bundle format is ambiguous". Verify the zip users download, not
+      # just dist/.
       - name: Zip .app
         run: |
-          cd dist && zip -r usage.app.zip usage.app
+          cd dist && ditto -c -k --keepParent usage.app usage.app.zip
+          check="$RUNNER_TEMP/zip-check"
+          rm -rf "$check" && mkdir "$check"
+          ditto -x -k usage.app.zip "$check"
+          codesign --verify --deep --strict "$check/usage.app"
 
       - name: Generate SHA256
         run: |
