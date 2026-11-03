@@ -457,6 +457,31 @@ def test_fetch_once_returns_awaiting_rate_limits_when_status_has_no_limits(
     assert outcome.message == "awaiting_rate_limits"
 
 
+def test_fetch_once_uses_status_with_only_weekly_window(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    # Issue #273: plans without a 5-hour limit only send seven_day.
+    status_path = tmp_path / "usage-status.json"
+    monkeypatch.setattr(usage_client, "STATUS_FILE", str(status_path))
+    monkeypatch.setattr(usage_client, "LEGACY_STATUS_FILE", str(tmp_path / f"{LEGACY_NAME}.json"))
+    monkeypatch.setattr(usage_client, "TT_STATUS_FILE", str(tmp_path / "tt-status.json"))
+    monkeypatch.setattr(
+        usage_client, "read_quota_fallback", lambda *_: pytest.fail("fallback must not run")
+    )
+    status_path.write_text(
+        json.dumps(
+            {"rate_limits": {"seven_day": {"used_percentage": 46, "resets_at": 9_999_999_999}}}
+        ),
+        encoding="utf-8",
+    )
+
+    outcome = asyncio.run(usage_client.ClaudeUsageClient(mock=False).fetch_once())
+
+    assert outcome.snapshot is not None
+    assert outcome.snapshot.current_percent is None
+    assert outcome.snapshot.weekly_percent == 46
+
+
 def test_fetch_once_reuses_parsed_data_and_rebuilds_when_status_mtime_is_unchanged(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:

@@ -44,7 +44,7 @@ def _read_status() -> dict[str, Any] | None:
 
 def load_rate_limits() -> RateLimits | None:
     data = _read_status()
-    if data is None or not usage_client._has_complete_rate_limits(data):
+    if data is None or not usage_client._has_rate_limits(data):
         snapshot = usage_client.read_quota_fallback()
         if snapshot is not None:
             return _snapshot_rate_limits(snapshot)
