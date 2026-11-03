@@ -646,3 +646,103 @@ td:first-child{color:var(--muted)}
   .card,.rank-line,.trend-row,.tool-row,.share-trigger,.share-close,.share-action,.sponsor a{box-shadow:none!important;transform:none!important}
 }"""
 )
+
+REPORT_CSS += """
+/* Shared axes and lanes for tools, projects and cache hit rates. */
+:root{--chart-main:rgba(90,191,160,.55);--chart-accent:#5abfa0;--chart-neutral:rgba(255,255,255,.18);--chart-grid:rgba(255,255,255,.08);--chart-zero:rgba(255,255,255,.28);--chart-purple:#8f86c9;--chart-orange:#e0885a}
+.hchart,.haxis{--label:200px;--reserve:230px;--hgap:14px}
+.hchart{position:relative;display:grid;gap:0;padding-right:var(--reserve);min-width:0}
+.hchart .rank-line,.hchart .tool-row,.project-section .hchart .rank-line,.tools-section .hchart .tool-row{display:grid;grid-template-columns:var(--label) minmax(0,1fr);gap:var(--hgap);align-items:center;position:relative;overflow:visible;min-height:36px;padding:9px 0;margin:0;border:0;background:transparent;box-shadow:none;border-radius:0}
+.hchart .rank-line:hover,.hchart .tool-row:hover{background:transparent}
+.hchart .rank-line[hidden]{display:none}
+.hchart .hlabel,.tools-section .hchart .tool-head{grid-column:1;display:block;min-width:0;text-align:right;line-height:1.4;position:relative;font-size:.78rem;white-space:normal}
+.hchart .name,.hchart .model-name,.hchart .sub-agent{white-space:normal;overflow-wrap:normal;word-break:normal;font-weight:500;font-size:inherit;color:var(--text-soft)}
+.hchart .arrow{margin-right:5px}
+.hchart .tool-plan{display:block;color:var(--muted);font-size:.62rem;line-height:1.6}
+.hchart .sub-plan,.hchart .sub-since{font:inherit;color:inherit;border:0;border-radius:0;padding:0;background:none}
+.hchart .sub-since{display:inline-block;white-space:nowrap}
+.hchart .sub-since:not(:first-child){margin-left:5px}
+.hchart .hlane{position:relative;min-width:0;height:18px}
+.hchart::before{content:"";position:absolute;top:0;bottom:0;left:calc(var(--label) + var(--hgap));right:var(--reserve);border-left:1px solid var(--chart-zero);background:linear-gradient(to right,transparent calc(100% - 1px),var(--chart-grid) 0);background-size:25% 100%;pointer-events:none}
+.hchart .hbar{position:relative;height:18px;border-radius:3px;background:var(--chart-main)}
+.hchart .htail{position:absolute;left:var(--value);top:0;margin-left:8px;line-height:18px;white-space:nowrap;font-size:.8rem;color:var(--text);font-weight:700}
+.hchart .htail .pct{display:inline;color:var(--text);font:inherit;white-space:nowrap}
+.hchart .htail small{margin-left:7px;font-size:.67rem;color:var(--muted);font-weight:400}
+.hchart .htail .tokens,.hchart .htail .cost{display:inline;color:inherit;font:inherit;white-space:nowrap}
+.hchart .htail .pct::before,.hchart .htail .tokens::before,.hchart .htail .cost::before{content:none}
+.hchart .rank-line.model-child{box-shadow:none;background:transparent;min-height:44px}
+.hchart .model-child .hlabel{padding-left:20px}
+.hchart .model-child .name,.hchart .model-child .model-name{display:inline;padding:0;font-weight:400}
+.hchart .model-child .hlane,.hchart .model-child .hbar{height:10px}
+.hchart .model-child .hbar{opacity:.45}
+.hchart .model-child .htail{top:-4px;font-size:.72rem}
+.haxis{height:26px;position:relative;margin-left:calc(var(--label) + var(--hgap));margin-right:var(--reserve);color:var(--muted);font-size:.62rem}
+.haxis span{position:absolute;bottom:0;transform:translateX(-50%)}
+.haxis span:first-child{transform:none}.haxis span:last-child{transform:translateX(-100%)}
+.composition-stack{display:flex;width:100%;height:36px;border-radius:6px;overflow:hidden;margin:24px 0 16px}
+.stack-segment{min-width:0;display:flex;align-items:center;justify-content:center;white-space:nowrap;font-size:.85rem;font-weight:700;color:#fff}
+.stack-0{background:var(--chart-accent)}.stack-1{background:var(--chart-purple)}.stack-2{background:var(--chart-orange)}.stack-3{background:var(--chart-neutral)}
+.rank-list.composition-legend{display:flex;flex-wrap:wrap;gap:10px 20px;margin-bottom:16px}
+.composition-item{display:inline-flex;align-items:center;gap:6px;color:var(--text-soft);font-size:.74rem;white-space:nowrap}
+.composition-item i{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.composition-item .name,.composition-item .tokens,.composition-item .pct{font:inherit;color:inherit;white-space:normal}
+.cache-heading{margin:32px 0 6px;font-weight:600;font-size:.85rem}
+.cache-chart{margin-top:14px}
+.report-subtitle{font-size:14px;color:var(--text-soft);margin:8px 0 20px}
+.report-source,.report-pricing{font-size:12px;color:var(--muted);margin:20px 0 0}
+.report-pricing{margin-top:4px}
+.trend-section .trend{margin-top:32px}
+.weekly-heading{margin:0 0 6px}
+.weekly-chart{position:relative;height:280px;margin:38px 0 0;padding:0 0 30px 50px;min-width:0}
+.weekly-ygrid{position:absolute;left:50px;right:0;top:0;bottom:30px;pointer-events:none}
+.weekly-grid{position:absolute;left:0;right:0;border-top:1px solid var(--chart-grid)}
+.weekly-grid.zero{border-color:var(--chart-zero)}
+.weekly-grid span{position:absolute;right:calc(100% + 8px);top:-8px;color:var(--muted);font-size:.62rem;white-space:nowrap}
+.weekly-columns,.weekly-xlabels{display:grid;grid-template-columns:repeat(var(--weeks),minmax(0,1fr));gap:12px}
+.weekly-columns{position:relative;height:100%;align-items:end}
+.weekly-columns .weekly-column{position:relative;display:block;padding:0;margin:0;min-width:0;border:0;border-radius:3px 3px 0 0;background:var(--chart-main)}
+.weekly-columns .weekly-column.peak{background:var(--chart-accent)}
+.weekly-columns .weekly-column.partial{background:var(--chart-neutral)}
+.weekly-column .week,.weekly-column em,.weekly-column .delta{display:none}
+.weekly-column strong{position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);font-size:.72rem;color:var(--text);white-space:nowrap}
+.weekly-column:focus-visible{outline:2px solid var(--chart-accent);outline-offset:3px}
+.weekly-xlabels{position:absolute;bottom:0;left:50px;right:0;color:var(--muted);font-size:.58rem;text-align:center}
+.weekly-note::first-letter{color:var(--chart-neutral)}
+.weekly-note{color:var(--muted);font-size:.65rem;text-align:right;margin-top:10px}
+@media(max-width:700px){
+  .hchart,.haxis{--label:88px;--reserve:64px;--hgap:10px}
+  .hchart .rank-line,.hchart .tool-row,.project-section .hchart .rank-line,.tools-section .hchart .tool-row{min-height:36px;align-items:center;padding:9px 0}
+  .hchart .rank-line:has(.htail small),.hchart .tool-row:has(.htail small){padding-bottom:36px}
+  .hchart .htail small{position:absolute;top:24px;left:0;margin:0;white-space:normal;width:130px;max-width:calc(100% + 130px)}
+  .hchart .hlane{align-self:start;margin-top:3px}
+  .hchart .htail{font-size:.7rem;margin-left:5px}
+  .hchart .htail:has(small){position:static}
+  .hchart .htail:has(small)>.pct{position:absolute;left:var(--value);top:0;margin-left:5px}
+  .hchart .htail:has(small)>small{left:0;width:calc(100% + var(--reserve));max-width:none;overflow-wrap:anywhere}
+  .hchart .htail small .tokens,.hchart .htail small .cost{white-space:normal}
+  .hchart .model-child .hlabel{padding-left:12px}
+  .hchart .model-child .htail:has(small)>.pct{top:-4px}
+  .weekly-columns,.weekly-xlabels{gap:5px}
+  .weekly-chart{height:240px;padding-left:38px}
+  .weekly-ygrid,.weekly-xlabels{left:38px}
+  .weekly-column strong{font-size:.58rem;writing-mode:vertical-rl;bottom:calc(100% + 5px)}
+  .weekly-xlabels{font-size:.5rem}
+}
+@media(max-width:560px){
+  .hchart,.haxis{--label:0px;--hgap:0px;--reserve:64px}
+  .hchart .rank-line,.hchart .tool-row,.project-section .hchart .rank-line,.tools-section .hchart .tool-row{grid-template-columns:minmax(0,1fr);gap:6px;min-height:0;padding:9px 0}
+  .hchart .hlabel,.tools-section .hchart .tool-head{grid-column:1;width:calc(100% + var(--reserve));text-align:left}
+  .hchart .name,.hchart .model-name,.hchart .sub-agent{overflow-wrap:normal;word-break:normal;white-space:normal}
+  .hchart .hlane{grid-column:1;margin-top:0;width:100%}
+  .hchart::before{left:0;background-size:50% 100%}
+  .haxis{margin-left:0}
+  .haxis span:nth-child(2),.haxis span:nth-child(4){display:none}
+  .hchart .hlabel,.tools-section .hchart .tool-head{padding-left:10px}
+  .hchart .htail:has(small)>small{left:10px}
+  .hchart .model-child .hlabel{padding-left:22px}
+}
+
+"""
+REPORT_CSS += _light_rules("""
+:root{--chart-main:rgba(22,128,106,.55);--chart-accent:#16806a;--chart-neutral:rgba(0,0,0,.15);--chart-grid:rgba(0,0,0,.08);--chart-zero:rgba(0,0,0,.3);--chart-purple:#68609b;--chart-orange:#b05a2b}
+""")

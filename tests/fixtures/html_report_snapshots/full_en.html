@@ -658,6 +658,104 @@ td:first-child{color:var(--muted)}
   .share-trigger,.share-dialog,.date-filter{display:none!important}
   .card,.rank-line,.trend-row,.tool-row,.share-trigger,.share-close,.share-action,.sponsor a{box-shadow:none!important;transform:none!important}
 }
+/* Shared axes and lanes for tools, projects and cache hit rates. */
+:root{--chart-main:rgba(90,191,160,.55);--chart-accent:#5abfa0;--chart-neutral:rgba(255,255,255,.18);--chart-grid:rgba(255,255,255,.08);--chart-zero:rgba(255,255,255,.28);--chart-purple:#8f86c9;--chart-orange:#e0885a}
+.hchart,.haxis{--label:200px;--reserve:230px;--hgap:14px}
+.hchart{position:relative;display:grid;gap:0;padding-right:var(--reserve);min-width:0}
+.hchart .rank-line,.hchart .tool-row,.project-section .hchart .rank-line,.tools-section .hchart .tool-row{display:grid;grid-template-columns:var(--label) minmax(0,1fr);gap:var(--hgap);align-items:center;position:relative;overflow:visible;min-height:36px;padding:9px 0;margin:0;border:0;background:transparent;box-shadow:none;border-radius:0}
+.hchart .rank-line:hover,.hchart .tool-row:hover{background:transparent}
+.hchart .rank-line[hidden]{display:none}
+.hchart .hlabel,.tools-section .hchart .tool-head{grid-column:1;display:block;min-width:0;text-align:right;line-height:1.4;position:relative;font-size:.78rem;white-space:normal}
+.hchart .name,.hchart .model-name,.hchart .sub-agent{white-space:normal;overflow-wrap:normal;word-break:normal;font-weight:500;font-size:inherit;color:var(--text-soft)}
+.hchart .arrow{margin-right:5px}
+.hchart .tool-plan{display:block;color:var(--muted);font-size:.62rem;line-height:1.6}
+.hchart .sub-plan,.hchart .sub-since{font:inherit;color:inherit;border:0;border-radius:0;padding:0;background:none}
+.hchart .sub-since{display:inline-block;white-space:nowrap}
+.hchart .sub-since:not(:first-child){margin-left:5px}
+.hchart .hlane{position:relative;min-width:0;height:18px}
+.hchart::before{content:"";position:absolute;top:0;bottom:0;left:calc(var(--label) + var(--hgap));right:var(--reserve);border-left:1px solid var(--chart-zero);background:linear-gradient(to right,transparent calc(100% - 1px),var(--chart-grid) 0);background-size:25% 100%;pointer-events:none}
+.hchart .hbar{position:relative;height:18px;border-radius:3px;background:var(--chart-main)}
+.hchart .htail{position:absolute;left:var(--value);top:0;margin-left:8px;line-height:18px;white-space:nowrap;font-size:.8rem;color:var(--text);font-weight:700}
+.hchart .htail .pct{display:inline;color:var(--text);font:inherit;white-space:nowrap}
+.hchart .htail small{margin-left:7px;font-size:.67rem;color:var(--muted);font-weight:400}
+.hchart .htail .tokens,.hchart .htail .cost{display:inline;color:inherit;font:inherit;white-space:nowrap}
+.hchart .htail .pct::before,.hchart .htail .tokens::before,.hchart .htail .cost::before{content:none}
+.hchart .rank-line.model-child{box-shadow:none;background:transparent;min-height:44px}
+.hchart .model-child .hlabel{padding-left:20px}
+.hchart .model-child .name,.hchart .model-child .model-name{display:inline;padding:0;font-weight:400}
+.hchart .model-child .hlane,.hchart .model-child .hbar{height:10px}
+.hchart .model-child .hbar{opacity:.45}
+.hchart .model-child .htail{top:-4px;font-size:.72rem}
+.haxis{height:26px;position:relative;margin-left:calc(var(--label) + var(--hgap));margin-right:var(--reserve);color:var(--muted);font-size:.62rem}
+.haxis span{position:absolute;bottom:0;transform:translateX(-50%)}
+.haxis span:first-child{transform:none}.haxis span:last-child{transform:translateX(-100%)}
+.composition-stack{display:flex;width:100%;height:36px;border-radius:6px;overflow:hidden;margin:24px 0 16px}
+.stack-segment{min-width:0;display:flex;align-items:center;justify-content:center;white-space:nowrap;font-size:.85rem;font-weight:700;color:#fff}
+.stack-0{background:var(--chart-accent)}.stack-1{background:var(--chart-purple)}.stack-2{background:var(--chart-orange)}.stack-3{background:var(--chart-neutral)}
+.rank-list.composition-legend{display:flex;flex-wrap:wrap;gap:10px 20px;margin-bottom:16px}
+.composition-item{display:inline-flex;align-items:center;gap:6px;color:var(--text-soft);font-size:.74rem;white-space:nowrap}
+.composition-item i{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.composition-item .name,.composition-item .tokens,.composition-item .pct{font:inherit;color:inherit;white-space:normal}
+.cache-heading{margin:32px 0 6px;font-weight:600;font-size:.85rem}
+.cache-chart{margin-top:14px}
+.report-subtitle{font-size:14px;color:var(--text-soft);margin:8px 0 20px}
+.report-source,.report-pricing{font-size:12px;color:var(--muted);margin:20px 0 0}
+.report-pricing{margin-top:4px}
+.trend-section .trend{margin-top:32px}
+.weekly-heading{margin:0 0 6px}
+.weekly-chart{position:relative;height:280px;margin:38px 0 0;padding:0 0 30px 50px;min-width:0}
+.weekly-ygrid{position:absolute;left:50px;right:0;top:0;bottom:30px;pointer-events:none}
+.weekly-grid{position:absolute;left:0;right:0;border-top:1px solid var(--chart-grid)}
+.weekly-grid.zero{border-color:var(--chart-zero)}
+.weekly-grid span{position:absolute;right:calc(100% + 8px);top:-8px;color:var(--muted);font-size:.62rem;white-space:nowrap}
+.weekly-columns,.weekly-xlabels{display:grid;grid-template-columns:repeat(var(--weeks),minmax(0,1fr));gap:12px}
+.weekly-columns{position:relative;height:100%;align-items:end}
+.weekly-columns .weekly-column{position:relative;display:block;padding:0;margin:0;min-width:0;border:0;border-radius:3px 3px 0 0;background:var(--chart-main)}
+.weekly-columns .weekly-column.peak{background:var(--chart-accent)}
+.weekly-columns .weekly-column.partial{background:var(--chart-neutral)}
+.weekly-column .week,.weekly-column em,.weekly-column .delta{display:none}
+.weekly-column strong{position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);font-size:.72rem;color:var(--text);white-space:nowrap}
+.weekly-column:focus-visible{outline:2px solid var(--chart-accent);outline-offset:3px}
+.weekly-xlabels{position:absolute;bottom:0;left:50px;right:0;color:var(--muted);font-size:.58rem;text-align:center}
+.weekly-note::first-letter{color:var(--chart-neutral)}
+.weekly-note{color:var(--muted);font-size:.65rem;text-align:right;margin-top:10px}
+@media(max-width:700px){
+  .hchart,.haxis{--label:88px;--reserve:64px;--hgap:10px}
+  .hchart .rank-line,.hchart .tool-row,.project-section .hchart .rank-line,.tools-section .hchart .tool-row{min-height:36px;align-items:center;padding:9px 0}
+  .hchart .rank-line:has(.htail small),.hchart .tool-row:has(.htail small){padding-bottom:36px}
+  .hchart .htail small{position:absolute;top:24px;left:0;margin:0;white-space:normal;width:130px;max-width:calc(100% + 130px)}
+  .hchart .hlane{align-self:start;margin-top:3px}
+  .hchart .htail{font-size:.7rem;margin-left:5px}
+  .hchart .htail:has(small){position:static}
+  .hchart .htail:has(small)>.pct{position:absolute;left:var(--value);top:0;margin-left:5px}
+  .hchart .htail:has(small)>small{left:0;width:calc(100% + var(--reserve));max-width:none;overflow-wrap:anywhere}
+  .hchart .htail small .tokens,.hchart .htail small .cost{white-space:normal}
+  .hchart .model-child .hlabel{padding-left:12px}
+  .hchart .model-child .htail:has(small)>.pct{top:-4px}
+  .weekly-columns,.weekly-xlabels{gap:5px}
+  .weekly-chart{height:240px;padding-left:38px}
+  .weekly-ygrid,.weekly-xlabels{left:38px}
+  .weekly-column strong{font-size:.58rem;writing-mode:vertical-rl;bottom:calc(100% + 5px)}
+  .weekly-xlabels{font-size:.5rem}
+}
+@media(max-width:560px){
+  .hchart,.haxis{--label:0px;--hgap:0px;--reserve:64px}
+  .hchart .rank-line,.hchart .tool-row,.project-section .hchart .rank-line,.tools-section .hchart .tool-row{grid-template-columns:minmax(0,1fr);gap:6px;min-height:0;padding:9px 0}
+  .hchart .hlabel,.tools-section .hchart .tool-head{grid-column:1;width:calc(100% + var(--reserve));text-align:left}
+  .hchart .name,.hchart .model-name,.hchart .sub-agent{overflow-wrap:normal;word-break:normal;white-space:normal}
+  .hchart .hlane{grid-column:1;margin-top:0;width:100%}
+  .hchart::before{left:0;background-size:50% 100%}
+  .haxis{margin-left:0}
+  .haxis span:nth-child(2),.haxis span:nth-child(4){display:none}
+  .hchart .hlabel,.tools-section .hchart .tool-head{padding-left:10px}
+  .hchart .htail:has(small)>small{left:10px}
+  .hchart .model-child .hlabel{padding-left:22px}
+}
+
+@media (prefers-color-scheme: light){
+:root:where(:not([data-theme])){--chart-main:rgba(22,128,106,.55);--chart-accent:#16806a;--chart-neutral:rgba(0,0,0,.15);--chart-grid:rgba(0,0,0,.08);--chart-zero:rgba(0,0,0,.3);--chart-purple:#68609b;--chart-orange:#b05a2b}
+}
+:root:where([data-theme="light"]){--chart-main:rgba(22,128,106,.55);--chart-accent:#16806a;--chart-neutral:rgba(0,0,0,.15);--chart-grid:rgba(0,0,0,.08);--chart-zero:rgba(0,0,0,.3);--chart-purple:#68609b;--chart-orange:#b05a2b}
 </style>
 </head>
 <body>
@@ -705,33 +803,33 @@ td:first-child{color:var(--muted)}
     </section>
   
     <section class="section trend-section">
-      <div class="prompt"><span>[usage]&gt;</span> Usage trend<div class="daily-chart-toggle"><button type="button" data-daily-mode="tokens" aria-pressed="true">Tokens</button><button type="button" data-daily-mode="cost" aria-pressed="false">API equivalent</button></div></div>
+      <div class="prompt"><span>[usage]&gt;</span> <span class="prompt-title">The week of 05/11 was the busiest</span><div class="daily-chart-toggle"><button type="button" data-daily-mode="tokens" aria-pressed="true">Tokens</button><button type="button" data-daily-mode="cost" aria-pressed="false">API equivalent</button></div></div>
       <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
-      <div class="daily-chart-wrap"><div class="daily-chart-canvas"><svg class="daily-chart-svg" viewBox="0 0 760 180" role="img" preserveAspectRatio="none" aria-label="Daily usage"><line class="daily-grid" x1="48" y1="18.0" x2="752" y2="18.0" vector-effect="non-scaling-stroke"/><line class="daily-grid" x1="48" y1="83.0" x2="752" y2="83.0" vector-effect="non-scaling-stroke"/><line class="daily-grid" x1="48" y1="148.0" x2="752" y2="148.0" vector-effect="non-scaling-stroke"/><rect class="daily-segment" x="79.68" y="122.00" width="77.44" height="26.00" fill="#5abfa0"/><rect class="daily-segment" x="79.68" y="114.20" width="77.44" height="7.80" fill="#e0885a" rx="2" ry="2"/><rect class="daily-segment" x="220.48" y="111.60" width="77.44" height="36.40" fill="#5abfa0"/><rect class="daily-segment" x="220.48" y="101.20" width="77.44" height="10.40" fill="#e0885a" rx="2" ry="2"/><rect class="daily-segment" x="361.28" y="96.00" width="77.44" height="52.00" fill="#e0885a"/><rect class="daily-segment" x="361.28" y="88.20" width="77.44" height="7.80" fill="#c7839f" rx="2" ry="2"/><rect class="daily-segment" x="502.08" y="83.00" width="77.44" height="65.00" fill="#5abfa0"/><rect class="daily-segment" x="502.08" y="70.00" width="77.44" height="13.00" fill="#c7839f" rx="2" ry="2"/><rect class="daily-segment" x="642.88" y="111.60" width="77.44" height="36.40" fill="#e0885a" rx="2" ry="2"/></svg><span class="daily-chart-label daily-y-label" style="left:5.39%;top:10.00%">500.0K</span><span class="daily-chart-label daily-y-label" style="left:5.39%;top:46.11%">250.0K</span><span class="daily-chart-label daily-y-label" style="left:5.39%;top:82.22%">0</span><span class="daily-chart-label daily-peak-label" style="left:71.16%;top:36.11%">05-13 · 300.0K</span><span class="daily-chart-label daily-x-label" style="left:15.58%;top:96.11%">05-04</span><span class="daily-chart-label daily-x-label" style="left:89.68%;top:96.11%">05-20</span></div><div class="daily-chart-legend"><span class="daily-legend-item"><i style="background:#5abfa0"></i>Claude Code <b>490.0K</b></span><span class="daily-legend-item"><i style="background:#e0885a"></i>Codex <b>410.0K</b></span><span class="daily-legend-item"><i style="background:#c7839f"></i>Grok <b>80.0K</b></span></div></div><div class="trend"><div class="trend-row" title="2026-05-04 – 2026-05-10 · 300.0K · $5.79"><span class="week">W19 (05/04–05/10)</span><div class="trend-bar" aria-hidden="true"><div style="width:53.57%"></div></div><em>300.0K</em><span class="delta flat"></span></div><div class="trend-row" title="2026-05-11 – 2026-05-17 · 560.0K · $11.13"><span class="week">W20 (05/11–05/17)</span><div class="trend-bar" aria-hidden="true"><div style="width:100.00%"></div></div><em>560.0K</em><span class="delta up">↗ +87%</span></div><div class="trend-row" title="2026-05-18 – 2026-05-24 · 140.0K · $2.87"><span class="week">W21 (05/18–05/24)</span><div class="trend-bar" aria-hidden="true"><div style="width:25.00%"></div></div><em>140.0K</em><span class="delta down">↘ -75%</span></div><div class="trend-summary">→ Last complete week (W21) dropped 75% vs the preceding week.</div></div>
+      <p class="report-subtitle">Daily and weekly token usage</p><div class="daily-chart-wrap"><div class="daily-chart-canvas"><svg class="daily-chart-svg" viewBox="0 0 760 180" role="img" preserveAspectRatio="none" aria-label="Daily usage"><line class="daily-grid" x1="48" y1="18.0" x2="752" y2="18.0" vector-effect="non-scaling-stroke"/><line class="daily-grid" x1="48" y1="83.0" x2="752" y2="83.0" vector-effect="non-scaling-stroke"/><line class="daily-grid" x1="48" y1="148.0" x2="752" y2="148.0" vector-effect="non-scaling-stroke"/><rect class="daily-segment" x="79.68" y="122.00" width="77.44" height="26.00" fill="#5abfa0"/><rect class="daily-segment" x="79.68" y="114.20" width="77.44" height="7.80" fill="#e0885a" rx="2" ry="2"/><rect class="daily-segment" x="220.48" y="111.60" width="77.44" height="36.40" fill="#5abfa0"/><rect class="daily-segment" x="220.48" y="101.20" width="77.44" height="10.40" fill="#e0885a" rx="2" ry="2"/><rect class="daily-segment" x="361.28" y="96.00" width="77.44" height="52.00" fill="#e0885a"/><rect class="daily-segment" x="361.28" y="88.20" width="77.44" height="7.80" fill="#c7839f" rx="2" ry="2"/><rect class="daily-segment" x="502.08" y="83.00" width="77.44" height="65.00" fill="#5abfa0"/><rect class="daily-segment" x="502.08" y="70.00" width="77.44" height="13.00" fill="#c7839f" rx="2" ry="2"/><rect class="daily-segment" x="642.88" y="111.60" width="77.44" height="36.40" fill="#e0885a" rx="2" ry="2"/></svg><span class="daily-chart-label daily-y-label" style="left:5.39%;top:10.00%">500.0K</span><span class="daily-chart-label daily-y-label" style="left:5.39%;top:46.11%">250.0K</span><span class="daily-chart-label daily-y-label" style="left:5.39%;top:82.22%">0</span><span class="daily-chart-label daily-peak-label" style="left:71.16%;top:36.11%">05-13 · 300.0K</span><span class="daily-chart-label daily-x-label" style="left:15.58%;top:96.11%">05-04</span><span class="daily-chart-label daily-x-label" style="left:89.68%;top:96.11%">05-20</span></div><div class="daily-chart-legend"><span class="daily-legend-item"><i style="background:#5abfa0"></i>Claude Code <b>490.0K</b></span><span class="daily-legend-item"><i style="background:#e0885a"></i>Codex <b>410.0K</b></span><span class="daily-legend-item"><i style="background:#c7839f"></i>Grok <b>80.0K</b></span></div></div><div class="trend"><p class="cache-heading weekly-heading">Weekly usage</p><div class="weekly-chart"><div class="weekly-ygrid" aria-hidden="true"><div class="weekly-grid zero" style="bottom:0%"><span>0</span></div><div class="weekly-grid" style="bottom:25%"><span>200K</span></div><div class="weekly-grid" style="bottom:50%"><span>400K</span></div><div class="weekly-grid" style="bottom:75%"><span>600K</span></div><div class="weekly-grid" style="bottom:100%"><span>800K</span></div></div><div class="weekly-columns" style="--weeks:3"><div class="trend-row weekly-column" title="W19 (05/04–05/10) · 2026-05-04 – 2026-05-10 · 300.0K · $5.79" style="height:37.50%" tabindex="0"><span class="week">W19 (05/04–05/10)</span><em>300.0K</em><span class="delta flat"></span></div><div class="trend-row weekly-column peak" title="W20 (05/11–05/17) · 2026-05-11 – 2026-05-17 · 560.0K · $11.13 · ↗ +87%" style="height:70.00%" tabindex="0"><span class="week">W20 (05/11–05/17)</span><em>560.0K</em><span class="delta up">↗ +87%</span><strong>560.0K</strong></div><div class="trend-row weekly-column" title="W21 (05/18–05/24) · 2026-05-18 – 2026-05-24 · 140.0K · $2.87 · ↘ -75%" style="height:17.50%" tabindex="0"><span class="week">W21 (05/18–05/24)</span><em>140.0K</em><span class="delta down">↘ -75%</span><strong>140.0K</strong></div></div><div class="weekly-xlabels" style="--weeks:3" aria-hidden="true"><span>05/04</span><span>05/11</span><span>05/18</span></div></div><div class="weekly-note">● Incomplete week</div><div class="trend-summary">→ Last complete week (W21) dropped 75% vs the preceding week.</div></div><p class="report-source">Source: local Claude, Codex usage logs · 2026-05-01 – 2026-05-24</p>
     </section>
     
   
     <section class="section tools-section">
-      <div class="prompt"><span>[usage]&gt;</span> Your tools</div>
+      <div class="prompt"><span>[usage]&gt;</span> <span class="prompt-title">Claude leads with 63% of tokens</span></div>
       <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
-      <div class="tools"><div class="tools-head"><span></span><span>Token share</span><span>Tokens</span><span>API equivalent</span></div><div class="tool-row model-group" data-agent-id="claude-code"><div class="tool-head"><span class="arrow">▸</span><span class="sub-agent">Claude</span><span class="sub-plan">Max</span><span class="sub-since" data-mask>Subscribed since 2026-01-15</span><span class="share-bar" aria-hidden="true"><span style="width:62.50%;background:#5abfa0"></span></span></div><span class="pct" data-label="Token share">62.5%</span><span class="tokens" data-label="Tokens">1.5M</span><span class="cost" data-label="API equivalent">$28.55</span></div><div class="rank-line model-child" hidden><span class="left-tick" aria-hidden="true" style="background:#5abfa0"></span><span class="arrow">→</span><span class="name">claude-sonnet-4</span><span class="tokens" data-label="Tokens">1.2M</span><span class="cost" data-label="API equivalent">$23.91</span><div class="gauge-rail" aria-hidden="true" style="width:52.4%;background:#5abfa0"></div></div><div class="tool-row model-group" data-agent-id="codex"><div class="tool-head"><span class="arrow">▸</span><span class="sub-agent">Codex</span><span class="sub-plan">Plus</span><span class="sub-since" data-mask>Subscribed since 2026-03-02</span><span class="share-bar" aria-hidden="true"><span style="width:37.50%;background:#e0885a"></span></span></div><span class="pct" data-label="Token share">37.5%</span><span class="tokens" data-label="Tokens">879.6K</span><span class="cost" data-label="API equivalent">$17.13</span></div><div class="rank-line model-child" hidden><span class="left-tick" aria-hidden="true" style="background:#e0885a"></span><span class="arrow">→</span><span class="name">gpt-5-codex</span><span class="tokens" data-label="Tokens">858.9K</span><span class="cost" data-label="API equivalent">$16.70</span><div class="gauge-rail" aria-hidden="true" style="width:36.6%;background:#e0885a"></div></div><div class="tool-row"><div class="tool-head"><span class="sub-agent">Gemini</span><span class="sub-plan">Pro</span><span class="sub-since" data-mask>Subscribed since 2026-04-10</span></div><span></span><span></span><span></span></div></div>
+      <p class="report-subtitle">Token share by tool · 2.3M tokens in total</p><div class="tools hchart"><div class="tool-row model-group" data-agent-id="claude-code"><div class="tool-head hlabel"><span class="arrow">▸</span><span class="sub-agent">Claude</span><small class="tool-plan"><span class="sub-plan">Max</span><span class="sub-since" data-mask>Subscribed since 2026-01-15</span></small></div><div class="hlane" style="--value:62.5%"><div class="hbar" aria-hidden="true" style="width:62.5%;background:var(--chart-accent)"></div><span class="htail"><span class="pct">62.5%</span><small><span class="tokens" data-label="Tokens">1.5M</span><span class=""> · </span><span class="cost" data-label="API equivalent">$28.55</span></small></span></div></div><div class="rank-line model-child" hidden><div class="hlabel"><span class="arrow">→</span><span class="name">claude-sonnet-4</span></div><div class="hlane" style="--value:52.4%"><div class="hbar" aria-hidden="true" style="width:52.4%"></div><span class="htail"><span class="pct">52.4%</span><small><span class="tokens" data-label="Tokens">1.2M</span><span class=""> · </span><span class="cost" data-label="API equivalent">$23.91</span></small></span></div></div><div class="tool-row model-group" data-agent-id="codex"><div class="tool-head hlabel"><span class="arrow">▸</span><span class="sub-agent">Codex</span><small class="tool-plan"><span class="sub-plan">Plus</span><span class="sub-since" data-mask>Subscribed since 2026-03-02</span></small></div><div class="hlane" style="--value:37.5%"><div class="hbar" aria-hidden="true" style="width:37.5%"></div><span class="htail"><span class="pct">37.5%</span><small><span class="tokens" data-label="Tokens">879.6K</span><span class=""> · </span><span class="cost" data-label="API equivalent">$17.13</span></small></span></div></div><div class="rank-line model-child" hidden><div class="hlabel"><span class="arrow">→</span><span class="name">gpt-5-codex</span></div><div class="hlane" style="--value:36.6%"><div class="hbar" aria-hidden="true" style="width:36.6%"></div><span class="htail"><span class="pct">36.6%</span><small><span class="tokens" data-label="Tokens">858.9K</span><span class=""> · </span><span class="cost" data-label="API equivalent">$16.70</span></small></span></div></div><div class="tool-row"><div class="tool-head hlabel"><span class="sub-agent">Gemini</span><small class="tool-plan"><span class="sub-plan">Pro</span><span class="sub-since" data-mask>Subscribed since 2026-04-10</span></small></div></div></div><div class="haxis" aria-hidden="true"><span style="left:0%">0%</span><span style="left:25%">25%</span><span style="left:50%">50%</span><span style="left:75%">75%</span><span style="left:100%">100%</span></div><p class="report-source">Source: local Claude, Codex usage logs · 2026-05-01 – 2026-05-24</p><p class="report-pricing">API-equivalent cost is based on public API prices</p>
     </section>
     
   <section class="section composition-section">
-      <div class="prompt"><span>[usage]&gt;</span> Token composition</div>
+      <div class="prompt"><span>[usage]&gt;</span> <span class="prompt-title">Cache read makes up 85% of tokens</span></div>
       <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
-      <div class="rank-list"><div class="rank-line"><span class="arrow">&rarr;</span><span class="name">Cache read<span class="share-bar" aria-hidden="true"><span style="width:85.26%;background:#78cdb2"></span></span></span><span class="pct" data-label="Token share"> 85.3%</span><span class="tokens" data-label="Tokens">2.0M</span></div><div class="rank-line"><span class="arrow">&rarr;</span><span class="name">Input<span class="share-bar" aria-hidden="true"><span style="width:10.66%;background:#5abfa0"></span></span></span><span class="pct" data-label="Token share"> 10.7%</span><span class="tokens" data-label="Tokens">250.0K</span></div><div class="rank-line"><span class="arrow">&rarr;</span><span class="name">Cache write<span class="share-bar" aria-hidden="true"><span style="width:2.13%;background:#e0885a"></span></span></span><span class="pct" data-label="Token share">  2.1%</span><span class="tokens" data-label="Tokens">50.0K</span></div><div class="rank-line"><span class="arrow">&rarr;</span><span class="name">Output<span class="share-bar" aria-hidden="true"><span style="width:2.00%;background:#8f86c9"></span></span></span><span class="pct" data-label="Token share">  1.9%</span><span class="tokens" data-label="Tokens">45.7K</span></div></div><p class="composition-hint" data-composition-missing hidden>Another 0 tokens have no input/output breakdown.</p><div class="rank-head"><span></span><span>Cache hit rate</span></div><p class="composition-hint">A higher hit rate is better: context is reused instead of re-sent.</p><div class="rank-list"><div class="rank-line"><span class="arrow">&rarr;</span><span class="name">Codex<span class="share-bar" aria-hidden="true"><span style="width:87.21%;background:#78cdb2"></span></span></span><span class="pct" data-label="Cache hit rate"> 87.2%</span></div><div class="rank-line"><span class="arrow">&rarr;</span><span class="name">Claude<span class="share-bar" aria-hidden="true"><span style="width:86.81%;background:#78cdb2"></span></span></span><span class="pct" data-label="Cache hit rate"> 86.8%</span></div></div>
+      <p class="report-subtitle">Token share by type</p><div class="composition-stack"><div class="stack-segment stack-0" style="flex:2000000">85.3%</div><div class="stack-segment stack-1" style="flex:250000"></div><div class="stack-segment stack-2" style="flex:50000"></div><div class="stack-segment stack-3" style="flex:45678"></div></div><div class="rank-list composition-legend"><span class="composition-item"><i class="stack-0"></i><span><span class="name">Cache read</span><span class=""> </span><span class="pct">85.3%</span><span class="">（</span><span class="tokens">2.0M</span><span class="">）</span></span></span><span class="composition-item"><i class="stack-1"></i><span><span class="name">Input</span><span class=""> </span><span class="pct">10.7%</span><span class="">（</span><span class="tokens">250.0K</span><span class="">）</span></span></span><span class="composition-item"><i class="stack-2"></i><span><span class="name">Cache write</span><span class=""> </span><span class="pct">2.1%</span><span class="">（</span><span class="tokens">50.0K</span><span class="">）</span></span></span><span class="composition-item"><i class="stack-3"></i><span><span class="name">Output</span><span class=""> </span><span class="pct">1.9%</span><span class="">（</span><span class="tokens">45.7K</span><span class="">）</span></span></span></div><p class="composition-hint" data-composition-missing hidden>Another 0 tokens have no input/output breakdown.</p><p class="cache-heading">Cache hit rate</p><p class="composition-hint">A higher hit rate is better: context is reused instead of re-sent.</p><div class="rank-list hchart cache-chart"><div class="rank-line"><div class="hlabel"><span class="name">Codex</span></div><div class="hlane" style="--value:87.2%"><div class="hbar" aria-hidden="true" style="width:87.2%"></div><span class="htail"><span class="pct">87.2%</span></span></div></div><div class="rank-line"><div class="hlabel"><span class="name">Claude</span></div><div class="hlane" style="--value:86.8%"><div class="hbar" aria-hidden="true" style="width:86.8%"></div><span class="htail"><span class="pct">86.8%</span></span></div></div></div><div class="haxis" aria-hidden="true"><span style="left:0%">0%</span><span style="left:25%">25%</span><span style="left:50%">50%</span><span style="left:75%">75%</span><span style="left:100%">100%</span></div><p class="report-source">Source: local Claude, Codex usage logs · 2026-05-01 – 2026-05-24</p>
     </section>
   
     <section class="section project-section">
-      <div class="prompt"><span>[usage]&gt;</span> Project hot zones</div>
+      <div class="prompt"><span>[usage]&gt;</span> <span class="prompt-title">The top 3 projects account for 100% of tokens</span></div>
       <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
-      <div class="rank-head"><span></span><span>Project</span><span>Token share</span><span>Tokens</span><span>API equivalent</span></div><div class="rank-list"><div class="rank-line" data-project-index="0"><span class="left-tick" aria-hidden="true" style="background:#8b8577"></span><span class="arrow">→</span><span class="name">usage</span><span class="pct" data-label="Token share">70.2%</span><span class="tokens" data-label="Tokens">1.6M</span><span class="cost" data-label="API equivalent">$32.07</span><div class="gauge-rail" aria-hidden="true" style="width:70.2%;background:#8b8577"></div></div><div class="rank-line"><span class="left-tick" aria-hidden="true" style="background:#8b8577"></span><span class="arrow">→</span><span class="name">client&lt;portal&gt;</span><span class="pct" data-label="Token share">20.1%</span><span class="tokens" data-label="Tokens">471.5K</span><span class="cost" data-label="API equivalent">$9.18</span><div class="gauge-rail" aria-hidden="true" style="width:20.1%;background:#8b8577"></div></div><div class="rank-line"><span class="left-tick" aria-hidden="true" style="background:#8b8577"></span><span class="arrow">→</span><span class="name">unknown</span><span class="pct" data-label="Token share">9.7%</span><span class="tokens" data-label="Tokens">227.3K</span><span class="cost" data-label="API equivalent">$4.43</span><div class="gauge-rail" aria-hidden="true" style="width:9.7%;background:#8b8577"></div></div></div>
+      <p class="report-subtitle">Token share by project</p><div class="rank-list hchart"><div class="rank-line" data-project-index="0"><div class="hlabel"><span class="arrow">→</span><span class="name">usage</span></div><div class="hlane" style="--value:70.2%"><div class="hbar" aria-hidden="true" style="width:70.2%;background:var(--chart-accent)"></div><span class="htail"><span class="pct">70.2%</span><small><span class="tokens" data-label="Tokens">1.6M</span><span class=""> · </span><span class="cost" data-label="API equivalent">$32.07</span></small></span></div></div><div class="rank-line"><div class="hlabel"><span class="arrow">→</span><span class="name">client&lt;portal&gt;</span></div><div class="hlane" style="--value:20.1%"><div class="hbar" aria-hidden="true" style="width:20.1%"></div><span class="htail"><span class="pct">20.1%</span><small><span class="tokens" data-label="Tokens">471.5K</span><span class=""> · </span><span class="cost" data-label="API equivalent">$9.18</span></small></span></div></div><div class="rank-line"><div class="hlabel"><span class="arrow">→</span><span class="name">unknown</span></div><div class="hlane" style="--value:9.7%"><div class="hbar" aria-hidden="true" style="width:9.7%"></div><span class="htail"><span class="pct">9.7%</span><small><span class="tokens" data-label="Tokens">227.3K</span><span class=""> · </span><span class="cost" data-label="API equivalent">$4.43</span></small></span></div></div></div><div class="haxis" aria-hidden="true"><span style="left:0%">0%</span><span style="left:25%">25%</span><span style="left:50%">50%</span><span style="left:75%">75%</span><span style="left:100%">100%</span></div><p class="report-source">Source: local Claude, Codex usage logs · 2026-05-01 – 2026-05-24</p>
     </section>
     
   
     <section class="section session-section">
-      <div class="prompt"><span>[usage]&gt;</span> Top 5 sessions by token usage</div>
+      <div class="prompt"><span>[usage]&gt;</span> <span class="prompt-title">The largest session used 98.8K tokens</span></div>
       <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
       
         <div class="table-wrap">
@@ -829,7 +927,7 @@ reportThemeMedia.addEventListener('change', () => {
   updateThemeToggle();
 });
 
-const shareConfig = {"collapse": "Collapse", "copied": "Copied to clipboard ✓", "expand": "Expand", "pathCopied": "Path copied ✓", "projectShare": "Share of project", "projectOthers": "Other projects", "chartOther": "Other", "cost": "API equivalent", "costUnpriced": "Includes {tokens} tokens without public pricing, excluded from the API equivalent", "emptyProjects": "No project usage in this period", "kpiActiveHint": "A day counts if any tool records usage", "kpiActiveValue": "{active} / {total} days", "narrative": "You used {tokens} tokens over this period. {peak_date} was the peak ({peak_tokens}/day), and the model with the most token usage was {top_model}.", "projectSection": "Project hot zones", "share": "Token share", "tokens": "Tokens", "unknown": "unknown", "vsPrevious": "vs previous period", "compositionCacheRead": "Cache read", "compositionCacheWrite": "Cache write", "compositionHitRate": "Cache hit rate", "compositionInput": "Input", "compositionMissing": "Another {tokens} tokens have no input/output breakdown.", "trendPartialWeek": "only {days} days", "compositionOutput": "Output", "duration": "Duration", "dailyChartTitle": "Daily usage", "dailyChartModeTokens": "Tokens", "dailyChartModeCost": "API equivalent", "dailyChartTotal": "Total", "emptyDaily": "No daily usage in this period", "emptySessions": "No sessions to list in this period", "model": "Model", "project": "Project", "pricingAllPriced": "All usage has a public price.", "pricingHint": "API equivalent is the API-equivalent value from public price lists, not your subscription bill. Usage without a public price is left out of API equivalent. No public price does not mean free; the API equivalent cannot be calculated.", "pricingModelSeparator": ", ", "pricingPriced": "Convertible to API equivalent", "pricingUnpriced": "No public price", "rank": "Rank", "startTime": "Start time", "trendCompareDown": "Last complete week (W{week}) dropped {pct}% vs the preceding week.", "trendCompareFirst": "Fewer than two complete weeks to compare.", "trendCompareFlat": "Last complete week (W{week}) was roughly flat vs the preceding week.", "trendCompareNew": "Last complete week (W{week}) has new usage vs the preceding week.", "trendCompareUp": "Last complete week (W{week}) is {ratio}× the preceding week.", "trendMarkerNew": "new", "trendWeekInProgress": "in progress"};
+const shareConfig = {"collapse": "Collapse", "copied": "Copied to clipboard ✓", "expand": "Expand", "pathCopied": "Path copied ✓", "projectShare": "Share of project", "projectOthers": "Other projects", "title_tools_top": "{tool} leads with {pct}% of tokens", "title_tools_single": "All usage came from {tool}", "sub_tools": "Token share by tool · {total} tokens in total", "title_projects_top3": "The top 3 projects account for {pct}% of tokens", "sub_projects": "Token share by project", "title_trend_peak_week": "The week of {date} was the busiest", "sub_trend": "Daily and weekly token usage", "title_composition_top": "{kind} makes up {pct}% of tokens", "sub_composition": "Token share by type", "title_sessions_top": "The largest session used {tokens} tokens", "source_note": "Source: local {tools} usage logs · {from} – {to}", "source_pricing": "API-equivalent cost is based on public API prices", "weekly_chart_title": "Weekly usage", "tools_section": "Your tools", "project_section": "Project hot zones", "trend_section": "Usage trend", "composition_section": "Token composition", "session_section": "Top 5 sessions by token usage", "sourceSeparator": ", ", "chartOther": "Other", "cost": "API equivalent", "costUnpriced": "Includes {tokens} tokens without public pricing, excluded from the API equivalent", "emptyProjects": "No project usage in this period", "kpiActiveHint": "A day counts if any tool records usage", "kpiActiveValue": "{active} / {total} days", "narrative": "You used {tokens} tokens over this period. {peak_date} was the peak ({peak_tokens}/day), and the model with the most token usage was {top_model}.", "projectSection": "Project hot zones", "share": "Token share", "tokens": "Tokens", "unknown": "unknown", "vsPrevious": "vs previous period", "compositionCacheRead": "Cache read", "compositionCacheWrite": "Cache write", "compositionHitRate": "Cache hit rate", "compositionInput": "Input", "compositionMissing": "Another {tokens} tokens have no input/output breakdown.", "trendPartialWeek": "only {days} days", "trendIncompleteWeek": "Incomplete week", "compositionOutput": "Output", "duration": "Duration", "dailyChartTitle": "Daily usage", "dailyChartModeTokens": "Tokens", "dailyChartModeCost": "API equivalent", "dailyChartTotal": "Total", "emptyDaily": "No daily usage in this period", "emptySessions": "No sessions to list in this period", "model": "Model", "project": "Project", "pricingAllPriced": "All usage has a public price.", "pricingHint": "API equivalent is the API-equivalent value from public price lists, not your subscription bill. Usage without a public price is left out of API equivalent. No public price does not mean free; the API equivalent cannot be calculated.", "pricingModelSeparator": ", ", "pricingPriced": "Convertible to API equivalent", "pricingUnpriced": "No public price", "rank": "Rank", "startTime": "Start time", "trendCompareDown": "Last complete week (W{week}) dropped {pct}% vs the preceding week.", "trendCompareFirst": "Fewer than two complete weeks to compare.", "trendCompareFlat": "Last complete week (W{week}) was roughly flat vs the preceding week.", "trendCompareNew": "Last complete week (W{week}) has new usage vs the preceding week.", "trendCompareUp": "Last complete week (W{week}) is {ratio}× the preceding week.", "trendMarkerNew": "new", "trendWeekInProgress": "in progress"};
 const maskedCsvData = JSON.parse(document.querySelector('#usage-masked-csv-data').textContent);
 const csvDataNode = document.querySelector('#usage-csv-data');
 const csvData = csvDataNode ? JSON.parse(csvDataNode.textContent) : maskedCsvData;
@@ -1702,43 +1800,27 @@ document.addEventListener('click', async (e) => {
     return Math.max(0, Math.min(100, share));
   }
 
-  function appendLeftTick(row, color) {
-    const tick = document.createElement('span');
-    tick.className = 'left-tick';
-    tick.setAttribute('aria-hidden', 'true');
-    if (color) tick.style.background = color;
-    row.append(tick);
-  }
-
-  function appendGaugeRail(row, share, color) {
-    const rail = document.createElement('div');
-    rail.className = 'gauge-rail';
-    rail.setAttribute('aria-hidden', 'true');
-    rail.style.width = `${clampedShare(share).toFixed(1)}%`;
-    if (color) rail.style.background = color;
-    row.append(rail);
-  }
-
-  function createChildGauge(share) {
-    const width = clampedShare(share);
-    const label = `${width.toFixed(1)}%`;
-    const gauge = document.createElement('div');
-    gauge.className = 'child-gauge';
-    const track = document.createElement('div');
-    track.className = 'child-track';
-    track.title = `${shareConfig.projectShare} ${label}`;
-    const fill = document.createElement('div');
-    fill.className = 'child-fill';
-    fill.style.width = `${width.toFixed(1)}%`;
-    track.append(fill);
-    const pct = document.createElement('span');
-    pct.className = 'child-pct';
-    pct.textContent = label;
-    const tag = document.createElement('span');
-    tag.className = 'scope-tag';
-    tag.textContent = shareConfig.projectShare;
-    gauge.append(track, pct, tag);
-    return gauge;
+  function appendLane(row, share, label, item = null, color = null, costKnown = true) {
+    const lane = document.createElement('div');
+    lane.className = 'hlane';
+    lane.setAttribute('style', `--value:${clampedShare(share).toFixed(1)}%`);
+    const bar = document.createElement('div');
+    bar.className = 'hbar';
+    bar.setAttribute('aria-hidden', 'true');
+    bar.style.width = `${clampedShare(share).toFixed(1)}%`;
+    if (color) bar.style.background = color;
+    const tail = document.createElement('span');
+    tail.className = 'htail';
+    appendTextSpan(tail, 'pct', label);
+    if (item) {
+      const detail = document.createElement('small');
+      appendTextSpan(detail, 'tokens', formatTokens(item.tokens), shareConfig.tokens);
+      appendTextSpan(detail, '', ' · ');
+      appendTextSpan(detail, 'cost', formatCost(item.cost, costKnown), shareConfig.cost);
+      tail.append(detail);
+    }
+    lane.append(bar, tail);
+    row.append(lane);
   }
 
   function createRankRow(name, item, total, color, options = {}) {
@@ -1747,24 +1829,17 @@ document.addEventListener('click', async (e) => {
     row.className = `rank-line${options.rowClass ? ` ${options.rowClass}` : ''}`;
     if (options.agentId !== undefined) row.dataset.agentId = String(options.agentId);
     if (options.projectIndex !== undefined) row.dataset.projectIndex = String(options.projectIndex);
-    appendLeftTick(row, color);
-    appendTextSpan(row, 'arrow', options.arrow || '→');
-    appendTextSpan(row, options.nameClass || 'name', name);
-    if (options.showShare) appendTextSpan(row, 'pct', `${share.toFixed(1)}%`, shareConfig.share);
-    appendTextSpan(row, 'tokens', formatTokens(item.tokens), shareConfig.tokens);
+    const head = document.createElement('div');
+    head.className = 'hlabel';
+    appendTextSpan(head, 'arrow', options.arrow || '→');
+    appendTextSpan(head, options.nameClass || 'name', name);
+    row.append(head);
     const costKnown = options.costKnown === undefined ? item.costKnown : options.costKnown;
-    appendTextSpan(row, 'cost', formatCost(item.cost, costKnown), shareConfig.cost);
-    appendGaugeRail(row, share, color);
+    appendLane(row, share, `${share.toFixed(1)}%`, item, color, costKnown);
     return row;
   }
 
   const projectSection = document.querySelector('.project-section');
-  const projectHeadCells = projectSection
-    ? Array.from(projectSection.querySelectorAll('.rank-head > span'))
-    : [];
-  const tokensLabel = projectHeadCells[3] ? projectHeadCells[3].textContent : shareConfig.tokens;
-  const costLabel = projectHeadCells[4] ? projectHeadCells[4].textContent : shareConfig.cost;
-
   function removeProjectDetails(projectRow) {
     let sibling = projectRow.nextElementSibling;
     while (sibling && sibling.classList.contains('project-model-detail')) {
@@ -1776,20 +1851,9 @@ document.addEventListener('click', async (e) => {
 
   function createProjectDetail(modelIndex, item, projectTokens) {
     const model = cube.models[modelIndex];
-    const modelName = model ? String(model.name) : '';
-    const share = projectTokens ? item.tokens / projectTokens * 100 : 0;
-    const row = document.createElement('div');
-    row.className = 'rank-line model-child project-model-detail';
-    appendTextSpan(row, 'arrow', '');
-    const name = document.createElement('span');
-    name.className = 'model-name';
-    const label = document.createElement('span');
-    label.className = 'child-model-name';
-    label.textContent = modelName;
-    name.append(label, createChildGauge(share));
-    row.append(name);
-    appendTextSpan(row, 'tokens', formatTokens(item.tokens), tokensLabel);
-    appendTextSpan(row, 'cost', formatCost(item.cost, item.costKnown), costLabel);
+    const row = createRankRow(model ? displayName(model.name) : '', item, projectTokens, null,
+      {rowClass: 'model-child project-model-detail', nameClass: 'model-name'});
+    row.querySelector('.model-name').className = 'model-name child-model-name';
     return row;
   }
 
@@ -1855,34 +1919,36 @@ document.addEventListener('click', async (e) => {
     row.className = 'tool-row model-group';
     row.dataset.agentId = String(agent.id);
     const head = document.createElement('div');
-    head.className = 'tool-head';
+    head.className = 'tool-head hlabel';
     appendTextSpan(head, 'arrow', '▸');
-    appendTextSpan(head, 'sub-agent', String(agent.name));
+    appendTextSpan(head, 'sub-agent', displayName(agent.name));
     const metadata = toolMetadata.get(String(agent.id)) || toolMetadata.get(`name:${agent.name}`);
-    if (metadata && metadata.plan) appendTextSpan(head, 'sub-plan', metadata.plan);
-    if (metadata && metadata.since) appendTextSpan(head, 'sub-since', metadata.since);
-    const share = total ? item.tokens / total * 100 : 0;
-    appendShareBar(head, share, agentColors[agent.id] || '#8b8577');
+    appendToolPlan(head, metadata);
     row.append(head);
-    appendTextSpan(row, 'pct', `${share.toFixed(1)}%`, shareConfig.share);
-    appendTextSpan(row, 'tokens', formatTokens(item.tokens), shareConfig.tokens);
-    // _tools_body() 無條件顯示花費，這裡跟著一致
-    appendTextSpan(row, 'cost', formatCost(item.cost, true), shareConfig.cost);
+    const share = total ? item.tokens / total * 100 : 0;
+    appendLane(row, share, `${share.toFixed(1)}%`, item, null, true);
     return row;
+  }
+
+  function appendToolPlan(head, metadata) {
+    const plan = document.createElement('small');
+    plan.className = 'tool-plan';
+    if (metadata && metadata.plan) appendTextSpan(plan, 'sub-plan', metadata.plan);
+    if (metadata && metadata.since) {
+      const since = appendTextSpan(plan, 'sub-since', metadata.since);
+      since.setAttribute('data-mask', '');
+    }
+    head.append(plan);
   }
 
   function createSubscriptionOnlyRow(metadata) {
     const row = document.createElement('div');
     row.className = 'tool-row';
     const head = document.createElement('div');
-    head.className = 'tool-head';
+    head.className = 'tool-head hlabel';
     appendTextSpan(head, 'sub-agent', metadata.name);
-    if (metadata.plan) appendTextSpan(head, 'sub-plan', metadata.plan);
-    if (metadata.since) appendTextSpan(head, 'sub-since', metadata.since);
+    appendToolPlan(head, metadata);
     row.append(head);
-    appendTextSpan(row, 'pct', '', shareConfig.share);
-    appendTextSpan(row, 'tokens', '', shareConfig.tokens);
-    appendTextSpan(row, 'cost', '', shareConfig.cost);
     return row;
   }
 
@@ -1896,11 +1962,12 @@ document.addEventListener('click', async (e) => {
       .map(([agentIndex, item]) => ({agentIndex: Number(agentIndex), ...item}))
       .sort((left, right) => right.tokens - left.tokens || left.agentIndex - right.agentIndex);
     const usedIds = new Set();
-    entries.forEach((item) => {
+    entries.forEach((item, index) => {
       const agent = cube.agents[item.agentIndex];
       if (!agent) return;
       usedIds.add(String(agent.id));
       const groupRow = createToolRow(agent, item, summary.tokens);
+      if (index === 0) groupRow.querySelector('.hbar').style.background = 'var(--chart-accent)';
       tools.append(groupRow);
       const byModel = aggregateRows(
         summary.rows,
@@ -1915,7 +1982,7 @@ document.addEventListener('click', async (e) => {
           if (!model) return;
           tools.append(createRankRow(
             String(model.name), modelItem, summary.tokens,
-            modelColor(String(model.name)), {rowClass: 'model-child'}
+            null, {rowClass: 'model-child'}
           ));
         });
       bindModelGroup(groupRow, expanded.has(String(agent.id)));
@@ -1933,8 +2000,7 @@ document.addEventListener('click', async (e) => {
   function rebuildProjects(summary) {
     if (!projectSection) return;
     const list = projectSection.querySelector('.rank-list');
-    const head = projectSection.querySelector('.rank-head');
-    if (!list || !head) return;
+    if (!list) return;
     list.replaceChildren();
     const byProject = aggregateRows(summary.rows, 3);
     const projects = Object.entries(byProject)
@@ -1946,12 +2012,12 @@ document.addEventListener('click', async (e) => {
       .filter((item) => item.tokens > 0 || item.cost > 0)
       .sort((left, right) => right.tokens - left.tokens || left.projectIndex - right.projectIndex);
     const displayed = projects.slice(0, 10);
-    displayed.forEach((project) => {
+    displayed.forEach((project, index) => {
       const row = createRankRow(
         project.name,
         project,
         summary.tokens,
-        '#8b8577',
+        index === 0 ? 'var(--chart-accent)' : null,
         // _render_project_section() 無條件顯示花費，這裡跟著一致
         {projectIndex: project.projectIndex, costKnown: true, showShare: true}
       );
@@ -1961,7 +2027,7 @@ document.addEventListener('click', async (e) => {
     const remaining = summary.tokens - displayed.reduce((sum, project) => sum + project.tokens, 0);
     if (remaining > 0) {
       const cost = Math.max(0, summary.cost - displayed.reduce((sum, project) => sum + project.cost, 0));
-      const other = createRankRow(shareConfig.projectOthers, {tokens: remaining, cost}, summary.tokens, '#8b8577', {costKnown: true, showShare: true});
+      const other = createRankRow(shareConfig.projectOthers, {tokens: remaining, cost}, summary.tokens, 'var(--chart-neutral)', {costKnown: true, showShare: true});
       other.dataset.projectOther = 'true';
       list.append(other);
     }
@@ -2034,13 +2100,14 @@ document.addEventListener('click', async (e) => {
     if (period) period.textContent = `${bounds.from} -> ${bounds.to}`;
   }
 
-  function replaceSectionBody(section, node) {
+  function replaceSectionBody(section, ...nodes) {
     const prompt = section.querySelector('.prompt');
     const rule = section.querySelector('.rule');
     Array.from(section.children).forEach((child) => {
-      if (child !== prompt && child !== rule) child.remove();
+      if (child !== prompt && child !== rule && !child.classList.contains('report-subtitle') && !child.classList.contains('report-source') && !child.classList.contains('report-pricing')) child.remove();
     });
-    section.append(node);
+    const footer = section.querySelector('.report-source');
+    nodes.forEach((node) => section.insertBefore(node, footer));
   }
 
   function weekIsInProgress(week, dateTo) {
@@ -2116,39 +2183,54 @@ document.addEventListener('click', async (e) => {
     const rangeStart = parseDate(summary.bounds.from);
     const firstPartial = rangeStart && rangeStart.getUTCDay() !== 1;
     const maxTokens = weekly.reduce((max, week) => Math.max(max, week.tokens), 0);
+    const complete = weekly.map((week, index) => index).filter((index) => (
+      !(index === 0 && firstPartial) && !weekIsInProgress(weekly[index], dateTo)
+    ));
+    let peak = complete.reduce((best, index) => best < 0 || weekly[index].tokens > weekly[best].tokens ? index : best, -1);
+    let latest = complete.length ? complete[complete.length - 1] : -1;
+    if (peak >= 0 && !weekly[peak].tokens) peak = latest = -1;
+    const raw = Math.max(1, maxTokens) / 4;
+    const unit = 10 ** Math.floor(Math.log10(raw));
+    const step = Math.max(1, [1, 2, 5, 10].find((factor) => factor * unit >= raw) * unit);
+    const ceiling = step * 4;
+    const tickIndices = new Set(Array.from({length: 8}, (_, i) => Math.round(i * (weekly.length - 1) / 7)));
     const wrap = document.createElement('div');
     wrap.className = 'trend';
+    const chart = document.createElement('div');
+    chart.className = 'weekly-chart';
+    const grid = document.createElement('div');
+    grid.className = 'weekly-ygrid';
+    grid.setAttribute('aria-hidden', 'true');
+    for (let i = 0; i <= 4; i += 1) {
+      const line = document.createElement('div');
+      line.className = `weekly-grid${i === 0 ? ' zero' : ''}`;
+      line.style.bottom = `${i * 25}%`;
+      appendTextSpan(line, '', formatAxisTokens(step * i));
+      grid.append(line);
+    }
+    const columns = document.createElement('div');
+    columns.className = 'weekly-columns';
+    columns.setAttribute('style', `--weeks:${weekly.length}`);
+    const xlabels = document.createElement('div');
+    xlabels.className = 'weekly-xlabels';
+    xlabels.setAttribute('style', `--weeks:${weekly.length}`);
+    xlabels.setAttribute('aria-hidden', 'true');
+    chart.append(grid, columns, xlabels);
     const dailyChart = window.usageReportDaily && window.usageReportDaily.buildDailyChart
       ? window.usageReportDaily.buildDailyChart(summary)
       : null;
-    if (dailyChart) wrap.append(dailyChart);
     weekly.forEach((week, idx) => {
       const isoStart = isoWeekDate(week.year, week.week, 1);
       const isoEnd = isoWeekDate(week.year, week.week, 7);
       const weekStart = rangeStart && isoStart < rangeStart ? rangeStart : isoStart;
       const weekEnd = dateTo && isoEnd > dateTo ? dateTo : isoEnd;
-      const tooltip = [
-        `${formatDate(weekStart)} – ${formatDate(weekEnd)}`,
-        formatTokens(week.tokens),
-        formatCost(week.cost, true),
-      ].join(' · ');
       const row = document.createElement('div');
-      row.className = 'trend-row';
-      row.setAttribute('title', tooltip);
+      row.className = `trend-row weekly-column${!complete.includes(idx) ? ' partial' : idx === peak ? ' peak' : ''}`;
+      row.style.height = `${(week.tokens / ceiling * 100).toFixed(2)}%`;
+      row.tabIndex = 0;
       const days = Math.round((weekEnd - weekStart) / 86400000) + 1;
       const partial = idx === 0 && days < 7 ? ` · ${shareConfig.trendPartialWeek.replace('{days}', String(days))}` : '';
       appendTextSpan(row, 'week', `W${week.week} (${formatDate(weekStart).slice(5).replace('-', '/')}–${formatDate(weekEnd).slice(5).replace('-', '/')})${partial}`);
-      let width = 0;
-      if (week.tokens > 0 && maxTokens > 0) {
-        width = Math.max(2, Math.min(100, week.tokens / maxTokens * 100));
-      }
-      const bar = document.createElement('div');
-      bar.className = 'trend-bar';
-      bar.setAttribute('aria-hidden', 'true');
-      const fill = document.createElement('div');
-      fill.style.width = `${width.toFixed(2)}%`;
-      bar.append(fill);
-      row.append(bar);
       const tokensNode = document.createElement('em');
       tokensNode.textContent = formatTokens(week.tokens);
       row.append(tokensNode);
@@ -2164,13 +2246,29 @@ document.addEventListener('click', async (e) => {
         delta.className = 'delta flat';
       }
       row.append(delta);
-      wrap.append(row);
+      const label = row.querySelector('.week').textContent;
+      row.setAttribute('title', `${label} · ${formatDate(weekStart)} – ${formatDate(weekEnd)} · ${formatTokens(week.tokens)} · ${formatCost(week.cost, true)}${delta.textContent ? ` · ${delta.textContent}` : ''}`);
+      if (idx === peak || idx === latest) {
+        const number = document.createElement('strong');
+        number.textContent = formatTokens(week.tokens);
+        row.append(number);
+      }
+      columns.append(row);
+      appendTextSpan(xlabels, '', tickIndices.has(idx) ? formatDate(weekStart).slice(5).replace('-', '/') : '');
     });
+    const heading = document.createElement('p');
+    heading.className = 'cache-heading weekly-heading';
+    heading.textContent = shareConfig.weekly_chart_title;
+    wrap.append(heading, chart);
+    const note = document.createElement('div');
+    note.className = 'weekly-note';
+    note.textContent = `● ${shareConfig.trendIncompleteWeek}`;
+    wrap.append(note);
     const summaryNode = document.createElement('div');
     summaryNode.className = 'trend-summary';
     summaryNode.textContent = trendSummaryText(firstPartial ? weekly.slice(1) : weekly, dateTo);
     wrap.append(summaryNode);
-    replaceSectionBody(section, wrap);
+    replaceSectionBody(section, ...(dailyChart ? [dailyChart, wrap] : [wrap]));
   }
 
   function cacheHitRate(item) {
@@ -2215,15 +2313,30 @@ document.addEventListener('click', async (e) => {
       .filter((part) => part.tokens > 0)
       .sort((left, right) => right.tokens - left.tokens);
     lists[0].replaceChildren();
-    parts.forEach((part) => {
+    const stack = section.querySelector('.composition-stack');
+    if (stack) stack.replaceChildren();
+    parts.forEach((part, index) => {
       const share = part.tokens / total * 100;
-      const row = document.createElement('div');
-      row.className = 'rank-line';
-      appendTextSpan(row, 'arrow', '→');
-      const nameNode = appendTextSpan(row, 'name', part.name);
-      appendShareBar(nameNode, share, part.color);
-      appendTextSpan(row, 'pct', `${share.toFixed(1)}%`, shareConfig.share);
-      appendTextSpan(row, 'tokens', formatTokens(part.tokens), shareConfig.tokens);
+      const row = document.createElement('span');
+      row.className = 'composition-item';
+      const dot = document.createElement('i');
+      dot.className = `stack-${index}`;
+      row.append(dot);
+      const label = document.createElement('span');
+      appendTextSpan(label, 'name', part.name);
+      appendTextSpan(label, '', ' ');
+      appendTextSpan(label, 'pct', `${share.toFixed(1)}%`);
+      appendTextSpan(label, '', '（');
+      appendTextSpan(label, 'tokens', formatTokens(part.tokens));
+      appendTextSpan(label, '', '）');
+      row.append(label);
+      if (stack) {
+        const segment = document.createElement('div');
+        segment.className = `stack-segment stack-${index}`;
+        segment.style.flex = String(part.tokens);
+        if (index === 0) segment.textContent = `${share.toFixed(1)}%`;
+        stack.append(segment);
+      }
       lists[0].append(row);
     });
     const byAgent = {};
@@ -2254,15 +2367,11 @@ document.addEventListener('click', async (e) => {
       if (!agent) return;
       const row = document.createElement('div');
       row.className = 'rank-line';
-      appendTextSpan(row, 'arrow', '→');
-      const nameNode = appendTextSpan(row, 'name', displayName(agent.name));
-      appendShareBar(nameNode, item.rate || 0, palette[3]);
-      appendTextSpan(
-        row,
-        'pct',
-        item.rate === null ? '—' : `${item.rate.toFixed(1)}%`,
-        shareConfig.compositionHitRate
-      );
+      const head = document.createElement('div');
+      head.className = 'hlabel';
+      appendTextSpan(head, 'name', displayName(agent.name));
+      row.append(head);
+      appendLane(row, item.rate || 0, item.rate === null ? '—' : `${item.rate.toFixed(1)}%`);
       lists[1].append(row);
     });
   }
@@ -2384,6 +2493,76 @@ document.addEventListener('click', async (e) => {
     return `${lines.join('\r\n')}\r\n`;
   }
 
+  function formatAxisTokens(value) {
+    for (const [unit, suffix] of [[1e9, 'B'], [1e6, 'M'], [1e3, 'K']]) {
+      if (value >= unit) return String(Number((value / unit).toFixed(10))) + suffix;
+    }
+    return String(value);
+  }
+
+  function updateSectionHeadings(summary) {
+    const text = (key, values = {}) => String(shareConfig[key] || '').replace(/\{(\w+)\}/g, (match, name) => Object.prototype.hasOwnProperty.call(values, name) ? String(values[name]) : match);
+    const pct = (value, total) => total ? Math.floor(value / total * 100 + 0.5) : 0;
+    const agents = Object.entries(aggregateRows(summary.rows, 1))
+      .map(([index, item]) => ({index: Number(index), ...item}))
+      .filter((item) => item.tokens > 0)
+      .sort((a, b) => b.tokens - a.tokens || a.index - b.index);
+    const titles = {
+      tools: text('tools_section'), projects: text('project_section'),
+      trend: text('trend_section'), composition: text('composition_section'),
+      sessions: text('session_section'),
+    };
+    if (agents.length) titles.tools = text(agents.length === 1 ? 'title_tools_single' : 'title_tools_top', {
+      tool: displayName(cube.agents[agents[0].index].name), pct: pct(agents[0].tokens, summary.tokens),
+    });
+    const projects = Object.values(aggregateRows(summary.rows, 3))
+      .filter((item) => item.tokens > 0).sort((a, b) => b.tokens - a.tokens);
+    if (projects.length >= 3) titles.projects = text('title_projects_top3', {
+      pct: pct(projects.slice(0, 3).reduce((sum, p) => sum + p.tokens, 0), summary.tokens),
+    });
+    const weekly = {};
+    eachDate(summary.bounds.from, summary.bounds.to, (day) => {
+      const iso = isoWeek(day);
+      const start = formatDate(isoWeekDate(iso.year, iso.week, 1));
+      const end = formatDate(isoWeekDate(iso.year, iso.week, 7));
+      if (start >= summary.bounds.from && end <= summary.bounds.to) weekly[start] = 0;
+    });
+    summary.rows.forEach((row) => {
+      const iso = isoWeek(parseDate(cube.dates[Number(row[0])]));
+      const start = formatDate(isoWeekDate(iso.year, iso.week, 1));
+      if (Object.prototype.hasOwnProperty.call(weekly, start)) weekly[start] += rowTokens(row);
+    });
+    const complete = Object.entries(weekly).sort((a, b) => b[1] - a[1]);
+    if (complete.length >= 2 && complete[0][1] > 0) titles.trend = text('title_trend_peak_week', {date: complete[0][0].slice(5).replace('-', '/')});
+    const parts = [0, 0, 0, 0];
+    summary.rows.forEach((row) => { if (!row[10]) parts.forEach((_, i) => { parts[i] += Number(row[i + 4]); }); });
+    const total = parts.reduce((sum, value) => sum + value, 0);
+    if (total > 0) {
+      const index = parts.indexOf(Math.max(...parts));
+      titles.composition = text('title_composition_top', {
+        pct: pct(parts[index], total), kind: [shareConfig.compositionInput, shareConfig.compositionOutput, shareConfig.compositionCacheWrite, shareConfig.compositionCacheRead][index],
+      });
+    }
+    const matched = sessions.filter((session) => {
+      const day = cube.dates[Number(session.date_idx)];
+      return day && day >= summary.bounds.from && day <= summary.bounds.to;
+    }).sort((a, b) => Number(b.tokens) - Number(a.tokens) || Number(b.cost) - Number(a.cost));
+    if (matched.length) titles.sessions = text('title_sessions_top', {tokens: formatTokens(Number(matched[0].tokens))});
+    const source = text('source_note', {tools: agents.map((a) => displayName(cube.agents[a.index].name)).join(shareConfig.sourceSeparator), from: summary.bounds.from, to: summary.bounds.to});
+    for (const [kind, selector] of Object.entries({tools: 'tools', projects: 'project', trend: 'trend', composition: 'composition', sessions: 'session'})) {
+      const section = document.querySelector(`.${selector}-section`);
+      if (!section) continue;
+      const title = section.querySelector('.prompt-title');
+      if (title) title.textContent = titles[kind];
+      const subtitle = section.querySelector('.report-subtitle');
+      if (subtitle) subtitle.textContent = text(`sub_${kind}`, {total: formatTokens(summary.tokens)});
+      const footer = section.querySelector('.report-source');
+      if (footer) footer.textContent = source;
+      const pricing = section.querySelector('.report-pricing');
+      if (pricing) pricing.textContent = text('source_pricing');
+    }
+  }
+
   function applyBounds(bounds) {
     const summary = summarizeRange(bounds.from, bounds.to);
     if (!summary) return null;
@@ -2398,6 +2577,7 @@ document.addEventListener('click', async (e) => {
       window.usageReportDaily.rebuildPricing(summary);
     }
     rebuildSessions(summary);
+    updateSectionHeadings(summary);
     updatePeriod(summary.bounds);
     return summary;
   }
