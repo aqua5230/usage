@@ -374,43 +374,27 @@ REPORT_FILTER_JS = r"""(() => {
     return Math.max(0, Math.min(100, share));
   }
 
-  function appendLeftTick(row, color) {
-    const tick = document.createElement('span');
-    tick.className = 'left-tick';
-    tick.setAttribute('aria-hidden', 'true');
-    if (color) tick.style.background = color;
-    row.append(tick);
-  }
-
-  function appendGaugeRail(row, share, color) {
-    const rail = document.createElement('div');
-    rail.className = 'gauge-rail';
-    rail.setAttribute('aria-hidden', 'true');
-    rail.style.width = `${clampedShare(share).toFixed(1)}%`;
-    if (color) rail.style.background = color;
-    row.append(rail);
-  }
-
-  function createChildGauge(share) {
-    const width = clampedShare(share);
-    const label = `${width.toFixed(1)}%`;
-    const gauge = document.createElement('div');
-    gauge.className = 'child-gauge';
-    const track = document.createElement('div');
-    track.className = 'child-track';
-    track.title = `${shareConfig.projectShare} ${label}`;
-    const fill = document.createElement('div');
-    fill.className = 'child-fill';
-    fill.style.width = `${width.toFixed(1)}%`;
-    track.append(fill);
-    const pct = document.createElement('span');
-    pct.className = 'child-pct';
-    pct.textContent = label;
-    const tag = document.createElement('span');
-    tag.className = 'scope-tag';
-    tag.textContent = shareConfig.projectShare;
-    gauge.append(track, pct, tag);
-    return gauge;
+  function appendLane(row, share, label, item = null, color = null, costKnown = true) {
+    const lane = document.createElement('div');
+    lane.className = 'hlane';
+    lane.setAttribute('style', `--value:${clampedShare(share).toFixed(1)}%`);
+    const bar = document.createElement('div');
+    bar.className = 'hbar';
+    bar.setAttribute('aria-hidden', 'true');
+    bar.style.width = `${clampedShare(share).toFixed(1)}%`;
+    if (color) bar.style.background = color;
+    const tail = document.createElement('span');
+    tail.className = 'htail';
+    appendTextSpan(tail, 'pct', label);
+    if (item) {
+      const detail = document.createElement('small');
+      appendTextSpan(detail, 'tokens', formatTokens(item.tokens), shareConfig.tokens);
+      appendTextSpan(detail, '', ' · ');
+      appendTextSpan(detail, 'cost', formatCost(item.cost, costKnown), shareConfig.cost);
+      tail.append(detail);
+    }
+    lane.append(bar, tail);
+    row.append(lane);
   }
 
   function createRankRow(name, item, total, color, options = {}) {
@@ -419,24 +403,17 @@ REPORT_FILTER_JS = r"""(() => {
     row.className = `rank-line${options.rowClass ? ` ${options.rowClass}` : ''}`;
     if (options.agentId !== undefined) row.dataset.agentId = String(options.agentId);
     if (options.projectIndex !== undefined) row.dataset.projectIndex = String(options.projectIndex);
-    appendLeftTick(row, color);
-    appendTextSpan(row, 'arrow', options.arrow || '→');
-    appendTextSpan(row, options.nameClass || 'name', name);
-    if (options.showShare) appendTextSpan(row, 'pct', `${share.toFixed(1)}%`, shareConfig.share);
-    appendTextSpan(row, 'tokens', formatTokens(item.tokens), shareConfig.tokens);
+    const head = document.createElement('div');
+    head.className = 'hlabel';
+    appendTextSpan(head, 'arrow', options.arrow || '→');
+    appendTextSpan(head, options.nameClass || 'name', name);
+    row.append(head);
     const costKnown = options.costKnown === undefined ? item.costKnown : options.costKnown;
-    appendTextSpan(row, 'cost', formatCost(item.cost, costKnown), shareConfig.cost);
-    appendGaugeRail(row, share, color);
+    appendLane(row, share, `${share.toFixed(1)}%`, item, color, costKnown);
     return row;
   }
 
   const projectSection = document.querySelector('.project-section');
-  const projectHeadCells = projectSection
-    ? Array.from(projectSection.querySelectorAll('.rank-head > span'))
-    : [];
-  const tokensLabel = projectHeadCells[3] ? projectHeadCells[3].textContent : shareConfig.tokens;
-  const costLabel = projectHeadCells[4] ? projectHeadCells[4].textContent : shareConfig.cost;
-
   function removeProjectDetails(projectRow) {
     let sibling = projectRow.nextElementSibling;
     while (sibling && sibling.classList.contains('project-model-detail')) {
@@ -448,20 +425,9 @@ REPORT_FILTER_JS = r"""(() => {
 
   function createProjectDetail(modelIndex, item, projectTokens) {
     const model = cube.models[modelIndex];
-    const modelName = model ? String(model.name) : '';
-    const share = projectTokens ? item.tokens / projectTokens * 100 : 0;
-    const row = document.createElement('div');
-    row.className = 'rank-line model-child project-model-detail';
-    appendTextSpan(row, 'arrow', '');
-    const name = document.createElement('span');
-    name.className = 'model-name';
-    const label = document.createElement('span');
-    label.className = 'child-model-name';
-    label.textContent = modelName;
-    name.append(label, createChildGauge(share));
-    row.append(name);
-    appendTextSpan(row, 'tokens', formatTokens(item.tokens), tokensLabel);
-    appendTextSpan(row, 'cost', formatCost(item.cost, item.costKnown), costLabel);
+    const row = createRankRow(model ? displayName(model.name) : '', item, projectTokens, null,
+      {rowClass: 'model-child project-model-detail', nameClass: 'model-name'});
+    row.querySelector('.model-name').className = 'model-name child-model-name';
     return row;
   }
 
@@ -527,34 +493,36 @@ REPORT_FILTER_JS = r"""(() => {
     row.className = 'tool-row model-group';
     row.dataset.agentId = String(agent.id);
     const head = document.createElement('div');
-    head.className = 'tool-head';
+    head.className = 'tool-head hlabel';
     appendTextSpan(head, 'arrow', '▸');
-    appendTextSpan(head, 'sub-agent', String(agent.name));
+    appendTextSpan(head, 'sub-agent', displayName(agent.name));
     const metadata = toolMetadata.get(String(agent.id)) || toolMetadata.get(`name:${agent.name}`);
-    if (metadata && metadata.plan) appendTextSpan(head, 'sub-plan', metadata.plan);
-    if (metadata && metadata.since) appendTextSpan(head, 'sub-since', metadata.since);
-    const share = total ? item.tokens / total * 100 : 0;
-    appendShareBar(head, share, agentColors[agent.id] || '#8b8577');
+    appendToolPlan(head, metadata);
     row.append(head);
-    appendTextSpan(row, 'pct', `${share.toFixed(1)}%`, shareConfig.share);
-    appendTextSpan(row, 'tokens', formatTokens(item.tokens), shareConfig.tokens);
-    // _tools_body() 無條件顯示花費，這裡跟著一致
-    appendTextSpan(row, 'cost', formatCost(item.cost, true), shareConfig.cost);
+    const share = total ? item.tokens / total * 100 : 0;
+    appendLane(row, share, `${share.toFixed(1)}%`, item, null, true);
     return row;
+  }
+
+  function appendToolPlan(head, metadata) {
+    const plan = document.createElement('small');
+    plan.className = 'tool-plan';
+    if (metadata && metadata.plan) appendTextSpan(plan, 'sub-plan', metadata.plan);
+    if (metadata && metadata.since) {
+      const since = appendTextSpan(plan, 'sub-since', metadata.since);
+      since.setAttribute('data-mask', '');
+    }
+    head.append(plan);
   }
 
   function createSubscriptionOnlyRow(metadata) {
     const row = document.createElement('div');
     row.className = 'tool-row';
     const head = document.createElement('div');
-    head.className = 'tool-head';
+    head.className = 'tool-head hlabel';
     appendTextSpan(head, 'sub-agent', metadata.name);
-    if (metadata.plan) appendTextSpan(head, 'sub-plan', metadata.plan);
-    if (metadata.since) appendTextSpan(head, 'sub-since', metadata.since);
+    appendToolPlan(head, metadata);
     row.append(head);
-    appendTextSpan(row, 'pct', '', shareConfig.share);
-    appendTextSpan(row, 'tokens', '', shareConfig.tokens);
-    appendTextSpan(row, 'cost', '', shareConfig.cost);
     return row;
   }
 
@@ -568,11 +536,12 @@ REPORT_FILTER_JS = r"""(() => {
       .map(([agentIndex, item]) => ({agentIndex: Number(agentIndex), ...item}))
       .sort((left, right) => right.tokens - left.tokens || left.agentIndex - right.agentIndex);
     const usedIds = new Set();
-    entries.forEach((item) => {
+    entries.forEach((item, index) => {
       const agent = cube.agents[item.agentIndex];
       if (!agent) return;
       usedIds.add(String(agent.id));
       const groupRow = createToolRow(agent, item, summary.tokens);
+      if (index === 0) groupRow.querySelector('.hbar').style.background = 'var(--chart-accent)';
       tools.append(groupRow);
       const byModel = aggregateRows(
         summary.rows,
@@ -587,7 +556,7 @@ REPORT_FILTER_JS = r"""(() => {
           if (!model) return;
           tools.append(createRankRow(
             String(model.name), modelItem, summary.tokens,
-            modelColor(String(model.name)), {rowClass: 'model-child'}
+            null, {rowClass: 'model-child'}
           ));
         });
       bindModelGroup(groupRow, expanded.has(String(agent.id)));
@@ -605,8 +574,7 @@ REPORT_FILTER_JS = r"""(() => {
   function rebuildProjects(summary) {
     if (!projectSection) return;
     const list = projectSection.querySelector('.rank-list');
-    const head = projectSection.querySelector('.rank-head');
-    if (!list || !head) return;
+    if (!list) return;
     list.replaceChildren();
     const byProject = aggregateRows(summary.rows, 3);
     const projects = Object.entries(byProject)
@@ -618,12 +586,12 @@ REPORT_FILTER_JS = r"""(() => {
       .filter((item) => item.tokens > 0 || item.cost > 0)
       .sort((left, right) => right.tokens - left.tokens || left.projectIndex - right.projectIndex);
     const displayed = projects.slice(0, 10);
-    displayed.forEach((project) => {
+    displayed.forEach((project, index) => {
       const row = createRankRow(
         project.name,
         project,
         summary.tokens,
-        '#8b8577',
+        index === 0 ? 'var(--chart-accent)' : null,
         // _render_project_section() 無條件顯示花費，這裡跟著一致
         {projectIndex: project.projectIndex, costKnown: true, showShare: true}
       );
@@ -633,7 +601,7 @@ REPORT_FILTER_JS = r"""(() => {
     const remaining = summary.tokens - displayed.reduce((sum, project) => sum + project.tokens, 0);
     if (remaining > 0) {
       const cost = Math.max(0, summary.cost - displayed.reduce((sum, project) => sum + project.cost, 0));
-      const other = createRankRow(shareConfig.projectOthers, {tokens: remaining, cost}, summary.tokens, '#8b8577', {costKnown: true, showShare: true});
+      const other = createRankRow(shareConfig.projectOthers, {tokens: remaining, cost}, summary.tokens, 'var(--chart-neutral)', {costKnown: true, showShare: true});
       other.dataset.projectOther = 'true';
       list.append(other);
     }
@@ -706,13 +674,14 @@ REPORT_FILTER_JS = r"""(() => {
     if (period) period.textContent = `${bounds.from} -> ${bounds.to}`;
   }
 
-  function replaceSectionBody(section, node) {
+  function replaceSectionBody(section, ...nodes) {
     const prompt = section.querySelector('.prompt');
     const rule = section.querySelector('.rule');
     Array.from(section.children).forEach((child) => {
-      if (child !== prompt && child !== rule) child.remove();
+      if (child !== prompt && child !== rule && !child.classList.contains('report-subtitle') && !child.classList.contains('report-source') && !child.classList.contains('report-pricing')) child.remove();
     });
-    section.append(node);
+    const footer = section.querySelector('.report-source');
+    nodes.forEach((node) => section.insertBefore(node, footer));
   }
 
   function weekIsInProgress(week, dateTo) {
@@ -788,39 +757,54 @@ REPORT_FILTER_JS = r"""(() => {
     const rangeStart = parseDate(summary.bounds.from);
     const firstPartial = rangeStart && rangeStart.getUTCDay() !== 1;
     const maxTokens = weekly.reduce((max, week) => Math.max(max, week.tokens), 0);
+    const complete = weekly.map((week, index) => index).filter((index) => (
+      !(index === 0 && firstPartial) && !weekIsInProgress(weekly[index], dateTo)
+    ));
+    let peak = complete.reduce((best, index) => best < 0 || weekly[index].tokens > weekly[best].tokens ? index : best, -1);
+    let latest = complete.length ? complete[complete.length - 1] : -1;
+    if (peak >= 0 && !weekly[peak].tokens) peak = latest = -1;
+    const raw = Math.max(1, maxTokens) / 4;
+    const unit = 10 ** Math.floor(Math.log10(raw));
+    const step = Math.max(1, [1, 2, 5, 10].find((factor) => factor * unit >= raw) * unit);
+    const ceiling = step * 4;
+    const tickIndices = new Set(Array.from({length: 8}, (_, i) => Math.round(i * (weekly.length - 1) / 7)));
     const wrap = document.createElement('div');
     wrap.className = 'trend';
+    const chart = document.createElement('div');
+    chart.className = 'weekly-chart';
+    const grid = document.createElement('div');
+    grid.className = 'weekly-ygrid';
+    grid.setAttribute('aria-hidden', 'true');
+    for (let i = 0; i <= 4; i += 1) {
+      const line = document.createElement('div');
+      line.className = `weekly-grid${i === 0 ? ' zero' : ''}`;
+      line.style.bottom = `${i * 25}%`;
+      appendTextSpan(line, '', formatAxisTokens(step * i));
+      grid.append(line);
+    }
+    const columns = document.createElement('div');
+    columns.className = 'weekly-columns';
+    columns.setAttribute('style', `--weeks:${weekly.length}`);
+    const xlabels = document.createElement('div');
+    xlabels.className = 'weekly-xlabels';
+    xlabels.setAttribute('style', `--weeks:${weekly.length}`);
+    xlabels.setAttribute('aria-hidden', 'true');
+    chart.append(grid, columns, xlabels);
     const dailyChart = window.usageReportDaily && window.usageReportDaily.buildDailyChart
       ? window.usageReportDaily.buildDailyChart(summary)
       : null;
-    if (dailyChart) wrap.append(dailyChart);
     weekly.forEach((week, idx) => {
       const isoStart = isoWeekDate(week.year, week.week, 1);
       const isoEnd = isoWeekDate(week.year, week.week, 7);
       const weekStart = rangeStart && isoStart < rangeStart ? rangeStart : isoStart;
       const weekEnd = dateTo && isoEnd > dateTo ? dateTo : isoEnd;
-      const tooltip = [
-        `${formatDate(weekStart)} – ${formatDate(weekEnd)}`,
-        formatTokens(week.tokens),
-        formatCost(week.cost, true),
-      ].join(' · ');
       const row = document.createElement('div');
-      row.className = 'trend-row';
-      row.setAttribute('title', tooltip);
+      row.className = `trend-row weekly-column${!complete.includes(idx) ? ' partial' : idx === peak ? ' peak' : ''}`;
+      row.style.height = `${(week.tokens / ceiling * 100).toFixed(2)}%`;
+      row.tabIndex = 0;
       const days = Math.round((weekEnd - weekStart) / 86400000) + 1;
       const partial = idx === 0 && days < 7 ? ` · ${shareConfig.trendPartialWeek.replace('{days}', String(days))}` : '';
       appendTextSpan(row, 'week', `W${week.week} (${formatDate(weekStart).slice(5).replace('-', '/')}–${formatDate(weekEnd).slice(5).replace('-', '/')})${partial}`);
-      let width = 0;
-      if (week.tokens > 0 && maxTokens > 0) {
-        width = Math.max(2, Math.min(100, week.tokens / maxTokens * 100));
-      }
-      const bar = document.createElement('div');
-      bar.className = 'trend-bar';
-      bar.setAttribute('aria-hidden', 'true');
-      const fill = document.createElement('div');
-      fill.style.width = `${width.toFixed(2)}%`;
-      bar.append(fill);
-      row.append(bar);
       const tokensNode = document.createElement('em');
       tokensNode.textContent = formatTokens(week.tokens);
       row.append(tokensNode);
@@ -836,13 +820,29 @@ REPORT_FILTER_JS = r"""(() => {
         delta.className = 'delta flat';
       }
       row.append(delta);
-      wrap.append(row);
+      const label = row.querySelector('.week').textContent;
+      row.setAttribute('title', `${label} · ${formatDate(weekStart)} – ${formatDate(weekEnd)} · ${formatTokens(week.tokens)} · ${formatCost(week.cost, true)}${delta.textContent ? ` · ${delta.textContent}` : ''}`);
+      if (idx === peak || idx === latest) {
+        const number = document.createElement('strong');
+        number.textContent = formatTokens(week.tokens);
+        row.append(number);
+      }
+      columns.append(row);
+      appendTextSpan(xlabels, '', tickIndices.has(idx) ? formatDate(weekStart).slice(5).replace('-', '/') : '');
     });
+    const heading = document.createElement('p');
+    heading.className = 'cache-heading weekly-heading';
+    heading.textContent = shareConfig.weekly_chart_title;
+    wrap.append(heading, chart);
+    const note = document.createElement('div');
+    note.className = 'weekly-note';
+    note.textContent = `● ${shareConfig.trendIncompleteWeek}`;
+    wrap.append(note);
     const summaryNode = document.createElement('div');
     summaryNode.className = 'trend-summary';
     summaryNode.textContent = trendSummaryText(firstPartial ? weekly.slice(1) : weekly, dateTo);
     wrap.append(summaryNode);
-    replaceSectionBody(section, wrap);
+    replaceSectionBody(section, ...(dailyChart ? [dailyChart, wrap] : [wrap]));
   }
 
   function cacheHitRate(item) {
@@ -887,15 +887,30 @@ REPORT_FILTER_JS = r"""(() => {
       .filter((part) => part.tokens > 0)
       .sort((left, right) => right.tokens - left.tokens);
     lists[0].replaceChildren();
-    parts.forEach((part) => {
+    const stack = section.querySelector('.composition-stack');
+    if (stack) stack.replaceChildren();
+    parts.forEach((part, index) => {
       const share = part.tokens / total * 100;
-      const row = document.createElement('div');
-      row.className = 'rank-line';
-      appendTextSpan(row, 'arrow', '→');
-      const nameNode = appendTextSpan(row, 'name', part.name);
-      appendShareBar(nameNode, share, part.color);
-      appendTextSpan(row, 'pct', `${share.toFixed(1)}%`, shareConfig.share);
-      appendTextSpan(row, 'tokens', formatTokens(part.tokens), shareConfig.tokens);
+      const row = document.createElement('span');
+      row.className = 'composition-item';
+      const dot = document.createElement('i');
+      dot.className = `stack-${index}`;
+      row.append(dot);
+      const label = document.createElement('span');
+      appendTextSpan(label, 'name', part.name);
+      appendTextSpan(label, '', ' ');
+      appendTextSpan(label, 'pct', `${share.toFixed(1)}%`);
+      appendTextSpan(label, '', '（');
+      appendTextSpan(label, 'tokens', formatTokens(part.tokens));
+      appendTextSpan(label, '', '）');
+      row.append(label);
+      if (stack) {
+        const segment = document.createElement('div');
+        segment.className = `stack-segment stack-${index}`;
+        segment.style.flex = String(part.tokens);
+        if (index === 0) segment.textContent = `${share.toFixed(1)}%`;
+        stack.append(segment);
+      }
       lists[0].append(row);
     });
     const byAgent = {};
@@ -926,15 +941,11 @@ REPORT_FILTER_JS = r"""(() => {
       if (!agent) return;
       const row = document.createElement('div');
       row.className = 'rank-line';
-      appendTextSpan(row, 'arrow', '→');
-      const nameNode = appendTextSpan(row, 'name', displayName(agent.name));
-      appendShareBar(nameNode, item.rate || 0, palette[3]);
-      appendTextSpan(
-        row,
-        'pct',
-        item.rate === null ? '—' : `${item.rate.toFixed(1)}%`,
-        shareConfig.compositionHitRate
-      );
+      const head = document.createElement('div');
+      head.className = 'hlabel';
+      appendTextSpan(head, 'name', displayName(agent.name));
+      row.append(head);
+      appendLane(row, item.rate || 0, item.rate === null ? '—' : `${item.rate.toFixed(1)}%`);
       lists[1].append(row);
     });
   }
@@ -1056,6 +1067,76 @@ REPORT_FILTER_JS = r"""(() => {
     return `${lines.join('\r\n')}\r\n`;
   }
 
+  function formatAxisTokens(value) {
+    for (const [unit, suffix] of [[1e9, 'B'], [1e6, 'M'], [1e3, 'K']]) {
+      if (value >= unit) return String(Number((value / unit).toFixed(10))) + suffix;
+    }
+    return String(value);
+  }
+
+  function updateSectionHeadings(summary) {
+    const text = (key, values = {}) => String(shareConfig[key] || '').replace(/\{(\w+)\}/g, (match, name) => Object.prototype.hasOwnProperty.call(values, name) ? String(values[name]) : match);
+    const pct = (value, total) => total ? Math.floor(value / total * 100 + 0.5) : 0;
+    const agents = Object.entries(aggregateRows(summary.rows, 1))
+      .map(([index, item]) => ({index: Number(index), ...item}))
+      .filter((item) => item.tokens > 0)
+      .sort((a, b) => b.tokens - a.tokens || a.index - b.index);
+    const titles = {
+      tools: text('tools_section'), projects: text('project_section'),
+      trend: text('trend_section'), composition: text('composition_section'),
+      sessions: text('session_section'),
+    };
+    if (agents.length) titles.tools = text(agents.length === 1 ? 'title_tools_single' : 'title_tools_top', {
+      tool: displayName(cube.agents[agents[0].index].name), pct: pct(agents[0].tokens, summary.tokens),
+    });
+    const projects = Object.values(aggregateRows(summary.rows, 3))
+      .filter((item) => item.tokens > 0).sort((a, b) => b.tokens - a.tokens);
+    if (projects.length >= 3) titles.projects = text('title_projects_top3', {
+      pct: pct(projects.slice(0, 3).reduce((sum, p) => sum + p.tokens, 0), summary.tokens),
+    });
+    const weekly = {};
+    eachDate(summary.bounds.from, summary.bounds.to, (day) => {
+      const iso = isoWeek(day);
+      const start = formatDate(isoWeekDate(iso.year, iso.week, 1));
+      const end = formatDate(isoWeekDate(iso.year, iso.week, 7));
+      if (start >= summary.bounds.from && end <= summary.bounds.to) weekly[start] = 0;
+    });
+    summary.rows.forEach((row) => {
+      const iso = isoWeek(parseDate(cube.dates[Number(row[0])]));
+      const start = formatDate(isoWeekDate(iso.year, iso.week, 1));
+      if (Object.prototype.hasOwnProperty.call(weekly, start)) weekly[start] += rowTokens(row);
+    });
+    const complete = Object.entries(weekly).sort((a, b) => b[1] - a[1]);
+    if (complete.length >= 2 && complete[0][1] > 0) titles.trend = text('title_trend_peak_week', {date: complete[0][0].slice(5).replace('-', '/')});
+    const parts = [0, 0, 0, 0];
+    summary.rows.forEach((row) => { if (!row[10]) parts.forEach((_, i) => { parts[i] += Number(row[i + 4]); }); });
+    const total = parts.reduce((sum, value) => sum + value, 0);
+    if (total > 0) {
+      const index = parts.indexOf(Math.max(...parts));
+      titles.composition = text('title_composition_top', {
+        pct: pct(parts[index], total), kind: [shareConfig.compositionInput, shareConfig.compositionOutput, shareConfig.compositionCacheWrite, shareConfig.compositionCacheRead][index],
+      });
+    }
+    const matched = sessions.filter((session) => {
+      const day = cube.dates[Number(session.date_idx)];
+      return day && day >= summary.bounds.from && day <= summary.bounds.to;
+    }).sort((a, b) => Number(b.tokens) - Number(a.tokens) || Number(b.cost) - Number(a.cost));
+    if (matched.length) titles.sessions = text('title_sessions_top', {tokens: formatTokens(Number(matched[0].tokens))});
+    const source = text('source_note', {tools: agents.map((a) => displayName(cube.agents[a.index].name)).join(shareConfig.sourceSeparator), from: summary.bounds.from, to: summary.bounds.to});
+    for (const [kind, selector] of Object.entries({tools: 'tools', projects: 'project', trend: 'trend', composition: 'composition', sessions: 'session'})) {
+      const section = document.querySelector(`.${selector}-section`);
+      if (!section) continue;
+      const title = section.querySelector('.prompt-title');
+      if (title) title.textContent = titles[kind];
+      const subtitle = section.querySelector('.report-subtitle');
+      if (subtitle) subtitle.textContent = text(`sub_${kind}`, {total: formatTokens(summary.tokens)});
+      const footer = section.querySelector('.report-source');
+      if (footer) footer.textContent = source;
+      const pricing = section.querySelector('.report-pricing');
+      if (pricing) pricing.textContent = text('source_pricing');
+    }
+  }
+
   function applyBounds(bounds) {
     const summary = summarizeRange(bounds.from, bounds.to);
     if (!summary) return null;
@@ -1070,6 +1151,7 @@ REPORT_FILTER_JS = r"""(() => {
       window.usageReportDaily.rebuildPricing(summary);
     }
     rebuildSessions(summary);
+    updateSectionHeadings(summary);
     updatePeriod(summary.bounds);
     return summary;
   }

@@ -615,12 +615,10 @@ def test_generate_html_wires_cube_rows_to_report_filter_script() -> None:
     assert 'data-agent-id="claude-code"' in html
     assert 'data-project-index="1"' in html
     assert 'data-project-index="0"' in html
-    assert re.search(
-        r'<div class="rank-line"><span class="left-tick" aria-hidden="true"'
-        r' style="background:#[0-9a-f]+"></span><span class="arrow">→</span>'
-        r'<span class="name">unknown',
-        html,
-    )
+    assert (
+        '<div class="rank-line"><div class="hlabel"><span class="arrow">→</span>'
+        '<span class="name">unknown</span></div><div class="hlane"'
+    ) in html
     assert "window.usageReportFilter = {cube, aggregateRows, displayName, normalizeBounds" in html
     assert REPORT_FILTER_JS in html
 
@@ -727,8 +725,11 @@ def test_generate_html_without_cube_keeps_python_rendered_filter_sections() -> N
 def test_report_filter_script_uses_safe_dom_construction_and_separate_model_name() -> None:
     assert "innerHTML" not in REPORT_FILTER_JS
     assert "document.createElement" in REPORT_FILTER_JS
-    assert "name.className = 'model-name'" in REPORT_FILTER_JS
-    assert "label.className = 'child-model-name'" in REPORT_FILTER_JS
+    assert "nameClass: 'model-name'" in REPORT_FILTER_JS
+    assert (
+        "row.querySelector('.model-name').className = 'model-name child-model-name'"
+        in REPORT_FILTER_JS
+    )
     assert "appendTextSpan(row, 'name model-name', modelName)" not in REPORT_FILTER_JS
 
 
@@ -889,7 +890,10 @@ def test_trend_ascii_adds_week_range_tokens_and_cost_tooltip() -> None:
 
     html = html_report._trend_ascii(daily, "en", date(2026, 9, 7))
 
-    assert 'class="trend-row" title="2026-09-01 – 2026-09-06 · 1.2M · $3.45"' in html
+    assert (
+        'class="trend-row weekly-column partial" title="W36 (09/01–09/06) · only 6 days · '
+        '2026-09-01 – 2026-09-06 · 1.2M · $3.45"' in html
+    )
 
 
 def test_trend_ascii_tooltip_clamps_an_unfinished_final_week_to_the_report_range() -> None:
@@ -900,7 +904,10 @@ def test_trend_ascii_tooltip_clamps_an_unfinished_final_week_to_the_report_range
 
     html = html_report._trend_ascii(daily, "en", date(2026, 9, 9))
 
-    assert 'title="2026-09-07 – 2026-09-09 · 300.0K · $3.00"' in html
+    assert (
+        'title="W37 (09/07–09/09) · only 3 days · '
+        '2026-09-07 – 2026-09-09 · 300.0K · $3.00 · in progress"' in html
+    )
 
 
 def test_trend_ascii_shows_delta_when_final_week_ends_on_sunday() -> None:
@@ -938,7 +945,7 @@ def test_trend_summary_returns_first_week_copy_without_two_completed_weeks() -> 
     )
 
 
-def test_project_share_bar_uses_the_neutral_project_color() -> None:
+def test_project_share_bar_highlights_leader_and_uses_shared_main_color() -> None:
     data = {
         "summary": {"total_tokens": 300},
         "by_project": [
@@ -949,17 +956,14 @@ def test_project_share_bar_uses_the_neutral_project_color() -> None:
 
     html = html_report._render_project_section(data, "en")
 
-    # 顏色留給工具；專案若沿用工具色，會被誤認成某個工具。
-    for name, pct in (("alpha", "66.7"), ("beta", "33.3")):
-        assert (
-            '<span class="left-tick" aria-hidden="true" style="background:#8b8577"></span>'
-            '<span class="arrow">→</span>'
-            f'<span class="name">{name}</span>'
-        ) in html
-        assert (
-            '<div class="gauge-rail" aria-hidden="true" '
-            f'style="width:{pct}%;background:#8b8577"></div>'
-        ) in html
+    for name, pct, color in (
+        ("alpha", "66.7", ";background:var(--chart-accent)"),
+        ("beta", "33.3", ""),
+    ):
+        assert f'<span class="name">{name}</span></div><div class="hlane"' in html
+        assert f'<div class="hbar" aria-hidden="true" style="width:{pct}%{color}"></div>' in html
+    assert 'class="rank-head"' not in html
+    assert html.count('class="haxis"') == 1
     assert "share-bar" not in html
     assert 'class="pct"' in html
     assert "Other projects" not in html
@@ -973,7 +977,7 @@ def test_rank_line_gauge_boundaries() -> None:
 
     assert 'style="width:0.0%;background:#5abfa0"' in zero
     assert ">—" in zero
-    assert 'class="pct"' not in zero
+    assert 'class="pct">0.0%</span>' in zero
     assert "share-bar" not in zero
     assert 'style="width:100.0%;background:#e0885a"' in full
     assert ">$1.00<" in full
@@ -991,7 +995,8 @@ def test_projects_include_remainder_share_and_cost_without_mutating_input() -> N
     rendered = html_report._render_project_section(data, "en")
     assert 'data-project-other="true"' in rendered
     assert '<span class="name">Other projects</span>' in rendered
-    assert 'data-label="Token share">25.0%</span>' in rendered
+    assert 'class="pct">25.0%</span>' in rendered
+    assert "width:25.0%;background:var(--chart-neutral)" in rendered
     assert 'data-label="Tokens">25</span>' in rendered
     assert 'data-label="API equivalent">$1.00</span>' in rendered
     assert len(data["by_project"]) == 1

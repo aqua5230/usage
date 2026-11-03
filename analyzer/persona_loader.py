@@ -22,7 +22,8 @@ from usage_common.time_utils import parse_optional_iso8601_utc
 
 logger = logging.getLogger(__name__)
 
-_CACHE_TTL_SECONDS = 300.0
+# Habits move slowly, while a rescan reads every session file (~20s on heavy users).
+_CACHE_TTL_SECONDS = 3600.0
 _cache: dict[int, tuple[float, PersonaProfile]] = {}
 
 

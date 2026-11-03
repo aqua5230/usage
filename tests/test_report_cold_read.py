@@ -56,7 +56,7 @@ def test_partial_week_does_not_drive_next_delta(start: date, days: int, partial:
     result = html_report._trend_ascii(daily(start, days), "en", start + timedelta(days=days - 1))
     assert ("only" in result) is partial
     if days > 7:
-        second = result.split('class="trend-row"')[2].split('class="trend-summary"')[0]
+        second = result.split('class="trend-row weekly-column')[2].split('class="trend-summary"')[0]
         assert ('class="delta flat"></span>' in second) is partial
         if partial:
             assert "Fewer than two complete weeks" in result

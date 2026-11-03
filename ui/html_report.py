@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import base64
 import html
+import math
 import json
 import os
 import re
@@ -31,7 +32,13 @@ from analyzer.reporter import (
 from usage_common.i18n import _t as _i18n_t, packaged_resource_path
 from usage_common.usage_lang import detect_lang
 from usage_common.subprocess_utils import hidden_console_kwargs
-from ui.report_charts import render_share_bar, render_trend_bar
+from ui.report_charts import (
+    format_axis_tokens,
+    render_axis,
+    render_lane,
+    render_share_bar,
+    weekly_scale,
+)
 from ui.report_daily_chart import (
     REPORT_DAILY_CHART_JS,
     render_daily_chart,
@@ -122,6 +129,119 @@ def _section(
     """
 
 
+def _report_heading(data: Mapping[str, Any], lang: str, kind: str) -> tuple[str, str, str]:
+    summary = data.get("summary", {})
+    total = int(summary.get("total_tokens", 0))
+    cube = data.get("cube")
+    agent_order = {
+        agent["id"]: index
+        for index, agent in enumerate(cube.get("agents", []) if isinstance(cube, Mapping) else [])
+    }
+    agents = sorted(
+        (a for a in data.get("by_agent", []) if a.get("tokens", 0) > 0),
+        key=lambda a: (-a["tokens"], agent_order.get(a.get("id"), len(agent_order))),
+    )
+    title = _t(
+        lang,
+        {
+            "tools": "tools",
+            "projects": "project",
+            "trend": "trend",
+            "composition": "composition",
+            "sessions": "session",
+        }[kind]
+        + "_section",
+    )
+
+    def pct(value: float, denominator: float) -> int:
+        return math.floor(value / denominator * 100 + 0.5) if denominator else 0
+
+    if kind == "tools" and agents:
+        title = _t(
+            lang,
+            "title_tools_single" if len(agents) == 1 else "title_tools_top",
+            tool=_display_name(agents[0]["name"], lang),
+            pct=pct(agents[0]["tokens"], total),
+        )
+    elif kind == "projects":
+        projects = sorted(
+            (p for p in data.get("by_project", []) if not p.get("is_other") and p["tokens"] > 0),
+            key=lambda p: -p["tokens"],
+        )
+        if len(projects) >= 3:
+            title = _t(
+                lang, "title_projects_top3", pct=pct(sum(p["tokens"] for p in projects[:3]), total)
+            )
+    elif kind == "trend":
+        daily = data.get("daily_trend", [])
+        start = _parse_daily_date(
+            data.get("date_from", daily[0]["date"] if daily else "1970-01-01")
+        )
+        end = _parse_daily_date(data.get("date_to", daily[-1]["date"] if daily else "1970-01-01"))
+        complete = [
+            w
+            for w in _weekly_trend(daily)
+            if date.fromisocalendar(int(w["year"]), int(w["week"]), 1) >= start
+            and not _week_is_in_progress(w, end)
+        ]
+        peak = max(complete, key=lambda w: w["tokens"], default=None)
+        if len(complete) >= 2 and peak is not None and peak["tokens"] > 0:
+            title = _t(
+                lang,
+                "title_trend_peak_week",
+                date=date.fromisocalendar(int(peak["year"]), int(peak["week"]), 1).strftime(
+                    "%m/%d"
+                ),
+            )
+    elif kind == "composition":
+        parts = [
+            ("input", summary.get("input_tokens", 0)),
+            ("output", summary.get("output_tokens", 0)),
+            ("cache_write", summary.get("cache_creation_tokens", 0)),
+            ("cache_read", summary.get("cache_read_tokens", 0)),
+        ]
+        breakdown = sum(value for _, value in parts)
+        if breakdown > 0:
+            key, value = max(parts, key=lambda p: p[1])
+            title = _t(
+                lang,
+                "title_composition_top",
+                pct=pct(value, breakdown),
+                kind=_t(lang, "composition_" + key),
+            )
+    elif kind == "sessions" and data.get("top_sessions"):
+        title = _t(
+            lang, "title_sessions_top", tokens=_fmt_tokens(int(data["top_sessions"][0]["tokens"]))
+        )
+    if kind == "sessions":
+        return title, "", ""
+    subtitle = _t(lang, "sub_" + kind, total=_fmt_tokens(total))
+    separator = "、" if lang in {"zh-TW", "zh-CN", "ja"} else ", "
+    source = _t(
+        lang,
+        "source_note",
+        **{
+            "tools": separator.join(_display_name(a["name"], lang) for a in agents),
+            "from": data.get("date_from", ""),
+            "to": data.get("date_to", ""),
+        },
+    )
+    return title, subtitle, source
+
+
+def _data_section(
+    data: Mapping[str, Any], lang: str, kind: str, body: str, class_name: str, **kwargs: Any
+) -> str:
+    title, subtitle, source = _report_heading(data, lang, kind)
+    if subtitle:
+        body = f'<p class="report-subtitle">{_escape(subtitle)}</p>' + body
+    if source:
+        body += f'<p class="report-source">{_escape(source)}</p>'
+    if kind == "tools":
+        body += f'<p class="report-pricing">{_escape(_t(lang, "source_pricing"))}</p>'
+    return _section(title, body, class_name, dynamic_title=True, **kwargs)
+
+
 def _fixed_range_label(data: Mapping[str, Any], lang: str) -> str:
     return _t(lang, "fixed_range") if isinstance(data.get("cube"), Mapping) else ""
 
@@ -149,25 +269,15 @@ def _rank_line(
         f' data-{key}="{html.escape(str(value), quote=True)}"'
         for key, value in (data_attributes or {}).items()
     )
-    width = max(0.0, min(100.0, pct))
-    color_attr = f' style="background:{html.escape(color, quote=True)}"' if color else ""
-    rail_style = f"width:{width:.1f}%"
-    if color:
-        rail_style += f";background:{html.escape(color, quote=True)}"
+    detail = (
+        f'<small><span class="tokens" data-label="{_escape(_t(lang, "tokens"))}">{_fmt_tokens(tokens)}</span>'
+        f'<span class=""> · </span><span class="cost" data-label="{_escape(_t(lang, "cost"))}">{_fmt_cost(cost)}</span></small>'
+    )
     return (
         f'<div class="{classes}"{attributes}{" hidden" if hidden else ""}>'
-        f'<span class="left-tick" aria-hidden="true"{color_attr}></span>'
-        f'<span class="arrow">{arrow}</span>'
-        f'<span class="name">{html.escape(name)}</span>'
-        + (
-            f'<span class="pct" data-label="{_escape(_t(lang, "share"))}">{pct:.1f}%</span>'
-            if show_share
-            else ""
-        )
-        + f'<span class="tokens" data-label="{_escape(_t(lang, "tokens"))}">{_fmt_tokens(tokens)}</span>'
-        f'<span class="cost" data-label="{_escape(_t(lang, "cost"))}">{_fmt_cost(cost)}</span>'
-        f'<div class="gauge-rail" aria-hidden="true" style="{rail_style}"></div>'
-        "</div>"
+        f'<div class="hlabel"><span class="arrow">{arrow}</span>'
+        f'<span class="name">{html.escape(name)}</span></div>'
+        f"{render_lane(pct, f'{pct:.1f}%', detail, color)}</div>"
     )
 
 
@@ -292,10 +402,21 @@ def _trend_delta(current: int, previous: int, lang: str) -> tuple[str, str]:
 
 def _trend_ascii(daily: list[DailyTrendPoint], lang: str, date_to: date) -> str:
     weekly = _weekly_trend(daily)
-    max_tokens = max((int(week["tokens"]) for week in weekly), default=0)
+    step, ceiling = weekly_scale(max((int(week["tokens"]) for week in weekly), default=0))
     data_start = min((_parse_daily_date(day["date"]) for day in daily), default=None)
     first_partial = data_start is not None and data_start.weekday() != 0
+    complete = [
+        i
+        for i, week in enumerate(weekly)
+        if not (i == 0 and first_partial) and not _week_is_in_progress(week, date_to)
+    ]
+    peak = max(complete, key=lambda i: int(weekly[i]["tokens"]), default=-1)
+    latest = complete[-1] if complete else -1
+    if peak >= 0 and not weekly[peak]["tokens"]:
+        peak = latest = -1
+    tick_indices = {round(i * (len(weekly) - 1) / 7) for i in range(8)}
     rows = []
+    xlabels = []
     for idx, week in enumerate(weekly):
         tokens = int(week["tokens"])
         cost = float(week["cost"])
@@ -303,9 +424,6 @@ def _trend_ascii(daily: list[DailyTrendPoint], lang: str, date_to: date) -> str:
         week_end = min(date.fromisocalendar(int(week["year"]), int(week["week"]), 7), date_to)
         if data_start is not None:
             week_start = max(week_start, data_start)
-        tooltip = _escape(
-            f"{week_start.isoformat()} – {week_end.isoformat()} · {_fmt_tokens(tokens)} · {_fmt_cost(cost)}"
-        )
         delta_html = '<span class="delta flat"></span>'
         if idx == len(weekly) - 1 and _week_is_in_progress(week, date_to):
             delta_html = (
@@ -319,23 +437,37 @@ def _trend_ascii(daily: list[DailyTrendPoint], lang: str, date_to: date) -> str:
             partial_label = " · " + _t(
                 lang, "trend_partial_week", days=(week_end - week_start).days + 1
             )
+        label = f"W{int(week['week'])} ({week_start:%m/%d}–{week_end:%m/%d}){partial_label}"
+        delta_text = re.sub("<[^>]+>", "", delta_html)
+        tooltip = _escape(
+            f"{label} · {week_start.isoformat()} – {week_end.isoformat()} · {_fmt_tokens(tokens)} · {_fmt_cost(cost)}"
+            + (f" · {html.unescape(delta_text)}" if delta_text else "")
+        )
+        partial = idx not in complete
+        classes = "weekly-column" + (" partial" if partial else " peak" if idx == peak else "")
+        number = f"<strong>{_fmt_tokens(tokens)}</strong>" if idx in (peak, latest) else ""
         rows.append(
-            f'<div class="trend-row" title="{tooltip}">'
-            f'<span class="week">W{int(week["week"])} ({week_start:%m/%d}–{week_end:%m/%d}){_escape(partial_label)}</span>'
-            f"{render_trend_bar(tokens, max_tokens)}"
-            f"<em>{_fmt_tokens(tokens)}</em>"
-            f"{delta_html}"
-            "</div>"
+            f'<div class="trend-row {classes}" title="{tooltip}" style="height:{tokens / ceiling * 100:.2f}%" tabindex="0">'
+            f'<span class="week">{_escape(label)}</span><em>{_fmt_tokens(tokens)}</em>{delta_html}{number}</div>'
+        )
+        xlabels.append(
+            f"<span>{week_start:%m/%d}</span>" if idx in tick_indices else "<span></span>"
         )
     if not rows:
         return _empty_line(_t(lang, "empty_daily"))
 
-    trend_rows = "".join(rows)
-    comparable = weekly[1:] if first_partial else weekly
-    summary = (
-        f'<div class="trend-summary">{_escape(_trend_summary(comparable, lang, date_to))}</div>'
+    grid = "".join(
+        f'<div class="weekly-grid{(" zero" if i == 0 else "")}" style="bottom:{i * 25}%"><span>{format_axis_tokens(step * i)}</span></div>'
+        for i in range(5)
     )
-    return f'<div class="trend">{trend_rows}{summary}</div>'
+    comparable = weekly[1:] if first_partial else weekly
+    return (
+        f'<div class="trend"><p class="cache-heading weekly-heading">{_escape(_t(lang, "weekly_chart_title"))}</p><div class="weekly-chart"><div class="weekly-ygrid" aria-hidden="true">{grid}</div>'
+        f'<div class="weekly-columns" style="--weeks:{len(weekly)}">{"".join(rows)}</div>'
+        f'<div class="weekly-xlabels" style="--weeks:{len(weekly)}" aria-hidden="true">{"".join(xlabels)}</div></div>'
+        f'<div class="weekly-note">● {_escape(_t(lang, "trend_incomplete_week"))}</div>'
+        f'<div class="trend-summary">{_escape(_trend_summary(comparable, lang, date_to))}</div></div>'
+    )
 
 
 def _hour_histogram_html(histogram: list[int], lang: str) -> str:
@@ -423,43 +555,24 @@ def _tools_body(
         plan_html = f'<span class="sub-plan">{_escape(str(plan))}</span>' if plan else ""
         return plan_html + since_html
 
-    def _row(
-        name: str,
-        plan_html: str,
-        stats_html: str,
-        share_html: str = "",
-        agent_id: str = "",
-        expandable: bool = False,
-    ) -> str:
-        agent_attr = f' data-agent-id="{html.escape(agent_id, quote=True)}"' if agent_id else ""
-        group_class = " model-group" if expandable else ""
-        arrow_html = '<span class="arrow">▸</span>' if expandable else ""
-        return (
-            f'<div class="tool-row{group_class}"{agent_attr}>'
-            f'<div class="tool-head">{arrow_html}<span class="sub-agent">{_escape(name)}</span>{plan_html}'
-            f"{share_html}</div>"
-            f"{stats_html}"
-            "</div>"
-        )
-
+    peak = max((int(agent["tokens"]) for agent in agents), default=0)
+    highlighted = False
     for agent in agents:
         name = _display_name(agent["name"], lang)
         seen.add(str(agent["name"]))
-        stats_html = (
-            f'<span class="pct" data-label="{_escape(_t(lang, "share"))}">{float(agent["pct"]):.1f}%</span>'
-            f'<span class="tokens" data-label="{_escape(_t(lang, "tokens"))}">{_fmt_tokens(int(agent["tokens"]))}</span>'
-            f'<span class="cost" data-label="{_escape(_t(lang, "cost"))}">{_fmt_cost(float(agent["cost"]))}</span>'
-        )
         models = models_by_agent.get(str(agent["id"]), [])
+        color = "var(--chart-accent)" if not highlighted and int(agent["tokens"]) == peak else None
+        highlighted = highlighted or color is not None
+        detail = (
+            f'<small><span class="tokens" data-label="{_escape(_t(lang, "tokens"))}">{_fmt_tokens(int(agent["tokens"]))}</span>'
+            f'<span class=""> · </span><span class="cost" data-label="{_escape(_t(lang, "cost"))}">{_fmt_cost(float(agent["cost"]))}</span></small>'
+        )
+        arrow = '<span class="arrow">▸</span>' if models else ""
         rows.append(
-            _row(
-                name,
-                _plan_html(by_name.get(str(agent["name"]))),
-                stats_html,
-                render_share_bar(float(agent["pct"]), _agent_share_color(agent["id"])),
-                str(agent["id"]),
-                bool(models),
-            )
+            f'<div class="tool-row{(" model-group" if models else "")}" data-agent-id="{_escape(agent["id"])}">'
+            f'<div class="tool-head hlabel">{arrow}<span class="sub-agent">{_escape(name)}</span>'
+            f'<small class="tool-plan">{_plan_html(by_name.get(str(agent["name"])))}</small></div>'
+            f"{render_lane(float(agent['pct']), f'{float(agent["pct"]):.1f}%', detail, color)}</div>"
         )
         rows.extend(
             _rank_line(
@@ -468,30 +581,22 @@ def _tools_body(
                 int(model["tokens"]),
                 None if not model.get("cost_known", True) else float(model["cost"]),
                 lang,
-                _model_share_color(model["model"]),
                 row_class="model-child",
                 hidden=True,
             )
             for model in models
         )
-
-    # Subscriptions for tools that have no usage in this period still get a card.
     for sub_name, sub in by_name.items():
         if sub_name in seen or not sub_name:
             continue
-        rows.append(_row(sub_name, _plan_html(sub), "<span></span><span></span><span></span>"))
-
+        rows.append(
+            '<div class="tool-row"><div class="tool-head hlabel">'
+            f'<span class="sub-agent">{_escape(sub_name)}</span>'
+            f'<small class="tool-plan">{_plan_html(sub)}</small></div></div>'
+        )
     if not rows:
         return _empty_line(_t(lang, "sub_empty"))
-    head = (
-        '<div class="tools-head">'
-        "<span></span>"
-        f"<span>{_escape(_t(lang, 'share'))}</span>"
-        f"<span>{_escape(_t(lang, 'tokens'))}</span>"
-        f"<span>{_escape(_t(lang, 'cost'))}</span>"
-        "</div>"
-    )
-    return f'<div class="tools">{head}{"".join(rows)}</div>'
+    return f'<div class="tools hchart">{"".join(rows)}</div>{render_axis()}'
 
 
 def _peak_day(daily: list[DailyTrendPoint]) -> tuple[str, int] | None:
@@ -749,7 +854,13 @@ def _render_project_section(data: Mapping[str, Any], lang: str) -> str:
             int(project["tokens"]),
             float(project["cost"]),
             lang,
-            _PROJECT_COLOR,
+            (
+                "var(--chart-neutral)"
+                if project.get("is_other")
+                else "var(--chart-accent)"
+                if index == 0
+                else None
+            ),
             show_share=True,
             data_attributes=(
                 {"project-other": "true"}
@@ -761,16 +872,15 @@ def _render_project_section(data: Mapping[str, Any], lang: str) -> str:
                 )
             ),
         )
-        for project in projects
+        for index, project in enumerate(projects)
     ]
     project_rows_html = "".join(project_rows)
     project_body = (
-        f'<div class="rank-head"><span></span><span>{_escape(_t(lang, "project"))}</span><span>{_escape(_t(lang, "share"))}</span><span>{_escape(_t(lang, "tokens"))}</span><span>{_escape(_t(lang, "cost"))}</span></div>'
-        + f'<div class="rank-list">{project_rows_html}</div>'
+        f'<div class="rank-list hchart">{project_rows_html}</div>{render_axis()}'
         if project_rows
         else _empty_line(_t(lang, "empty_projects"))
     )
-    return _section(_t(lang, "project_section"), project_body, "project-section")
+    return _data_section(data, lang, "projects", project_body, "project-section")
 
 
 def _render_tools_section(data: Mapping[str, Any], lang: str) -> str:
@@ -780,7 +890,7 @@ def _render_tools_section(data: Mapping[str, Any], lang: str) -> str:
         data.get("by_agent_model", []),
         lang,
     )
-    return _section(_t(lang, "tools_section"), tools_body, "tools-section")
+    return _data_section(data, lang, "tools", tools_body, "tools-section")
 
 
 def _cache_hit_rate(row: Mapping[str, Any]) -> float | None:
@@ -803,50 +913,47 @@ def _render_composition_section(data: Mapping[str, Any], lang: str) -> str:
     missing = max(0, int(summary.get("total_tokens", 0)) - total)
     if total <= 0 and not missing:
         return ""
-    colors = {key: _PALETTE[index] for index, (key, _tokens) in enumerate(parts)}
-
-    # One row per class rather than a single stacked bar: cache reads dominate the
-    # total so heavily that every other segment collapses into an unreadable sliver.
-    rows = "".join(
-        '<div class="rank-line">'
-        '<span class="arrow">&rarr;</span>'
-        f'<span class="name">{_escape(_t(lang, f"composition_{key}"))}'
-        f"{render_share_bar(tokens / total * 100, colors[key])}</span>"
-        f'<span class="pct" data-label="{_escape(_t(lang, "share"))}">'
-        f"{tokens / total * 100:>5.1f}%</span>"
-        f'<span class="tokens" data-label="{_escape(_t(lang, "tokens"))}">'
-        f"{_fmt_tokens(tokens)}</span>"
-        "</div>"
-        for key, tokens in sorted(parts, key=lambda item: -item[1])
-        if tokens > 0
+    ordered = sorted(
+        ((key, tokens) for key, tokens in parts if tokens > 0), key=lambda item: -item[1]
     )
-
+    segments = []
+    legends = []
+    for index, (key, tokens) in enumerate(ordered):
+        pct = tokens / total * 100
+        label = f"{pct:.1f}%"
+        segments.append(
+            f'<div class="stack-segment stack-{index}" style="flex:{tokens}">'
+            f"{label if index == 0 else ''}</div>"
+        )
+        legends.append(
+            f'<span class="composition-item"><i class="stack-{index}"></i>'
+            f'<span><span class="name">{_escape(_t(lang, f"composition_{key}"))}</span><span class=""> </span>'
+            f'<span class="pct">{label}</span><span class="">（</span><span class="tokens">{_fmt_tokens(tokens)}</span><span class="">）</span></span></span>'
+        )
     agent_rows = []
     for agent in sorted(
         data.get("by_agent", []),
         key=lambda row: (_cache_hit_rate(row) is None, -(_cache_hit_rate(row) or 0.0)),
     ):
         rate = _cache_hit_rate(agent)
+        label = "—" if rate is None else f"{rate:.1f}%"
         agent_rows.append(
-            '<div class="rank-line">'
-            '<span class="arrow">&rarr;</span>'
-            f'<span class="name">{_escape(_display_name(agent["name"], lang))}'
-            f"{render_share_bar(rate or 0.0, _PALETTE[3])}</span>"
-            f'<span class="pct" data-label="{_escape(_t(lang, "composition_hit_rate"))}">'
-            f"{'&mdash;' if rate is None else f'{rate:>5.1f}%'}</span>"
-            "</div>"
+            '<div class="rank-line"><div class="hlabel">'
+            f'<span class="name">{_escape(_display_name(agent["name"], lang))}</span></div>'
+            f"{render_lane(rate or 0, label)}</div>"
         )
-
     body = (
-        f'<div class="rank-list">{rows}</div>'
+        f'<div class="composition-stack">{"".join(segments)}</div>'
+        f'<div class="rank-list composition-legend">{"".join(legends)}</div>'
         f'<p class="composition-hint" data-composition-missing{(" hidden" if not missing else "")}>{_escape(_t(lang, "composition_missing", tokens=_fmt_tokens(missing)))}</p>'
-        f'<div class="rank-head"><span></span>'
-        f"<span>{_escape(_t(lang, 'composition_hit_rate'))}</span></div>"
+        f'<p class="cache-heading">{_escape(_t(lang, "composition_hit_rate"))}</p>'
         f'<p class="composition-hint">{_escape(_t(lang, "composition_hint"))}</p>'
-        f'<div class="rank-list">{"".join(agent_rows)}</div>'
+        f'<div class="rank-list hchart cache-chart">{"".join(agent_rows)}</div>{render_axis()}'
     )
-    return _section(
-        _t(lang, "composition_section"),
+    return _data_section(
+        data,
+        lang,
+        "composition",
         body,
         "composition-section",
     )
@@ -944,8 +1051,10 @@ def _render_trend_section(data: Mapping[str, Any], lang: str, date_to: date) -> 
             _fmt_tokens,
             _fmt_cost,
         )
-    return _section(
-        _t(lang, "trend_section"),
+    return _data_section(
+        data,
+        lang,
+        "trend",
         f"{chart}{_trend_ascii(daily, lang, date_to)}",
         "trend-section",
         title_action=(
@@ -1066,7 +1175,11 @@ def _render_contribution_section(data: Mapping[str, Any], lang: str) -> str:
         "</div>"
     )
     return _section(
-        _t(lang, "contribution_section", weeks=len(weeks)),
+        (
+            _t(lang, "title_streak", days=int(contribution["current_streak"]))
+            if int(contribution.get("current_streak", 0)) >= 7
+            else _t(lang, "contribution_section", weeks=len(weeks))
+        ),
         body,
         "contribution-section",
         before_prompt=(
@@ -1192,8 +1305,10 @@ def _render_session_section(data: Mapping[str, Any], lang: str) -> str:
         if session_rows
         else _empty_line(_t(lang, "empty_sessions"))
     )
-    return _section(
-        _t(lang, "session_section"),
+    return _data_section(
+        data,
+        lang,
+        "sessions",
         session_body,
         "session-section",
     )
@@ -1209,6 +1324,46 @@ def _share_config_json(lang: str, *, interactive: bool = False) -> str:
         "projectOthers": _t(lang, "project_others"),
     }
     if interactive:
+        heading_keys = (
+            "title_tools_top",
+            "title_tools_single",
+            "sub_tools",
+            "title_projects_top3",
+            "sub_projects",
+            "title_trend_peak_week",
+            "sub_trend",
+            "title_composition_top",
+            "sub_composition",
+            "title_sessions_top",
+            "source_note",
+            "source_pricing",
+            "weekly_chart_title",
+            "tools_section",
+            "project_section",
+            "trend_section",
+            "composition_section",
+            "session_section",
+        )
+        for key in heading_keys:
+            share_config[key] = _t(
+                lang,
+                key,
+                **{
+                    name: "{" + name + "}"
+                    for name in (
+                        "tool",
+                        "pct",
+                        "total",
+                        "date",
+                        "kind",
+                        "tokens",
+                        "tools",
+                        "from",
+                        "to",
+                    )
+                },
+            )
+        share_config["sourceSeparator"] = "、" if lang in {"zh-TW", "zh-CN", "ja"} else ", "
         share_config.update(
             {
                 "chartOther": _t(lang, "chart_other"),
@@ -1237,6 +1392,7 @@ def _share_config_json(lang: str, *, interactive: bool = False) -> str:
                 "compositionInput": _t(lang, "composition_input"),
                 "compositionMissing": _t(lang, "composition_missing", tokens="{tokens}"),
                 "trendPartialWeek": _t(lang, "trend_partial_week", days="{days}"),
+                "trendIncompleteWeek": _t(lang, "trend_incomplete_week"),
                 "compositionOutput": _t(lang, "composition_output"),
                 "duration": _t(lang, "duration"),
                 "dailyChartTitle": _t(lang, "daily_chart_title"),
