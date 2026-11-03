@@ -399,6 +399,39 @@ def test_maybe_ping_skips_when_window_still_running(
     )
 
     assert calls == []
+    assert json.loads(isolated_state.read_text()) == {"last_seen_reset_at": now + 3600}
+    assert _SyncThread.instances == []
+
+
+def test_maybe_ping_recalls_window_dropped_after_expiry(
+    monkeypatch: pytest.MonkeyPatch, isolated_state: Path
+) -> None:
+    # Claude Code stops sending five_hour once it expires; the hook drops the
+    # cached copy, so the reader reports no window at all.
+    calls = _arm_successful_ping(monkeypatch)
+    now = time.time()
+    reset_at = now + EXPIRED
+    isolated_state.write_text(json.dumps({"last_seen_reset_at": reset_at}))
+    # The reader stamps a missing reset with parse time.
+    window_keeper.maybe_ping(
+        current_reset_at=time.time(), current_percent=None, data_source="hook", mock=False
+    )
+
+    assert calls == ["/fake/claude"]
+    assert window_keeper._load_ping_state()[0] == reset_at
+
+
+def test_maybe_ping_never_reported_window_stays_unarmed(
+    monkeypatch: pytest.MonkeyPatch, isolated_state: Path
+) -> None:
+    # Plans without a 5-hour limit never report a reset to remember.
+    calls = _arm_successful_ping(monkeypatch)
+    # The reader stamps a missing reset with parse time.
+    window_keeper.maybe_ping(
+        current_reset_at=time.time(), current_percent=None, data_source="hook", mock=False
+    )
+
+    assert calls == []
     assert isolated_state.exists() is False
     assert _SyncThread.instances == []
 

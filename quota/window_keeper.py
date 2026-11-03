@@ -203,6 +203,33 @@ def _ping_worker(started_at: float) -> None:
         _release()
 
 
+def _recall_expired_window(
+    state: dict[str, object],
+    current_reset_at: float | None,
+    current_percent: float | None,
+    data_source: str,
+) -> tuple[float | None, float | None]:
+    """Stand in the last reported five-hour reset once the payload drops the window.
+
+    Claude Code omits ``five_hour`` once its ``resets_at`` has passed, and the
+    statusLine hook drops the cached copy too (plans without a 5-hour limit never
+    send one), so an expired window reaches us as no window at all. The reader
+    then reports no percent and a parse-time reset, which is not worth keeping.
+    Remember every real reset the hook reports; a plan that never reported one
+    stays unarmed.
+    """
+    if data_source != "hook":
+        return current_reset_at, current_percent
+    remembered = keeper_outcome.numeric_value(state, "last_seen_reset_at")
+    if current_percent is None:
+        return (current_reset_at, None) if remembered is None else (remembered, 0.0)
+    if current_reset_at is not None and current_reset_at != remembered:
+        keeper_outcome.update_state(
+            WINDOW_KEEPER_STATE_PATH, {"last_seen_reset_at": current_reset_at}
+        )
+    return current_reset_at, current_percent
+
+
 def maybe_ping(
     current_reset_at: float | None,
     current_percent: float | None,
@@ -224,6 +251,9 @@ def maybe_ping(
     now = time.time()
     last_pinged_reset_at, last_ping_at = _load_ping_state()
     state = keeper_outcome.read_state(WINDOW_KEEPER_STATE_PATH)
+    current_reset_at, current_percent = _recall_expired_window(
+        state, current_reset_at, current_percent, data_source
+    )
     idle = should_ping(now, current_reset_at, enabled, None, None, current_percent, data_source)
     fresh = should_ping(
         now,

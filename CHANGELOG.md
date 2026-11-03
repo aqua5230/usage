@@ -7,6 +7,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+- **Auto-open the next Claude window works again.** Since 0.34.10, Claude Code stops reporting the 5-hour window once it expires, so the keeper never saw it expire and never opened the next one. It now remembers the last reset time it saw and opens the next window after it passes. Plans without a 5-hour limit are unaffected.
+
 ## [0.34.10] - 2026-11-03
 
 ### Added
