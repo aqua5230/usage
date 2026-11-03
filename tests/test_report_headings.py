@@ -308,8 +308,10 @@ document.querySelectorAll = (selector) => {
 })().catch((error) => {console.error(error); process.exitCode = 1;});
 """
     path = tmp_path / "heading-parity.cjs"
-    path.write_text(script)
-    result = subprocess.run([NODE or "node", str(path)], capture_output=True, text=True)
+    path.write_text(script, encoding="utf-8")
+    result = subprocess.run(
+        [NODE or "node", str(path)], capture_output=True, text=True, encoding="utf-8"
+    )
     assert result.returncode == 0, result.stderr
 
 
@@ -364,6 +366,8 @@ def test_zero_usage_weeks_and_projects_keep_neutral_titles(tmp_path: Path) -> No
         + ");\n"
     )
     path = tmp_path / "zero-usage.cjs"
-    path.write_text(script)
-    result = subprocess.run([NODE or "node", str(path)], capture_output=True, text=True)
+    path.write_text(script, encoding="utf-8")
+    result = subprocess.run(
+        [NODE or "node", str(path)], capture_output=True, text=True, encoding="utf-8"
+    )
     assert result.returncode == 0, result.stderr
