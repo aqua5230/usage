@@ -19,6 +19,7 @@ from menubar.agy import AgyRefreshResult
 from menubar.prefs import _agy_window_keeper_enabled
 from quota import keeper_outcome
 from usage_common.cli_lookup import cli_env, resolve_cli
+from usage_common.network import google_auth_reachable
 from usage_common.subprocess_utils import hidden_console_kwargs
 
 logger = logging.getLogger(__name__)
@@ -136,6 +137,10 @@ def maybe_ping(result: AgyRefreshResult, mock: bool) -> None:
     fresh = gate(last_ping_at)
     retry = not fresh and keeper_outcome.should_retry(state, now, None, gate(None))
     if not (fresh or retry):
+        return
+    # Offline (e.g. just after a sleep wake) the CLI would open a browser sign-in page;
+    # leave the state untouched so the next refresh tries again.
+    if not google_auth_reachable():
         return
     if not _try_acquire():
         return

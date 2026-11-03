@@ -167,7 +167,21 @@ def _arm_ping(monkeypatch: pytest.MonkeyPatch, *, enabled: bool = True) -> list[
     monkeypatch.setattr(agy_window_keeper, "_agy_window_keeper_enabled", lambda: enabled)
     monkeypatch.setattr(agy_window_keeper, "_resolve_agy_bin", lambda: "/fake/agy")
     monkeypatch.setattr(agy_window_keeper, "_run_agy_ping", calls.append)
+    monkeypatch.setattr(agy_window_keeper, "google_auth_reachable", lambda: True)
     return calls
+
+
+def test_maybe_ping_waits_while_offline_and_leaves_state_untouched(
+    monkeypatch: pytest.MonkeyPatch, isolated_state: Path
+) -> None:
+    calls = _arm_ping(monkeypatch)
+    monkeypatch.setattr(agy_window_keeper, "google_auth_reachable", lambda: False)
+
+    agy_window_keeper.maybe_ping(_refresh_result(), mock=False)
+
+    assert calls == []
+    assert agy_window_keeper._load_last_ping() is None
+    assert _SyncThread.instances == []
 
 
 def test_maybe_ping_fires_and_stamps_dispatch(
