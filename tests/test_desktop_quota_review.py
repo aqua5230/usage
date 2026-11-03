@@ -145,7 +145,7 @@ def test_complete_hook_never_reads_desktop_even_on_repeated_polls(
         assert cli is not None and (cli.five_hour_pct, cli.seven_day_pct) == (12, 13)
 
 
-@pytest.mark.parametrize("hook", [None, {}, {"five_hour": {"used_percentage": 99}}])
+@pytest.mark.parametrize("hook", [None, {}, {"five_hour": {"used_percentage": None}}])
 def test_gui_and_cli_use_code_cache_before_desktop(
     sources: Path, monkeypatch: pytest.MonkeyPatch, hook: dict[str, Any] | None
 ) -> None:

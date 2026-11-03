@@ -69,7 +69,7 @@ else:
 fcntl = _fcntl
 msvcrt = _msvcrt
 
-__version__ = "1.15"
+__version__ = "1.16"
 
 STATUS_FILE = os.path.expanduser("~/.claude/usage-status.json")
 LOCK_FILE = os.path.expanduser("~/.claude/usage-status.lock")
@@ -421,6 +421,46 @@ def _rate_limits_complete(rate_limits: Any) -> bool:
     return five.get("used_percentage") is not None and seven.get("used_percentage") is not None
 
 
+_RATE_WINDOWS = ("five_hour", "seven_day")
+
+
+def _window_used(window: Any) -> bool:
+    return isinstance(window, dict) and window.get("used_percentage") is not None
+
+
+def _window_unexpired(window: Any, now_ts: float) -> bool:
+    try:
+        return float(window.get("resets_at")) > now_ts
+    except (TypeError, ValueError):
+        return False
+
+
+def _merge_rate_limits(incoming: Any, cached: Any, now_ts: float) -> Any:
+    """Merge quota windows one by one; plans without a 5-hour limit omit five_hour.
+
+    A payload with no window at all (a new session before its first reply) keeps
+    the cached block; the reader zeroes expired windows. Otherwise a fresh window
+    wins, and a missing one is taken from the cache only while its reset is still
+    ahead, so a window Claude Code stopped sending disappears instead of freezing.
+    """
+    if not isinstance(cached, dict) or not any(_window_used(cached.get(k)) for k in _RATE_WINDOWS):
+        return incoming
+    if not isinstance(incoming, dict) or not any(
+        _window_used(incoming.get(k)) for k in _RATE_WINDOWS
+    ):
+        return cached
+    merged = dict(incoming)
+    for key in _RATE_WINDOWS:
+        if _window_used(merged.get(key)):
+            continue
+        old = cached.get(key)
+        if _window_used(old) and _window_unexpired(old, now_ts):
+            merged[key] = old
+        else:
+            merged.pop(key, None)
+    return merged
+
+
 def _acquire_msvcrt_lock(lock_fd: int) -> bool:
     """Block (bounded) until the byte is locked; False if locking is unavailable.
 
@@ -499,9 +539,11 @@ def save(data: Dict[str, Any], now: datetime) -> None:
                 except (OSError, UnicodeDecodeError, json.JSONDecodeError):
                     existing = None
                 if isinstance(existing, dict):
-                    existing_rate_limits = existing.get("rate_limits")
-                    if _rate_limits_complete(existing_rate_limits):
-                        data["rate_limits"] = existing_rate_limits
+                    merged = _merge_rate_limits(
+                        data.get("rate_limits"), existing.get("rate_limits"), now.timestamp()
+                    )
+                    if merged is not None:
+                        data["rate_limits"] = merged
             fd, tmp_path = tempfile.mkstemp(dir=target_dir, suffix=".tmp")
             with os.fdopen(fd, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False)

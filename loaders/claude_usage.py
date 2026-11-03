@@ -293,17 +293,19 @@ def _hook_broken_message(now: float, polled_at: float) -> str | None:
     return HOOK_BROKEN_NOT_INSTALLED
 
 
-def _has_complete_rate_limits(data: dict[str, Any]) -> bool:
+def _has_rate_limits(data: dict[str, Any]) -> bool:
+    """True when every window the hook sent is valid and at least one was sent.
+
+    Plans without a 5-hour limit never send five_hour, so requiring both windows
+    would leave them on the cache or the loading state forever. A window that is
+    present but unreadable still falls back to the cache.
+    """
     rl = data.get("rate_limits")
     if not isinstance(rl, dict):
         return False
-    five = rl.get("five_hour")
-    seven = rl.get("seven_day")
-    if not isinstance(five, dict) or not isinstance(seven, dict):
-        return False
-    return (
-        _as_finite_float(five.get("used_percentage")) is not None
-        and _as_finite_float(seven.get("used_percentage")) is not None
+    windows = [w for w in (rl.get("five_hour"), rl.get("seven_day")) if isinstance(w, dict)]
+    return bool(windows) and all(
+        _as_finite_float(w.get("used_percentage")) is not None for w in windows
     )
 
 
@@ -440,11 +442,11 @@ class ClaudeUsageClient:
 
         # ``.claude.json`` is Claude Code's cache, not a competing live source.
         # In particular its fetchedAtMs can be newer than the hook timestamp while
-        # still describing a different/expired session.  A complete statusLine
-        # payload must therefore always win; use the cache only when the hook has
-        # not provided both quota windows yet. Desktop history is also a fallback;
-        # it never replaces a complete hook payload or supplies invented resets.
-        if not _has_complete_rate_limits(data):
+        # still describing a different/expired session.  A statusLine payload
+        # with quota must therefore always win; use the cache only when the hook
+        # has not provided any quota window yet. Desktop history is also a fallback;
+        # it never replaces a hook payload or supplies invented resets.
+        if not _has_rate_limits(data):
             fallback_snapshot = read_quota_fallback(self._read_claude_json_snapshot_cached)
             if fallback_snapshot is not None:
                 return self._success_outcome(fallback_snapshot)

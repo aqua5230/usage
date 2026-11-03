@@ -408,6 +408,64 @@ def test_save_overwrites_existing_rate_limits_when_new_data_is_complete(
     assert data["_received_at_ts"] == now.timestamp()
 
 
+@pytest.mark.parametrize(
+    ("cached_five_reset", "expected_five"),
+    [
+        # Issue #273: a plan without a 5-hour limit stops sending five_hour.
+        # The expired cached window is dropped and seven_day is not frozen.
+        (1_000, None),
+        # A cached window whose reset is still ahead fills the gap.
+        (9_999_999_999, {"used_percentage": 11, "resets_at": 9_999_999_999}),
+    ],
+)
+def test_save_merges_rate_limit_windows_one_by_one(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    cached_five_reset: int,
+    expected_five: dict[str, Any] | None,
+) -> None:
+    status_file = tmp_path / "usage-status.json"
+    status_file.write_text(
+        json.dumps(
+            {
+                "rate_limits": {
+                    "five_hour": {"used_percentage": 11, "resets_at": cached_five_reset},
+                    "seven_day": {"used_percentage": 34, "resets_at": 9_999_999_999},
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(usage_statusline, "STATUS_FILE", str(status_file))
+    fresh_seven = {"used_percentage": 46, "resets_at": 1_793_660_400}
+
+    usage_statusline.save(
+        {"rate_limits": {"seven_day": fresh_seven}},
+        datetime(2026, 11, 1, 12, 0, tzinfo=UTC),
+    )
+
+    rate_limits = json.loads(status_file.read_text(encoding="utf-8"))["rate_limits"]
+    assert rate_limits["seven_day"] == fresh_seven
+    assert rate_limits.get("five_hour") == expected_five
+
+
+def test_save_keeps_expired_cached_windows_when_payload_has_no_quota(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    cached = {
+        "five_hour": {"used_percentage": 11, "resets_at": 1_000},
+        "seven_day": {"used_percentage": 34, "resets_at": 1_000},
+    }
+    status_file = tmp_path / "usage-status.json"
+    status_file.write_text(json.dumps({"rate_limits": cached}), encoding="utf-8")
+    monkeypatch.setattr(usage_statusline, "STATUS_FILE", str(status_file))
+
+    usage_statusline.save({"model": {"display_name": "new"}}, datetime(2026, 11, 1, tzinfo=UTC))
+
+    assert json.loads(status_file.read_text(encoding="utf-8"))["rate_limits"] == cached
+
+
 def _write_prefs(path: Path, prefs: dict[str, Any]) -> None:
     path.write_text(json.dumps(prefs), encoding="utf-8")
 

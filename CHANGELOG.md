@@ -10,6 +10,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ### Added
 - **A used-up quota now shows how long until it comes back.** When a tool's 5-hour or weekly quota reaches 100%, the menu bar shows the time left, such as `2h55m`, instead of a stuck `100%`. If both are used up, it counts down to the later reset; if the reset time is unknown, it keeps showing `100%`. While a countdown is shown, the menu bar refreshes every minute instead of every five. The Claude Code status line does the same in red and keeps the time left even in a narrow terminal.
 
+### Fixed
+- **The status line no longer freezes quota on plans without a 5-hour limit.** Since Claude Code 2.1.316, accounts with no 5-hour limit (such as the Ultra plan) get only the weekly window. The status line treated that as missing data and kept showing the last full snapshot, so the weekly bar stopped moving and an expired 5-hour bar stayed on screen. Each window now updates on its own; a window Claude Code stops sending disappears once its reset time has passed. The menu bar reads a weekly-only status the same way instead of waiting for both windows. Thanks to @dvdmaru for the report and fix (#273).
+
 ## [0.34.9] - 2026-10-30
 
 ### Security
