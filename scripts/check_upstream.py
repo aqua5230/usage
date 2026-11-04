@@ -50,6 +50,7 @@ KNOWN_STATUS = frozenset(
         "cwd",
         "scratchpad_dir",
         "prompt_id",
+        "pr",
         "effort",
         "session_name",
         "model",
