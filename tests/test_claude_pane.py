@@ -6,13 +6,15 @@ import os
 import shutil
 import subprocess
 import sys
+from collections.abc import Callable
 from pathlib import Path
 from unittest.mock import Mock
 
 import pytest
 
 from installer import claude_pane as pane
-from installer import setup_hook
+from installer import session_hooks, setup_hook
+from tests.helpers import TerseHookPaths
 
 
 @pytest.fixture
@@ -505,3 +507,80 @@ def test_status_argv_runs_from_source(monkeypatch: pytest.MonkeyPatch, tmp_path:
     result = subprocess.run(argv, capture_output=True, timeout=60)
     assert result.returncode == 0
     assert "agents" in json.loads(result.stdout)
+
+
+@pytest.mark.parametrize(
+    "existing",
+    [
+        None,
+        {},
+        {
+            "env": {"KEEP": "yes", "CLAUDE_CODE_PLUGIN_DIRS": "/third-party"},
+            "hooks": {
+                "UserPromptSubmit": [{"hooks": [{"type": "command", "command": "echo keep"}]}]
+            },
+        },
+    ],
+)
+def test_optional_feature_disables_are_safe_when_not_enabled(
+    isolated: Path,
+    existing: dict[str, object] | None,
+) -> None:
+    if existing is not None:
+        setup_hook._save_settings(existing)
+    before = isolated.read_bytes() if isolated.exists() else None
+
+    for _ in range(2):
+        assert session_hooks.disable_quota_aware() == 0
+        assert pane.disable_claude_pane() == 0
+        assert pane.disable_claude_beginner() == 0
+
+    assert (isolated.read_bytes() if isolated.exists() else None) == before
+
+
+@pytest.mark.parametrize("entrypoint", ["main", "cli"])
+def test_unsetup_entrypoints_remove_optional_features_and_preserve_foreign_settings(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    patch_terse_hook_paths: Callable[..., TerseHookPaths],
+    entrypoint: str,
+) -> None:
+    paths = patch_terse_hook_paths()
+    monkeypatch.setattr(session_hooks, "RESUME_PROMPT_SIDECAR", tmp_path / "resume-prompt.json")
+    monkeypatch.setattr(setup_hook, "LEGACY_TT_HOOK_TARGET", tmp_path / "tt-statusline.py")
+    monkeypatch.setattr(setup_hook, "STATUS_FILE", tmp_path / "usage-status.json")
+    original = {
+        "env": {"KEEP": "yes", pane.PLUGIN_DIRS_KEY: "/third-party"},
+        "hooks": {
+            "UserPromptSubmit": [{"hooks": [{"type": "command", "command": "echo keep"}]}],
+            "SessionStart": [{"hooks": [{"type": "command", "command": "echo start"}]}],
+        },
+        "other": "keep",
+    }
+    setup_hook._save_settings(original)
+    assert session_hooks.enable_quota_aware() == 0
+    assert pane.enable_claude_pane() == 0
+    assert pane.enable_claude_beginner() == 0
+    assert session_hooks.QUOTA_AWARE_HOOK_TARGET.exists()
+    assert pane.is_claude_pane_enabled()
+    assert pane.is_claude_beginner_enabled()
+
+    if entrypoint == "main":
+        import main
+
+        monkeypatch.setattr(sys, "argv", ["usage", "--unsetup"])
+        with pytest.raises(SystemExit) as exc:
+            main.main()
+        assert exc.value.code == 0
+    else:
+        from usage_app import cli
+
+        monkeypatch.setattr(sys, "argv", ["usage", "unsetup"])
+        cli.main()
+
+    assert setup_hook._load_settings() == original
+    assert not session_hooks.is_quota_aware_enabled()
+    assert not session_hooks.QUOTA_AWARE_HOOK_TARGET.exists()
+    assert not pane.INSTALL_DIR.exists()
+    assert not pane.INSTALL_DIR.with_name("usage-beginner").exists()
+    assert paths.settings.exists()

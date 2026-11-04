@@ -23,7 +23,8 @@ from analyzer.aggregator import (
 )
 from analyzer.blocks import analyze_blocks, calculate_p90
 from analyzer import persona_loader
-from installer.session_hooks import disable_session_resume, disable_terse_mode
+from installer.claude_pane import disable_claude_beginner, disable_claude_pane
+from installer.session_hooks import disable_quota_aware, disable_session_resume, disable_terse_mode
 from installer.setup_hook import is_claude_setup, is_codex_setup, is_setup, setup, unsetup
 from usage_common.i18n import t
 from ui.tables import (
@@ -360,8 +361,13 @@ def _apply_sort(
     if sort_key is None:
         stats.sort(key=lambda s: getattr(s, default_attr), reverse=default_reverse)
         return
-    if sort_key not in SORT_KEYS:
-        valid = ", ".join(SORT_KEYS.keys())
+    available_keys = {
+        key: mapping
+        for key, mapping in SORT_KEYS.items()
+        if mapping is None or all(hasattr(stat, mapping[0]) for stat in stats)
+    }
+    if sort_key not in available_keys:
+        valid = ", ".join(available_keys)
         console.print(f"[yellow]{t('unknown_sort_field', field=sort_key, valid=valid)}[/yellow]")
         stats.sort(key=lambda s: getattr(s, default_attr), reverse=default_reverse)
         return
@@ -728,6 +734,9 @@ def main() -> None:
     if command == "unsetup":
         disable_session_resume()
         disable_terse_mode()
+        disable_quota_aware()
+        disable_claude_pane()
+        disable_claude_beginner()
         unsetup()
         return
 

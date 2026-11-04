@@ -177,7 +177,7 @@ def show_forwarder_mode_prompt_if_needed(language: str | None = None) -> None:
         )
         if dismissed or setup_hook._detect_current_state(settings) != "external":
             return
-    except Exception:
+    except (Exception, SystemExit):
         if os.environ.get("USAGE_DEBUG") == "1":
             logger.warning("forwarder prompt check failed", exc_info=True)
         return
@@ -194,13 +194,13 @@ def show_forwarder_mode_prompt_if_needed(language: str | None = None) -> None:
         if result == 1000:
             setup_hook.setup(force_forwarder=True)
             session_hooks._migrate_bundled_python_commands_if_needed()
-    except Exception:
+    except (Exception, SystemExit):
         if os.environ.get("USAGE_DEBUG") == "1":
             logger.warning("forwarder setup failed", exc_info=True)
     finally:
         try:
             _set_forwarder_mode_prompt_dismissed()
-        except Exception:
+        except (Exception, SystemExit):
             if os.environ.get("USAGE_DEBUG") == "1":
                 logger.warning("forwarder prompt dismissal failed", exc_info=True)
 

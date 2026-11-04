@@ -571,14 +571,12 @@ def project_rows_for_windows(
     current_time = datetime.now(UTC) if now is None else now
     local_now = current_time.astimezone()
     local_today = local_now.date()
-    local_tz = local_now.tzinfo
-    assert local_tz is not None
-    today_start = datetime.combine(local_today, datetime_time.min, tzinfo=local_tz).astimezone(UTC)
+    today_start = datetime.combine(local_today, datetime_time.min).astimezone(UTC)
     tomorrow_start = datetime.combine(
-        local_today + timedelta(days=1), datetime_time.min, tzinfo=local_tz
+        local_today + timedelta(days=1), datetime_time.min
     ).astimezone(UTC)
     yesterday_start = datetime.combine(
-        local_today - timedelta(days=1), datetime_time.min, tzinfo=local_tz
+        local_today - timedelta(days=1), datetime_time.min
     ).astimezone(UTC)
     cutoff_7d = current_time - timedelta(hours=168)
     cutoff_30d = current_time - timedelta(hours=720)

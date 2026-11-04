@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from loaders import claude_paths
 from menubar import fsevents_watch
 
 
@@ -22,6 +23,8 @@ def test_usage_watch_paths_only_includes_existing_history_directories(
 
     monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path))
     monkeypatch.setenv("CODEX_HOME", str(tmp_path / ".codex"))
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / ".claude"))
+    claude_paths.cache_clear()
 
     assert fsevents_watch.usage_watch_paths() == [
         claude_projects,
@@ -38,6 +41,8 @@ def test_usage_watch_paths_omits_missing_history_directories(
     codex_sessions.mkdir(parents=True)
     monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path))
     monkeypatch.setenv("CODEX_HOME", str(tmp_path / ".codex"))
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / ".claude"))
+    claude_paths.cache_clear()
 
     assert fsevents_watch.usage_watch_paths() == [codex_sessions]
 
@@ -64,3 +69,25 @@ def test_classify_file_events_requests_full_scan_for_mismatched_arrays() -> None
     changes = fsevents_watch.classify_file_events(["/tmp/one.jsonl"], [])
 
     assert changes.needs_full_scan is True
+
+
+def test_usage_watch_paths_includes_custom_claude_dirs_without_duplicates(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path))
+    first, second = tmp_path / "first", tmp_path / "second"
+    codex = tmp_path / "codex"
+    expected = [
+        first / "projects",
+        second / "projects",
+        codex / "sessions",
+        codex / "archived_sessions",
+    ]
+    for path in expected:
+        path.mkdir(parents=True)
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", f"{first},{second},{first},{tmp_path / 'missing'}")
+    monkeypatch.setenv("CODEX_HOME", str(codex))
+    claude_paths.cache_clear()
+
+    assert fsevents_watch.usage_watch_paths() == expected
