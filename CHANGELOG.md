@@ -7,6 +7,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+- **Auto-open the next Claude window works again.** Since 0.34.10, Claude Code stops reporting the 5-hour window once it expires, so the keeper never saw it expire and never opened the next one. It now remembers the last reset time it saw and opens the next window after it passes. Plans without a 5-hour limit are unaffected.
+- **Reset Claude quota rows and recovery notifications work again.** Since 0.34.10, the 5-hour and weekly rows showed `--` after a reset, and quota-restored notifications waited until the next Claude reply. The hook now keeps each expired window for one full cycle so readers show 0% and the reset message, and recovery notifications arrive at reset. Plans without a 5-hour limit still drop that window after a full cycle; weekly updates keep working.
+
 ## [0.34.10] - 2026-11-03
 
 ### Added

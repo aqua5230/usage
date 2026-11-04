@@ -409,21 +409,22 @@ def test_save_overwrites_existing_rate_limits_when_new_data_is_complete(
 
 
 @pytest.mark.parametrize(
-    ("cached_five_reset", "expected_five"),
+    ("reset_offset", "keep_five"),
     [
-        # Issue #273: a plan without a 5-hour limit stops sending five_hour.
-        # The expired cached window is dropped and seven_day is not frozen.
-        (1_000, None),
-        # A cached window whose reset is still ahead fills the gap.
-        (9_999_999_999, {"used_percentage": 11, "resets_at": 9_999_999_999}),
+        (-3600, True),  # Just reset: readers still need the expired window.
+        (-18001, False),  # Issue #273: remove after a full cycle, update seven_day.
+        (-18000, False),  # The exact cutoff is no longer retained.
+        (3600, True),  # An unexpired window still fills the gap.
     ],
 )
 def test_save_merges_rate_limit_windows_one_by_one(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
-    cached_five_reset: int,
-    expected_five: dict[str, Any] | None,
+    reset_offset: int,
+    keep_five: bool,
 ) -> None:
+    now = datetime(2026, 11, 1, 12, 0, tzinfo=UTC)
+    cached_five_reset = int(now.timestamp()) + reset_offset
     status_file = tmp_path / "usage-status.json"
     status_file.write_text(
         json.dumps(
@@ -441,11 +442,12 @@ def test_save_merges_rate_limit_windows_one_by_one(
 
     usage_statusline.save(
         {"rate_limits": {"seven_day": fresh_seven}},
-        datetime(2026, 11, 1, 12, 0, tzinfo=UTC),
+        now,
     )
 
     rate_limits = json.loads(status_file.read_text(encoding="utf-8"))["rate_limits"]
     assert rate_limits["seven_day"] == fresh_seven
+    expected_five = {"used_percentage": 11, "resets_at": cached_five_reset} if keep_five else None
     assert rate_limits.get("five_hour") == expected_five
 
 
@@ -1614,8 +1616,9 @@ def test_render_quota_countdown_variants(
         content = f"{clock}({remaining})" if width == 200 else remaining
         expected = f"{prefix}{colors['red']}{content}{colors['reset']}"
     else:
-        bar = usage_statusline.progress_bar(percent, 8 if width >= 100 else 4)
-        expected = prefix + (f"{percent}%" if width == 1 else bar)
+        displayed_percent = 0 if reset is not None and reset <= 0 else percent
+        bar = usage_statusline.progress_bar(displayed_percent, 8 if width >= 100 else 4)
+        expected = prefix + (f"{displayed_percent}%" if width == 1 else bar)
         if width == 200:
             expected += suffix
     assert usage_statusline._render_core(payload, now) == expected
