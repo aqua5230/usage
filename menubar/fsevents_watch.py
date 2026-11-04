@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from loaders.claude_paths import claude_config_dirs
 from loaders.codex_paths import codex_home
 
 logger = logging.getLogger(__name__)
@@ -115,14 +116,15 @@ def classify_file_events(paths: Iterable[str], flags: Iterable[int]) -> FileEven
 
 def usage_watch_paths() -> list[Path]:
     """Return existing agent directories that contain usage history records."""
-    home = Path.home()
     codex_dir = codex_home()
     return [
         path
-        for path in (
-            home / ".claude" / "projects",
-            codex_dir / "sessions",
-            codex_dir / "archived_sessions",
+        for path in dict.fromkeys(
+            (
+                *(directory / "projects" for directory in claude_config_dirs()),
+                codex_dir / "sessions",
+                codex_dir / "archived_sessions",
+            )
         )
         if path.exists()
     ]

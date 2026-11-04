@@ -1175,3 +1175,55 @@ def test_antigravity_expired_login_overrides_cache(monkeypatch: pytest.MonkeyPat
     result = status_payload._status_antigravity(1700000000)
     assert result["reason"] == "not_signed_in"
     assert result["available"] is False
+
+
+@pytest.mark.parametrize("sort_key", ["sessions", "unknown"])
+def test_session_sort_rejects_missing_attributes_and_lists_only_valid_keys(
+    monkeypatch: pytest.MonkeyPatch,
+    sort_key: str,
+) -> None:
+    first, second = _session("first"), _session("second")
+    first.start_time = datetime(2026, 1, 1, tzinfo=UTC)
+    second.start_time = datetime(2026, 1, 2, tzinfo=UTC)
+    stats = [first, second]
+    messages: list[tuple[str, dict[str, str]]] = []
+
+    def translate(key: str, **kwargs: str) -> str:
+        messages.append((key, kwargs))
+        return key
+
+    monkeypatch.setattr(usage_cli, "t", translate)
+    monkeypatch.setattr(usage_cli.console, "print", lambda value: None)
+
+    usage_cli._apply_sort(stats, sort_key, False, "start_time", True)
+
+    assert stats == [second, first]
+    assert messages == [
+        (
+            "unknown_sort_field",
+            {
+                "field": sort_key,
+                "valid": "tokens, cost, messages, time, input, output",
+            },
+        )
+    ]
+
+
+def test_sessions_command_falls_back_for_sessions_sort(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setattr(sys, "argv", ["usage", "sessions", "--sort", "sessions"])
+    monkeypatch.setattr(
+        usage_cli, "detect_agents", lambda: [AgentInfo("codex", "Codex", "/fake", True)]
+    )
+    monkeypatch.setattr(usage_cli, "is_setup", lambda: True)
+    monkeypatch.setattr(usage_cli, "_load_entries", lambda agent_id, hours_back=0: [_entry()])
+    rendered: list[SessionStats] = []
+    monkeypatch.setattr(usage_cli, "render_sessions", lambda stats, limit: rendered.extend(stats))
+
+    usage_cli.main()
+
+    assert len(rendered) == 1
+    assert rendered[0].session_id == "session-1"
+    assert "sessions" in capsys.readouterr().out

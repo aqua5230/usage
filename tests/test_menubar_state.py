@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import time
 from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 from pathlib import Path, PurePosixPath, PureWindowsPath
@@ -694,3 +695,40 @@ def test_history_exception_returns_partial_entries_without_caching(
     assert menubar_state.app_load_history_entries(app, scan=scan) == [entry] * 4
     assert app._history_entries_cache == [entry] * 4
     assert attempts == dict.fromkeys(["claude", "codex", "grok", "muse"], 2)
+
+
+@pytest.mark.skipif(not hasattr(time, "tzset"), reason="requires time.tzset")
+@pytest.mark.parametrize(
+    ("now", "timestamp"),
+    [
+        ("2026-11-01T12:00:00-05:00", "2026-11-01T00:30:00-04:00"),
+        ("2026-03-08T12:00:00-04:00", "2026-03-08T00:30:00-05:00"),
+    ],
+)
+def test_project_rows_today_uses_dst_midnight(
+    monkeypatch: pytest.MonkeyPatch, now: str, timestamp: str
+) -> None:
+    entry = UsageEntry(
+        timestamp=datetime.fromisoformat(timestamp),
+        session_id="session",
+        message_id="message",
+        request_id="request",
+        model="test",
+        input_tokens=100,
+        output_tokens=0,
+        cache_creation_tokens=0,
+        cache_read_tokens=0,
+        cost_usd=1.0,
+        project="today",
+    )
+    try:
+        with monkeypatch.context() as local:
+            local.setenv("TZ", "America/New_York")
+            if hasattr(time, "tzset"):
+                time.tzset()
+            rows = menubar_state.project_rows_for_windows([entry], now=datetime.fromisoformat(now))
+            assert rows[0] == [("today", 100, 1.0)]
+            assert rows[1] == []
+    finally:
+        if hasattr(time, "tzset"):
+            time.tzset()

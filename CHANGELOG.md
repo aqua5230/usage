@@ -7,6 +7,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+- **Turning off the status line from the menu now stays off after a restart.** The app used to turn it back on at the next launch. Uninstalling also restores your own status line if you had turned it off, instead of deleting it.
+- **A broken `~/.claude/settings.json` no longer stops the menu bar app from starting.** The app skips the setup prompt and keeps showing usage for every tool.
+- **Uninstalling removes everything usage added to Claude Code.** `usage unsetup` and `--unsetup` now also turn off the quota reminder hook, the side panel and beginner mode; your own hooks and settings stay.
+- **Antigravity usage updates while a conversation is still running.** New usage written to the database's journal file used to wait until the conversation ended.
+- **A custom Claude Code data folder (`CLAUDE_CONFIG_DIR`) refreshes as fast as the default one.** Changes there could take up to 15 minutes to appear.
+- **The Codex reset time no longer keeps moving.** When Codex reports only "resets in N seconds", the countdown now starts from when that message was logged, not from each refresh.
+- **The terminal report shows local times.** Reset times and session start times were shown in UTC, and daily averages near midnight used the UTC date. Tables whose records all have zero tokens no longer crash, the per-minute rate in the blocks view no longer counts cache reads (matching the menu bar), and `usage sessions --sort sessions` falls back to the default order instead of crashing.
+- **The HTML report's Today, Last 7 days, Last 30 days and This month count from the day the report was made.** They used to count from the last day with usage, so Today could show a day from last week. The report also opens after you change time zones, or when a transcript has a timestamp without a time zone.
+- **The menu bar icons follow the top three tools even when their percentages are equal.** On daylight saving days, the Today project ranking also counts the first hour correctly.
+- **Codex setup no longer edits text inside your `config.toml` instructions.** If a multi-line instruction contains a line such as `[tui]`, setup leaves the file unchanged and asks you to adjust `status_line` by hand.
+- **The curl install script and the LaunchAgent script work again.** The install script downloaded the hook from a folder that no longer exists, and the LaunchAgent script failed on accounts without `~/Library/LaunchAgents`.
+
 ## [0.34.11] - 2026-11-04
 
 ### Changed

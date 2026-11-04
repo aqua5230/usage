@@ -3590,3 +3590,150 @@ def test_menubar_countdown_ranks_as_full_and_preserves_codex_path(
         "2h55m",
         "40%",
     ]
+
+
+@pytest.mark.parametrize("content", ["{broken JSON", "[]"])
+@pytest.mark.parametrize("debug", ["0", "1"])
+def test_forwarder_prompt_skips_invalid_settings(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+    content: str,
+    debug: str,
+) -> None:
+    from installer import setup_hook
+
+    settings = tmp_path / "settings.json"
+    settings.write_text(content)
+    monkeypatch.setattr(setup_hook, "_claude_settings_path", lambda: settings)
+    monkeypatch.setenv("USAGE_DEBUG", debug)
+
+    def unexpected_alert() -> None:
+        pytest.fail("invalid settings must skip the prompt")
+
+    monkeypatch.setattr(menubar_actions, "_make_alert", unexpected_alert)
+    menubar_actions.show_forwarder_mode_prompt_if_needed("en")
+
+    assert settings.read_text() == content
+    assert ("forwarder prompt check failed" in caplog.text) == (debug == "1")
+
+
+@pytest.mark.parametrize("content", ["{broken JSON", "[]"])
+def test_main_reaches_menubar_with_invalid_claude_settings(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    content: str,
+) -> None:
+    import main
+    from installer import setup_hook
+    from usage_common import usage_dir_sweeper
+
+    settings = tmp_path / "settings.json"
+    settings.write_text(content)
+    monkeypatch.setattr(setup_hook, "_claude_settings_path", lambda: settings)
+    monkeypatch.setattr(main, "PREFERENCES_FILE", tmp_path / "preferences.json")
+    monkeypatch.setattr(usage_dir_sweeper, "sweep_stale_temp_files", lambda: None)
+    monkeypatch.setattr(sys, "argv", ["usage"])
+    calls: list[dict[str, object]] = []
+    fake_menubar = SimpleNamespace(
+        show_forwarder_mode_prompt_if_needed=menubar_actions.show_forwarder_mode_prompt_if_needed,
+        run_app=lambda **kwargs: calls.append(kwargs),
+    )
+    monkeypatch.setattr(main, "_import_module_with_oserror_retry", lambda name: fake_menubar)
+
+    main.main()
+
+    assert len(calls) == 1
+    assert settings.read_text() == content
+
+
+@pytest.mark.parametrize("result", [1000, 1001])
+def test_forwarder_prompt_survives_settings_corrupted_during_alert(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    result: int,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    from installer import setup_hook
+
+    settings = tmp_path / "settings.json"
+    settings.write_text(json.dumps({"statusLine": {"type": "command", "command": "echo external"}}))
+    monkeypatch.setattr(setup_hook, "_claude_settings_path", lambda: settings)
+    monkeypatch.setattr(setup_hook, "_migrate_from_legacy_usage", lambda: None)
+    monkeypatch.setenv("USAGE_DEBUG", "1")
+
+    def show_alert() -> int:
+        settings.write_text("{broken JSON")
+        return result
+
+    alert = SimpleNamespace(
+        setMessageText_=lambda text: None,
+        setInformativeText_=lambda text: None,
+        addButtonWithTitle_=lambda text: None,
+        runModal=show_alert,
+    )
+    monkeypatch.setattr(menubar_actions, "_make_alert", lambda: alert)
+
+    menubar_actions.show_forwarder_mode_prompt_if_needed("en")
+
+    assert settings.read_text() == "{broken JSON"
+    assert "forwarder prompt dismissal failed" in caplog.text
+    assert ("forwarder setup failed" in caplog.text) == (result == 1000)
+
+
+def test_button_title_refreshes_icons_when_top_providers_change(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from dataclasses import replace
+
+    def quota(percent: int) -> menubar_state.QuotaRowState:
+        return menubar_state._quota_row(
+            "Session", percent, time.time() + 3600, time.time(), menubar_state.CLAUDE_COLOR
+        )
+
+    state = replace(
+        menubar._empty_state(language="en"),
+        hide_claude=False,
+        hide_codex=False,
+        hide_agy=False,
+        hide_grok=False,
+        hide_muse=True,
+        claude_session=quota(50),
+        codex_session=quota(40),
+        agy_session=quota(30),
+        grok_weekly=quota(20),
+    )
+    plain: list[str] = []
+    drawn: list[object] = []
+    button = SimpleNamespace(setTitle_=plain.append, setAttributedTitle_=drawn.append)
+    app = SimpleNamespace(
+        interval=60,
+        codex_5h_pct=40,
+        _last_button_title_key=None,
+        _last_plain_title_key=None,
+        status_item=SimpleNamespace(button=lambda: button),
+        _panel_window_is_visible=lambda: False,
+        _reschedule_poll_timer=lambda interval: None,
+    )
+    monkeypatch.setattr(
+        menubar_title,
+        "_menubar_attributed_title",
+        lambda app, state: menubar_title._menubar_items(app, state),
+    )
+    menubar_title._set_button_title(app, state)
+    state = replace(state, agy_session=quota(0), grok_weekly=quota(30))
+    menubar_title._set_button_title(app, state)
+    menubar_title._set_button_title(app, state)
+
+    assert plain == ["50% · 40% · 30%"]
+    assert len(drawn) == 2
+    assert drawn[0] == [
+        (menubar_chrome._claude_menubar_icon, "50%"),
+        (menubar_chrome._codex_menubar_icon, "40%"),
+        (menubar_chrome._agy_menubar_icon, "30%"),
+    ]
+    assert drawn[1] == [
+        (menubar_chrome._claude_menubar_icon, "50%"),
+        (menubar_chrome._codex_menubar_icon, "40%"),
+        (menubar_chrome._grok_menubar_icon, "30%"),
+    ]

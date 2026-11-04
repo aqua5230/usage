@@ -231,11 +231,19 @@ def main() -> None:
             session_hooks._migrate_bundled_python_commands_if_needed()
         raise SystemExit(exit_code)
     if args.unsetup:
-        from installer.session_hooks import disable_session_resume, disable_terse_mode
+        from installer.claude_pane import disable_claude_beginner, disable_claude_pane
+        from installer.session_hooks import (
+            disable_quota_aware,
+            disable_session_resume,
+            disable_terse_mode,
+        )
         from installer.setup_hook import unsetup
 
         disable_session_resume()
         disable_terse_mode()
+        disable_quota_aware()
+        disable_claude_pane()
+        disable_claude_beginner()
         raise SystemExit(unsetup())
     preferences_snapshot = _load_preferences()
     _self_heal()

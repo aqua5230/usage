@@ -35,7 +35,7 @@ from menubar.state import PopoverState, QuotaRowState, _format_percent
 class _TitleApp(Protocol):
     _menubar_text_cache: dict[str, Any]
     codex_5h_pct: float | None
-    _last_button_title_key: tuple[str] | None
+    _last_button_title_key: tuple[Any, ...] | None
     _last_plain_title_key: tuple[str] | None
     status_item: Any
     interval: float
@@ -166,7 +166,7 @@ def _menubar_attributed_title(app: _TitleApp, state: PopoverState) -> Any:
 def _set_button_title(app: _TitleApp, state: PopoverState) -> None:
     app._reschedule_poll_timer(menubar_poll_interval(app, state))
     title = _compose_title(app, state)
-    title_key = (title,)
+    title_key = (title, tuple(icon for icon, _text in _menubar_items(app, state)))
     if app._last_button_title_key == title_key:
         return
 

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import os
 import sqlite3
+from contextlib import closing
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -341,6 +342,27 @@ def test_load_entries_reparses_database_when_mtime_changes(
     agy_loader.load_entries_with_stats()
 
     assert parse_calls == 2
+
+
+def test_load_entries_sees_generations_committed_only_to_wal(sessions_dir: Path) -> None:
+    now = datetime.now(UTC)
+    path = sessions_dir / "wal.db"
+    _write_database(path, [_generation_blob(timestamp=now, dedup_key="first")], now)
+    with closing(sqlite3.connect(path)) as writer:
+        writer.execute("PRAGMA journal_mode=WAL")
+        writer.execute("PRAGMA wal_autocheckpoint=0")
+        assert len(agy_loader.load_entries_with_stats().entries) == 1
+
+        blob = _generation_blob(timestamp=now, dedup_key="second")
+        writer.execute(
+            "INSERT INTO gen_metadata (idx, data, size) VALUES (?, ?, ?)", (1, blob, len(blob))
+        )
+        writer.commit()
+        assert len(agy_loader.load_entries_with_stats().entries) == 2
+
+        stale = (now - timedelta(days=2)).timestamp()
+        os.utime(path, (stale, stale))
+        assert len(agy_loader.load_entries_with_stats(hours_back=24).entries) == 2
 
 
 def test_load_entries_reuses_disk_cache_after_reseed(

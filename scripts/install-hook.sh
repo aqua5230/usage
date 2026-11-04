@@ -17,7 +17,7 @@ SETTINGS_PATH="${CLAUDE_DIR}/settings.json"
 mkdir -p "${CLAUDE_DIR}"
 
 echo "↓ 下載 hook 腳本到 ${HOOK_PATH}"
-curl -fsSL "${REPO_RAW}/hooks/usage_statusline.py" -o "${HOOK_PATH}"
+curl -fsSL "${REPO_RAW}/usage_hooks/usage_statusline.py" -o "${HOOK_PATH}"
 chmod +x "${HOOK_PATH}"
 
 PYTHON_BIN="$(command -v python3 || echo /usr/bin/python3)"

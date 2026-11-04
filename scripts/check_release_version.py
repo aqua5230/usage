@@ -7,6 +7,8 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
+import tomllib
+from pathlib import Path
 
 from updates.checker import compare_versions
 
@@ -47,6 +49,16 @@ def main(argv: list[str]) -> int:
         return 2
     repo, tag = argv
     version = tag[1:] if tag.startswith("v") else tag
+
+    with (Path(__file__).resolve().parent.parent / "pyproject.toml").open("rb") as source:
+        project_version = tomllib.load(source)["project"]["version"]
+    if version != project_version:
+        print(
+            f"::error::Tag {tag!r} ({version}) does not match "
+            f"pyproject.toml project.version ({project_version}).",
+            file=sys.stderr,
+        )
+        return 1
 
     latest = _latest(_published_versions(repo))
     if latest is None:

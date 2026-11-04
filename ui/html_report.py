@@ -753,7 +753,7 @@ def _date_filter(data: Mapping[str, Any], lang: str) -> str:
     if not isinstance(dates, list) or not dates:
         return ""
     date_min = _escape(dates[0])
-    date_max = _escape(dates[-1])
+    date_max = _escape(max(dates[-1], cube.get("today") or dates[-1]))
     buttons = "".join(
         f'<button type="button" data-range="{key}">{_escape(_t(lang, label))}</button>'
         for key, label in (

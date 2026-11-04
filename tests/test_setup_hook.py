@@ -15,6 +15,7 @@ from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from pathlib import Path
 from types import SimpleNamespace
+from typing import Any
 
 import pytest
 
@@ -1370,3 +1371,174 @@ def test_statusline_forwarder_version_matches_hook_constant() -> None:
     match = re.search(r'^__version__ = "([^"]+)"$', source, re.M)
     assert match, "usage_statusline_forwarder.py has no __version__ line"
     assert match.group(1) == setup_hook.FORWARDER_VERSION
+
+
+@pytest.mark.parametrize("parked_kind", ["usage", "external", "null"])
+def test_self_heal_respects_disabled_statusline(
+    monkeypatch: pytest.MonkeyPatch, setup_paths: SetupHookPaths, parked_kind: str
+) -> None:
+    parked = {
+        "usage": {
+            "type": "command",
+            "command": expected_statusline_command(setup_paths.hook_target),
+        },
+        "external": {"type": "command", "command": "echo original"},
+        "null": None,
+    }[parked_kind]
+    setup_paths.settings.write_text(json.dumps({"usage": {"disabledStatusLine": parked}}))
+    calls: list[str] = []
+
+    def install() -> int:
+        calls.append("setup")
+        return 0
+
+    monkeypatch.setattr(session_hooks, "setup", install)
+
+    session_hooks.self_heal()
+
+    assert calls == []
+    assert "statusLine" not in setup_hook._load_settings()
+    assert setup_hook._load_settings()["usage"]["disabledStatusLine"] == parked
+
+
+@pytest.mark.parametrize(
+    ("active", "parked", "previous", "expected", "keep_parked"),
+    [
+        ("usage", None, "original", "original", False),
+        (None, "usage", "original", "original", False),
+        (None, "external", None, "external", False),
+        ("usage", "external", None, "external", False),
+        ("external", "parked", None, "external", True),
+    ],
+)
+def test_unsetup_preserves_parked_statusline(
+    monkeypatch: pytest.MonkeyPatch,
+    setup_paths: SetupHookPaths,
+    active: str | None,
+    parked: str | None,
+    previous: str | None,
+    expected: str,
+    keep_parked: bool,
+) -> None:
+    def statusline(kind: str) -> dict[str, str]:
+        command = (
+            expected_statusline_command(setup_paths.hook_target)
+            if kind == "usage"
+            else f"echo {kind}"
+        )
+        return {"type": "command", "command": command}
+
+    settings: dict[str, Any] = {"env": {"KEEP": "yes"}, "usage": {"keep": True}}
+    if active is not None:
+        settings["statusLine"] = statusline(active)
+    if parked is not None:
+        settings["usage"]["disabledStatusLine"] = statusline(parked)
+    if previous is not None:
+        settings["usage"]["previousStatusLine"] = statusline(previous)
+    setup_hook._save_settings(settings)
+    monkeypatch.setattr(
+        setup_hook, "LEGACY_TT_HOOK_TARGET", setup_paths.settings.parent / "tt-statusline.py"
+    )
+
+    assert setup_hook.unsetup() == 0
+
+    result = setup_hook._load_settings()
+    assert result["statusLine"] == statusline(expected)
+    assert result["env"] == {"KEEP": "yes"}
+    assert result["usage"]["keep"] is True
+    assert ("disabledStatusLine" in result["usage"]) == keep_parked
+    if keep_parked:
+        assert result["usage"]["disabledStatusLine"] == statusline("parked")
+
+
+def test_unsetup_keeps_parked_backup_when_save_fails(
+    monkeypatch: pytest.MonkeyPatch, setup_paths: SetupHookPaths
+) -> None:
+    settings = {
+        "usage": {
+            "disabledStatusLine": {
+                "type": "command",
+                "command": expected_statusline_command(setup_paths.hook_target),
+            },
+            "previousStatusLine": {"type": "command", "command": "echo original"},
+        }
+    }
+    setup_hook._save_settings(settings)
+    before = setup_paths.settings.read_bytes()
+
+    def fail_save(_settings: dict[str, Any]) -> None:
+        raise OSError("save failed")
+
+    monkeypatch.setattr(setup_hook, "_save_settings", fail_save)
+    with pytest.raises(OSError, match="save failed"):
+        setup_hook.unsetup()
+    assert setup_paths.settings.read_bytes() == before
+
+
+@pytest.mark.parametrize("operation", ["replace", "insert", "remove", "ensure"])
+def test_toml_edits_reject_fake_headers_in_multiline_instructions(operation: str) -> None:
+    name = "features" if operation == "ensure" else "tui"
+    line = "hooks = false" if operation == "ensure" else 'status_line = ["model"]'
+    content = (
+        'developer_instructions = """\nKeep this example:\n'
+        f'[{name}]\n{line}\n"""\n\n[{name}]\n{line}\n'
+    )
+    if operation == "replace":
+        result = setup_hook._replace_tui_status_line(content, 'status_line = ["usage"]')
+    elif operation == "insert":
+        content = content.rsplit(line, 1)[0] + "keep = true\n"
+        result = setup_hook._insert_tui_status_line(content, 'status_line = ["usage"]')
+    elif operation == "remove":
+        result = setup_hook._remove_tui_status_line(content)
+    else:
+        result = setup_hook._ensure_table_line(
+            content, "features", session_hooks._FEATURES_HOOKS_REGEX, "hooks = true"
+        )
+    assert result == content
+
+
+def test_codex_setup_preserves_multiline_instructions_and_reports_rejected_edit(
+    setup_paths: SetupHookPaths, capsys: pytest.CaptureFixture[str]
+) -> None:
+    content = (
+        'developer_instructions = """\nKeep this example:\n[tui]\n'
+        'status_line = ["model"]\n"""\n\n[tui]\nstatus_line = ["model"]\n'
+    )
+    setup_hook.CODEX_CONFIG.parent.mkdir()
+    setup_hook.CODEX_CONFIG.write_text(content)
+
+    setup_hook._setup_codex()
+
+    assert setup_hook.CODEX_CONFIG.read_text() == content
+    output = capsys.readouterr().out
+    assert t("setup_codex_config_unmodifiable") in output
+    assert t("setup_codex_configured") not in output
+
+
+def test_codex_setup_verifies_written_statusline(
+    monkeypatch: pytest.MonkeyPatch,
+    setup_paths: SetupHookPaths,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    setup_hook.CODEX_CONFIG.parent.mkdir()
+    setup_hook.CODEX_CONFIG.write_text('[tui]\nstatus_line = ["model"]\n')
+    monkeypatch.setattr(setup_hook, "_atomic_write_text", lambda path, text: None)
+
+    setup_hook._setup_codex()
+
+    output = capsys.readouterr().out
+    assert t("setup_codex_config_unmodifiable") in output
+    assert t("setup_codex_configured") not in output
+
+
+def test_grok_edit_rejects_fake_header_in_multiline_instructions() -> None:
+    content = (
+        'developer_instructions = """\n[ui.status_line]\ntype = "builtin"\n"""\n'
+        '[ui.status_line]\ntype = "builtin"\n'
+    )
+    assert (
+        setup_hook._replace_grok_status_line(
+            content, '[ui.status_line]\ntype = "command"\ncommand = "echo usage"\n'
+        )
+        is None
+    )

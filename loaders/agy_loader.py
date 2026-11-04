@@ -38,7 +38,7 @@ AGY_SESSIONS_DIR = Path(os.path.expanduser("~/.gemini/antigravity-cli/conversati
 # below that count evicts databases parsed during the prior refresh, causing a
 # permanent full SQLite/protobuf reparse on every load (LRU thrashing).
 _FILE_CACHE_MAXSIZE = 4096
-_AGY_DB_CACHE_SCHEMA = 3
+_AGY_DB_CACHE_SCHEMA = 4
 AGY_CACHE_PATH = Path(os.path.expanduser("~/.usage/agy_db_cache.json"))
 _disk_cache_seeded = False
 _DISK_CACHE_FLUSH_INTERVAL_S = 300.0
@@ -92,6 +92,7 @@ class _FileCacheEntry:
     size: int
     entries: list[AgyUsageEntry]
     skipped_missing_dedup_key: int
+    wal: tuple[int, int] | None = None
 
 
 _file_cache: OrderedDict[Path, _FileCacheEntry] = OrderedDict()
@@ -120,22 +121,24 @@ def load_entries_with_stats(hours_back: int = 0) -> AgyLoadResult:
     skipped_missing_dedup_key = 0
     cutoff_ts = cutoff.timestamp() if cutoff else None
     file_cache_snapshot = {
-        str(path): (entry.mtime, entry.size) for path, entry in _file_cache.items()
+        str(path): (entry.mtime, entry.size, entry.wal) for path, entry in _file_cache.items()
     }
     for path in AGY_SESSIONS_DIR.glob("*.db"):
         if cutoff_ts is not None:
             try:
-                if path.stat().st_mtime < cutoff_ts:
-                    continue
+                modified = path.stat().st_mtime
             except OSError as exc:
                 logger.warning("failed to stat Antigravity database %s: %s", path, exc)
+                continue
+            wal = _wal_fingerprint(path)
+            if max(modified, wal[0] / 1e9 if wal else 0.0) < cutoff_ts:
                 continue
         file_entries, skipped = _load_database(path, cutoff, seen_dedup_keys)
         entries.extend(file_entries)
         skipped_missing_dedup_key += skipped
 
     if {
-        str(path): (entry.mtime, entry.size) for path, entry in _file_cache.items()
+        str(path): (entry.mtime, entry.size, entry.wal) for path, entry in _file_cache.items()
     } != file_cache_snapshot:
         _disk_cache_dirty = True
         _flush_caches_to_disk()
@@ -176,6 +179,15 @@ def flush_caches_on_terminate() -> None:
     _flush_caches_on_terminate(lambda: _flush_caches_to_disk(force=True))
 
 
+def _wal_fingerprint(path: Path) -> tuple[int, int] | None:
+    """Return the ``-wal`` file's (mtime_ns, size); WAL commits leave the main file untouched."""
+    try:
+        stat = Path(f"{path}-wal").stat()
+    except OSError:
+        return None
+    return (stat.st_mtime_ns, stat.st_size)
+
+
 def _load_database(
     path: Path,
     cutoff: datetime | None,
@@ -187,8 +199,14 @@ def _load_database(
         logger.warning("failed to stat Antigravity database %s: %s", path, exc)
         return [], 0
 
+    wal = _wal_fingerprint(path)
     cached = _file_cache.get(path)
-    if cached is not None and cached.mtime == st.st_mtime and cached.size == st.st_size:
+    if (
+        cached is not None
+        and cached.mtime == st.st_mtime
+        and cached.size == st.st_size
+        and cached.wal == wal
+    ):
         _file_cache.move_to_end(path)
         return _filter_entries(
             cached.entries,
@@ -208,6 +226,7 @@ def _load_database(
         size=st.st_size,
         entries=parsed_entries,
         skipped_missing_dedup_key=skipped_missing_dedup_key,
+        wal=wal,
     )
     return _filter_entries(parsed_entries, skipped_missing_dedup_key, cutoff, seen_dedup_keys)
 

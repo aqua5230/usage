@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import contextlib
+from bisect import bisect_right
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
@@ -146,6 +147,7 @@ class CubeModelData(TypedDict):
 
 
 class CubeReportData(TypedDict):
+    today: NotRequired[str]
     dates: list[str]
     agents: list[CubeAgentData]
     models: list[CubeModelData]
@@ -1236,6 +1238,7 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
         )
     cube_rows.sort(key=lambda row: (row[0], row[1], row[2], row[3]))
     cube: CubeReportData = {
+        "today": today.isoformat(),
         "dates": cube_dates,
         "agents": cube_agents,
         "models": cube_models,
@@ -1293,7 +1296,7 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
         start_time = _session_start_text(session.start_time)
         session_rows.append(
             {
-                "date_idx": date_indices[start_time[:10]],
+                "date_idx": max(0, bisect_right(cube_dates, start_time[:10]) - 1),
                 "project_idx": project_indices[session.project or "unknown"],
                 "model_idx": model_indices[session.model or "unknown"],
                 "start_time": start_time,

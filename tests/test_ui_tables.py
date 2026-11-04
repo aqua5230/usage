@@ -6,12 +6,21 @@
 
 from __future__ import annotations
 
+import time
 from collections import defaultdict
+from collections.abc import Iterator
+from datetime import UTC, datetime, tzinfo
+from io import StringIO
 from types import SimpleNamespace
+from typing import Self
 
 import pytest
+from rich.console import Console
+from rich.text import Text
 
+from adapters.types import DailyStats, MonthlyStats, P90Limits, SessionStats, WeeklyStats
 from ui import tables
+from usage_common.i18n import t
 
 
 @pytest.mark.parametrize(
@@ -161,3 +170,93 @@ def test_group_by_agent_returns_lists_keyed_by_agent_id() -> None:
             "codex": [codex],
         },
     )
+
+
+@pytest.mark.parametrize("kind", ["daily", "weekly", "sessions"])
+def test_zero_usage_tables_render(monkeypatch: pytest.MonkeyPatch, kind: str) -> None:
+    output = StringIO()
+    monkeypatch.setattr(tables, "console", Console(file=output, width=140))
+    if kind == "daily":
+        tables.render_daily([DailyStats("2026-11-04")])
+    elif kind == "weekly":
+        tables.render_weekly([WeeklyStats("2026-W45")])
+    else:
+        tables.render_sessions([_session(datetime(2026, 11, 4, tzinfo=UTC))])
+    assert "0" in output.getvalue()
+
+
+def _session(start: datetime) -> SessionStats:
+    return SessionStats(
+        session_id="test",
+        project="test",
+        model="test",
+        start_time=start,
+        end_time=start,
+        duration_minutes=0,
+    )
+
+
+@pytest.fixture
+def taipei_timezone(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
+    if not hasattr(time, "tzset"):
+        pytest.skip("requires time.tzset")
+    try:
+        with monkeypatch.context() as zone_patch:
+            zone_patch.setenv("TZ", "Asia/Taipei")
+            time.tzset()
+            yield
+    finally:
+        time.tzset()
+
+
+def test_rate_bar_shows_local_reset_time(taipei_timezone: None) -> None:
+    lines = Text()
+    reset = datetime(2026, 11, 4, 2, tzinfo=UTC)
+    tables._render_rate_bar(lines, "5h", 20, int(reset.timestamp()), 20)
+    assert "10:00" in lines.plain
+
+
+@pytest.mark.parametrize("recent", [False, True])
+def test_session_tables_show_local_time(
+    monkeypatch: pytest.MonkeyPatch, taipei_timezone: None, recent: bool
+) -> None:
+    output = StringIO()
+    monkeypatch.setattr(tables, "console", Console(file=output, width=140))
+    session = _session(datetime(2026, 11, 4, 2, tzinfo=UTC))
+    session.total_tokens = 10
+    render = tables._render_recent_sessions if recent else tables.render_sessions
+    render([session])
+    assert "11-04 10:00" in output.getvalue()
+
+
+@pytest.mark.parametrize("section", ["week", "month", "daily"])
+def test_daily_averages_use_local_calendar(
+    monkeypatch: pytest.MonkeyPatch, taipei_timezone: None, section: str
+) -> None:
+    # Taipei Monday, June 1 00:30; UTC is still Sunday, May 31.
+    fixed = datetime(2026, 5, 31, 16, 30, tzinfo=UTC)
+
+    class Clock(datetime):
+        @classmethod
+        def now(cls, tz: tzinfo | None = None) -> Self:
+            return cls.fromtimestamp(fixed.timestamp(), tz)
+
+    monkeypatch.setattr(tables, "datetime", Clock)
+    output = StringIO()
+    monkeypatch.setattr(tables, "console", Console(file=output, width=140))
+    week = WeeklyStats("2026-W23", total_tokens=7000, cost_usd=7)
+    expected = t("daily_avg", cost="$7.00")
+    if section == "week":
+        lines = Text()
+        tables._render_week_section(lines, week)
+        rendered = lines.plain
+    elif section == "month":
+        tables._render_month_overview(MonthlyStats("2026-06", cost_usd=7))
+        rendered = output.getvalue()
+        expected = t("daily_avg_colon") + "$7.00"
+    else:
+        tables._render_daily_panel(DailyStats("2026-06-01"), None, P90Limits(), week)
+        rendered = output.getvalue()
+    assert expected in rendered
+    if section != "month":
+        assert t("rate_per_day", rate="7.0K") in rendered

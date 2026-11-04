@@ -870,13 +870,15 @@ def test_cube_boundary_values_do_not_create_empty_indexes(
     monkeypatch.setattr(reporter, "is_model_priced", lambda _model: False)
 
     empty = reporter.build_report_data([agent], "today")
-    assert empty["cube"] == {
+    expected_cube: reporter.CubeReportData = {
+        "today": "2026-05-21",
         "dates": [],
         "agents": [],
         "models": [],
         "projects": [],
         "rows": [],
     }
+    assert empty["cube"] == expected_cube
     assert empty["sessions"] == []
 
     entries.append(
@@ -1016,3 +1018,55 @@ def test_ledger_gap_preserves_composition_sessions_and_snapshot(
     snapshot = json.loads(usage_snapshot.SNAPSHOT_PATH.read_text())
     assert all(not row["session_id"].startswith("usage-ledger:") for row in snapshot["rows"])
     assert all(not key.startswith("usage-ledger:") for key in snapshot["sessions"])
+
+
+@pytest.mark.skipif(not hasattr(time, "tzset"), reason="requires time.tzset")
+def test_snapshot_report_survives_timezone_change(monkeypatch: pytest.MonkeyPatch) -> None:
+    from analyzer import usage_snapshot
+
+    entry = _entry(
+        when=datetime(2026, 9, 1, 16, 30, tzinfo=UTC),
+        session_id="snapshot-only",
+        model="gpt-demo",
+        project="demo",
+        agent_id="codex",
+        input_tokens=100,
+    )
+    with monkeypatch.context() as zone_patch:
+        zone_patch.setenv("TZ", "Asia/Taipei")
+        if hasattr(time, "tzset"):
+            time.tzset()
+        usage_snapshot.record_entries([entry])
+    if hasattr(time, "tzset"):
+        time.tzset()
+    assert usage_snapshot.read_snapshot()["rows"][0]["date"] == "2026-09-02"
+    monkeypatch.setattr(reporter, "datetime", _fixed_datetime(datetime(2026, 9, 8, tzinfo=UTC)))
+    monkeypatch.setattr(reporter, "_load_agent_entries", lambda *_args: [])
+
+    data = reporter.build_report_data([AgentInfo("codex", "Codex", "unused", True)], "month")
+
+    assert data["cube"]["dates"] == ["2026-09-02"]
+    assert data["sessions"][0]["date_idx"] == 0
+    assert data["summary"]["total_tokens"] == 100
+
+
+@pytest.mark.parametrize("period", ["today", "last7", "last30", "month", "all"])
+def test_report_cube_uses_generation_date(monkeypatch: pytest.MonkeyPatch, period: str) -> None:
+    monkeypatch.setattr(reporter, "datetime", _fixed_datetime(datetime(2026, 11, 4, tzinfo=UTC)))
+    entry = _entry(
+        when=datetime(2026, 10, 30, 12, tzinfo=UTC),
+        session_id="old",
+        model="gpt-demo",
+        project="demo",
+        agent_id="codex",
+        input_tokens=100,
+    )
+    monkeypatch.setattr(reporter, "_load_agent_entries", lambda *_args: [entry])
+    data = reporter.build_report_data([AgentInfo("codex", "Codex", "unused", True)], period)
+
+    assert data["cube"]["today"] == "2026-11-04"
+    assert data["date_to"] == "2026-11-04"
+    if period in ("today", "month"):
+        assert data["date_from"] == ("2026-11-04" if period == "today" else "2026-11-01")
+        assert data["summary"]["total_tokens"] == 0
+        assert all(point["tokens"] == 0 for point in data["daily_trend"])

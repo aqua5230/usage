@@ -20,6 +20,7 @@ fi
 rm -f "${LEGACY_PLIST}"
 
 mkdir -p "${HOME}/Library/Logs/usage"
+mkdir -p "${HOME}/Library/LaunchAgents"
 
 echo "正在生成設定檔..."
 sed -e "s|__PROJECT_DIR__|${PROJECT_DIR}|g" \

@@ -934,3 +934,57 @@ def test_report_filter_javascript_interactions_and_boundaries(tmp_path: Path) ->
         "ledger: filtered totals retained; composition, hit rates, sessions unchanged",
         "daily chart: date range rebuilds pricing; tokens/cost toggle redraws",
     ]
+
+
+@pytest.mark.skipif(NODE is None, reason="Node.js is unavailable")
+def test_shortcuts_use_generation_date_and_render_empty_charts(tmp_path: Path) -> None:
+    prefix = NODE_HARNESS.split("const cube = {", 1)[0]
+    script = prefix.replace("__REPORT_DAILY_CHART_JS__", json.dumps(REPORT_DAILY_CHART_JS)).replace(
+        "__REPORT_FILTER_JS__", json.dumps(REPORT_FILTER_JS)
+    )
+    script += r"""
+const cube = {
+  today: '2026-11-04',
+  dates: ['2026-10-01', '2026-10-30'],
+  agents: [{id: 'codex', name: 'Codex'}],
+  models: [{name: 'gpt-demo', cost_known: true}],
+  projects: ['demo'],
+  rows: [[1, 0, 0, 0, 100, 0, 0, 0, 1, 1]],
+};
+const env = run(makeEnvironment(cube, {}, false, [], true));
+const api = window.usageReportFilter;
+for (const [key, from, to, tokens] of [
+  ['today', '2026-11-04', '2026-11-04', 0],
+  ['last7', '2026-10-29', '2026-11-04', 100],
+  ['last30', '2026-10-06', '2026-11-04', 100],
+  ['month', '2026-11-01', '2026-11-04', 0],
+]) {
+  assert.deepEqual(api.rangeBounds(key), {from, to});
+  const summary = api.applyBounds(api.rangeBounds(key));
+  assert.equal(summary.tokens, tokens);
+  const rendered = JSON.stringify([
+    summary, env.toolsSection.textContent, env.projectSection.textContent,
+    env.trendSection.textContent, env.compositionSection.textContent,
+    env.sessionSection.textContent, env.pricingSection.textContent,
+  ]);
+  assert.equal(rendered.includes('NaN'), false);
+  assert.equal(rendered.includes('Infinity'), false);
+}
+assert.deepEqual(api.normalizeBounds('2026-11-04', '2099-01-01'),
+  {from: '2026-11-04', to: '2026-11-04'});
+// An old report still uses its last data day.
+delete cube.today;
+run(makeEnvironment(cube));
+assert.deepEqual(window.usageReportFilter.rangeBounds('today'),
+  {from: '2026-10-30', to: '2026-10-30'});
+// Future data remains accessible, while shortcuts use the generation date.
+cube.today = '2026-10-15';
+run(makeEnvironment(cube));
+assert.deepEqual(window.usageReportFilter.rangeBounds('today'),
+  {from: '2026-10-15', to: '2026-10-15'});
+assert.deepEqual(window.usageReportFilter.normalizeBounds('2026-10-01', '2099-01-01'),
+  {from: '2026-10-01', to: '2026-10-30'});
+"""
+    path = tmp_path / "shortcuts.cjs"
+    path.write_text(script, encoding="utf-8")
+    subprocess.run([NODE or "node", str(path)], check=True, capture_output=True, text=True)
