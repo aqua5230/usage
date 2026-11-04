@@ -7,6 +7,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.34.11] - 2026-11-04
+
+### Changed
+- **Report charts now state their conclusion.** Each section title says what the data shows, such as "Claude Code leads with 66% of tokens", with a subtitle and source line under the chart. Tools, projects and cache hit rate become thin bars on a 0-100% axis, token composition is one stacked bar, and the weekly list becomes a column chart that marks the busiest and latest complete weeks.
+- **The report opens faster on heavy history.** The usage-habits section keeps its profile for an hour instead of five minutes, so most report opens skip rescanning every session file. Usage numbers and charts stay live.
+
 ### Fixed
 - **The menu bar shows the Antigravity recovery countdown again.** When quota is used up, it shows the time left until recovery and keeps refreshing at the short polling interval.
 - **Auto-open the next Claude window works again.** Since 0.34.10, Claude Code stops reporting the 5-hour window once it expires, so the keeper never saw it expire and never opened the next one. It now remembers the last reset time it saw and opens the next window after it passes. Plans without a 5-hour limit are unaffected.
