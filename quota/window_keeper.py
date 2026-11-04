@@ -33,6 +33,7 @@ dispatches a one-line call into :func:`maybe_ping`.
 from __future__ import annotations
 
 import logging
+import math
 import os
 import shutil
 import subprocess
@@ -60,10 +61,8 @@ PING_TIMEOUT_SECONDS = 180
 # window the previous ping opened.
 PING_COOLDOWN_SECONDS = 5 * 3600 + 300
 
-# loaders.claude_usage defaults a missing ``resets_at`` to parse-time "now", which one
-# refresh later reads as "expired seconds ago". Requiring the expiry to be at
-# least this old filters those synthetic timestamps without delaying a real
-# expired-while-away ping by more than two minutes.
+# Wait briefly after a real reset before opening the next window, allowing
+# quota observations around the reset boundary to settle.
 PING_EXPIRY_GRACE_SECONDS = 120
 
 # ``claude`` binary resolution order: PATH first, then the well-known install
@@ -214,7 +213,7 @@ def _recall_expired_window(
     Claude Code omits ``five_hour`` once its ``resets_at`` has passed, and the
     statusLine hook drops the cached copy too (plans without a 5-hour limit never
     send one), so an expired window reaches us as no window at all. The reader
-    then reports no percent and a parse-time reset, which is not worth keeping.
+    then reports no percent and no reset, which is not worth keeping.
     Remember every real reset the hook reports; a plan that never reported one
     stays unarmed.
     """
@@ -223,6 +222,8 @@ def _recall_expired_window(
     remembered = keeper_outcome.numeric_value(state, "last_seen_reset_at")
     if current_percent is None:
         return (current_reset_at, None) if remembered is None else (remembered, 0.0)
+    if current_reset_at is None or not math.isfinite(current_reset_at):
+        return None, current_percent
     if current_reset_at is not None and current_reset_at != remembered:
         keeper_outcome.update_state(
             WINDOW_KEEPER_STATE_PATH, {"last_seen_reset_at": current_reset_at}

@@ -124,6 +124,7 @@ def project_quota(
         language,
         age_minutes,
         forecast_seconds=session_forecast,
+        now=current_time,
     )
     weekly = _window_row(
         _t(language, "weekly_label"),
@@ -133,6 +134,7 @@ def project_quota(
         forecast_seconds=weekly_forecast,
         warning_max_seconds=AGY_WEEKLY_WARNING_MAX_SECONDS,
         window_seconds=WEEKLY_WINDOW_SECONDS,
+        now=current_time,
     )
     # Google pauses the 5-hour bucket once the weekly one is spent; showing it
     # as "full" reads as usable, so say it is paused instead.
@@ -278,6 +280,7 @@ def _window_row(
     warning_max_seconds: float | None = None,
     *,
     window_seconds: float | None = None,
+    now: float | None = None,
 ) -> QuotaRowState:
     if window is None:
         return QuotaRowState(
@@ -346,6 +349,12 @@ def _window_row(
         warning=warning,
         available=True,
         reset_done=reset_done,
+        resets_at=(
+            (time.time() if now is None else now)
+            + (window.resets_in_minutes - max(0, age_minutes)) * 60
+            if window.resets_in_minutes is not None
+            else None
+        ),
     )
 
 

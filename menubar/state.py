@@ -903,7 +903,8 @@ def build_popover_state(
             CLAUDE_COLOR,
             language,
             forecast_seconds=burn_rate_trackers["claude_session"].forecast_seconds(),
-            allow_unknown_reset=snapshot.data_source == "claude-desktop",
+            # The hook reader leaves a missing five_hour resets_at unknown.
+            allow_unknown_reset=True,
         )
         claude_weekly = _quota_row(
             _t(language, "weekly_label"),
