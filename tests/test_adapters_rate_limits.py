@@ -13,11 +13,52 @@ from pathlib import Path
 import pytest
 
 from adapters import rate_limits
+from loaders import claude_usage
 
 
 def _write_status(path: Path, body: dict[str, object]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(body), encoding="utf-8")
+
+
+@pytest.mark.parametrize("window", [None, ["invalid"], {}, {"used_percentage": "nan"}])
+def test_malformed_window_uses_fallback(monkeypatch: pytest.MonkeyPatch, window: object) -> None:
+    data = {
+        "rate_limits": {
+            "five_hour": window,
+            "seven_day": {"used_percentage": 42, "resets_at": 9_999_999_999},
+        }
+    }
+    assert claude_usage._has_rate_limits(data) is (window is None)
+    monkeypatch.setattr(rate_limits, "_read_status", lambda: data)
+    calls = []
+    fallback = claude_usage.UsageSnapshot(10, None, 20, None, "", 1_800_000_000)
+
+    def read_fallback() -> claude_usage.UsageSnapshot:
+        calls.append(True)
+        return fallback
+
+    monkeypatch.setattr(claude_usage, "read_quota_fallback", read_fallback)
+    result = rate_limits.load_rate_limits()
+    assert result is not None
+    assert result.five_hour_pct == (None if window is None else 10)
+    assert calls == ([] if window is None else [True])
+    # Missing fallback must also tolerate malformed windows without .get errors.
+    monkeypatch.setattr(claude_usage, "read_quota_fallback", lambda: None)
+    result = rate_limits.load_rate_limits()
+    assert result is not None
+    assert result.five_hour_pct is None
+    assert result.seven_day_pct == 42
+
+
+def test_weekly_only_ultra_remains_valid(monkeypatch: pytest.MonkeyPatch) -> None:
+    data = {"rate_limits": {"seven_day": {"used_percentage": 42}}}
+    assert claude_usage._has_rate_limits(data) is True
+    monkeypatch.setattr(rate_limits, "_read_status", lambda: data)
+    result = rate_limits.load_rate_limits()
+    assert result is not None
+    assert result.five_hour_pct is None
+    assert result.seven_day_pct == 42
 
 
 def test_load_rate_limits_skips_bad_utf8_status_without_crashing(

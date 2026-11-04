@@ -303,9 +303,10 @@ def _has_rate_limits(data: dict[str, Any]) -> bool:
     rl = data.get("rate_limits")
     if not isinstance(rl, dict):
         return False
-    windows = [w for w in (rl.get("five_hour"), rl.get("seven_day")) if isinstance(w, dict)]
+    windows = [w for w in (rl.get("five_hour"), rl.get("seven_day")) if w is not None]
     return bool(windows) and all(
-        _as_finite_float(w.get("used_percentage")) is not None for w in windows
+        isinstance(w, dict) and _as_finite_float(w.get("used_percentage")) is not None
+        for w in windows
     )
 
 
@@ -347,7 +348,10 @@ def _build_snapshot(data: dict[str, Any], *, data_source: str = "hook") -> Usage
 
     return UsageSnapshot(
         current_percent=five_pct,
-        current_reset_at=five_reset,
+        # Keep an unknown hook reset unknown so the keeper cannot remember a
+        # parse-time default as a real boundary. Display expiry logic above
+        # still uses the default to preserve the reported percentage.
+        current_reset_at=_as_finite_float(five.get("resets_at")),
         weekly_percent=seven_pct,
         weekly_reset_at=seven_reset,
         current_status=status,

@@ -3530,6 +3530,43 @@ def test_menubar_poll_interval(
         assert menubar_title.menubar_poll_interval(app, state) == max(interval, 300)
 
 
+@pytest.mark.parametrize("age_minutes", [0, 10])
+def test_agy_projection_shows_recovery_countdown_and_short_poll(
+    monkeypatch: pytest.MonkeyPatch, age_minutes: int
+) -> None:
+    from loaders.agy_quota_probe import AgyQuotaGroup, AgyQuotaResult, AgyQuotaWindow
+
+    now = 1_800_000_000.0
+    monkeypatch.setattr(time, "time", lambda: now)
+    monkeypatch.setattr(menubar, "_load_preferences", lambda: {})
+    quota = AgyQuotaResult(
+        groups=[
+            AgyQuotaGroup(
+                name="GEMINI MODELS",
+                models=["gemini"],
+                five_hour=AgyQuotaWindow(0, None, 90 + age_minutes),
+                weekly=AgyQuotaWindow(90, None, 1440),
+            )
+        ],
+        fetched_at=datetime.fromtimestamp(now - age_minutes * 60, UTC).isoformat(),
+    )
+    projection = menubar_agy.project_quota(quota, "en", now=now)
+    assert projection is not None
+    state = menubar._empty_state()
+    for tool in ("claude", "codex", "grok", "muse"):
+        setattr(state, f"hide_{tool}", True)
+    state.hide_agy = False
+    state.agy_session = projection.session
+    state.agy_weekly = projection.weekly
+    app = cast(
+        Any,
+        SimpleNamespace(codex_5h_pct=None, interval=60, _panel_window_is_visible=lambda: False),
+    )
+    assert projection.session.resets_at == now + 5400
+    assert [text for _icon, text in menubar_title._menubar_items(app, state, now)] == ["1h30m"]
+    assert menubar_title.menubar_poll_interval(app, state) == 60
+
+
 def test_menubar_countdown_ranks_as_full_and_preserves_codex_path(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

@@ -14,6 +14,7 @@ from typing import Any
 import pytest
 
 import quota.window_keeper as window_keeper
+from loaders import claude_usage
 
 
 def test_run_claude_ping_skips_user_hooks(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
@@ -434,6 +435,48 @@ def test_maybe_ping_never_reported_window_stays_unarmed(
     assert calls == []
     assert isolated_state.exists() is False
     assert _SyncThread.instances == []
+
+
+@pytest.mark.parametrize(
+    "reset_fields",
+    [
+        {},
+        {"resets_at": None},
+        {"resets_at": "invalid"},
+        {"resets_at": float("nan")},
+        {"resets_at": float("inf")},
+    ],
+)
+def test_missing_original_reset_never_arms_keeper(
+    monkeypatch: pytest.MonkeyPatch, isolated_state: Path, reset_fields: dict[str, object]
+) -> None:
+    calls = _arm_successful_ping(monkeypatch)
+    now = 1_800_000_000.0
+    monkeypatch.setattr(time, "time", lambda: now)
+    snapshot = claude_usage._build_snapshot(
+        {"rate_limits": {"five_hour": {"used_percentage": 25, **reset_fields}}}
+    )
+    assert snapshot is not None
+    assert snapshot.current_percent == 25
+    assert snapshot.current_reset_at is None
+    window_keeper.maybe_ping(
+        snapshot.current_reset_at, snapshot.current_percent, snapshot.data_source, False
+    )
+    assert not isolated_state.exists()
+
+    monkeypatch.setattr(time, "time", lambda: now + 180)
+    absent = claude_usage._build_snapshot(
+        {"rate_limits": {"seven_day": {"used_percentage": 20, "resets_at": now + 86400}}}
+    )
+    assert absent is not None
+    reset_at, percent = window_keeper._recall_expired_window(
+        {}, absent.current_reset_at, absent.current_percent, absent.data_source
+    )
+    assert not window_keeper.should_ping(now + 180, reset_at, True, None, None, percent, "hook")
+    window_keeper.maybe_ping(reset_at, percent, "hook", False)
+    assert calls == []
+    assert _SyncThread.instances == []
+    assert not isolated_state.exists()
 
 
 def test_maybe_ping_deduplicates_same_boundary(
