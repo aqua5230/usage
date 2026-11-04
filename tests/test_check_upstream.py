@@ -71,6 +71,7 @@ def isolate(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
                 "TERSE_HOOK_TARGET",
                 "CODEX_TERSE_HOOK_TARGET",
                 "TERSE_REMINDER_HOOK_TARGET",
+                "QUOTA_AWARE_HOOK_TARGET",
             ),
         ),
     ):
@@ -498,7 +499,7 @@ def test_main_exit_and_report(
     monkeypatch.setattr(check.sys, "argv", ["check_upstream.py", "--offline"])
     assert check.main() == exit_code
     output = capsys.readouterr().out.splitlines()
-    assert len(output) == 18
+    assert len(output) == 19
     assert f"{status} codex_sqlite — sample" in output
     assert output[-1].startswith("TOTAL OK=")
 
@@ -531,6 +532,12 @@ def test_unversioned_hooks(tmp_path: Path, changed: bool) -> None:
     source.write_text('print("new")\n')
     target.write_text('print("old")\n' if changed else source.read_text())
     assert check.check_hook_copies(source, target)[0] == ("BROKEN" if changed else "OK")
+
+
+def test_hook_pairs_cover_every_hook_script() -> None:
+    covered = {source.name for source, _target in check.hook_pairs()}
+    scripts = {path.name for path in (check.ROOT / "usage_hooks").glob("usage_*.py")}
+    assert scripts <= covered
 
 
 def test_known_miss_causes_from_translations(status: dict[str, Any]) -> None:
