@@ -130,3 +130,20 @@ def test_load_rate_limits_clears_expired_percentage(
     assert result.five_hour_pct == 0.0
     assert result.five_hour_resets_at == int(now_ts - 60)
     assert result.seven_day_pct == 70.0
+
+
+def test_non_object_status_uses_legacy_file(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    status = tmp_path / "usage-status.json"
+    legacy = tmp_path / "usag-status.json"
+    status.write_text("[]", encoding="utf-8")
+    _write_status(legacy, {"rate_limits": {"seven_day": {"used_percentage": 42}}})
+    monkeypatch.setattr(rate_limits, "STATUS_FILE", str(status))
+    monkeypatch.setattr(rate_limits, "LEGACY_STATUS_FILE", str(legacy))
+    monkeypatch.setattr(rate_limits, "TT_STATUS_FILE", str(tmp_path / "tt-status.json"))
+
+    result = rate_limits.load_rate_limits()
+
+    assert result is not None
+    assert result.seven_day_pct == 42

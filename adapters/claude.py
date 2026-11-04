@@ -16,6 +16,7 @@ from typing import Any
 from loaders.claude_paths import claude_config_dirs
 from loaders.jsonl_utils import iter_jsonl_dicts
 from usage_common.project_resolver import resolve_project_name
+from usage_common.time_utils import parse_optional_iso8601_utc
 
 from .types import AgentInfo
 
@@ -190,10 +191,8 @@ def _parse_assistant_entry(data: dict[str, Any], project: str) -> list[UsageEntr
         else 0
     )
 
-    timestamp_str = data.get("timestamp", "")
-    try:
-        ts = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
-    except (ValueError, AttributeError):
+    ts = parse_optional_iso8601_utc(data.get("timestamp", ""))
+    if ts is None:
         return []
 
     message_id = message.get("id", "")

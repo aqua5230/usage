@@ -36,7 +36,8 @@ def _read_status() -> dict[str, Any] | None:
         try:
             with open(path, "r", encoding="utf-8") as f:
                 data: dict[str, Any] = json.load(f)
-                return data
+                if isinstance(data, dict):
+                    return data
         except (json.JSONDecodeError, OSError, UnicodeDecodeError):
             continue
     return None

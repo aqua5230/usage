@@ -652,16 +652,23 @@ def _rate_limits_from_websocket_error(
     headers = _as_dict(event.get("headers"))
     primary_reset = _as_optional_float(headers.get("X-Codex-Primary-Reset-At"))
     secondary_reset = _as_optional_float(headers.get("X-Codex-Secondary-Reset-At"))
-    now_ts = datetime.now(UTC).timestamp()
+    recorded_at = _timestamp_from_log_ts(ts)
+    recorded_ts = recorded_at.timestamp() if recorded_at is not None else None
     if primary_reset is None:
         primary_reset_after = _as_optional_float(headers.get("X-Codex-Primary-Reset-After-Seconds"))
-        primary_reset = now_ts + primary_reset_after if primary_reset_after is not None else None
+        primary_reset = (
+            recorded_ts + primary_reset_after
+            if recorded_ts is not None and primary_reset_after is not None
+            else None
+        )
     if secondary_reset is None:
         secondary_reset_after = _as_optional_float(
             headers.get("X-Codex-Secondary-Reset-After-Seconds")
         )
         secondary_reset = (
-            now_ts + secondary_reset_after if secondary_reset_after is not None else None
+            recorded_ts + secondary_reset_after
+            if recorded_ts is not None and secondary_reset_after is not None
+            else None
         )
     return _build_rate_limits(
         primary_pct=_as_optional_float(headers.get("X-Codex-Primary-Used-Percent")),
@@ -669,7 +676,7 @@ def _rate_limits_from_websocket_error(
         secondary_pct=_as_optional_float(headers.get("X-Codex-Secondary-Used-Percent")),
         secondary_reset=secondary_reset,
         model=_event_value(body, "model") or "unknown",
-        updated_at=_timestamp_from_log_ts(ts),
+        updated_at=recorded_at,
     )
 
 
