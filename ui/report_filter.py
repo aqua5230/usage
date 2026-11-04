@@ -117,7 +117,8 @@ REPORT_FILTER_JS = r"""(() => {
 
   function normalizeBounds(from, to) {
     const minimum = cube.dates[0];
-    const maximum = cube.dates[cube.dates.length - 1];
+    const lastData = cube.dates[cube.dates.length - 1];
+    const maximum = cube.today && cube.today > lastData ? cube.today : lastData;
     if (!minimum || !maximum) return null;
     let start = parseDate(from) ? String(from) : minimum;
     let end = parseDate(to) ? String(to) : maximum;
@@ -129,8 +130,9 @@ REPORT_FILTER_JS = r"""(() => {
 
   function rangeBounds(key) {
     const minimum = cube.dates[0];
-    const maximum = cube.dates[cube.dates.length - 1];
-    const last = parseDate(maximum);
+    const lastData = cube.dates[cube.dates.length - 1];
+    const today = cube.today || lastData;
+    const last = parseDate(today);
     if (!minimum || !last) return null;
     let first = last;
     if (key === 'last7') first = shiftDate(last, -6);
@@ -138,9 +140,9 @@ REPORT_FILTER_JS = r"""(() => {
     else if (key === 'month') {
       first = new Date(Date.UTC(last.getUTCFullYear(), last.getUTCMonth(), 1));
     } else if (key === 'all') {
-      return {from: minimum, to: maximum};
+      return normalizeBounds(minimum, today > lastData ? today : lastData);
     }
-    return normalizeBounds(formatDate(first), maximum);
+    return normalizeBounds(formatDate(first), today);
   }
 
   function rowMatches(bounds) {

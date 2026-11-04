@@ -1011,3 +1011,11 @@ def test_week_delta_warns_only_at_actual_doubling() -> None:
     assert html_report._trend_delta(2000, 1000, "en") == ("surge", "↗ +100%")
     assert html_report._trend_delta(50, 100, "en") == ("down", "↘ -50%")
     assert html_report._trend_delta(100, 0, "en") == ("up", "↗ new")
+
+
+def test_date_inputs_allow_generation_date_after_last_usage() -> None:
+    html = html_report._date_filter(
+        {"cube": {"dates": ["2026-10-01", "2026-10-30"], "today": "2026-11-04"}},
+        "en",
+    )
+    assert html.count('max="2026-11-04"') == 2

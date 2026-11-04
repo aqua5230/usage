@@ -133,3 +133,23 @@ def test_calculate_p90_uses_upper_boundary_index() -> None:
     assert result.token_limit == 100
     assert result.cost_limit == 10.01
     assert result.message_limit == 10
+
+
+def test_burn_rate_excludes_cache_reads(monkeypatch: pytest.MonkeyPatch) -> None:
+    fixed = datetime(2026, 11, 4, 12, tzinfo=UTC)
+
+    class Clock(datetime):
+        @classmethod
+        def now(cls, tz: tzinfo | None = None) -> Self:
+            return cls.fromtimestamp(fixed.timestamp(), tz)
+
+    monkeypatch.setattr(blocks, "datetime", Clock)
+    monkeypatch.setattr(blocks, "calculate_cost", lambda entry: 0.0)
+    entry = _entry(timestamp=fixed - timedelta(minutes=1), total_tokens=100)
+    entry.output_tokens = 100
+    entry.cache_read_tokens = 100_000
+
+    block = blocks.analyze_blocks([entry])[0]
+
+    assert block.total_tokens == 100_200
+    assert block.burn_rate == pytest.approx(200)

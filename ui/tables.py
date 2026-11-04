@@ -208,7 +208,7 @@ def _render_rate_bar(
 ) -> None:
     reset_suffix = ""
     if resets_at:
-        reset_dt = datetime.fromtimestamp(resets_at, tz=timezone.utc)
+        reset_dt = datetime.fromtimestamp(resets_at, tz=timezone.utc).astimezone()
         reset_suffix = f"  {t('reset_at', time=reset_dt.strftime(date_fmt))}"
     _append_bar(lines, f"  {label}    ", pct, bar_width, reset_suffix)
 
@@ -216,7 +216,7 @@ def _render_rate_bar(
 def _render_week_section(
     lines: Text, week: WeeklyStats, last_week: WeeklyStats | None = None
 ) -> None:
-    now = datetime.now(timezone.utc)
+    now = datetime.now().astimezone()
     elapsed_days = now.weekday() + 1
     daily_avg_cost = week.cost_usd / elapsed_days if elapsed_days > 0 else 0
     lines.append(f"  Token     {_fmt_tokens(week.total_tokens)}", style=_S.token)
@@ -398,7 +398,7 @@ def render_dashboard(
 
 
 def _render_month_overview(month: MonthlyStats, last_month: MonthlyStats | None = None) -> None:
-    now = datetime.now(timezone.utc)
+    now = datetime.now().astimezone()
     elapsed_days = now.day
     daily_avg_cost = month.cost_usd / elapsed_days if elapsed_days > 0 else 0
 
@@ -451,7 +451,11 @@ def _render_recent_sessions(
     table.add_column(t("col_messages"), justify="right", style=_S.dim)
 
     for s in stats:
-        row: list[Any] = [s.start_time.strftime("%m-%d %H:%M")]
+        row: list[Any] = [
+            (s.start_time.astimezone() if s.start_time.tzinfo else s.start_time).strftime(
+                "%m-%d %H:%M"
+            )
+        ]
         if multi_agent:
             row.append(AGENT_SHORT.get(s.agent_id, s.agent_id))
         row.append(_project_short(s.project))
@@ -502,7 +506,7 @@ def render_daily(stats: list[DailyStats], agents: list[str] | None = None) -> No
     table.add_column(t("col_sessions"), justify="right", style=_S.dim)
     table.add_column(t("col_messages"), justify="right", style=_S.dim)
 
-    max_tokens = max(s.total_tokens for s in stats) if stats else 1
+    max_tokens = max((s.total_tokens for s in stats), default=0) or 1
 
     for s in stats:
         cache_total = s.cache_creation_tokens + s.cache_read_tokens
@@ -546,7 +550,7 @@ def _render_weekly_table(stats: list[WeeklyStats], title: str | None = None) -> 
     table.add_column(t("col_sessions"), justify="right", style=_S.dim)
     table.add_column(t("col_messages"), justify="right", style=_S.dim)
 
-    max_tokens = max(s.total_tokens for s in stats) if stats else 1
+    max_tokens = max((s.total_tokens for s in stats), default=0) or 1
 
     for s in stats:
         cache_total = s.cache_creation_tokens + s.cache_read_tokens
@@ -788,10 +792,14 @@ def render_sessions(stats: list[SessionStats], limit: int = 20) -> None:
     table.add_column(t("col_cost"), justify="right", style=_S.good)
     table.add_column(t("col_messages"), justify="right", style=_S.dim)
 
-    max_tokens = max(s.total_tokens for s in shown) if shown else 1
+    max_tokens = max((s.total_tokens for s in shown), default=0) or 1
 
     for s in shown:
-        row: list[Any] = [s.start_time.strftime("%m-%d %H:%M")]
+        row: list[Any] = [
+            (s.start_time.astimezone() if s.start_time.tzinfo else s.start_time).strftime(
+                "%m-%d %H:%M"
+            )
+        ]
         if multi_agent:
             row.append(AGENT_SHORT.get(s.agent_id, s.agent_id))
         row.append(_project_short(s.project))
@@ -855,7 +863,7 @@ def _render_daily_panel(
         lines.append(f"  {t('rate_per_msg', rate=_fmt_tokens(tokens_per_msg))}", style=_S.dim)
 
     if week:
-        now = datetime.now(timezone.utc)
+        now = datetime.now().astimezone()
         elapsed_days = now.weekday() + 1
         daily_avg_cost = week.cost_usd / elapsed_days if elapsed_days > 0 else 0
 

@@ -56,7 +56,10 @@ def analyze_blocks(entries: list[UsageEntry]) -> list[SessionBlock]:
             block.is_active = True
             elapsed = (now - block.start_time).total_seconds() / 60
             if elapsed > 0:
-                block.burn_rate = block.total_tokens / elapsed
+                active_tokens = (
+                    block.input_tokens + block.output_tokens + block.cache_creation_tokens
+                )
+                block.burn_rate = active_tokens / elapsed
 
     return blocks
 
