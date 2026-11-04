@@ -6,7 +6,10 @@
 
 ## [Unreleased]
 
+## [0.34.12] - 2026-11-04
+
 ### 修正
+- **額度保持與 Antigravity、Muse 額度查詢，現在找得到用 nvm、Volta、fnm、mise、asdf、bun 或 pnpm 安裝的指令。** 選單列 app 啟動時 PATH 很短，這些安裝方式以前會被當成沒裝，npm 裝的工具也找不到 `node`。
 - **從選單關掉狀態列後，重開 app 不會再自動打開。** 之前下次啟動時會被裝回去。移除 usage 時，也會還原你自己原本那個、已經關掉的狀態列，不再把它刪掉。
 - **`~/.claude/settings.json` 格式壞掉時，選單列 app 照常啟動。** 會略過設定提示，所有工具的用量照樣顯示。
 - **移除時會清乾淨 usage 加進 Claude Code 的東西。** `usage unsetup` 與 `--unsetup` 現在也會關掉額度提醒 hook、側邊面板與新手模式；你自己的 hooks 與設定保留不動。

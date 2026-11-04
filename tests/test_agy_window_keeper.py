@@ -6,6 +6,7 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 import threading
 from pathlib import Path
 from typing import Any, cast
@@ -288,3 +289,46 @@ def test_run_agy_ping_uses_verified_noninteractive_command(
     assert captured["capture_output"] is True
     assert captured["encoding"] == "utf-8"
     assert captured["timeout"] == agy_window_keeper.PING_TIMEOUT_SECONDS
+
+
+_original_nvm_lookup = agy_window_keeper._resolve_agy_bin
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="Unix version managers")
+def test_agy_window_keeper_finds_nvm_cli(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
+    monkeypatch.setattr("shutil.which", lambda _: None)
+    binary = tmp_path / ".nvm/versions/node/v22.3.0/bin/agy"
+    binary.parent.mkdir(parents=True)
+    binary.touch()
+    binary.chmod(0o755)
+    original_isfile = os.path.isfile
+    monkeypatch.setattr(
+        os.path, "isfile", lambda path: str(path) == str(binary) and original_isfile(path)
+    )
+    assert _original_nvm_lookup() == str(binary)
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="Unix PATH")
+def test_ping_passes_cli_bin_in_env(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
+    monkeypatch.setenv("PATH", "/usr/bin:/bin")
+    monkeypatch.setenv("KEEP", "value")
+    binary = tmp_path / ".nvm/versions/node/v22.3.0/bin/agy"
+    binary.parent.mkdir(parents=True)
+    binary.touch()
+    binary.chmod(0o755)
+    captured: dict[str, object] = {}
+
+    def fake_run(command: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
+        captured.update(kwargs)
+        return subprocess.CompletedProcess(command, 0, "ok", "")
+
+    monkeypatch.setattr("quota.agy_window_keeper.subprocess.run", fake_run)
+    agy_window_keeper._run_agy_ping(str(binary))
+    env = captured["env"]
+    assert isinstance(env, dict)
+    assert env["PATH"] == str(binary.parent) + os.pathsep + "/usr/bin:/bin"
+    assert env["KEEP"] == "value"

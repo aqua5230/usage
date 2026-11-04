@@ -11,7 +11,6 @@ import logging
 import math
 import os
 import re
-import shutil
 import subprocess
 import tempfile
 import threading
@@ -22,6 +21,7 @@ from pathlib import Path
 from typing import TypedDict, TypeGuard
 
 from loaders import muse_loader
+from usage_common.cli_lookup import cli_env, resolve_cli
 from usage_common.subprocess_utils import hidden_console_kwargs
 
 logger = logging.getLogger(__name__)
@@ -54,14 +54,9 @@ class MuseQuotaResult(TypedDict):
 
 def find_muse() -> str | None:
     """Find Muse even when the app inherits a limited GUI PATH."""
-    executable = shutil.which("muse")
-    if executable is not None:
-        return executable
-    for candidate in ("~/.local/bin/muse", "/opt/homebrew/bin/muse", "/usr/local/bin/muse"):
-        expanded = os.path.expanduser(candidate)
-        if os.path.isfile(expanded) and os.access(expanded, os.X_OK):
-            return expanded
-    return None
+    return resolve_cli(
+        "muse", ("~/.local/bin/muse", "/opt/homebrew/bin/muse", "/usr/local/bin/muse")
+    )
 
 
 def _number(value: object) -> TypeGuard[int | float]:
@@ -239,6 +234,7 @@ def _probe_worker(executable: str) -> None:
                 stderr=subprocess.PIPE,
                 encoding="utf-8",
                 cwd=PROBE_DIR,
+                env=cli_env(executable),
                 **hidden_console_kwargs(),
             )
             _probe_process = process

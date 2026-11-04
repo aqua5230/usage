@@ -7,7 +7,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.34.12] - 2026-11-04
+
 ### Fixed
+- **The quota keepers and the Antigravity and Muse quota checks now find CLIs installed with nvm, Volta, fnm, mise, asdf, bun or pnpm.** The menu bar app starts with a short PATH, so these installs used to look missing, and npm-installed tools could not find `node`.
 - **Turning off the status line from the menu now stays off after a restart.** The app used to turn it back on at the next launch. Uninstalling also restores your own status line if you had turned it off, instead of deleting it.
 - **A broken `~/.claude/settings.json` no longer stops the menu bar app from starting.** The app skips the setup prompt and keeps showing usage for every tool.
 - **Uninstalling removes everything usage added to Claude Code.** `usage unsetup` and `--unsetup` now also turn off the quota reminder hook, the side panel and beginner mode; your own hooks and settings stay.

@@ -31,7 +31,6 @@ from __future__ import annotations
 
 import logging
 import os
-import shutil
 import subprocess
 import threading
 import time
@@ -40,6 +39,7 @@ from pathlib import Path
 from loaders.codex_loader import load_rate_limits
 from menubar.prefs import _window_keeper_enabled
 from quota import keeper_outcome
+from usage_common.cli_lookup import cli_env, resolve_cli
 from usage_common.subprocess_utils import hidden_console_kwargs
 
 logger = logging.getLogger(__name__)
@@ -135,14 +135,7 @@ def _save_ping_state(reset_at: float | None, ping_at: float, path: Path | None =
 
 
 def _resolve_codex_bin() -> str | None:
-    found = shutil.which("codex")
-    if found:
-        return found
-    for candidate in _CODEX_BIN_FALLBACKS:
-        resolved = os.path.expanduser(candidate)
-        if os.path.isfile(resolved) and os.access(resolved, os.X_OK):
-            return resolved
-    return None
+    return resolve_cli("codex", _CODEX_BIN_FALLBACKS)
 
 
 def _try_acquire() -> bool:
@@ -186,6 +179,7 @@ def _run_codex_ping(codex_bin: str) -> subprocess.CompletedProcess[str]:
         timeout=PING_TIMEOUT_SECONDS,
         cwd=os.path.expanduser("~"),
         check=False,
+        env=cli_env(codex_bin),
         **hidden_console_kwargs(),
     )
 

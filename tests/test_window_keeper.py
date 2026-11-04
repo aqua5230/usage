@@ -6,6 +6,7 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 import threading
 import time
 from pathlib import Path
@@ -596,3 +597,22 @@ def test_maybe_ping_ignores_non_hook_source(
     assert calls == []
     assert isolated_state.exists() is False
     assert _SyncThread.instances == []
+
+
+_original_nvm_lookup = window_keeper._resolve_claude_bin
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="Unix version managers")
+def test_window_keeper_finds_nvm_cli(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
+    monkeypatch.setattr("shutil.which", lambda _: None)
+    binary = tmp_path / ".nvm/versions/node/v22.3.0/bin/claude"
+    binary.parent.mkdir(parents=True)
+    binary.touch()
+    binary.chmod(0o755)
+    original_isfile = os.path.isfile
+    monkeypatch.setattr(
+        os.path, "isfile", lambda path: str(path) == str(binary) and original_isfile(path)
+    )
+    assert _original_nvm_lookup() == str(binary)

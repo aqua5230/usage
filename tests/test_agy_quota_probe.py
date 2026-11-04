@@ -1107,3 +1107,22 @@ def test_carry_ages_both_reset_countdowns(minutes: int, expected: int) -> None:
         assert projection is not None
         assert projection.weekly.reset_done
         assert projection.session.reset_done
+
+
+_original_nvm_lookup = agy_quota_probe.find_agy
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="Unix version managers")
+def test_agy_quota_probe_finds_nvm_cli(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
+    monkeypatch.setattr("shutil.which", lambda _: None)
+    binary = tmp_path / ".nvm/versions/node/v22.3.0/bin/agy"
+    binary.parent.mkdir(parents=True)
+    binary.touch()
+    binary.chmod(0o755)
+    original_isfile = os.path.isfile
+    monkeypatch.setattr(
+        os.path, "isfile", lambda path: str(path) == str(binary) and original_isfile(path)
+    )
+    assert _original_nvm_lookup() == str(binary)
