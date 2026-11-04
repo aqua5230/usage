@@ -18,7 +18,6 @@ from __future__ import annotations
 import json
 import os
 import platform
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -35,6 +34,7 @@ from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
+from usage_common.cli_lookup import cli_env, resolve_cli
 from usage_common.subprocess_utils import hidden_console_kwargs
 
 CACHE_PATH = Path(os.path.expanduser("~/.usage/agy_quota_cache.json"))
@@ -168,6 +168,7 @@ def _probe_via_cli(timeout: float) -> AgyQuotaResult | None:
             capture_output=True,
             timeout=timeout,
             stdin=subprocess.DEVNULL,
+            env=cli_env(agy),
             **hidden_console_kwargs(),
         )
     except (OSError, subprocess.SubprocessError):
@@ -189,14 +190,7 @@ def _probe_via_cli(timeout: float) -> AgyQuotaResult | None:
 
 def find_agy() -> str | None:
     """Find the Antigravity CLI in PATH or common user installation paths."""
-    path = shutil.which("agy")
-    if path is not None:
-        return path
-    for candidate in ("~/.local/bin/agy", "/opt/homebrew/bin/agy", "/usr/local/bin/agy"):
-        expanded = os.path.expanduser(candidate)
-        if os.access(expanded, os.X_OK):
-            return expanded
-    return None
+    return resolve_cli("agy", ("~/.local/bin/agy", "/opt/homebrew/bin/agy", "/usr/local/bin/agy"))
 
 
 def load_quota(max_age_minutes: float = 5) -> AgyQuotaResult | None:

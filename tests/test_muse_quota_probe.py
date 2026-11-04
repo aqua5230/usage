@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import os
 import subprocess
+import sys
 import threading
 import time
 from pathlib import Path
@@ -336,3 +337,22 @@ def test_thread_start_failure_cools_down(monkeypatch: pytest.MonkeyPatch) -> Non
     assert probe._retry_after == 1900
     probe.load_quota()
     assert thread.call_count == 1
+
+
+_original_nvm_lookup = probe.find_muse
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="Unix version managers")
+def test_muse_quota_probe_finds_nvm_cli(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
+    monkeypatch.setattr("shutil.which", lambda _: None)
+    binary = tmp_path / ".nvm/versions/node/v22.3.0/bin/muse"
+    binary.parent.mkdir(parents=True)
+    binary.touch()
+    binary.chmod(0o755)
+    original_isfile = os.path.isfile
+    monkeypatch.setattr(
+        os.path, "isfile", lambda path: str(path) == str(binary) and original_isfile(path)
+    )
+    assert _original_nvm_lookup() == str(binary)
