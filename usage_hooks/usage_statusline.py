@@ -69,7 +69,7 @@ else:
 fcntl = _fcntl
 msvcrt = _msvcrt
 
-__version__ = "1.16"
+__version__ = "1.17"
 
 STATUS_FILE = os.path.expanduser("~/.claude/usage-status.json")
 LOCK_FILE = os.path.expanduser("~/.claude/usage-status.lock")
@@ -421,16 +421,16 @@ def _rate_limits_complete(rate_limits: Any) -> bool:
     return five.get("used_percentage") is not None and seven.get("used_percentage") is not None
 
 
-_RATE_WINDOWS = ("five_hour", "seven_day")
+_RATE_WINDOWS = {"five_hour": 18000, "seven_day": 604800}
 
 
 def _window_used(window: Any) -> bool:
     return isinstance(window, dict) and window.get("used_percentage") is not None
 
 
-def _window_unexpired(window: Any, now_ts: float) -> bool:
+def _window_recent(window: Any, now_ts: float, window_seconds: int) -> bool:
     try:
-        return float(window.get("resets_at")) > now_ts
+        return float(window.get("resets_at")) + window_seconds > now_ts
     except (TypeError, ValueError):
         return False
 
@@ -440,8 +440,9 @@ def _merge_rate_limits(incoming: Any, cached: Any, now_ts: float) -> Any:
 
     A payload with no window at all (a new session before its first reply) keeps
     the cached block; the reader zeroes expired windows. Otherwise a fresh window
-    wins, and a missing one is taken from the cache only while its reset is still
-    ahead, so a window Claude Code stopped sending disappears instead of freezing.
+    wins, and a missing one is kept until one full window after its cached reset.
+    Readers show expired windows as zero; older windows disappear so plans without
+    a 5-hour limit do not keep that window forever.
     """
     if not isinstance(cached, dict) or not any(_window_used(cached.get(k)) for k in _RATE_WINDOWS):
         return incoming
@@ -450,11 +451,11 @@ def _merge_rate_limits(incoming: Any, cached: Any, now_ts: float) -> Any:
     ):
         return cached
     merged = dict(incoming)
-    for key in _RATE_WINDOWS:
+    for key, window_seconds in _RATE_WINDOWS.items():
         if _window_used(merged.get(key)):
             continue
         old = cached.get(key)
-        if _window_used(old) and _window_unexpired(old, now_ts):
+        if _window_used(old) and _window_recent(old, now_ts, window_seconds):
             merged[key] = old
         else:
             merged.pop(key, None)
@@ -1032,6 +1033,8 @@ def _render_core(data: Dict[str, Any], now: datetime) -> str:
         resets_at = _as_float(entry.get("resets_at"))
         if resets_at is not None:
             remain = int(resets_at) - int(now.timestamp())
+            if remain <= 0:
+                pct_float = 0.0
             if remain > 0:
                 reset_dt = datetime.fromtimestamp(resets_at)
                 clock = f"{reset_dt:%H:%M}"
