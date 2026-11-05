@@ -50,6 +50,7 @@ from menubar.prefs import (
     _save_panel_flavor,
     _save_quota_card_order,
     _window_keeper_enabled,
+    toggle_quota_threshold,
 )
 from panels.catalog import PANEL_SPECS
 from panels.dynamic_height import clamp_content_height, inject_content_height_script
@@ -1941,10 +1942,16 @@ class _WindowsTrayController:
         if self.icon is not None:
             self.icon.update_menu()
 
+    def select_quota_threshold(self, percent: int) -> None:
+        if toggle_quota_threshold(percent, self._quota_notifier) and self.icon is not None:
+            self.icon.update_menu()
+
     def toggle_quota_notifications(self, _icon: Any = None, _item: Any = None) -> None:
         preferences = _load_preferences()
         preferences["quota_notifications"] = not _quota_notifications_enabled(preferences)
         _save_preferences(preferences)
+        if self.icon is not None:
+            self.icon.update_menu()
 
     def toggle_window_keeper(self, _icon: Any = None, _item: Any = None) -> None:
         preferences = _load_preferences()
@@ -2513,10 +2520,13 @@ def _menu_model() -> tuple[wintray_menu.MenuEntry, ...]:
     return wintray_menu.windows_menu_model(WINDOWS_PANELS)
 
 
-def _menu_checked(controller: _WindowsTrayController, entry: wintray_menu.MenuCommand) -> bool:
+def _menu_checked(
+    controller: _WindowsTrayController, entry: wintray_menu.MenuCommand | wintray_menu.MenuGroup
+) -> bool:
+    argument = entry.argument_value if isinstance(entry, wintray_menu.MenuCommand) else None
     checks = {
-        "active_panel": lambda: controller.active_panel_id == entry.argument_value,
-        "tray_provider": lambda: controller.tray_provider == entry.argument_value,
+        "active_panel": lambda: controller.active_panel_id == argument,
+        "tray_provider": lambda: controller.tray_provider == argument,
         "quota_label": lambda: controller.quota_label_enabled,
         "hide_claude": _hide_claude_enabled,
         "hide_codex": _hide_codex_enabled,
@@ -2585,9 +2595,20 @@ def _tray_menu_entry(
         return pystray.MenuItem(
             _without_power_glyph(_t(controller.language, entry.i18n_key)),
             pystray.Menu(*children),
+            checked=(lambda _item: _menu_checked(controller, entry))
+            if entry.checked_by is not None
+            else None,
         )
-    action = getattr(controller, entry.action)
-    kwargs: dict[str, object] = {"radio": entry.radio}
+    action = getattr(controller, entry.action) if entry.action else lambda _icon, _item: None
+    kwargs: dict[str, object] = {"radio": entry.radio, "enabled": entry.enabled}
+    if entry.threshold is not None:
+        percent = entry.threshold
+        return pystray.MenuItem(
+            _t(controller.language, entry.i18n_key, percent=percent),
+            lambda _icon, _item: controller.select_quota_threshold(percent),
+            checked=lambda _item: percent in _quota_notification_thresholds(),
+            enabled=lambda _item: _quota_notifications_enabled(),
+        )
     if entry.checked_by is not None:
         kwargs["checked"] = lambda _item: _menu_checked(controller, entry)
     if entry.argument_value is not None:

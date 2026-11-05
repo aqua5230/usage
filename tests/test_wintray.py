@@ -1653,6 +1653,7 @@ def test_panel_and_tray_menus_render_the_shared_model(
     assert model_keys(tray_model) == [
         "tray_provider_menu",
         "quota_label_menu",
+        "quota_notifications_menu",
         "reset_panel_position",
         "separator",
         "quit",

@@ -507,6 +507,9 @@ class AppDelegate(NSObject):
     def toggleHideMuse_(self, sender: Any) -> None:
         self._toggle_hide_section(sender, "hide_muse_section", "hide_muse", _hide_muse_enabled)
 
+    def selectQuotaThreshold_(self, sender: Any) -> None:
+        menubar_menu.select_quota_threshold(self, sender)
+
     def toggleQuotaNotifications_(self, sender: Any) -> None:
         self._mark_switch_menu_action()
         prefs = _load_preferences()

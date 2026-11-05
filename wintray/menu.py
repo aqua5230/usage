@@ -8,6 +8,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal
 
+from menubar.prefs import QUOTA_THRESHOLD_PRESETS
+
 type MenuSurface = Literal["panel", "tray"]
 type CheckKey = Literal[
     "active_panel",
@@ -45,6 +47,8 @@ class MenuCommand:
     argument_name: str | None = None
     argument_value: str | None = None
     radio: bool = False
+    threshold: int | None = None
+    enabled: bool = True
 
 
 @dataclass(frozen=True, slots=True)
@@ -52,6 +56,7 @@ class MenuGroup:
     i18n_key: str
     children: tuple[MenuEntry, ...]
     surfaces: frozenset[MenuSurface] = _PANEL_ONLY
+    checked_by: CheckKey | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -139,6 +144,24 @@ def windows_menu_model(panels: tuple[Panel, ...]) -> tuple[MenuEntry, ...]:
         MenuCommand(
             "quota_notifications_menu",
             "toggle_quota_notifications",
+            checked_by="quota_notifications",
+        ),
+        MenuGroup(
+            "quota_notifications_menu",
+            (
+                MenuCommand(
+                    "quota_notifications_toggle",
+                    "toggle_quota_notifications",
+                    checked_by="quota_notifications",
+                ),
+                MenuSeparator(_TRAY_ONLY),
+                MenuCommand("quota_threshold_header", "", enabled=False),
+                *(
+                    MenuCommand("quota_threshold_item", "select_quota_threshold", threshold=percent)
+                    for percent in QUOTA_THRESHOLD_PRESETS
+                ),
+            ),
+            surfaces=_TRAY_ONLY,
             checked_by="quota_notifications",
         ),
         MenuCommand("window_keeper_menu", "toggle_window_keeper", checked_by="window_keeper"),
