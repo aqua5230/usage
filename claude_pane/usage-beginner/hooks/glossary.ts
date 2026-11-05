@@ -53,7 +53,8 @@ const escape = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, '\\
 export function quizOf(data: Glossary, now: number, random: () => number): Quiz | undefined {
   if (data.quizzed_at !== undefined && now - data.quizzed_at < DAY) return undefined
   const due = Object.entries(data.terms)
-    .filter(([, row]) => row.known && row.review_at !== undefined && row.review_at <= now)
+    // A word the user types themselves needs no quiz.
+    .filter(([, row]) => row.known && row.user_typed_at === undefined && row.review_at !== undefined && row.review_at <= now)
     .sort(([, a], [, b]) => a.review_at! - b.review_at!)[0]
   if (!due) return undefined
   const [key, row] = due

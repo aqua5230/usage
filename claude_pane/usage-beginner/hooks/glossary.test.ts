@@ -203,6 +203,7 @@ test('quiz picks the longest-waiting due term, masks it, and skips overlapping o
   expect(pushQuiz.options[pushQuiz.answer]).toBe('Send your ___-ed commits to the remote')
   expect(quizOf({ ...data, quizzed_at: 6 - DAY + 1 }, 6, () => 0)).toBeUndefined()
   expect(quizOf({ ...data, quizzed_at: 6 - DAY }, 6, () => 0)?.key).toBe('commit')
+  expect(quizOf({ ...data, terms: { ...data.terms, commit: { ...data.terms.commit!, user_typed_at: 1 } } }, 6, () => 0)?.key).not.toBe('commit')
   expect(quizOf({ version: 1, terms: { commit: data.terms.commit } }, 6, () => 0)).toBeUndefined()
   expect(quizOf({ version: 1, terms: { later: data.terms.later, merge: data.terms.merge } }, 6, () => 0)).toBeUndefined()
 })
