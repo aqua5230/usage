@@ -164,6 +164,7 @@ def test_macos_threshold_submenu_and_selector(
     notifier = QuotaNotifier()
     app = SimpleNamespace(
         language="zh-TW",
+        mock=True,
         _quota_notifier=notifier,
         _mark_switch_menu_action=lambda: marks.append(True),
     )

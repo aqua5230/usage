@@ -12,6 +12,7 @@ from AppKit import NSMakePoint, NSMenu, NSMenuItem
 
 from installer import claude_pane, login_item, session_hooks
 from installer.statusline_settings import _statusline_enabled
+from menubar import notify
 from menubar.new_badge import apply_badge
 from menubar.prefs import (
     QUOTA_THRESHOLD_PRESETS,
@@ -265,6 +266,9 @@ def build_switch_menu(app: _SwitchMenuApp, sender: Any) -> None:
 
 
 def build_quota_notifications_menu(app: Any) -> Any:
+    from UserNotifications import UNAuthorizationStatusDenied
+
+    notify.refresh_notification_permission(app)
     enabled = _quota_notifications_enabled()
     parent = build_menu_item(
         app.language, "quota_notifications_menu", "", target=app, state=enabled
@@ -280,6 +284,17 @@ def build_quota_notifications_menu(app: Any) -> Any:
             state=enabled,
         )
     )
+    if enabled and getattr(app, "_notification_authorization_status", None) == int(
+        UNAuthorizationStatusDenied
+    ):
+        item = build_menu_item(
+            app.language,
+            "quota_notifications_permission_denied",
+            "openNotificationSettings:",
+            target=app,
+        )
+        item.setEnabled_(True)
+        submenu.addItem_(item)
     submenu.addItem_(NSMenuItem.separatorItem())
     header = build_menu_item(app.language, "quota_threshold_header", "", target=app)
     header.setEnabled_(False)

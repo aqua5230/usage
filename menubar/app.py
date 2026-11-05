@@ -245,6 +245,7 @@ class AppDelegate(NSObject):
     _history_source_tracker = objc.ivar()
     _history_load_error_key = objc.ivar()
     _quota_notifier = objc.ivar()
+    _notification_authorization_status = objc.ivar()
     _switch_menu_action_taken = objc.ivar()
     _usage_client = objc.ivar()
     language = objc.ivar()
@@ -292,6 +293,7 @@ class AppDelegate(NSObject):
         return self
 
     def applicationDidFinishLaunching_(self, notification: Any) -> None:
+        menubar_notify.refresh_notification_permission(self)
         NSApp.setActivationPolicy_(NSApplicationActivationPolicyAccessory)
         self.status_item = NSStatusBar.systemStatusBar().statusItemWithLength_(
             NSVariableStatusItemLength,
@@ -509,6 +511,9 @@ class AppDelegate(NSObject):
 
     def selectQuotaThreshold_(self, sender: Any) -> None:
         menubar_menu.select_quota_threshold(self, sender)
+
+    def openNotificationSettings_(self, sender: Any) -> None:
+        menubar_notify.open_notification_settings(self)
 
     def toggleQuotaNotifications_(self, sender: Any) -> None:
         self._mark_switch_menu_action()
