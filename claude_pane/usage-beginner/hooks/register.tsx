@@ -3,7 +3,7 @@
 /* @jsxFrag Fragment */
 import type { EngineInterface, Register, RenderElement } from 'claude-code'
 import { configure, lang, t } from './strings'
-import { graded, hidden, keyOf, languageName, parseTerms, quizOf, quotaPaused, REVIEW_DAYS, termOf, withKnown } from './glossary'
+import { graded, hidden, keyOf, languageName, parseTerms, quizOf, quotaPaused, REVIEW_DAYS, termOf, userTyped, withKnown } from './glossary'
 import type { Term, Entry, Glossary, Quiz } from './glossary'
 
 export async function readGlossary($: EngineInterface, path: string): Promise<Glossary> {
@@ -19,12 +19,13 @@ export async function readGlossary($: EngineInterface, path: string): Promise<Gl
   for (const [key, raw] of Object.entries(value.terms)) {
     const row = raw as Entry, term = termOf(raw)
     if (!term || keyOf(term.term) !== key || typeof row.known !== 'boolean' ||
-        !Number.isFinite(row.first_seen) || row.first_seen < 0 || bad(row.last_seen) || bad(row.review_at) || bad(row.reviews, true) ||
+        !Number.isFinite(row.first_seen) || row.first_seen < 0 || bad(row.last_seen) || bad(row.review_at) || bad(row.reviews, true) || bad(row.user_typed_at) ||
         !Number.isInteger(row.seen_count) || row.seen_count < 1) throw new Error('Invalid glossary entry')
     entries.push([key, {
       ...term, first_seen: row.first_seen, ...(row.last_seen === undefined ? {} : { last_seen: row.last_seen }),
       seen_count: row.seen_count, known: row.known,
       ...(row.review_at === undefined ? {} : { review_at: row.review_at }), ...(row.reviews === undefined ? {} : { reviews: row.reviews }),
+      ...(row.user_typed_at === undefined ? {} : { user_typed_at: row.user_typed_at }),
     }])
   }
   return { version: 1, terms: Object.fromEntries(entries), ...(value.quizzed_at === undefined ? {} : { quizzed_at: value.quizzed_at }) }
@@ -77,6 +78,7 @@ export async function glossaryPath($: EngineInterface): Promise<string> {
 
 export async function extract($: EngineInterface, answer: string, lang: string, current = () => true): Promise<Term[]> {
   if (answer.length < 200) return []
+  const text = userText
   try {
     const path = await glossaryPath($), home = path.slice(0, -'/.usage/glossary.json'.length)
     let status = ''
@@ -104,7 +106,7 @@ export async function extract($: EngineInterface, answer: string, lang: string, 
     const seen = new Set(Object.entries(data.terms).filter(([, row]) => hidden(row, now)).map(([key]) => key))
     const items = candidates.filter(item => {
       const key = keyOf(item.term)
-      if (seen.has(key)) return false
+      if (seen.has(key) || userTyped(item.term, text)) return false
       seen.add(key)
       return true
     }).slice(0, 3)
@@ -118,6 +120,8 @@ export async function extract($: EngineInterface, answer: string, lang: string, 
 
 const PANE = 'usage-beginner-terms'
 let items: Term[] = [], expanded = new Set<number>(), generation = 0
+let userText = ''
+const ASKING = /是什麼|是甚麼|什麼是|甚麼是|什麼意思|啥意思|what is|what's|what does|meaning of/i
 let quiz: Quiz | undefined, quizResult: string | undefined, quizStamped = false
 function hide($: EngineInterface): void {
   generation++
@@ -154,6 +158,7 @@ async function changeKnown($: EngineInterface, keys: string[], known?: boolean):
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     hide($)
+    userText = ''
     configure()
     try {
       const root = $.plugin.root.replace(/[\\/]\.claude-plugin[\\/]?$/, '')
@@ -177,7 +182,31 @@ export const register: Register = on => {
     return next(e)
   })
   // Since Claude Code 2.1.299 subagents' and teammates' turns fire turn.start too; only the main loop's has no agentId.
-  on('turn.start', ($, e, next) => { if (!e.agentId) hide($); return next(e) })
+  on('turn.start', async ($, e, next) => {
+    if (!e.agentId) {
+      hide($)
+      // A question about a word ("launchd 是什麼") means the user does not know it yet.
+      userText = e.text.length <= 500 && !ASKING.test(e.text) ? e.text : ''
+      const text = userText
+      // In the background so the turn never waits on the glossary.
+      if (text) void (async () => {
+        try {
+          const path = await glossaryPath($), now = await $.clock.now()
+          // Read fresh immediately before merging, once per turn; keep other writers' fields.
+          const data = await readGlossary($, path)
+          let changed = false
+          for (const row of Object.values(data.terms)) {
+            if (row.user_typed_at === undefined && userTyped(row.term, text)) {
+              row.user_typed_at = now
+              changed = true
+            }
+          }
+          if (changed) await $.fs.write(path, JSON.stringify(data))
+        } catch (error) { await $.ui.log(t('error', { error: String(error) })) }
+      })()
+    }
+    return next(e)
+  })
   on('turn.complete', async ($, e, next) => {
     const result = await next(e)
     if (e.reason !== 'answer' || e.answer.length < 200) return result

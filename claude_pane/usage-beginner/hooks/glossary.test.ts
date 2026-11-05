@@ -1,7 +1,7 @@
 import { expect, test } from 'claude-code/testing'
 import type { EngineInterface, ModelCompleteRequest } from 'claude-code'
 import { clean } from './clean'
-import { graded, hidden, keyOf, parseTerms, quizOf, quotaPaused, withKnown } from './glossary'
+import { graded, hidden, keyOf, parseTerms, quizOf, quotaPaused, userTyped, withKnown } from './glossary'
 import { extract, grade, readGlossary, record, setKnown } from './register'
 
 const ANSWER = 'SQLite mode=ro '.repeat(30)
@@ -9,6 +9,45 @@ const PATH = '/test/.usage/glossary.json'
 const DAY = 86_400_000
 const term = (name: string) => ({ term: name, plain: 'A simple explanation', example: 'A short example' })
 const entry = (name: string, known = false) => ({ ...term(name), known, seen_count: 1, first_seen: 123 })
+
+test('typed terms use ASCII word boundaries, normalization and CJK substrings', () => {
+  for (const text of ['PR搞定', 'open a PR', ' pr ', 'improper PR']) expect(userTyped(' PR ', text)).toBe(true)
+  for (const text of ['decision', 'CI_job', 'job_CI', 'CI2', '2CI']) expect(userTyped('CI', text)).toBe(false)
+  expect(userTyped('分支', '把分支合併')).toBe(true)
+  expect(userTyped('mode=ro', 'use MODE=RO')).toBe(true)
+  expect(userTyped('C++', 'use C++')).toBe(true)
+  expect(userTyped('C++', 'C++17')).toBe(false)
+  expect(userTyped('a', 'a')).toBe(false)
+  expect(userTyped('字', '文字')).toBe(false)
+  expect(userTyped('PR', 'PR' + ' '.repeat(498))).toBe(true)
+  expect(userTyped('PR', 'PR' + ' '.repeat(499))).toBe(false)
+})
+
+test('typed entries stay hidden, are not quizzed, and forgetting clears the marker', () => {
+  const row = { ...entry('API'), user_typed_at: 0, review_at: 1, reviews: 0 }
+  expect(hidden(row, 100 * DAY)).toBe(true)
+  expect(quizOf({ version: 1, terms: { api: row, other: entry('other') } }, 100 * DAY, () => 0)).toBeUndefined()
+  expect(withKnown(row, false, 100 * DAY)).toEqual(entry('API'))
+  expect(hidden(withKnown(row, false, 100 * DAY), 100 * DAY)).toBe(false)
+  expect(withKnown(row, true, 100 * DAY).user_typed_at).toBe(0)
+})
+
+test('readGlossary preserves valid typed timestamps and rejects invalid values', async () => {
+  const f = fake()
+  for (const user_typed_at of [0, 123.5]) {
+    f.files.set(PATH, JSON.stringify({ version: 1, terms: { api: { ...entry('API'), user_typed_at } } }))
+    expect((await readGlossary(f.$, PATH)).terms.api!.user_typed_at).toBe(user_typed_at)
+    await setKnown(f.$, PATH, ['api'], false)
+    expect(JSON.parse(f.files.get(PATH)!).terms.api.user_typed_at).toBeUndefined()
+  }
+  for (const user_typed_at of ['123', null, true, {}, -1]) {
+    f.files.set(PATH, JSON.stringify({ version: 1, terms: { api: { ...entry('API'), user_typed_at } } }))
+    await expect(readGlossary(f.$, PATH)).rejects.toThrow('Invalid glossary entry')
+  }
+  f.files.set(PATH, '{"version":1,"terms":{"api":{"term":"API","plain":"p","example":"e","known":false,"seen_count":1,"first_seen":0,"user_typed_at":1e400}}}')
+  await expect(readGlossary(f.$, PATH)).rejects.toThrow('Invalid glossary entry')
+})
+
 function fake(status?: string) {
   const files = new Map<string, string>()
   if (status !== undefined) files.set('/test/.claude/usage-status.json', status)

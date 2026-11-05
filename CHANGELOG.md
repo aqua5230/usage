@@ -7,6 +7,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Changed
+- **Beginner mode stops hinting words you type yourself.** If a term such as PR or commit appears in your own message, it no longer comes back as a hint. Asking what a word means ("launchd 是什麼") does not count, and marking the term as not understood in the history pane brings it back.
+
 ### Fixed
 - **The Muse quota card no longer spends a model call on every refresh.** With Muse 1.4.13 or later, usage reads the allowance from `muse usage --json`, which runs no model. Older Muse versions, or a window with no reading yet, still fall back to the one-line `muse exec` check.
 
