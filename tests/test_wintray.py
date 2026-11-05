@@ -3425,6 +3425,7 @@ def test_menu_actions_pass_real_pystray_signature_validation() -> None:
         open_ai_daily=lambda: None,
         toggle_hide_section=lambda key: None,
         toggle_quota_notifications=lambda: None,
+        select_quota_threshold=lambda percent: None,
         toggle_window_keeper=lambda: None,
         toggle_session_resume=lambda: None,
         toggle_terse_mode=lambda: None,
