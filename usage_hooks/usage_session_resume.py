@@ -50,7 +50,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, TypedDict, cast
 
-__version__ = "1.12"
+__version__ = "1.13"
 
 
 class _HiddenConsoleKwargs(TypedDict, total=False):
@@ -642,7 +642,12 @@ def _parse_session(path: Path) -> tuple[datetime, str, list[str], list[str], lis
 
                 entry_type = data.get("type")
                 if entry_type == "last-prompt":
-                    text = _clean_request(data.get("lastPrompt"))
+                    last_prompt = data.get("lastPrompt")
+                    # A `!` run is a shell command the user ran, not a request to Claude.
+                    # Its `user` record is `<bash-input>`, which `_clean_request` skips.
+                    if isinstance(last_prompt, str) and last_prompt.lstrip().startswith("!"):
+                        continue
+                    text = _clean_request(last_prompt)
                     if text and text not in seen_requests:
                         requests.append(text)
                         seen_requests.add(text)

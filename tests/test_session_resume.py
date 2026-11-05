@@ -549,6 +549,51 @@ def test_build_prompt_reads_last_prompt_entry(
     assert "refactor the parser" in prompt
 
 
+def test_build_prompt_skips_bang_shell_runs_in_last_prompt(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setenv("USAGE_LANG", "en")
+    _sidecar(tmp_path, monkeypatch)
+    project = _project_dir(tmp_path)
+    when = datetime.now().astimezone() - timedelta(hours=1)
+    # Claude Code records a `!` run twice: a `<bash-input>` user turn and a
+    # `last-prompt` entry that keeps the `!` prefix.
+    (project / "prev.jsonl").write_text(
+        "\n".join(
+            json.dumps(line)
+            for line in [
+                {
+                    "type": "user",
+                    "timestamp": when.isoformat(),
+                    "message": {"content": "merge both PRs once CI is green"},
+                },
+                {
+                    "type": "user",
+                    "timestamp": when.isoformat(),
+                    "message": {"content": "<bash-input> gh pr merge 288 --merge</bash-input>"},
+                },
+                {
+                    "type": "last-prompt",
+                    "timestamp": when.isoformat(),
+                    "lastPrompt": "!  gh pr merge 288 --merge",
+                },
+                {"type": "assistant", "timestamp": when.isoformat(), "message": {"content": []}},
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    current = project / "current.jsonl"
+    current.write_text("", encoding="utf-8")
+
+    prompt = mod._build_prompt(
+        {"transcript_path": str(current), "cwd": "/Users/me/Developer/myproj"}
+    )
+
+    assert "merge both PRs once CI is green" in prompt
+    assert "gh pr merge 288" not in prompt
+
+
 def test_build_prompt_uses_first_substantive_task_not_trailing_reaction(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
