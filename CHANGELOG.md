@@ -7,7 +7,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.34.13] - 2026-11-06
+
+### Added
+- **Choose quota-alert thresholds from the menu.** "Usage Alert Notifications" is now a submenu on macOS and in the Windows tray: an on/off switch plus 50/70/80/90/95% checkmarks. A threshold added below current usage waits for the next real crossing instead of firing at once.
+- **The menu tells you when macOS notification permission is off.** An item opens Notification settings, so alerts that would never arrive no longer look enabled.
+
 ### Changed
+- **The classic panel is cleaner.** Card titles and project numbers are quieter so percentages and red alerts stand out, the color bar on the left of each card is gone, and the compact layout (four or more quota cards) also tightens the projects card and footer.
+- **Codex's "updated … ago" label is no longer a warning.** Codex has no live report, so an older reading is normal; every panel theme and the Claude Code side pane now show it in muted text without ⚠. Antigravity keeps its warning, since an old value there means a fetch failed.
+- **"Session" reads "5 hours" in Traditional Chinese, Simplified Chinese, Japanese and Korean.**
 - **Beginner mode stops hinting words you type yourself.** If a term such as PR or commit appears in your own message, it no longer comes back as a hint. Asking what a word means ("launchd 是什麼") does not count, and marking the term as not understood in the history pane brings it back.
 
 ### Fixed
@@ -15,6 +24,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 - **The quota reminder no longer repeats the same Antigravity warning in one conversation.** Antigravity's reset time drifts by up to a minute between readings, which looked like a new quota window.
 - **An older copy of usage no longer downgrades the hooks a newer one installed.** Self-repair used to reinstall any hook whose version differed, so two copies could keep swapping it; it now only upgrades.
 - **The Muse quota card no longer spends a model call on every refresh.** With Muse 1.4.13 or later, usage reads the allowance from `muse usage --json`, which runs no model. Older Muse versions, or a window with no reading yet, still fall back to the one-line `muse exec` check.
+- **Session handoffs only list commits and edits that succeeded.** A commit rejected by a pre-commit hook or a failed edit no longer shows as done, and `!` shell commands are no longer listed as your last request.
+- **Status-line and launch-at-login switches no longer fail silently.** The status-line switch is on only for usage's own hook, a failed install says so, and a refused launch-at-login registration shows the reason.
+- **Session hooks are repaired even when another tool owns the Claude status line.** The quota reminder also says when a tool's numbers are an hour or more old and the window may have reset.
+- **Quitting the app stops a hung `muse usage` check.**
 
 ## [0.34.12] - 2026-11-04
 
