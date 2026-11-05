@@ -7,6 +7,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+- **The Muse quota card no longer spends a model call on every refresh.** With Muse 1.4.13 or later, usage reads the allowance from `muse usage --json`, which runs no model. Older Muse versions, or a window with no reading yet, still fall back to the one-line `muse exec` check.
+
 ## [0.34.12] - 2026-11-04
 
 ### Fixed

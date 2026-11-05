@@ -16,6 +16,9 @@ import pytest
 from loaders import muse_loader
 from loaders import muse_quota_probe as probe
 
+# conftest stubs read_usage so no test launches real Muse; keep the original to test it.
+_REAL_READ_USAGE = probe.read_usage
+
 
 def quota(checked_at: float = 1000) -> probe.MuseQuotaResult:
     return {
@@ -356,3 +359,79 @@ def test_muse_quota_probe_finds_nvm_cli(monkeypatch: pytest.MonkeyPatch, tmp_pat
         os.path, "isfile", lambda path: str(path) == str(binary) and original_isfile(path)
     )
     assert _original_nvm_lookup() == str(binary)
+
+
+USAGE = json.dumps(
+    {
+        "schemaVersion": 1,
+        "allowance": {
+            "tier": "Muse Code Everyday Usage",
+            "window": {"usedPercent": 25, "resetsAtMs": 10000000},
+            "weekly": {"usedPercent": 75, "resetsAtMs": 20000000},
+            "asOfMs": 999000,
+            "source": "mint",
+        },
+        "reason": None,
+        "hint": None,
+    }
+)
+
+
+def test_parse_muse_usage_converts_camel_case() -> None:
+    assert probe.parse_muse_usage(USAGE, 1000) == quota()
+
+
+@pytest.mark.parametrize(
+    "stdout",
+    [
+        "",
+        '{"schemaVersion":1,"allowance":null,"reason":"server_sent_no_usage","hint":null}',
+        USAGE.replace('"resetsAtMs": 10000000', '"resetsAtMs": true'),
+        USAGE.replace('"weekly"', '"other"'),
+    ],
+)
+def test_parse_muse_usage_rejects_missing_allowance(stdout: str) -> None:
+    assert probe.parse_muse_usage(stdout, 1000) is None
+
+
+def test_read_usage_runs_without_model(monkeypatch: pytest.MonkeyPatch) -> None:
+    process = Mock(returncode=0)
+    process.poll.return_value = 0
+    process.communicate.return_value = (USAGE, "")
+    popen = Mock(return_value=process)
+    monkeypatch.setattr(subprocess, "Popen", popen)
+    monkeypatch.setattr(time, "time", lambda: 1000)
+    assert _REAL_READ_USAGE("/fake/muse") == quota()
+    assert popen.call_args.args[0] == ["/fake/muse", "usage", "--json"]
+    process.returncode = 2
+    process.communicate.return_value = ("", "unknown command")
+    assert _REAL_READ_USAGE("/fake/muse") is None
+
+
+def test_read_usage_is_stoppable_at_exit(monkeypatch: pytest.MonkeyPatch) -> None:
+    process = Mock(returncode=0)
+    process.poll.return_value = None
+
+    def communicate(*, timeout: int) -> tuple[str, str]:
+        assert probe._probe_process is process
+        raise subprocess.TimeoutExpired("muse", timeout)
+
+    process.communicate.side_effect = communicate
+    popen = Mock(return_value=process)
+    monkeypatch.setattr(subprocess, "Popen", popen)
+    assert _REAL_READ_USAGE("/fake/muse") is None
+    process.terminate.assert_called_once()
+    monkeypatch.setattr(probe, "_probe_shutdown", True)
+    popen.reset_mock()
+    assert _REAL_READ_USAGE("/fake/muse") is None
+    popen.assert_not_called()
+
+
+def test_worker_skips_model_probe_when_usage_reads(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(probe, "read_usage", lambda _executable: quota())
+    popen = Mock()
+    monkeypatch.setattr(subprocess, "Popen", popen)
+    probe._probe_worker("/fake/muse")
+    popen.assert_not_called()
+    assert probe.read_cache() == quota()
+    assert probe._retry_after == 0.0

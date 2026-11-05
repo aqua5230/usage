@@ -247,6 +247,7 @@ def _isolate_muse_quota(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None
     monkeypatch.setattr(muse_quota_probe, "CACHE_PATH", tmp_path / "muse_quota.json")
     monkeypatch.setattr(muse_quota_probe, "PROBE_DIR", tmp_path / "muse-probe")
     monkeypatch.setattr(muse_quota_probe, "find_muse", lambda: None)
+    monkeypatch.setattr(muse_quota_probe, "read_usage", lambda _executable: None)
     monkeypatch.setattr(muse_quota_probe, "_probe_running", False)
     monkeypatch.setattr(muse_quota_probe, "_retry_after", 0.0)
     monkeypatch.setattr(muse_quota_probe, "_last_attempt_session", None)
