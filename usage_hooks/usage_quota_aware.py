@@ -126,10 +126,12 @@ def reminder(session_id: str, now: float) -> str:
         level = max((threshold for threshold in thresholds if used >= threshold), default=0)
         if level:
             limited.add(tool)
-        # Antigravity's reset is derived from whole-second fields and can drift by a second
-        # between snapshots; key on the minute so the same window is not announced twice.
-        key = json.dumps([session_id, tool, window, round(reset / 60)])
-        if not level or level <= state.get(key, {}).get("level", 0):
+        # Antigravity's reset is derived from a seconds countdown and drifts by up to about a
+        # minute between snapshots, so a reset within 10 minutes is the same window.
+        key = json.dumps([session_id, tool, window])
+        seen = state.get(key, {})
+        announced = seen.get("level", 0) if abs(seen.get("resets_at", 0) - reset) < 600 else 0
+        if not level or level <= announced:
             continue
         label = "5-hour" if window == "five_hour" else "weekly"
         usage = _usage(used, reset, now)

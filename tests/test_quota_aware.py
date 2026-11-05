@@ -418,3 +418,12 @@ def test_quota_carried_from_another_session_is_not_this_accounts(paths: Path) ->
     status["_rate_limits_session_id"] = "one"
     hook.CLAUDE_STATUS.write_text(json.dumps(status))
     assert "Claude Code 5-hour quota: 95% used" in hook.reminder("one", NOW)
+
+
+def test_reset_drift_within_a_window_is_announced_once(paths: Path) -> None:
+    claude(91, reset=NOW + 4800 - 31)
+    assert "91% used" in hook.reminder("one", NOW)
+    claude(91, reset=NOW + 4800 + 29)
+    assert hook.reminder("one", NOW) == ""
+    claude(91, reset=NOW + 4800 + 3600)
+    assert "91% used" in hook.reminder("one", NOW)
