@@ -395,13 +395,36 @@ def test_parse_muse_usage_rejects_missing_allowance(stdout: str) -> None:
 
 
 def test_read_usage_runs_without_model(monkeypatch: pytest.MonkeyPatch) -> None:
-    run = Mock(return_value=subprocess.CompletedProcess([], 0, USAGE, ""))
-    monkeypatch.setattr(subprocess, "run", run)
+    process = Mock(returncode=0)
+    process.poll.return_value = 0
+    process.communicate.return_value = (USAGE, "")
+    popen = Mock(return_value=process)
+    monkeypatch.setattr(subprocess, "Popen", popen)
     monkeypatch.setattr(time, "time", lambda: 1000)
     assert _REAL_READ_USAGE("/fake/muse") == quota()
-    assert run.call_args.args[0] == ["/fake/muse", "usage", "--json"]
-    run.return_value = subprocess.CompletedProcess([], 2, "", "unknown command")
+    assert popen.call_args.args[0] == ["/fake/muse", "usage", "--json"]
+    process.returncode = 2
+    process.communicate.return_value = ("", "unknown command")
     assert _REAL_READ_USAGE("/fake/muse") is None
+
+
+def test_read_usage_is_stoppable_at_exit(monkeypatch: pytest.MonkeyPatch) -> None:
+    process = Mock(returncode=0)
+    process.poll.return_value = None
+
+    def communicate(*, timeout: int) -> tuple[str, str]:
+        assert probe._probe_process is process
+        raise subprocess.TimeoutExpired("muse", timeout)
+
+    process.communicate.side_effect = communicate
+    popen = Mock(return_value=process)
+    monkeypatch.setattr(subprocess, "Popen", popen)
+    assert _REAL_READ_USAGE("/fake/muse") is None
+    process.terminate.assert_called_once()
+    monkeypatch.setattr(probe, "_probe_shutdown", True)
+    popen.reset_mock()
+    assert _REAL_READ_USAGE("/fake/muse") is None
+    popen.assert_not_called()
 
 
 def test_worker_skips_model_probe_when_usage_reads(monkeypatch: pytest.MonkeyPatch) -> None:

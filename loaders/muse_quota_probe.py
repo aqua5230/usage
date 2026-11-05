@@ -134,23 +134,21 @@ def read_usage(executable: str) -> MuseQuotaResult | None:
     Returns ``None`` when Muse has no reading (e.g. an exhausted window) or predates the command;
     the caller then falls back to the ``muse exec`` probe.
     """
+    process = None
     try:
-        completed = subprocess.run(
-            [executable, "usage", "--json"],
-            stdin=subprocess.DEVNULL,
-            capture_output=True,
-            encoding="utf-8",
-            timeout=30,
-            check=False,
-            env=cli_env(executable),
-            **hidden_console_kwargs(),
-        )
+        process = _spawn([executable, "usage", "--json"])
+        if process is None:
+            return None
+        stdout, _ = process.communicate(timeout=30)
     except (OSError, subprocess.SubprocessError, UnicodeError):
         logger.warning("muse usage failed", exc_info=True)
         return None
-    if completed.returncode != 0:
+    finally:
+        if process is not None:
+            _stop_process(process)
+    if process.returncode != 0:
         return None
-    return parse_muse_usage(completed.stdout, time.time())
+    return parse_muse_usage(stdout, time.time())
 
 
 def parse_exhausted_window(
@@ -249,6 +247,25 @@ def _cleanup_probe() -> None:
 atexit.register(_cleanup_probe)
 
 
+def _spawn(args: list[str], cwd: Path | None = None) -> subprocess.Popen[str] | None:
+    """Start a Muse child that ``_cleanup_probe`` can stop; ``None`` once the app is exiting."""
+    global _probe_process
+    with _probe_lock:
+        if _probe_shutdown:
+            return None
+        _probe_process = subprocess.Popen(
+            args,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            encoding="utf-8",
+            cwd=cwd,
+            env=cli_env(args[0]),
+            **hidden_console_kwargs(),
+        )
+        return _probe_process
+
+
 def _probe_worker(executable: str) -> None:
     global _probe_running, _retry_after, _probe_process
     succeeded = False
@@ -257,32 +274,24 @@ def _probe_worker(executable: str) -> None:
         result = read_usage(executable)
         if result is None:
             PROBE_DIR.mkdir(parents=True, exist_ok=True)
-            with _probe_lock:
-                if _probe_shutdown:
-                    return
-                process = subprocess.Popen(
-                    [
-                        executable,
-                        "exec",
-                        "--model",
-                        MUSE_MODEL,
-                        "--reasoning-effort",
-                        "low",
-                        "--trust-workspace",
-                        "--disable-web-tools",
-                        "--no-session-log",
-                        "--json",
-                        "Reply with OK only.",
-                    ],
-                    stdin=subprocess.DEVNULL,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    encoding="utf-8",
-                    cwd=PROBE_DIR,
-                    env=cli_env(executable),
-                    **hidden_console_kwargs(),
-                )
-                _probe_process = process
+            process = _spawn(
+                [
+                    executable,
+                    "exec",
+                    "--model",
+                    MUSE_MODEL,
+                    "--reasoning-effort",
+                    "low",
+                    "--trust-workspace",
+                    "--disable-web-tools",
+                    "--no-session-log",
+                    "--json",
+                    "Reply with OK only.",
+                ],
+                cwd=PROBE_DIR,
+            )
+            if process is None:
+                return
             try:
                 stdout, _ = process.communicate(timeout=120)
             except subprocess.TimeoutExpired:
