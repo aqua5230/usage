@@ -308,6 +308,9 @@ def test_install_remove_and_upgrade(monkeypatch: pytest.MonkeyPatch, tmp_path: P
     target.write_text('__version__ = "0.1"')
     session_hooks._self_heal_quota_aware()
     assert session_hooks._installed_quota_aware_version() == session_hooks.QUOTA_AWARE_HOOK_VERSION
+    target.write_text('__version__ = "99.0"')
+    session_hooks._self_heal_quota_aware()
+    assert session_hooks._installed_quota_aware_version() == "99.0"
     target.unlink()
     session_hooks._self_heal_quota_aware()
     assert target.exists()
@@ -404,3 +407,23 @@ def test_muse_reminder_ignores_unavailable_expired_stale(
     }
     hook.QUOTA_SNAPSHOT.write_text(json.dumps(data))
     assert hook.reminder("muse", NOW) == ""
+
+
+def test_quota_carried_from_another_session_is_not_this_accounts(paths: Path) -> None:
+    claude(95, 99)
+    status = json.loads(hook.CLAUDE_STATUS.read_text())
+    status["_rate_limits_session_id"] = "before-login-switch"
+    hook.CLAUDE_STATUS.write_text(json.dumps(status))
+    assert hook.reminder("one", NOW) == ""
+    status["_rate_limits_session_id"] = "one"
+    hook.CLAUDE_STATUS.write_text(json.dumps(status))
+    assert "Claude Code 5-hour quota: 95% used" in hook.reminder("one", NOW)
+
+
+def test_reset_drift_within_a_window_is_announced_once(paths: Path) -> None:
+    claude(91, reset=NOW + 4800 - 31)
+    assert "91% used" in hook.reminder("one", NOW)
+    claude(91, reset=NOW + 4800 + 29)
+    assert hook.reminder("one", NOW) == ""
+    claude(91, reset=NOW + 4800 + 3600)
+    assert "91% used" in hook.reminder("one", NOW)

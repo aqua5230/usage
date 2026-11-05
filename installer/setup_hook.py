@@ -86,7 +86,7 @@ PREV_SL_KEY = "previousStatusLine"
 # Where the status-line switch parks the live statusLine while it is off, so it
 # never overwrites the pre-install backup under PREV_SL_KEY.
 DISABLED_SL_KEY = "disabledStatusLine"
-HOOK_VERSION = "1.17"
+HOOK_VERSION = "1.18"
 FORWARDER_VERSION = "1.1"
 # Antigravity's Go runner hands its status-line command to cmd.exe unquoted, so
 # every character cmd.exe treats specially has to be kept out of the path.
@@ -1231,16 +1231,30 @@ def _installed_forwarder_version() -> str | None:
     return None
 
 
+def is_older(installed: str | None, current: str) -> bool:
+    """True when an installed hook should be replaced: missing, unreadable, or older.
+
+    Never downgrade: an older usage build would otherwise swap back a hook that a newer
+    build installed, and the two would keep replacing each other on every self-heal.
+    """
+    if installed is None:
+        return True
+    try:
+        return tuple(map(int, installed.split("."))) < tuple(map(int, current.split(".")))
+    except ValueError:
+        return True
+
+
 def needs_update() -> bool:
     if not HOOK_TARGET.parent.exists():
         return False
-    return _installed_hook_version() != HOOK_VERSION
+    return is_older(_installed_hook_version(), HOOK_VERSION)
 
 
 def forwarder_needs_update() -> bool:
     if not FORWARDER_TARGET.exists():
         return False
-    return _installed_forwarder_version() != FORWARDER_VERSION
+    return is_older(_installed_forwarder_version(), FORWARDER_VERSION)
 
 
 def update_hook() -> None:

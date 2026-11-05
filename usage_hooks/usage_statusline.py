@@ -69,7 +69,7 @@ else:
 fcntl = _fcntl
 msvcrt = _msvcrt
 
-__version__ = "1.17"
+__version__ = "1.18"
 
 STATUS_FILE = os.path.expanduser("~/.claude/usage-status.json")
 LOCK_FILE = os.path.expanduser("~/.claude/usage-status.lock")
@@ -531,9 +531,14 @@ def save(data: Dict[str, Any], now: datetime) -> None:
     os.makedirs(os.path.dirname(lock_file), exist_ok=True)
     tmp_path: Optional[str] = None
     lock_fd = os.open(lock_file, os.O_CREAT | os.O_RDWR, 0o600)
+    incoming = data.get("rate_limits")
+    # Before its first reply a session reuses the cached windows, which may belong to the
+    # account used before a /login switch; record which session actually observed them.
+    fresh = isinstance(incoming, dict) and any(_window_used(incoming.get(k)) for k in _RATE_WINDOWS)
+    observed_by = data.get("session_id") if fresh else None
     try:
         with _exclusive_lock(lock_fd):
-            if not _rate_limits_complete(data.get("rate_limits")):
+            if not _rate_limits_complete(incoming):
                 try:
                     with open(STATUS_FILE, encoding="utf-8") as f:
                         existing = json.load(f)
@@ -545,6 +550,11 @@ def save(data: Dict[str, Any], now: datetime) -> None:
                     )
                     if merged is not None:
                         data["rate_limits"] = merged
+                    if not fresh:
+                        observed_by = existing.get(
+                            "_rate_limits_session_id", existing.get("session_id")
+                        )
+            data["_rate_limits_session_id"] = observed_by
             fd, tmp_path = tempfile.mkstemp(dir=target_dir, suffix=".tmp")
             with os.fdopen(fd, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False)
