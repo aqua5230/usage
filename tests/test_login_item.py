@@ -217,7 +217,8 @@ def test_enable_bootstrap_unexpected_returncode_warns_and_keeps_plist(
     monkeypatch.setattr("installer.login_item.subprocess.run", fake_run)
     caplog.set_level(logging.WARNING, logger="installer.login_item")
 
-    login_item.enable()
+    with pytest.raises(RuntimeError, match="permission denied"):
+        login_item.enable()
 
     assert plist_path.exists() is True
     assert "bootstrap" in caplog.text
@@ -257,7 +258,8 @@ def test_enable_bootstrap_subprocess_exception_warns_and_keeps_plist(
     monkeypatch.setattr("installer.login_item.subprocess.run", fake_run)
     caplog.set_level(logging.WARNING, logger="installer.login_item")
 
-    login_item.enable()
+    with pytest.raises(type(side_effect)):
+        login_item.enable()
 
     assert plist_path.exists() is True
     assert "bootstrap" in caplog.text

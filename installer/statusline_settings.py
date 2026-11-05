@@ -110,7 +110,8 @@ def _disable_statusline_settings() -> int:
     _sync_agy_statusline(False)
     _sync_grok_statusline(False)
     settings = _load_claude_settings()
-    if "statusLine" not in settings:
+    # The switch can be on for agy alone; a user's own Claude status line is not ours to stash.
+    if "statusLine" not in settings or setup_hook._detect_current_state(settings) == "external":
         return 0
     usage_settings = settings.setdefault("usage", {})
     if not isinstance(usage_settings, dict):
@@ -129,7 +130,9 @@ def _enable_statusline_settings() -> int:
     _sync_grok_statusline(True)
     settings = _load_claude_settings()
     if "statusLine" in settings:
-        return 0
+        if setup_hook._detect_current_state(settings) in {"us-direct", "us-forwarder"}:
+            return 0
+        return setup_hook.setup()
     raw_usage_settings = settings.get("usage")
     usage_settings = raw_usage_settings if isinstance(raw_usage_settings, dict) else None
     # Older versions parked the switch's statusLine under previousStatusLine.
@@ -169,7 +172,9 @@ def _statusline_enabled() -> bool:
         settings = _load_claude_settings()
     except (OSError, ValueError, json.JSONDecodeError):
         return False
-    if "statusLine" in settings:
+    from installer import setup_hook
+
+    if setup_hook._detect_current_state(settings) in {"us-direct", "us-forwarder"}:
         return True
     if sys.platform not in {"darwin", "win32"}:
         return False

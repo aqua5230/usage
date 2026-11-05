@@ -129,11 +129,12 @@ def statusline_action_in_background(app: _ActionApp, action: str) -> None:
     try:
         with contextlib.redirect_stdout(output), contextlib.redirect_stderr(output):
             if action == "toggle":
-                _toggle_statusline_settings()
+                _, exit_code = _toggle_statusline_settings()
             elif action == "uninstall":
-                _disable_statusline_settings()
+                exit_code = _disable_statusline_settings()
             else:
-                _enable_statusline_settings()
+                exit_code = _enable_statusline_settings()
+            ok = exit_code == 0
     except SystemExit as exc:
         if exc.code:
             ok = False

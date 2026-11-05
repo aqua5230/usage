@@ -3995,3 +3995,38 @@ def test_panel_switch_updates_argon_weekly_only(
         agy = cast(dict[str, object], _state_payload(controller.latest_state)["agy"])
         assert agy["weeklyOnly"] is expected
         assert agy["availableGroups"] == ["gemini", "argon"]
+
+
+def test_launch_at_login_failure_shows_message(monkeypatch: pytest.MonkeyPatch) -> None:
+    messages: list[str] = []
+    monkeypatch.setattr(win_login_item, "is_enabled", lambda: False)
+
+    def fail() -> None:
+        raise PermissionError("access denied")
+
+    monkeypatch.setattr(win_login_item, "enable", fail)
+    controller = SimpleNamespace(language="zh-TW", _message_box=messages.append)
+    wintray._WindowsTrayController.toggle_login(cast(Any, controller))
+    assert messages == [_t("zh-TW", "launch_at_login_failed", error="access denied")]
+
+
+@pytest.mark.parametrize("raises", [False, True])
+def test_statusline_toggle_failure_shows_message(
+    monkeypatch: pytest.MonkeyPatch, raises: bool
+) -> None:
+    messages: list[str] = []
+    refreshed = []
+
+    def fail() -> tuple[str, int]:
+        if raises:
+            raise OSError("access denied")
+        return "install", 1
+
+    monkeypatch.setattr(wintray, "_toggle_statusline_settings", fail)
+    controller = SimpleNamespace(
+        language="zh-TW", _message_box=messages.append, refresh=lambda: refreshed.append(True)
+    )
+    wintray._WindowsTrayController._toggle_statusline(cast(Any, controller))
+    assert len(messages) == 1
+    assert _t("zh-TW", "statusline_action_failed") in messages[0]
+    assert refreshed == [True]

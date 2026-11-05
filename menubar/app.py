@@ -468,9 +468,12 @@ class AppDelegate(NSObject):
                 login_item.disable()
             else:
                 login_item.enable()
-        except Exception:
+        except Exception as exc:
             if os.environ.get("USAGE_DEBUG") == "1":
                 logger.warning("toggle launch at login failed", exc_info=True)
+            alert = _make_alert()
+            alert.setMessageText_(_t(self.language, "launch_at_login_failed", error=str(exc)))
+            alert.runModal()
 
     def _toggle_hide_section(
         self,
