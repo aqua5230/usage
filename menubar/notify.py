@@ -230,6 +230,30 @@ def request_notification_authorization() -> None:
         logger.warning("notification authorization failed", exc_info=True)
 
 
+def refresh_notification_permission(app: Any) -> None:
+    if getattr(app, "mock", False):
+        return
+    try:
+        center, _ = user_notification_center()
+
+        def completed(settings: Any) -> None:
+            app._notification_authorization_status = int(settings.authorizationStatus())
+
+        center.getNotificationSettingsWithCompletionHandler_(completed)
+    except Exception:
+        logger.warning("notification settings refresh failed", exc_info=True)
+
+
+def open_notification_settings(app: Any) -> None:
+    from AppKit import NSWorkspace
+    from Foundation import NSURL
+
+    app._mark_switch_menu_action()
+    NSWorkspace.sharedWorkspace().openURL_(
+        NSURL.URLWithString_("x-apple.systempreferences:com.apple.Notifications-Settings.extension")
+    )
+
+
 def send_simple_notification(title: str, body: str) -> None:
     try:
         center, _ = user_notification_center()

@@ -44,8 +44,12 @@ class _ChannelState:
 class QuotaNotifier:
     def __init__(self, thresholds: list[float] | None = None) -> None:
         values = [90.0] if thresholds is None else thresholds
-        self.thresholds = sorted({float(value) for value in values})
+        self.set_thresholds(values)
         self._channels = {channel: _ChannelState() for channel in VALID_CHANNELS}
+
+    def set_thresholds(self, values: list[float]) -> None:
+        """Replace thresholds without resetting channel observations or warning latches."""
+        self.thresholds = sorted({float(value) for value in values})
 
     def update(
         self,

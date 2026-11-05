@@ -70,6 +70,9 @@ class _FakeMenu:
         self.title = title
         return self
 
+    def setAutoenablesItems_(self, enabled: bool) -> None:
+        self.autoenables = enabled
+
     def addItem_(self, item: _FakeMenuItem) -> None:
         self.items.append(item)
 
@@ -114,6 +117,9 @@ class _FakeMenuItem:
         self.action = action
         self.key = key
         return self
+
+    def setTitle_(self, title: str) -> None:
+        self.title = title
 
     def setTarget_(self, target: object) -> None:
         self.target = target
@@ -705,9 +711,9 @@ def test_switch_panel_menu_contains_update_items(
     _FakeMenu.instances = []
     menubar.AppDelegate.switchPanel_(delegate, object())
 
-    # Four menus are built: the main popup, the panel-themes submenu, the
-    # provider-visibility submenu, and the Claude Code submenu.
-    main_menu, panel_submenu, hide_submenu, claude_submenu = _FakeMenu.instances
+    main_menu, panel_submenu, hide_submenu, notification_submenu, claude_submenu = (
+        _FakeMenu.instances
+    )
     main_titles = [item.title for item in main_menu.items]
 
     # The auto-update row is gone — update checks just stay on by default.
@@ -759,6 +765,8 @@ def test_switch_panel_menu_contains_update_items(
         "---",
         "Claude Code",
     ]
+    assert settings[1].submenu is notification_submenu
+    assert settings[1].state == 1
     assert settings[7].submenu is claude_submenu
     assert [item.title for item in claude_submenu.items] == [
         "Sync quota via status line",

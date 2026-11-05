@@ -12,15 +12,19 @@ from AppKit import NSMakePoint, NSMenu, NSMenuItem
 
 from installer import claude_pane, login_item, session_hooks
 from installer.statusline_settings import _statusline_enabled
+from menubar import notify
 from menubar.new_badge import apply_badge
 from menubar.prefs import (
+    QUOTA_THRESHOLD_PRESETS,
     _hide_agy_enabled,
     _hide_claude_enabled,
     _hide_codex_enabled,
     _hide_grok_enabled,
     _hide_muse_enabled,
+    _quota_notification_thresholds,
     _quota_notifications_enabled,
     _window_keeper_enabled,
+    toggle_quota_threshold,
 )
 from usage_common.i18n import _t
 
@@ -163,15 +167,7 @@ def build_switch_menu(app: _SwitchMenuApp, sender: Any) -> None:
             state=login_item.is_enabled(),
         )
     )
-    menu.addItem_(
-        build_menu_item(
-            app.language,
-            "quota_notifications_menu",
-            "toggleQuotaNotifications:",
-            target=app,
-            state=_quota_notifications_enabled(),
-        )
-    )
+    menu.addItem_(build_quota_notifications_menu(app))
     menu.addItem_(
         build_menu_item(
             app.language,
@@ -267,3 +263,60 @@ def build_switch_menu(app: _SwitchMenuApp, sender: Any) -> None:
     # cleanup. The floating window survives the menu, so the same call would
     # read as "cancelling the menu threw my panel away".
     app._resync_popover_after_menu()
+
+
+def build_quota_notifications_menu(app: Any) -> Any:
+    from UserNotifications import UNAuthorizationStatusDenied
+
+    notify.refresh_notification_permission(app)
+    enabled = _quota_notifications_enabled()
+    parent = build_menu_item(
+        app.language, "quota_notifications_menu", "", target=app, state=enabled
+    )
+    submenu = NSMenu.alloc().initWithTitle_(_t(app.language, "quota_notifications_menu"))
+    submenu.setAutoenablesItems_(False)
+    submenu.addItem_(
+        build_menu_item(
+            app.language,
+            "quota_notifications_toggle",
+            "toggleQuotaNotifications:",
+            target=app,
+            state=enabled,
+        )
+    )
+    if enabled and getattr(app, "_notification_authorization_status", None) == int(
+        UNAuthorizationStatusDenied
+    ):
+        item = build_menu_item(
+            app.language,
+            "quota_notifications_permission_denied",
+            "openNotificationSettings:",
+            target=app,
+        )
+        item.setEnabled_(True)
+        submenu.addItem_(item)
+    submenu.addItem_(NSMenuItem.separatorItem())
+    header = build_menu_item(app.language, "quota_threshold_header", "", target=app)
+    header.setEnabled_(False)
+    submenu.addItem_(header)
+    thresholds = _quota_notification_thresholds()
+    for percent in QUOTA_THRESHOLD_PRESETS:
+        item = build_menu_item(
+            app.language,
+            "quota_threshold_item",
+            "selectQuotaThreshold:",
+            target=app,
+            represented=percent,
+            state=percent in thresholds,
+        )
+        item.setTitle_(_t(app.language, "quota_threshold_item", percent=percent))
+        item.setEnabled_(enabled)
+        submenu.addItem_(item)
+    parent.setSubmenu_(submenu)
+    return parent
+
+
+def select_quota_threshold(app: Any, sender: Any) -> None:
+    app._mark_switch_menu_action()
+    if toggle_quota_threshold(sender.representedObject(), app._quota_notifier):
+        sender.setState_(1 if sender.representedObject() in app._quota_notifier.thresholds else 0)
