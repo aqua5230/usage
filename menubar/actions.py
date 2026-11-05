@@ -16,7 +16,7 @@ from typing import Any, Protocol
 
 from Foundation import NSObject
 
-from installer import session_hooks, setup_hook
+from installer import login_item, session_hooks, setup_hook
 from installer.statusline_settings import (
     _disable_statusline_settings,
     _enable_statusline_settings,
@@ -332,3 +332,18 @@ class QuotaAwareMenuTarget(NSObject):  # type: ignore[misc]
             alert.setInformativeText_(str(result.get("output") or ""))
         alert.runModal()
         self.app._refresh()
+
+
+def toggle_launch_at_login(app: Any) -> None:
+    app._mark_switch_menu_action()
+    try:
+        if login_item.is_enabled():
+            login_item.disable()
+        else:
+            login_item.enable()
+    except Exception as exc:
+        if os.environ.get("USAGE_DEBUG") == "1":
+            logger.warning("toggle launch at login failed", exc_info=True)
+        alert = _make_alert()
+        alert.setMessageText_(_t(app.language, "launch_at_login_failed", error=str(exc)))
+        alert.runModal()

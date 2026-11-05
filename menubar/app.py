@@ -32,7 +32,6 @@ from AppKit import (
 from Foundation import NSObject, NSRunLoop, NSRunLoopCommonModes, NSTimer
 
 import panels
-from installer import login_item
 from installer.statusline_settings import (
     _claude_settings_path as _claude_settings_path,
 )
@@ -464,18 +463,7 @@ class AppDelegate(NSObject):
         webbrowser.open("https://aqua5230.github.io/ai-updates/")
 
     def toggleLaunchAtLogin_(self, sender: Any) -> None:
-        self._mark_switch_menu_action()
-        try:
-            if login_item.is_enabled():
-                login_item.disable()
-            else:
-                login_item.enable()
-        except Exception as exc:
-            if os.environ.get("USAGE_DEBUG") == "1":
-                logger.warning("toggle launch at login failed", exc_info=True)
-            alert = _make_alert()
-            alert.setMessageText_(_t(self.language, "launch_at_login_failed", error=str(exc)))
-            alert.runModal()
+        menubar_actions.toggle_launch_at_login(self)
 
     def _toggle_hide_section(
         self,
