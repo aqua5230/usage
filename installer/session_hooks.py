@@ -95,7 +95,7 @@ _TERSE_REMINDER_MARKER = "usage-terse-reminder"
 _TERSE_REMINDER_MARKERS = (_TERSE_REMINDER_MARKER, "usage_terse_reminder")
 # Independent, opt-in Claude Code UserPromptSubmit hook.
 QUOTA_AWARE_HOOK_TARGET = Path(os.path.expanduser("~/.claude/usage-quota-aware.py"))
-QUOTA_AWARE_HOOK_VERSION = "1.4"
+QUOTA_AWARE_HOOK_VERSION = "1.5"
 QUOTA_AWARE_MATCHER = ""
 _QUOTA_AWARE_MARKER = "usage-quota-aware"
 _QUOTA_AWARE_MARKERS = (_QUOTA_AWARE_MARKER, "usage_quota_aware")
@@ -1151,8 +1151,8 @@ def _debug_self_heal_failure(action: str, exc: BaseException) -> None:
         print(f"usage self-heal {action} failed: {type(exc).__name__}: {exc}", file=sys.stderr)
 
 
-def self_heal() -> None:
-    """Best-effort startup repair for usage-owned Claude statusLine hooks."""
+def _self_heal_statuslines() -> None:
+    """Best-effort startup repair for usage-owned status lines."""
     try:
         settings = _load_settings()
         state = _detect_current_state(settings)
@@ -1262,6 +1262,11 @@ def self_heal() -> None:
         if isinstance(exc, KeyboardInterrupt):
             raise
         _debug_self_heal_failure("setup_codex", exc)
+
+
+def self_heal() -> None:
+    """Repair status lines and independently repair opt-in session hooks."""
+    _self_heal_statuslines()
 
     try:
         _self_heal_resume()

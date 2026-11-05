@@ -1136,6 +1136,40 @@ def test_self_heal_skips_external_statusline(setup_paths: SetupHookPaths) -> Non
     assert not hook_target.exists()
 
 
+@pytest.mark.parametrize("command", ["python3 ccusage.py", "python3 tt-statusline.py"])
+@pytest.mark.parametrize("failing_repair", [None, "resume", "quota_aware", "terse_mode"])
+def test_self_heal_repairs_session_hooks_with_custom_statusline(
+    monkeypatch: pytest.MonkeyPatch,
+    setup_paths: SetupHookPaths,
+    command: str,
+    failing_repair: str | None,
+) -> None:
+    original = json.dumps({"statusLine": {"type": "command", "command": command}})
+    setup_paths.settings.write_text(original, encoding="utf-8")
+    codex_config = setup_hook.CODEX_CONFIG
+    codex_config.parent.mkdir(parents=True, exist_ok=True)
+    codex_original = (
+        "[tui]\nstatus_line = " + json.dumps(setup_hook.LEGACY_CODEX_STATUS_LINES[0]) + "\n"
+    )
+    codex_config.write_text(codex_original, encoding="utf-8")
+    calls = []
+
+    def repair(name: str) -> None:
+        calls.append(name)
+        if name == failing_repair:
+            raise OSError("repair failed")
+
+    for name in ("resume", "quota_aware", "terse_mode"):
+        monkeypatch.setattr(session_hooks, f"_self_heal_{name}", lambda name=name: repair(name))
+
+    session_hooks.self_heal()
+
+    assert calls == ["resume", "quota_aware", "terse_mode"]
+    assert setup_paths.settings.read_text(encoding="utf-8") == original
+    assert codex_config.read_text(encoding="utf-8") == codex_original
+    assert not setup_paths.hook_target.exists()
+
+
 def test_self_heal_updates_owned_hook(
     monkeypatch: pytest.MonkeyPatch,
     setup_paths: SetupHookPaths,
