@@ -3858,7 +3858,7 @@ def test_launch_at_login_failure_shows_alert_and_keeps_plist(
     alert = SimpleNamespace(
         setMessageText_=messages.append, runModal=lambda: messages.append("shown")
     )
-    monkeypatch.setattr(menubar, "_make_alert", lambda: alert)
+    monkeypatch.setattr(menubar_actions, "_make_alert", lambda: alert)
     delegate = menubar.AppDelegate.alloc().init()
     delegate.language = "zh-TW"
     monkeypatch.setattr(delegate, "_mark_switch_menu_action", lambda: None)
