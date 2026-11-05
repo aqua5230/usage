@@ -780,6 +780,11 @@
     /* Pale amber is unreadable over the sky card in either card size. */
     .stale { color: var(--text); }
     .stale-info { color: inherit; }
+
+    /* Codex has no live report, so an old reading is normal, not a warning. */
+    [data-codex-stale] {
+      color: var(--muted);
+    }
   </style>
 </head>
 <body>
@@ -840,7 +845,6 @@
             <h1 data-i18n="codex_name">Codex</h1>
           </div>
           <div class="stale" data-codex-stale hidden>
-            <span aria-hidden="true">⚠</span>
             <span data-codex-stale-age></span>
             <span class="stale-info" aria-hidden="true">ⓘ
               <span class="stale-tooltip" data-codex-stale-tooltip></span>

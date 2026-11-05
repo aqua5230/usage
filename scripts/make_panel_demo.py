@@ -12,6 +12,7 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
+from typing import cast
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_REPO_ROOT))
@@ -102,6 +103,10 @@ def main() -> int:
     # usageSetLanguage 只換靜態標籤；Session / Rate: Active 這些字串是 Python
     # 產生的，換語言換不掉，所以每種語言各存一份 payload 讓展示頁自己挑。
     payloads = {lang: _state_payload(_demo_state(lang)) for lang in LANGUAGES}
+    # The group list comes from the app's last live quota, which the demo never fetches.
+    for payload in payloads.values():
+        agy = cast(dict[str, object], payload["agy"])
+        agy["availableGroups"] = ["gemini", "claude_gpt", "argon"]
     encoded = json.dumps(payloads, ensure_ascii=False)
     injection = (
         "<script>"

@@ -9,7 +9,7 @@
       color-scheme: dark light;
       --bg: #080d12;
       --panel: rgba(25, 33, 42, 0.86);
-      --panel-border: rgba(255, 255, 255, 0.15);
+      --panel-border: rgba(255, 255, 255, 0.10);
       --line: rgba(255, 255, 255, 0.13);
       --text: rgba(255, 255, 255, 0.94);
       --muted: rgba(255, 255, 255, 0.58);
@@ -112,16 +112,6 @@
       z-index: 2;
     }
 
-    .card::before {
-      content: "";
-      position: absolute;
-      inset: 6px auto 6px 0;
-      width: 3px;
-      border-radius: 0 3px 3px 0;
-      background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 22%, transparent));
-      box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 45%, transparent);
-    }
-
     /* Chasing halo. No box-shadow anywhere: the effect is a conic gradient
        clipped to the card's own border ring, so it cannot bleed past the box
        even on the codex/agy cards, which are overflow:visible for tooltips. */
@@ -175,9 +165,7 @@
       border-radius: 8px;
       object-fit: cover;
       flex: none;
-      box-shadow:
-        0 0 0 1px rgba(255, 255, 255, 0.12),
-        0 6px 14px color-mix(in srgb, var(--accent) 24%, transparent);
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
     }
 
     .brand-icon {
@@ -211,9 +199,9 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      font-size: 21px;
+      font-size: 18px;
       line-height: 1;
-      font-weight: 800;
+      font-weight: 700;
       /* Room for descenders (g, y) inside the ellipsis clip; the negative margin keeps the layout unchanged. */
       padding-block: 0.2em;
       margin-block: -0.2em;
@@ -234,6 +222,11 @@
 
     .codex-stale[hidden] {
       display: none;
+    }
+
+    /* Codex has no live report, so an old reading is normal, not a warning. */
+    [data-codex-stale] {
+      color: var(--muted);
     }
 
     .codex-credits {
@@ -333,23 +326,22 @@
       justify-content: center;
       width: 100%;
       min-width: 0;
-      height: 30px;
-      font-size: 12.5px;
+      height: 28px;
+      font-size: 12px;
       font-weight: 700;
       line-height: 1;
     }
 
-    /* Same lead / quiet pair as Refresh / Quit in the footer. */
+    /* The range toggle leads with green text and a thin outline only, so a red quota stays the loudest thing. */
     .project-actions [data-action="toggle-project-range"] {
-      border-color: rgba(48, 209, 88, 0.36);
-      background: linear-gradient(180deg, rgba(48, 209, 88, 0.24), rgba(40, 180, 75, 0.14));
-      color: var(--text);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      border-color: rgba(48, 209, 88, 0.30);
+      background: color-mix(in srgb, var(--button) 70%, transparent);
+      color: #5fdc7f;
     }
 
     .project-actions [data-action="toggle-project-range"]:hover {
-      border-color: rgba(48, 209, 88, 0.55);
-      background: linear-gradient(180deg, rgba(48, 209, 88, 0.34), rgba(40, 180, 75, 0.22));
+      border-color: rgba(48, 209, 88, 0.50);
+      background: var(--button);
     }
 
     .project-actions .switch:not([data-action="toggle-project-range"]) {
@@ -398,8 +390,8 @@
 
     .row + .row {
       border-top: 1px solid var(--line);
-      margin-top: 8px;
-      padding-top: 8px;
+      margin-top: 10px;
+      padding-top: 10px;
     }
 
     .row-head {
@@ -535,7 +527,7 @@
     }
 
     .proj-tokens {
-      color: var(--accent);
+      color: var(--text);
       font-weight: 700;
       white-space: nowrap;
       text-align: right;
@@ -626,13 +618,11 @@
     }
 
     .today {
-      margin-top: 8px;
-      padding-top: 8px;
-      border-top: 1px solid var(--line);
+      margin-top: 10px;
       color: var(--text);
-      font-size: 15px;
+      font-size: 14px;
       line-height: 20px;
-      font-weight: 800;
+      font-weight: 700;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -749,6 +739,10 @@
         color: #0b5120;
       }
 
+      .project-actions [data-action="toggle-project-range"] {
+        color: #13702f;
+      }
+
       /* A white app icon needs a dark outline on a white card. */
       .brand img {
         box-shadow:
@@ -763,7 +757,7 @@
 
     .attribution {
       font-size: 10px;
-      color: rgba(255,255,255,0.18);
+      color: rgba(255,255,255,0.34);
       text-align: center;
       margin-top: 6px;
     }
@@ -861,6 +855,16 @@
     html.compact-cards body .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"], [data-card="muse"]) .percent {
       font-size: 13.5px;
     }
+    /* Shrink the projects card and footer to match the compact quota cards. */
+    html.compact-cards body .card[data-card="projects"] .project-actions { gap: 8px; }
+    html.compact-cards body .card[data-card="projects"] .project-actions .switch { height: 24px; font-size: 11.5px; }
+    html.compact-cards body .proj-row { padding: 4px 0 5px; font-size: 12.5px; line-height: 18px; row-gap: 4px; }
+    html.compact-cards body .proj-cost { font-size: 11px; }
+    html.compact-cards body .footer { min-height: 0; padding-block: 10px 9px; }
+    html.compact-cards body .today { margin-top: 8px; font-size: 13px; }
+    html.compact-cards body .actions { margin-top: 8px; gap: 8px; }
+    html.compact-cards body .action { min-height: 28px; font-size: 12px; }
+    html.compact-cards body .brand .switch[data-action="switch"] { height: 22px; }
   </style>
 </head>
 <body>
@@ -880,7 +884,6 @@
         <img src="{{CODEX_ICON}}" alt="">
         <h1 data-i18n="codex_name">Codex</h1>
         <div class="codex-stale" data-codex-stale hidden>
-          <span aria-hidden="true">⚠</span>
           <span data-codex-stale-age></span>
           <span class="codex-stale-info" aria-hidden="true">ⓘ
             <span class="codex-stale-tooltip" data-codex-stale-tooltip></span>

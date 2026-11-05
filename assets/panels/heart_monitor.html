@@ -187,6 +187,11 @@
     .hide-muse [data-card="muse"] { display: none; }
     /* Compact layout keeps this theme's header geometry and decoration. */
     html.compact-cards body .card[data-card]:not([data-card="projects"]) { padding-inline: 11px; }
+
+    /* Codex has no live report, so an old reading is normal, not a warning. */
+    [data-codex-stale] {
+      color: var(--muted);
+    }
   </style>
 </head>
 <body>
@@ -206,7 +211,6 @@
         <img src="{{CODEX_ICON}}" alt="">
         <h1 data-i18n="codex_name">Codex</h1>
         <div class="codex-stale" data-codex-stale hidden>
-          <span aria-hidden="true">⚠</span>
           <span data-codex-stale-age></span>
           <span class="codex-stale-info" aria-hidden="true">ⓘ
             <span class="codex-stale-tooltip" data-codex-stale-tooltip></span>
