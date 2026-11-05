@@ -6,6 +6,88 @@ const band: RenderPropsOf['AbovePrompt'] = {
   isWorking: false, hasSurvey: false, maxRows: 20, bodyColumns: 100,
   scroll: { offset: 0, bodyRows: 20 }, view: {},
 }
+// turn.start stamps typed terms in the background; let that work finish before checking.
+const settle = () => new Promise(resolve => setTimeout(resolve, 10))
+
+test('main turn stamps typed entries once, reads once and writes only changes', async ($, on) => {
+  const path = '/test/.usage/glossary.json'
+  const row = (term: string) => ({ term, plain: 'p', example: 'e', known: false, first_seen: 0, seen_count: 1 })
+  let data = JSON.stringify({ version: 1, terms: { pr: row('PR'), ci: row('CI'), '分支': row('分支') } })
+  let reads = 0, writes = 0, now = 123
+  on('env.get', () => ({ value: '/test' }))
+  on('clock.now', () => ({ value: now }))
+  on('fs.exists', () => ({ value: true }))
+  on('fs.read', (_$, e) => { expect(normalizePath(e.path)).toBe(path); reads++; return { value: data } })
+  on('fs.write', (_$, e) => { expect(normalizePath(e.path)).toBe(path); writes++; data = e.text; return { value: undefined } })
+  on('turn.start', (_$, e) => ({ turnId: e.turnId }))
+  await $.turn.start({ text: 'PR搞定，把分支合併 decision', turnId: 'one' })
+  await settle()
+  expect(reads).toBe(1)
+  expect(writes).toBe(1)
+  expect(JSON.parse(data).terms.pr.user_typed_at).toBe(123)
+  expect(JSON.parse(data).terms['分支'].user_typed_at).toBe(123)
+  expect(JSON.parse(data).terms.ci.user_typed_at).toBeUndefined()
+  now = 456
+  await $.turn.start({ text: 'open a PR', turnId: 'two' })
+  await settle()
+  expect(reads).toBe(2)
+  expect(writes).toBe(1)
+  expect(JSON.parse(data).terms.pr.user_typed_at).toBe(123)
+  await $.turn.start({ text: 'CI', turnId: 'sub', agentId: 'agent-1' })
+  await $.turn.start({ text: 'CI' + ' '.repeat(499), turnId: 'paste' })
+  await $.turn.start({ text: '', turnId: 'continuation' })
+  await $.turn.start({ text: 'CI 是什麼？', turnId: 'question' })
+  await settle()
+  expect(reads).toBe(2)
+  expect(writes).toBe(1)
+})
+
+test('turn start logs read and write failures and still calls next', async ($, on) => {
+  let brokenRead = true, nextCalls = 0
+  const logs: string[] = []
+  on('env.get', () => ({ value: '/test' }))
+  on('clock.now', () => ({ value: 123 }))
+  on('fs.exists', () => ({ value: true }))
+  on('fs.read', () => {
+    if (brokenRead) throw new Error('read failed')
+    return { value: JSON.stringify({ version: 1, terms: { pr: { term: 'PR', plain: 'p', example: 'e', known: false, first_seen: 0, seen_count: 1 } } }) }
+  })
+  on('fs.write', () => { throw new Error('write failed') })
+  on('ui.log', (_$, e) => { logs.push(e.text); return { value: undefined } })
+  on('turn.start', (_$, e) => { nextCalls++; return { turnId: e.turnId } })
+  expect((await $.turn.start({ text: 'PR', turnId: 'read' })).turnId).toBe('read')
+  await settle()
+  brokenRead = false
+  expect((await $.turn.start({ text: 'PR', turnId: 'write' })).turnId).toBe('write')
+  await settle()
+  expect(nextCalls).toBe(2)
+  expect(logs[0]).toContain('fs.read')
+  expect(logs[1]).toContain('fs.write')
+})
+
+test('extraction drops current typed candidates, ignores subagents and resets on the next turn', async ($, on) => {
+  const path = '/test/.usage/glossary.json'
+  let data = '{"version":1,"terms":{}}'
+  on('env.get', () => ({ value: '/test' }))
+  on('clock.now', () => ({ value: 1000000 }))
+  on('fs.exists', (_$, e) => ({ value: normalizePath(e.path) === path }))
+  on('fs.read', (_$, e) => ({ value: normalizePath(e.path) === path ? data : '{}' }))
+  on('fs.write', (_$, e) => { data = e.text; return { value: undefined } })
+  on('model.complete', () => ({ value: { isAnswered: true, text: JSON.stringify(['PR', 'API'].map(term => ({ term, plain: 'p', example: 'e' }))), usage: { input_tokens: 0, output_tokens: 0, cache_creation_input_tokens: 0, cache_read_input_tokens: 0 } } }))
+  on('turn.start', (_$, e) => ({ turnId: e.turnId }))
+  on('turn.complete', () => ({ text: 'finished' }))
+  on('ui.render', () => ({ type: 'Box', props: {}, children: [] }))
+  const ui = await $.ui.mount({ plugin: 'usage-beginner', surface: 'terminal', component: 'AbovePrompt', props: band })
+  for (const [turnId, text] of [['typed', 'open a PR'], ['continuation', ''], ['paste', 'PR' + ' '.repeat(499)]]) {
+    data = '{"version":1,"terms":{}}'
+    await $.turn.start({ text: text!, turnId: turnId! })
+    await $.turn.start({ text: 'API', turnId: 'sub', agentId: 'agent-1' })
+    await $.turn.complete({ reason: 'answer', answer: 'PR API '.repeat(40), durationMs: 1, isAborted: false, turnId: turnId! })
+    for (let i = 0; i < 30 && !(await ui.find({ key: 'example-0' })); i++) await ui.redraw()
+    expect(await ui.find({ key: 'example-0' })).toBeDefined()
+    expect(Object.keys(JSON.parse(data).terms)).toEqual(turnId === 'typed' ? ['api'] : ['pr', 'api'])
+  }
+})
 
 test('examples, hidden bands, and pressing 9 updates glossary', async ($, on) => {
   const trace: string[] = []

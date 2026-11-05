@@ -2,22 +2,36 @@ import { clean } from './clean'
 
 export type Term = { term: string; plain: string; example: string }
 export type Entry = Term & {
-  first_seen: number; last_seen?: number; seen_count: number; known: boolean; review_at?: number; reviews?: number
+  first_seen: number; last_seen?: number; seen_count: number; known: boolean; review_at?: number; reviews?: number; user_typed_at?: number
 }
 export type Glossary = { version: 1; terms: Record<string, Entry>; quizzed_at?: number }
 export type Quiz = { key: string; term: string; options: string[]; answer: number }
 export const keyOf = (term: string): string => term.trim().toLowerCase()
 
+const asciiWord = /[A-Za-z0-9_]/, asciiLetterOrDigit = /[A-Za-z0-9]/
+export function userTyped(term: string, text: string): boolean {
+  if (text.length > 500) return false
+  const key = keyOf(term), prompt = keyOf(text)
+  if (key.length < 2) return false
+  if (!asciiLetterOrDigit.test(key)) return prompt.includes(key)
+  for (let at = prompt.indexOf(key); at !== -1; at = prompt.indexOf(key, at + 1)) {
+    if (!asciiWord.test(prompt[at - 1] ?? '') && !asciiWord.test(prompt[at + key.length] ?? '')) return true
+  }
+  return false
+}
+
 export const DAY = 86_400_000
 // A term shown without "All understood" waits longer each time: 1, 3, then 7 days.
 export const hidden = (row: Entry, now: number): boolean =>
-  row.known || now < (row.last_seen ?? row.first_seen) + [1, 3, 7][Math.min(row.seen_count, 3) - 1]! * DAY
+  row.known || row.user_typed_at !== undefined || now < (row.last_seen ?? row.first_seen) + [1, 3, 7][Math.min(row.seen_count, 3) - 1]! * DAY
 
 // An understood term is quizzed 7, 21, then 60 days later; a wrong answer sends it back to the hints.
 export const REVIEW_DAYS = [7, 21, 60]
 export function withKnown(row: Entry, known: boolean, now: number): Entry {
   const { review_at: _at, reviews: _count, ...rest } = row
-  return known ? { ...rest, known, review_at: now + REVIEW_DAYS[0]! * DAY, reviews: 0 } : { ...rest, known }
+  if (known) return { ...rest, known, review_at: now + REVIEW_DAYS[0]! * DAY, reviews: 0 }
+  const { user_typed_at: _typed, ...unknown } = rest
+  return { ...unknown, known }
 }
 export function graded(row: Entry, correct: boolean, now: number): Entry {
   if (!correct) return withKnown(row, false, now)
@@ -39,7 +53,8 @@ const escape = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, '\\
 export function quizOf(data: Glossary, now: number, random: () => number): Quiz | undefined {
   if (data.quizzed_at !== undefined && now - data.quizzed_at < DAY) return undefined
   const due = Object.entries(data.terms)
-    .filter(([, row]) => row.known && row.review_at !== undefined && row.review_at <= now)
+    // A word the user types themselves needs no quiz.
+    .filter(([, row]) => row.known && row.user_typed_at === undefined && row.review_at !== undefined && row.review_at <= now)
     .sort(([, a], [, b]) => a.review_at! - b.review_at!)[0]
   if (!due) return undefined
   const [key, row] = due

@@ -7,6 +7,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Changed
+- **Beginner mode stops hinting words you type yourself.** If a term such as PR or commit appears in your own message, it no longer comes back as a hint. Asking what a word means ("launchd 是什麼") does not count, and marking the term as not understood in the history pane brings it back.
+
 ### Fixed
 - **After switching Claude accounts with `/login`, the quota reminder no longer reports the previous account's quota as yours.** A new session reuses the last known numbers until its first reply; the status line hook now records which session observed them, and the quota reminder ignores numbers from another session.
 - **The quota reminder no longer repeats the same Antigravity warning in one conversation.** Antigravity's reset time drifts by up to a minute between readings, which looked like a new quota window.
