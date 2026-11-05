@@ -611,13 +611,17 @@ def _parse_session(path: Path) -> tuple[datetime, str, list[str], list[str], lis
     reactions, screenshot markers, and interruption notes are filtered out by
     ``_clean_request``, so "most recent" stays meaningful. ``todos`` are the pending items
     from the latest TodoWrite, if the session used one. ``edited_files`` are the basenames
-    of files touched by Edit / Write / NotebookEdit, deduplicated and in first-seen order.
+    of files touched by successful Edit / Write / NotebookEdit calls, deduplicated and in
+    first-seen order. Commits and edits require a later, non-error tool result.
     """
     requests: list[str] = []
     seen_requests: set[str] = set()
     commits: list[str] = []
     todos: list[str] = []
     edited_files: list[str] = []
+    tool_uses: list[Any] = []
+    seen_tool_ids: set[str] = set()
+    successful_tool_ids: set[str] = set()
     last_ts: datetime | None = None
 
     try:
@@ -653,7 +657,20 @@ def _parse_session(path: Path) -> tuple[datetime, str, list[str], list[str], lis
                         seen_requests.add(text)
                     continue
                 if entry_type == "user":
-                    text = _user_request_text(data.get("message"))
+                    message = data.get("message")
+                    content = message.get("content") if isinstance(message, dict) else None
+                    if isinstance(content, list):
+                        for part in content:
+                            if not isinstance(part, dict) or part.get("type") != "tool_result":
+                                continue
+                            tool_id = part.get("tool_use_id")
+                            if (
+                                isinstance(tool_id, str)
+                                and tool_id in seen_tool_ids
+                                and part.get("is_error") is not True
+                            ):
+                                successful_tool_ids.add(tool_id)
+                    text = _user_request_text(message)
                     if text and text not in seen_requests:
                         requests.append(text)
                         seen_requests.add(text)
@@ -666,10 +683,16 @@ def _parse_session(path: Path) -> tuple[datetime, str, list[str], list[str], lis
                 content = message.get("content")
                 if not isinstance(content, list):
                     continue
-                _collect_tools(content, commits, todos, edited_files)
+                for part in content:
+                    if isinstance(part, dict) and part.get("type") == "tool_use":
+                        tool_uses.append(part)
+                        tool_id = part.get("id")
+                        if isinstance(tool_id, str):
+                            seen_tool_ids.add(tool_id)
     except (OSError, UnicodeDecodeError):
         return None
 
+    _collect_tools(tool_uses, commits, todos, edited_files, successful_tool_ids)
     if last_ts is None or not (requests or commits or todos or edited_files):
         return None
     # Newest-first, capped: the most recent request leads so Claude resumes the latest
@@ -760,6 +783,7 @@ def _collect_tools(
     commits: list[str],
     todos: list[str],
     edited_files: list[str],
+    successful_tool_ids: set[str],
 ) -> None:
     for part in content:
         if not isinstance(part, dict) or part.get("type") != "tool_use":
@@ -773,6 +797,8 @@ def _collect_tools(
             if isinstance(items, list):
                 # Latest TodoWrite wins, even when it clears the list — everything got done.
                 todos[:] = _pending_todos(items)
+        elif not isinstance(part.get("id"), str) or part["id"] not in successful_tool_ids:
+            continue
         elif name == "Bash":
             command = raw_input.get("command")
             if isinstance(command, str) and "git commit" in command:
