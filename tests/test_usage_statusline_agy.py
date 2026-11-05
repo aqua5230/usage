@@ -602,7 +602,11 @@ def test_agy_sync_and_state_are_noops_on_unsupported_platforms(
 
 
 def test_agy_failure_does_not_hide_claude_statusline(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(statusline_settings, "_load_claude_settings", lambda: {"statusLine": {}})
+    monkeypatch.setattr(
+        statusline_settings,
+        "_load_claude_settings",
+        lambda: {"statusLine": {"type": "command", "command": "python3 usage-statusline.py"}},
+    )
 
     def fail_agy() -> bool:
         raise OSError("agy settings unreadable")

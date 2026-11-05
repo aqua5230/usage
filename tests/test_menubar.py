@@ -1094,21 +1094,42 @@ def test_statusline_enabled_detects_usage_hook(
     assert menubar._statusline_enabled() is True
 
 
+@pytest.mark.parametrize("command", ["python3 custom-statusline.py", "python3 tt-statusline.py"])
 def test_statusline_enabled_detects_external_hook(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
+    command: str,
 ) -> None:
     claude_dir = tmp_path / ".claude"
     claude_dir.mkdir()
     settings = claude_dir / "settings.json"
-    legacy_name = "tt" + "-statusline.py"
     settings.write_text(
-        json.dumps({"statusLine": {"type": "command", "command": f"python3 {legacy_name}"}}),
+        json.dumps({"statusLine": {"type": "command", "command": command}}),
         encoding="utf-8",
     )
     monkeypatch.setattr(statusline_settings, "_claude_settings_path", lambda: settings)
 
-    assert menubar._statusline_enabled() is True
+    monkeypatch.setattr("installer.setup_hook.is_agy_setup", lambda: False)
+    assert menubar._statusline_enabled() is False
+
+
+def test_disable_statusline_keeps_external_claude_statusline(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    # With agy's status line installed the switch shows on; turning it off must
+    # not stash a Claude status line that belongs to another tool.
+    from installer import setup_hook
+
+    settings = tmp_path / "settings.json"
+    external = {"type": "command", "command": "printf external"}
+    settings.write_text(json.dumps({"statusLine": external}), encoding="utf-8")
+    monkeypatch.setattr(statusline_settings, "_claude_settings_path", lambda: settings)
+    monkeypatch.setattr(setup_hook, "_unsetup_agy", lambda: True)
+    monkeypatch.setattr(setup_hook, "_unsetup_grok", lambda: True)
+
+    assert menubar._disable_statusline_settings() == 0
+    assert json.loads(settings.read_text(encoding="utf-8")) == {"statusLine": external}
 
 
 def test_toggle_statusline_preserves_forwarder_settings(
@@ -1122,13 +1143,13 @@ def test_toggle_statusline_preserves_forwarder_settings(
         "env": {"KEEP": "1"},
         "statusLine": {
             "type": "command",
-            "command": "python3 ~/.claude/" + "tt" + "-statusline-usage-statusline-forward.py",
+            "command": "python3 ~/.claude/usage-statusline-forwarder.py",
         },
     }
     settings.write_text(json.dumps(original, indent=2, ensure_ascii=False), encoding="utf-8")
     original_text = settings.read_text(encoding="utf-8")
     # The forwarder target must exist, or re-enabling falls through to a fresh setup().
-    forwarder = claude_dir / ("tt" + "-statusline-usage-statusline-forward.py")
+    forwarder = claude_dir / "usage-statusline-forwarder.py"
     forwarder.write_text("", encoding="utf-8")
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setenv("USERPROFILE", str(tmp_path))
@@ -3737,3 +3758,103 @@ def test_button_title_refreshes_icons_when_top_providers_change(
         (menubar_chrome._codex_menubar_icon, "40%"),
         (menubar_chrome._grok_menubar_icon, "30%"),
     ]
+
+
+@pytest.mark.parametrize("has_backup", [False, True])
+def test_external_statusline_toggle_installs_without_losing_backup(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, has_backup: bool
+) -> None:
+    from installer import setup_hook
+
+    settings_path = tmp_path / "settings.json"
+    external = {"type": "command", "command": "custom-command"}
+    backup = {"type": "command", "command": "older-command"}
+    settings: dict[str, Any] = {"statusLine": external}
+    if has_backup:
+        settings["usage"] = {"previousStatusLine": backup}
+    settings_path.write_text(json.dumps(settings), encoding="utf-8")
+    monkeypatch.setattr(statusline_settings, "_claude_settings_path", lambda: settings_path)
+    monkeypatch.setattr(setup_hook, "_claude_settings_path", lambda: settings_path)
+    monkeypatch.setattr(statusline_settings, "_sync_agy_statusline", lambda enable: None)
+    monkeypatch.setattr(statusline_settings, "_sync_grok_statusline", lambda enable: None)
+    monkeypatch.setattr(setup_hook, "is_agy_setup", lambda: False)
+    monkeypatch.setattr(setup_hook, "_copy_hook_script", lambda: None)
+    monkeypatch.setattr(setup_hook, "_copy_forwarder_script", lambda: None)
+    calls = []
+
+    def install() -> int:
+        calls.append("install")
+        setup_hook._install_forwarder(setup_hook._load_settings())
+        return 0
+
+    monkeypatch.setattr(setup_hook, "setup", install)
+    assert statusline_settings._toggle_statusline_settings() == ("install", 0)
+    assert calls == ["install"]
+    saved = json.loads(settings_path.read_text(encoding="utf-8"))
+    assert saved["usage"]["previousStatusLine"] == (backup if has_backup else external)
+    assert setup_hook._detect_current_state(saved) == "us-forwarder"
+    assert statusline_settings._statusline_enabled() is True
+
+
+@pytest.mark.parametrize("action", ["install", "toggle", "uninstall"])
+@pytest.mark.parametrize("code", [0, 1])
+def test_statusline_action_reports_return_code(
+    monkeypatch: pytest.MonkeyPatch, action: str, code: int
+) -> None:
+    results = []
+    delegate = SimpleNamespace(
+        performSelectorOnMainThread_withObject_waitUntilDone_=lambda *args: results.append(args)
+    )
+    monkeypatch.setattr(menubar_actions, "_enable_statusline_settings", lambda: code)
+    monkeypatch.setattr(menubar_actions, "_disable_statusline_settings", lambda: code)
+    monkeypatch.setattr(menubar_actions, "_toggle_statusline_settings", lambda: ("install", code))
+    menubar_actions.statusline_action_in_background(delegate, action)
+    assert results[0][0] == "_finishStatuslineAction:"
+    assert results[0][1]["ok"] is (code == 0)
+
+
+def test_statusline_failure_shows_existing_alert(monkeypatch: pytest.MonkeyPatch) -> None:
+    messages: list[str] = []
+    alert = SimpleNamespace(
+        setMessageText_=messages.append,
+        setInformativeText_=lambda text: None,
+        runModal=lambda: messages.append("shown"),
+    )
+    monkeypatch.setattr(menubar, "_make_alert", lambda: alert)
+    delegate = menubar.AppDelegate.alloc().init()
+    delegate.language = "zh-TW"
+    monkeypatch.setattr(delegate, "_refresh", lambda: None)
+    menubar.AppDelegate._finishStatuslineAction_(
+        delegate, {"ok": False, "action": "install", "output": ""}
+    )
+    assert messages == [_t("zh-TW", "statusline_action_failed"), "shown"]
+
+
+def test_launch_at_login_failure_shows_alert_and_keeps_plist(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    import subprocess
+
+    from installer import login_item
+
+    plist = tmp_path / "LaunchAgents" / "usage.plist"
+    monkeypatch.setattr(login_item, "PLIST_PATH", plist)
+    monkeypatch.setattr(login_item, "_LOG_DIR", tmp_path / "logs")
+    monkeypatch.setattr(login_item, "_plist_text", lambda: "plist")
+    monkeypatch.setattr(
+        subprocess,
+        "run",
+        lambda *args, **kwargs: subprocess.CompletedProcess(args, 5, stderr="permission denied"),
+    )
+    messages: list[str] = []
+    alert = SimpleNamespace(
+        setMessageText_=messages.append, runModal=lambda: messages.append("shown")
+    )
+    monkeypatch.setattr(menubar, "_make_alert", lambda: alert)
+    delegate = menubar.AppDelegate.alloc().init()
+    delegate.language = "zh-TW"
+    monkeypatch.setattr(delegate, "_mark_switch_menu_action", lambda: None)
+    menubar.AppDelegate.toggleLaunchAtLogin_(delegate, None)
+    assert messages == [_t("zh-TW", "launch_at_login_failed", error="permission denied"), "shown"]
+    assert plist.read_text(encoding="utf-8") == "plist"
+    assert login_item.is_enabled() is True

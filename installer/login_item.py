@@ -113,14 +113,15 @@ def _launchctl_bootstrap() -> None:
         )
     except FileNotFoundError as exc:
         _log_launchctl_error("bootstrap", str(exc))
-        return
+        raise
     except subprocess.TimeoutExpired as exc:
         _log_launchctl_error("bootstrap", f"timed out after {exc.timeout} seconds")
-        return
+        raise
 
     if result.returncode not in (0, 17):
         stderr = _stderr_summary(result.stderr)
         _log_launchctl_error("bootstrap", f"returncode={result.returncode} stderr={stderr!r}")
+        raise RuntimeError(stderr or f"launchctl: {result.returncode}")
 
 
 def enable() -> None:

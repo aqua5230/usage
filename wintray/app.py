@@ -1916,7 +1916,10 @@ class _WindowsTrayController:
         return [_panel_menu_entry(self, entry) for entry in entries]
 
     def toggle_login(self, _icon: Any = None, _item: Any = None) -> None:
-        win_login_item.disable() if win_login_item.is_enabled() else win_login_item.enable()
+        try:
+            win_login_item.disable() if win_login_item.is_enabled() else win_login_item.enable()
+        except OSError as exc:
+            self._message_box(_t(self.language, "launch_at_login_failed", error=str(exc)))
 
     def open_ai_daily(self, _icon: Any = None, _item: Any = None) -> None:
         webbrowser.open("https://aqua5230.github.io/ai-updates/")
@@ -2451,7 +2454,13 @@ class _WindowsTrayController:
         return None
 
     def _toggle_statusline(self) -> None:
-        _toggle_statusline_settings()
+        try:
+            _, exit_code = _toggle_statusline_settings()
+        except Exception as exc:
+            self._message_box(f"{_t(self.language, 'statusline_action_failed')}\n\n{exc}")
+        else:
+            if exit_code != 0:
+                self._message_box(_t(self.language, "statusline_action_failed"))
         self.refresh()
 
     def _install_hook(self) -> None:
