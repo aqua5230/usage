@@ -1542,3 +1542,11 @@ def test_grok_edit_rejects_fake_header_in_multiline_instructions() -> None:
         )
         is None
     )
+
+
+@pytest.mark.parametrize(
+    ("installed", "older"),
+    [(None, True), ("1.9", True), ("1.17", False), ("1.18", False), ("2.0", False), ("x", True)],
+)
+def test_is_older_never_downgrades(installed: str | None, older: bool) -> None:
+    assert setup_hook.is_older(installed, "1.17") is older

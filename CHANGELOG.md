@@ -8,6 +8,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Fixed
+- **After switching Claude accounts with `/login`, the quota reminder no longer reports the previous account's quota as yours.** A new session reuses the last known numbers until its first reply; the status line hook now records which session observed them, and the quota reminder ignores numbers from another session.
+- **An older copy of usage no longer downgrades the hooks a newer one installed.** Self-repair used to reinstall any hook whose version differed, so two copies could keep swapping it; it now only upgrades.
 - **The Muse quota card no longer spends a model call on every refresh.** With Muse 1.4.13 or later, usage reads the allowance from `muse usage --json`, which runs no model. Older Muse versions, or a window with no reading yet, still fall back to the one-line `muse exec` check.
 
 ## [0.34.12] - 2026-11-04

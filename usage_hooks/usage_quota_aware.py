@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
-__version__ = "1.3"
+__version__ = "1.4"
 CLAUDE_STATUS = Path.home() / ".claude/usage-status.json"
 QUOTA_SNAPSHOT = Path.home() / ".usage/quota_snapshot.json"
 STATE_PATH = Path.home() / ".usage/quota_aware_state.json"
@@ -41,7 +41,7 @@ def _generated_at(value: Any) -> float:
     return parsed.timestamp()
 
 
-def _windows(now: float) -> list[tuple[str, str, float, float]]:
+def _windows(session_id: str, now: float) -> list[tuple[str, str, float, float]]:
     windows: list[tuple[str, str, float, float]] = []
 
     def add(tool: str, data: Any, *, claude: bool = False, generated: float = 0) -> None:
@@ -60,7 +60,11 @@ def _windows(now: float) -> list[tuple[str, str, float, float]]:
             if used is not None and reset is not None and reset > now:
                 windows.append((tool, name, used, reset))
 
-    add("Claude Code", _read(CLAUDE_STATUS).get("rate_limits"), claude=True)
+    status = _read(CLAUDE_STATUS)
+    # A session that has not replied yet carries the previous session's windows, which can
+    # be another account's after a /login switch. Older status line hooks omit the field.
+    if status.get("_rate_limits_session_id", session_id) == session_id:
+        add("Claude Code", status.get("rate_limits"), claude=True)
     snapshot = _read(QUOTA_SNAPSHOT)
     try:
         generated = _generated_at(snapshot.get("generated_at"))
@@ -116,7 +120,7 @@ def reminder(session_id: str, now: float) -> str:
     }
     messages = []
     limited = set()
-    windows = _windows(now)
+    windows = _windows(session_id, now)
     for tool, window, used, reset in windows:
         thresholds = (80, 90, 95) if window == "five_hour" else (95,)
         level = max((threshold for threshold in thresholds if used >= threshold), default=0)

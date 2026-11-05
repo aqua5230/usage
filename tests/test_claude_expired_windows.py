@@ -84,3 +84,21 @@ def test_weekly_cache_retention_uses_a_week(offset: int, retained: bool) -> None
     merged = usage_statusline._merge_rate_limits({"five_hour": fresh}, {"seven_day": weekly}, now)
     assert merged["five_hour"] == fresh
     assert merged.get("seven_day") == (weekly if retained else None)
+
+
+def test_save_records_which_session_observed_the_quota(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    now = datetime(2026, 11, 1, 12, tzinfo=UTC)
+    window = {"used_percentage": 91, "resets_at": now.timestamp() + 7200}
+    status_file = tmp_path / "usage-status.json"
+    monkeypatch.setattr(usage_statusline, "STATUS_FILE", str(status_file))
+    limits = {"five_hour": window, "seven_day": window}
+    usage_statusline.save({"session_id": "a", "rate_limits": limits}, now)
+    assert json.loads(status_file.read_text(encoding="utf-8"))["_rate_limits_session_id"] == "a"
+    usage_statusline.save({"session_id": "b"}, now)
+    data = json.loads(status_file.read_text(encoding="utf-8"))
+    assert data["rate_limits"] == limits
+    assert data["_rate_limits_session_id"] == "a"
+    usage_statusline.save({"session_id": "b", "rate_limits": {"seven_day": window}}, now)
+    assert json.loads(status_file.read_text(encoding="utf-8"))["_rate_limits_session_id"] == "b"
