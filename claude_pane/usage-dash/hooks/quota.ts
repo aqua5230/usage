@@ -99,8 +99,10 @@ export function refreshedAgo(now: number, last: number | null): string {
   const seconds = Math.max(0, Math.floor((now - last) / 1000))
   return `↻ ${seconds < 60 ? t('seconds_ago', { count: seconds }) : t(seconds < 3600 ? 'minutes_ago' : 'hours_ago', { count: Math.floor(seconds / (seconds < 3600 ? 60 : 3600)) })}`
 }
-export function staleAge(ageSeconds: number, now: number, last: number | null): string {
+// `updated` words it as a normal update time (Codex has no live report) instead of a bare warning age.
+export function staleAge(ageSeconds: number, now: number, last: number | null, updated = false): string {
   const age = Math.max(0, ageSeconds + (last === null ? 0 : (now - last) / 1000))
   if (age <= 600) return ''
-  return ` · ${t(age >= 3600 ? 'hours_ago' : 'minutes_ago', { count: Math.floor(age / (age >= 3600 ? 3600 : 60)) })}`
+  const ago = t(age >= 3600 ? 'hours_ago' : 'minutes_ago', { count: Math.floor(age / (age >= 3600 ? 3600 : 60)) })
+  return ` · ${updated ? t('updated_ago', { ago }) : ago}`
 }

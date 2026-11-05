@@ -115,6 +115,7 @@ test('舊資料只在超過十分鐘顯示，包含讀取後經過時間', () =>
   expect(staleAge(599,2000,0)).toBe(' · 10分前')
   expect(staleAge(601,0,0)).toBe(' · 10分前')
   expect(staleAge(61*60,0,0)).toBe(' · 1時前')
+  expect(staleAge(61*60,0,0,true)).toBe(' · 1時前更新')
   configure()
 })
 
