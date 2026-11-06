@@ -8,7 +8,6 @@
 
 from __future__ import annotations
 
-import math
 import time
 from collections.abc import Callable
 from typing import Any, Protocol
@@ -29,7 +28,9 @@ from menubar.chrome import (
     _menubar_icon_attachment_string,
     _muse_menubar_icon,
 )
-from menubar.state import PopoverState, QuotaRowState, _format_percent
+from menubar.quota_countdown import _format_countdown as _format_countdown
+from menubar.quota_countdown import _quota_countdown
+from menubar.state import PopoverState, _format_percent
 
 
 class _TitleApp(Protocol):
@@ -73,27 +74,6 @@ def _menubar_text_string(app: _TitleApp, text: str) -> Any:
 # A wider strip slides behind the notch; the panel still lists every source.
 _MENUBAR_MAX_ITEMS = 3
 SLOW_POLL_INTERVAL_S = 300.0
-
-
-def _format_countdown(seconds: float) -> str:
-    minutes = math.ceil(seconds / 60)
-    if minutes >= 1440:
-        return f"{minutes // 1440}d{minutes % 1440 // 60}h"
-    if minutes >= 60:
-        return f"{minutes // 60}h{minutes % 60}m"
-    return f"{minutes}m"
-
-
-def _quota_countdown(rows: tuple[QuotaRowState, ...], now: float) -> str | None:
-    full = [row for row in rows if row.display_percent is not None and row.display_percent >= 100]
-    if not full:
-        return None
-    resets = []
-    for row in full:
-        if row.resets_at is None or row.resets_at <= now:
-            return None
-        resets.append(row.resets_at)
-    return _format_countdown(max(resets) - now)
 
 
 def menubar_poll_interval(app: _TitleApp, state: PopoverState) -> float:

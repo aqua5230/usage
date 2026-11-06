@@ -7,6 +7,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+- **The Windows taskbar quota label counts down to recovery.** When the tray provider's 5-hour or weekly window hits 100%, the label shows the time left (for example `Claude: 2h55m`) in the full-quota color instead of `100%`, matching the macOS menu bar. While it counts down, the label refreshes every interval even with the panel closed.
+
+### Fixed
+- `scripts/check_upstream.py` no longer reports usage's own `_rate_limits_session_id` status field as a new upstream field.
+
 ## [0.34.13] - 2026-11-06
 
 ### Added

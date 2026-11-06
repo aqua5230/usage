@@ -37,7 +37,7 @@ from wintray import app as wintray
 from wintray import login_item as win_login_item
 from wintray import menu as wintray_menu
 from wintray import watch as windows_watch
-from wintray.prefs import load_tray_provider
+from wintray.prefs import TrayProvider, load_tray_provider
 
 _REAL_NATIVE_WORK_AREA = wintray._WindowsTrayController._native_work_area_for_point
 
@@ -4034,3 +4034,91 @@ def test_statusline_toggle_failure_shows_message(
     assert len(messages) == 1
     assert _t("zh-TW", "statusline_action_failed") in messages[0]
     assert refreshed == [True]
+
+
+@pytest.mark.parametrize("provider", ["claude", "codex"])
+@pytest.mark.parametrize(
+    "reset,expected_text,expected_percent",
+    [(11500.0, "2h55m", 100.0), (None, "75%", 25.0), (999.0, "75%", 25.0)],
+)
+def test_taskbar_label_weekly_full_countdown(
+    monkeypatch: pytest.MonkeyPatch,
+    provider: TrayProvider,
+    reset: float | None,
+    expected_text: str,
+    expected_percent: float,
+) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.language = "en"
+    controller.tray_provider = provider
+    controller.quota_label_enabled = True
+    state = _state()
+    # Only the selected provider is full; its session remains at 25%.
+    weekly = replace(state.claude_weekly, percent=100, resets_at=reset)
+    controller.latest_state = replace(
+        state,
+        claude_weekly=weekly if provider == "claude" else state.claude_weekly,
+        codex_weekly=weekly if provider == "codex" else state.codex_weekly,
+    )
+    updates: list[tuple[str, float | None, str]] = []
+    monkeypatch.setattr(
+        wintray,
+        "TaskbarQuotaLabel",
+        lambda *_: SimpleNamespace(update=lambda *args: updates.append(args)),
+    )
+    monkeypatch.setattr("wintray.app.time.time", lambda: 1000.0)
+
+    controller._update_quota_label_on_ui_thread()
+
+    assert updates == [
+        (
+            f"{'Claude Code' if provider == 'claude' else 'Codex'}: {expected_text}",
+            expected_percent,
+            wintray.build_tooltip(controller.latest_state, provider),
+        )
+    ]
+
+
+@pytest.mark.parametrize("provider", ["claude", "codex"])
+@pytest.mark.parametrize(
+    "enabled,full,reset,expected_wait",
+    [
+        (True, True, 11500.0, 60),
+        (False, True, 11500.0, 300),
+        (True, False, 11500.0, 300),
+        (True, True, None, 300),
+        (True, True, 999.0, 300),
+    ],
+)
+def test_hidden_poll_interval_with_quota_countdown(
+    monkeypatch: pytest.MonkeyPatch,
+    provider: TrayProvider,
+    enabled: bool,
+    full: bool,
+    reset: float | None,
+    expected_wait: int,
+) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.visible = False
+    controller.tray_provider = provider
+    controller.quota_label_enabled = enabled
+    state = _state()
+    # A full unselected provider must not keep hidden polling fast.
+    weekly = replace(state.claude_weekly, percent=100, resets_at=reset)
+    controller.latest_state = replace(
+        state,
+        claude_weekly=state.claude_weekly if provider == "claude" and not full else weekly,
+        codex_weekly=state.codex_weekly if provider == "codex" and not full else weekly,
+    )
+    waits: list[float] = []
+
+    def wait(interval: float) -> bool:
+        waits.append(interval)
+        return True
+
+    monkeypatch.setattr(controller.stopping, "wait", wait)
+    monkeypatch.setattr("wintray.app.time.time", lambda: 1000.0)
+    controller._poll_loop()
+
+    assert waits == [expected_wait]
+    assert controller._poll_thread is None
