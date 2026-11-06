@@ -4132,6 +4132,39 @@ def test_hidden_poll_interval_with_quota_countdown(
     assert controller._poll_thread is None
 
 
+def test_hidden_poll_refreshes_once_after_countdown_ends(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.visible = False
+    controller.tray_provider = "claude"
+    controller.quota_label_enabled = True
+    state = _state()
+    full = replace(state.claude_weekly, percent=100, resets_at=11500.0)
+    controller.latest_state = replace(state, claude_weekly=full)
+    waits: list[float] = []
+
+    def wait(interval: float) -> bool:
+        if controller.stopping.is_set():
+            return True
+        waits.append(interval)
+        if len(waits) == 1:
+            # The quota resets mid-wait, so the countdown is gone on the next wake.
+            controller.latest_state = state
+        return False
+
+    def refresh() -> None:
+        controller.stopping.set()
+
+    monkeypatch.setattr(controller.stopping, "wait", wait)
+    monkeypatch.setattr(controller, "refresh", refresh)
+    monkeypatch.setattr(controller, "_clear_stale_update_cache", lambda: None)
+    monkeypatch.setattr("wintray.app.time.time", lambda: 1000.0)
+    controller._poll_loop()
+
+    assert waits == [60]
+
+
 def test_hidden_poll_refreshes_soon_after_countdown_starts(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

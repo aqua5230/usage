@@ -81,3 +81,17 @@ def test_hung_dns_returns_within_timeout(monkeypatch: pytest.MonkeyPatch) -> Non
     finally:
         release.set()
         assert finished.wait(0.5)
+
+
+def test_no_proxy_alone_keeps_the_probe(monkeypatch: pytest.MonkeyPatch) -> None:
+    seen: list[tuple[str, int]] = []
+
+    def connect(address: tuple[str, int], timeout: float) -> _Connection:
+        seen.append(address)
+        raise OSError("down")
+
+    monkeypatch.setattr(urllib.request, "getproxies", lambda: {"no": "localhost"})
+    monkeypatch.setattr(socket, "create_connection", connect)
+
+    assert network.google_auth_reachable() is False
+    assert seen == [("oauth2.googleapis.com", 443)]

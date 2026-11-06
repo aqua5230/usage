@@ -27,9 +27,11 @@ def google_auth_reachable(timeout: float = _PROBE_TIMEOUT_SECONDS) -> bool:
     page, so callers skip launching it while this returns False.
 
     A proxy-only network blocks this direct probe even though the CLI can connect
-    through the proxy, so a configured proxy counts as reachable.
+    through the proxy, so a configured HTTPS proxy counts as reachable. A bare
+    ``NO_PROXY`` does not route anything through a proxy and keeps the probe.
     """
-    if urllib.request.getproxies():
+    proxies = urllib.request.getproxies()
+    if proxies.get("https") or proxies.get("all"):
         return True
     result: Future[bool] = Future()
 
