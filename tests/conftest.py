@@ -39,6 +39,16 @@ def _isolate_desktop_quota(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.fixture(autouse=True)
+def _isolate_google_reachability(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Keep the agy offline check from opening a real TCP connection to Google."""
+    from loaders import agy_quota_probe
+    from quota import agy_window_keeper
+
+    monkeypatch.setattr(agy_quota_probe, "google_auth_reachable", lambda: True)
+    monkeypatch.setattr(agy_window_keeper, "google_auth_reachable", lambda: True)
+
+
+@pytest.fixture(autouse=True)
 def _isolate_log_dir(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """Keep every test out of the real ~/Library/Logs/usage directory.
 

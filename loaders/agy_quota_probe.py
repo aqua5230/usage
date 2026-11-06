@@ -80,6 +80,9 @@ _CLIENT_SECRET = "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"
 _DEFAULT_RETRY_AFTER_SECONDS = 60.0
 _MAX_RETRY_AFTER_SECONDS = 3600.0
 _rate_limit_until_monotonic = 0.0
+# A failed launch may open a browser sign-in page; don't repeat it every refresh.
+_CLI_FAILURE_COOLDOWN_SECONDS = 1800.0
+_cli_retry_after_monotonic = 0.0
 # When each group last appeared in a real API response; in memory only, reset on restart.
 _group_seen_at: dict[str, datetime] = {}
 _MISSING_GROUP_GRACE_MINUTES = 30
@@ -158,12 +161,25 @@ def _probe_via_cli(timeout: float) -> AgyQuotaResult | None:
     The slash command makes no model call. ``--log-file`` reuses one file instead of
     leaving a new log in the CLI's log directory on every probe.
     """
+    global _cli_retry_after_monotonic
     agy = find_agy()
     if agy is None:
+        return None
+    if time.monotonic() < _cli_retry_after_monotonic:
+        return None
+    if auth_expired():
         return None
     # Offline (e.g. just after a sleep wake) the CLI would open a browser sign-in page.
     if not google_auth_reachable():
         return None
+    result = _run_usage_command(agy, timeout)
+    _cli_retry_after_monotonic = (
+        0.0 if result is not None else time.monotonic() + _CLI_FAILURE_COOLDOWN_SECONDS
+    )
+    return result
+
+
+def _run_usage_command(agy: str, timeout: float) -> AgyQuotaResult | None:
     command = [agy, "-p", "/usage", "--output-format", "json", "--log-file", str(_CLI_LOG_PATH)]
     try:
         completed = subprocess.run(
