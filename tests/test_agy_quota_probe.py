@@ -7,6 +7,7 @@ import json
 import os
 import platform
 import shutil
+import subprocess
 import sys
 import time
 from base64 import b64encode
@@ -108,11 +109,13 @@ def _write_token(
 def _reset_token_cache(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     agy_quota_probe._token_cache.clear()
     agy_quota_probe._rate_limit_until_monotonic = 0.0
+    agy_quota_probe._cli_retry_after_monotonic = 0.0
     agy_quota_probe._group_seen_at.clear()
     monkeypatch.setattr(agy_quota_probe, "_read_macos_credential", lambda: None)
     yield
     agy_quota_probe._token_cache.clear()
     agy_quota_probe._rate_limit_until_monotonic = 0.0
+    agy_quota_probe._cli_retry_after_monotonic = 0.0
     agy_quota_probe._group_seen_at.clear()
 
 
@@ -1015,6 +1018,82 @@ def test_cli_probe_is_skipped_while_offline(monkeypatch: pytest.MonkeyPatch) -> 
 
     assert _real_probe_via_cli(15) is None
     assert calls == []
+    assert agy_quota_probe._cli_retry_after_monotonic == 0.0
+
+
+def test_cli_probe_still_runs_when_auth_expired(monkeypatch: pytest.MonkeyPatch) -> None:
+    # The marker can outlive a re-sign-in (e.g. a stale legacy token on Windows), so it
+    # must not veto the CLI; only the failure cooldown limits repeat launches.
+    calls = _fake_cli(monkeypatch, _usage_command_output(datetime.now(UTC)))
+    agy_quota_probe.AUTH_EXPIRED_PATH.touch()
+
+    assert _real_probe_via_cli(15) is not None
+    assert len(calls) == 1
+
+
+def test_cli_failure_cooldown_and_success_reset(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(time, "monotonic", lambda: 100.0)
+    calls = _fake_cli(monkeypatch, b"{}", returncode=1)
+    assert _real_probe_via_cli(15) is None
+    assert agy_quota_probe._cli_retry_after_monotonic == 1900.0
+    with monkeypatch.context() as patch:
+        patch.setattr(time, "monotonic", lambda: 1899.0)
+        patch.setattr(
+            agy_quota_probe, "google_auth_reachable", lambda: pytest.fail("must not probe network")
+        )
+        assert _real_probe_via_cli(15) is None
+    assert len(calls) == 1
+
+    monkeypatch.setattr(time, "monotonic", lambda: 1901.0)
+    assert _real_probe_via_cli(15) is None
+    assert len(calls) == 2
+    assert agy_quota_probe._cli_retry_after_monotonic == 3701.0
+
+    monkeypatch.setattr(time, "monotonic", lambda: 3702.0)
+    calls = _fake_cli(monkeypatch, _usage_command_output(datetime.now(UTC)))
+    assert _real_probe_via_cli(15) is not None
+    assert agy_quota_probe._cli_retry_after_monotonic == 0.0
+    assert _real_probe_via_cli(15) is not None
+    assert len(calls) == 2
+
+    calls = _fake_cli(monkeypatch, b"{}", returncode=1)
+    assert _real_probe_via_cli(15) is None
+    assert agy_quota_probe._cli_retry_after_monotonic == 5502.0
+    assert _real_probe_via_cli(15) is None
+    assert len(calls) == 1
+
+
+def test_missing_cli_does_not_start_cooldown(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls = _fake_cli(monkeypatch, b"{}")
+    monkeypatch.setattr(agy_quota_probe, "find_agy", lambda: None)
+
+    assert _real_probe_via_cli(15) is None
+    assert calls == []
+    assert agy_quota_probe._cli_retry_after_monotonic == 0.0
+
+
+@pytest.mark.parametrize("error", [OSError("failed"), subprocess.TimeoutExpired("agy", 15)])
+def test_cli_launch_error_starts_cooldown(
+    monkeypatch: pytest.MonkeyPatch, error: Exception
+) -> None:
+    _fake_cli(monkeypatch, b"{}")
+    monkeypatch.setattr(time, "monotonic", lambda: 100.0)
+
+    def fail(*args: object, **kwargs: object) -> None:
+        raise error
+
+    monkeypatch.setattr(subprocess, "run", fail)
+    assert _real_probe_via_cli(15) is None
+    assert agy_quota_probe._cli_retry_after_monotonic == 1900.0
+
+
+def test_cli_unbuildable_result_starts_cooldown(monkeypatch: pytest.MonkeyPatch) -> None:
+    _fake_cli(monkeypatch, _usage_command_output(datetime.now(UTC)))
+    monkeypatch.setattr(time, "monotonic", lambda: 100.0)
+    monkeypatch.setattr(agy_quota_probe, "_build_result", lambda groups: None)
+
+    assert _real_probe_via_cli(15) is None
+    assert agy_quota_probe._cli_retry_after_monotonic == 1900.0
 
 
 def test_cli_probe_reads_three_groups_with_argon_weekly_only(
@@ -1055,7 +1134,9 @@ def test_cli_probe_returns_none_on_unusable_output(
     monkeypatch: pytest.MonkeyPatch, stdout: bytes, returncode: int
 ) -> None:
     _fake_cli(monkeypatch, stdout, returncode)
+    monkeypatch.setattr(time, "monotonic", lambda: 100.0)
     assert _real_probe_via_cli(15) is None
+    assert agy_quota_probe._cli_retry_after_monotonic == 1900.0
 
 
 def test_probe_quota_prefers_cli_over_api(monkeypatch: pytest.MonkeyPatch) -> None:
