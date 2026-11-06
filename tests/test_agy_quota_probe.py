@@ -1002,8 +1002,19 @@ def _fake_cli(
         return type("Completed", (), {"returncode": returncode, "stdout": stdout})()
 
     monkeypatch.setattr(agy_quota_probe, "find_agy", lambda: "/bin/agy")
+    monkeypatch.setattr(agy_quota_probe, "google_auth_reachable", lambda: True)
     monkeypatch.setattr("loaders.agy_quota_probe.subprocess.run", run)
     return calls
+
+
+def test_cli_probe_is_skipped_while_offline(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Offline, the CLI treats a failed token refresh as "not logged in" and opens a
+    # browser sign-in page, so the probe must not launch it at all.
+    calls = _fake_cli(monkeypatch, _usage_command_output(datetime.now(UTC)))
+    monkeypatch.setattr(agy_quota_probe, "google_auth_reachable", lambda: False)
+
+    assert _real_probe_via_cli(15) is None
+    assert calls == []
 
 
 def test_cli_probe_reads_three_groups_with_argon_weekly_only(

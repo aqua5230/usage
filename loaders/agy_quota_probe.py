@@ -35,6 +35,7 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from usage_common.cli_lookup import cli_env, resolve_cli
+from usage_common.network import google_auth_reachable
 from usage_common.subprocess_utils import hidden_console_kwargs
 
 CACHE_PATH = Path(os.path.expanduser("~/.usage/agy_quota_cache.json"))
@@ -159,6 +160,9 @@ def _probe_via_cli(timeout: float) -> AgyQuotaResult | None:
     """
     agy = find_agy()
     if agy is None:
+        return None
+    # Offline (e.g. just after a sleep wake) the CLI would open a browser sign-in page.
+    if not google_auth_reachable():
         return None
     command = [agy, "-p", "/usage", "--output-format", "json", "--log-file", str(_CLI_LOG_PATH)]
     try:
