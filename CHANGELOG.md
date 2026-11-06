@@ -7,10 +7,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.34.14] - 2026-11-07
+
 ### Added
 - **The Windows taskbar quota label counts down to recovery.** When the tray provider's 5-hour or weekly window hits 100%, the label shows the time left (for example `Claude: 2h55m`) in the full-quota color instead of `100%`, matching the macOS menu bar. While it counts down, the label refreshes every interval even with the panel closed.
 
 ### Fixed
+- **Antigravity no longer opens a Google sign-in page in your browser after the Mac wakes from sleep.** Right after a wake the network is often still down, and the Antigravity CLI treated the failed token refresh as "not logged in", opening one new sign-in tab each time. usage now skips the CLI while Google's sign-in server is unreachable, and after a failed CLI check it waits 30 minutes before launching it again instead of retrying on every refresh, which also covers an expired sign-in or captive-portal Wi-Fi. The quota card keeps showing the last reading meanwhile. Thanks to @teddy123434 for the report and fix (#297, #301).
+- **Switching the Antigravity card between model groups no longer sends false notifications.** The notifier kept one state for all groups, so moving from a used-up Gemini group to Argon read as a reset ("quota is back") and moving back sent "used up" again. Each model group now keeps its own state on macOS and Windows.
+- **Reports show Codex detail for days before August 2026 again.** Older ledger days kept only a daily total, so cards and the tool breakdown started at 2026-08-01 while the heatmap went further back. Those days are now filled once from Codex's local thread database by date, model and project; tokens that cannot be attributed show as "unknown", and nothing is guessed as Claude. Backfilled tokens carry no cost and count as "no pricing data".
 - `scripts/check_upstream.py` no longer reports usage's own `_rate_limits_session_id` status field as a new upstream field.
 
 ## [0.34.13] - 2026-11-06
