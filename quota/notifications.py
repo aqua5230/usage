@@ -45,7 +45,10 @@ class QuotaNotifier:
     def __init__(self, thresholds: list[float] | None = None) -> None:
         values = [90.0] if thresholds is None else thresholds
         self.set_thresholds(values)
-        self._channels = {channel: _ChannelState() for channel in VALID_CHANNELS}
+        # Keyed by (channel, scope): one channel can show different quota pools,
+        # e.g. Antigravity's Gemini and Argon groups. Switching the shown pool
+        # must not read as a reset of the other one.
+        self._channels: dict[tuple[str, str], _ChannelState] = {}
 
     def set_thresholds(self, values: list[float]) -> None:
         """Replace thresholds without resetting channel observations or warning latches."""
@@ -54,21 +57,24 @@ class QuotaNotifier:
     def update(
         self,
         channels: dict[str, tuple[float | None, bool]],
+        scopes: dict[str, str] | None = None,
     ) -> list[NotificationEvent]:
         events: list[NotificationEvent] = []
         for channel, (percent, available) in channels.items():
             if channel not in VALID_CHANNELS:
                 continue
-            events.extend(self._update_channel(channel, percent, available))
+            scope = (scopes or {}).get(channel, "")
+            events.extend(self._update_channel(channel, scope, percent, available))
         return events
 
     def _update_channel(
         self,
         channel: str,
+        scope: str,
         percent: float | None,
         available: bool,
     ) -> list[NotificationEvent]:
-        state = self._channels[channel]
+        state = self._channels.setdefault((channel, scope), _ChannelState())
         events: list[NotificationEvent] = []
         if not available:
             return events

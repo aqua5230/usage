@@ -3948,7 +3948,9 @@ def test_muse_tooltip_and_notification_channels(monkeypatch: pytest.MonkeyPatch)
     controller = wintray._WindowsTrayController(mock=True, interval=60)
     channels: dict[str, tuple[float | None, bool]] = {}
     monkeypatch.setattr(
-        controller._quota_notifier, "update", lambda values: channels.update(values) or []
+        controller._quota_notifier,
+        "update",
+        lambda values, _scopes=None: channels.update(values) or [],
     )
     controller._process_quota_notifications(state)
     assert channels["muse_session"] == (91.0, True)
