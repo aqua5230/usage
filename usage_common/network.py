@@ -9,6 +9,10 @@
 from __future__ import annotations
 
 import socket
+import threading
+import urllib.request
+from concurrent.futures import Future
+from concurrent.futures import TimeoutError as FutureTimeoutError
 
 # The host the Antigravity CLI refreshes its OAuth token against.
 _GOOGLE_AUTH_HOST = "oauth2.googleapis.com"
@@ -21,9 +25,27 @@ def google_auth_reachable(timeout: float = _PROBE_TIMEOUT_SECONDS) -> bool:
     Right after a sleep wake the network is often still down. The Antigravity CLI
     treats a failed token refresh as "not logged in" and opens a browser sign-in
     page, so callers skip launching it while this returns False.
+
+    A proxy-only network blocks this direct probe even though the CLI can connect
+    through the proxy, so a configured HTTPS proxy counts as reachable. A bare
+    ``NO_PROXY`` does not route anything through a proxy and keeps the probe.
     """
+    proxies = urllib.request.getproxies()
+    if proxies.get("https") or proxies.get("all"):
+        return True
+    result: Future[bool] = Future()
+
+    def probe() -> None:
+        try:
+            with socket.create_connection((_GOOGLE_AUTH_HOST, 443), timeout=timeout):
+                result.set_result(True)
+        except OSError:
+            result.set_result(False)
+        except BaseException as exc:
+            result.set_exception(exc)
+
+    threading.Thread(target=probe, daemon=True).start()
     try:
-        with socket.create_connection((_GOOGLE_AUTH_HOST, 443), timeout=timeout):
-            return True
-    except OSError:
+        return result.result(timeout=timeout)
+    except FutureTimeoutError:
         return False
