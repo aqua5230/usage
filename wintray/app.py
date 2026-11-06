@@ -52,6 +52,7 @@ from menubar.prefs import (
     _window_keeper_enabled,
     toggle_quota_threshold,
 )
+from menubar.quota_countdown import _quota_countdown
 from panels.catalog import PANEL_SPECS
 from panels.dynamic_height import clamp_content_height, inject_content_height_script
 from panels.panel_scale import MIN_PANEL_SCALE, fit_panel_size, fit_scale
@@ -1438,7 +1439,9 @@ class _WindowsTrayController:
         self._poll_thread = current_thread
         try:
             while not self.stopping.wait(
-                self.interval if self.visible else max(self.interval, SLOW_POLL_INTERVAL_S)
+                self.interval
+                if self.visible or (self.quota_label_enabled and self._tray_countdown() is not None)
+                else max(self.interval, SLOW_POLL_INTERVAL_S)
             ):
                 self.refresh()
                 self._clear_stale_update_cache()
@@ -1764,6 +1767,15 @@ class _WindowsTrayController:
             row = self.latest_state.codex_weekly
         return row.display_percent if row.available else None
 
+    def _tray_countdown(self) -> str | None:
+        state = self.latest_state
+        rows = (
+            (state.codex_session, state.codex_weekly)
+            if self.tray_provider == "codex"
+            else (state.claude_session, state.claude_weekly)
+        )
+        return _quota_countdown(rows, time.time())
+
     def _update_tray(self) -> None:
         percent = self._tray_percent()
         self._update_taskbar_progress(percent)
@@ -1792,10 +1804,14 @@ class _WindowsTrayController:
             self.quota_label = TaskbarQuotaLabel(self.show_panel, self.show_tray_menu)
         percent = self._tray_percent()
         text, _color = tray_icon_style(percent)
+        key = "quota_label_format" if percent is not None else "quota_label_unknown"
+        countdown = self._tray_countdown()
+        if countdown is not None:
+            text, percent, key = countdown, 100.0, "quota_label_countdown"
         self.quota_label.update(
             _t(
                 self.language,
-                "quota_label_format" if percent is not None else "quota_label_unknown",
+                key,
                 provider=_t(self.language, f"{self.tray_provider}_name"),
                 value=text,
             ),
