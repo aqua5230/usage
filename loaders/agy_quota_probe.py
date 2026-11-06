@@ -34,6 +34,7 @@ from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
+from loaders.cache_quarantine import quarantine
 from usage_common.cli_lookup import cli_env, resolve_cli
 from usage_common.network import google_auth_reachable
 from usage_common.subprocess_utils import hidden_console_kwargs
@@ -86,6 +87,9 @@ _cli_retry_after_monotonic = 0.0
 # When each group last appeared in a real API response; in memory only, reset on restart.
 _group_seen_at: dict[str, datetime] = {}
 _MISSING_GROUP_GRACE_MINUTES = 30
+# Models omit the period; keep known weekly resets weekly near expiry.
+# In memory only: after restart, unseen resets use the time heuristic again.
+_weekly_reset_times: set[str] = set()
 
 
 def _user_agent() -> str:
@@ -527,6 +531,7 @@ def _post_json(url: str, access_token: str, body: dict[str, object], timeout: fl
     except HTTPError as exc:
         _handle_http_error(exc)
         if exc.code == 401:
+            _token_cache.clear()
             _mark_auth_expired()
         return None
     except (URLError, OSError, ValueError):
@@ -637,7 +642,13 @@ def _gemini_group_from_models(raw: object) -> AgyQuotaGroup | None:
     window = _bucket_to_window(bucket)
     reset = _bucket_reset_time(bucket)
     assert reset is not None
-    session = _seconds_until(reset) <= 5 * 3600 + 5 * 60
+    _weekly_reset_times.difference_update(
+        [seen for seen in _weekly_reset_times if _seconds_until(seen) <= 0]
+    )
+    session = reset not in _weekly_reset_times and _seconds_until(reset) <= 5 * 3600 + 5 * 60
+    # A full bucket's reset time slides with every response, so only a spent one is remembered.
+    if not session and window is not None and window.remaining_percent < 100.0:
+        _weekly_reset_times.add(reset)
     template = _assemble_groups({"gemini": {}})[0]
     return AgyQuotaGroup(
         name=template.name,
@@ -825,7 +836,14 @@ def _read_cache() -> AgyQuotaResult | None:
     try:
         with CACHE_PATH.open(encoding="utf-8") as cache_file:
             payload: object = json.load(cache_file)
-    except (OSError, json.JSONDecodeError):
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        quarantine(
+            CACHE_PATH, "decode-error" if isinstance(exc, UnicodeDecodeError) else "json-error"
+        )
+        with suppress(OSError):
+            CACHE_PATH.unlink()
+        return None
+    except OSError:
         return None
     return _result_from_payload(payload)
 

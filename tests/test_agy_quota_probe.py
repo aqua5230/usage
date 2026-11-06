@@ -21,7 +21,7 @@ from urllib.request import Request
 
 import pytest
 
-from loaders import agy_quota_probe
+from loaders import agy_quota_probe, cache_quarantine
 from loaders.agy_quota_probe import (
     AgyQuotaGroup,
     AgyQuotaResult,
@@ -111,12 +111,14 @@ def _reset_token_cache(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     agy_quota_probe._rate_limit_until_monotonic = 0.0
     agy_quota_probe._cli_retry_after_monotonic = 0.0
     agy_quota_probe._group_seen_at.clear()
+    agy_quota_probe._weekly_reset_times.clear()
     monkeypatch.setattr(agy_quota_probe, "_read_macos_credential", lambda: None)
     yield
     agy_quota_probe._token_cache.clear()
     agy_quota_probe._rate_limit_until_monotonic = 0.0
     agy_quota_probe._cli_retry_after_monotonic = 0.0
     agy_quota_probe._group_seen_at.clear()
+    agy_quota_probe._weekly_reset_times.clear()
 
 
 # --- find_agy (unchanged behavior) -----------------------------------------
@@ -683,6 +685,36 @@ def test_load_quota_returns_fresh_cache_without_probing(
     assert agy_quota_probe.load_quota() == cached
 
 
+@pytest.mark.parametrize(
+    "contents,reason", [(b"\xff", "decode-error"), (b"{", "json-error"), (None, None)]
+)
+def test_load_quota_probes_after_corrupt_or_missing_cache(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, contents: bytes | None, reason: str | None
+) -> None:
+    cache_path = tmp_path / "agy_quota_cache.json"
+    quarantine_dir = tmp_path / "quarantine"
+    monkeypatch.setattr(agy_quota_probe, "CACHE_PATH", cache_path)
+    monkeypatch.setattr(cache_quarantine, "QUARANTINE_DIR", quarantine_dir)
+    if contents is not None:
+        cache_path.write_bytes(contents)
+    calls: list[tuple[Path, str]] = []
+    quarantine = cache_quarantine.quarantine
+
+    def record_quarantine(path: Path, why: str) -> None:
+        calls.append((path, why))
+        quarantine(path, why)
+
+    monkeypatch.setattr(agy_quota_probe, "quarantine", record_quarantine)
+    fresh = _result(datetime.now(UTC))
+    monkeypatch.setattr(agy_quota_probe, "probe_quota", lambda: fresh)
+
+    assert agy_quota_probe.load_quota() == fresh
+    assert calls == ([(cache_path, reason)] if reason is not None else [])
+    backups = list(quarantine_dir.glob("*.bak"))
+    assert [backup.read_bytes() for backup in backups] == ([contents] if contents else [])
+    assert agy_quota_probe._read_cache() == fresh
+
+
 def test_load_quota_probes_when_cache_is_stale(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -746,6 +778,24 @@ def test_auth_expiration_marker(
     else:
         assert agy_quota_probe._post_json(_QUOTA_URL, "token", {}, 1) is None
     assert agy_quota_probe.auth_expired() is expired
+
+
+def test_quota_401_clears_cached_token(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    token_path = tmp_path / "antigravity-oauth-token"
+    _write_token(token_path, access_token="new-token")
+    monkeypatch.setattr(agy_quota_probe, "_TOKEN_PATH", token_path)
+    agy_quota_probe._token_cache.update(
+        access_token="rejected-token", expires_monotonic=time.monotonic() + 3600
+    )
+    urlopen, visited = _build_http_error_urlopen(401)
+    monkeypatch.setattr(agy_quota_probe, "urlopen", urlopen)
+
+    token = agy_quota_probe._resolve_access_token(1)
+    assert token == "rejected-token"
+    assert agy_quota_probe._post_json(_QUOTA_URL, token, {}, 1) is None
+    assert visited == [(_QUOTA_URL, "Bearer rejected-token")]
+    assert agy_quota_probe._token_cache == {}
+    assert agy_quota_probe._resolve_access_token(1) == "new-token"
 
 
 def test_successful_probe_clears_expiration_marker(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -914,6 +964,23 @@ def test_probe_models_fallback_selects_lowest_gemini(
         (_QUOTA_URL, "same-token", {}, 7),
         (agy_quota_probe._MODELS_URL, "same-token", {}, 7),
     ]
+
+
+def test_models_fallback_keeps_weekly_reset_near_expiry(monkeypatch: pytest.MonkeyPatch) -> None:
+    reset = (datetime.now(UTC) + timedelta(hours=6)).isoformat()
+    raw = {
+        "models": {"gemini-flash": {"quotaInfo": {"remainingFraction": 0.5, "resetTime": reset}}}
+    }
+    seconds_left = 6 * 3600
+    monkeypatch.setattr(agy_quota_probe, "_seconds_until", lambda _: seconds_left)
+
+    first = agy_quota_probe._gemini_group_from_models(raw)
+    assert first is not None and first.weekly is not None and first.five_hour is None
+
+    seconds_left = 5 * 3600 + 5 * 60
+    refreshed = agy_quota_probe._gemini_group_from_models(raw)
+    assert refreshed is not None and refreshed.weekly is not None
+    assert refreshed.five_hour is None
 
 
 @pytest.mark.parametrize(

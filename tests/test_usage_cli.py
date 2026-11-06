@@ -1095,8 +1095,9 @@ def test_status_payload_antigravity_cache(monkeypatch: pytest.MonkeyPatch, age: 
 def test_status_antigravity_unreadable_cache(content: str | None) -> None:
     if content is not None:
         agy_quota_probe.CACHE_PATH.write_bytes(content.encode("latin-1"))
+    # A corrupt cache is quarantined and dropped, so every case reads as no data.
     assert status_payload._status_antigravity(1_000_000) == status_payload._status_agent(
-        None, 1_000_000, "error" if content == "\xff" else "no_data"
+        None, 1_000_000, "no_data"
     )
 
 

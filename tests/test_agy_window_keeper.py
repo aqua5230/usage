@@ -8,13 +8,14 @@ import shutil
 import subprocess
 import sys
 import threading
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, cast
 
 import pytest
 
 import quota.agy_window_keeper as agy_window_keeper
-from loaders.agy_quota_probe import AgyQuotaWindow
+from loaders.agy_quota_probe import AgyQuotaGroup, AgyQuotaResult, AgyQuotaWindow
 from menubar import agy as menubar_agy
 from menubar.state import AgyStaleState, QuotaRowState
 from quota import keeper_outcome
@@ -158,6 +159,7 @@ def _refresh_result(
         weekly=row,
         stale=stale,
         five_hour=AgyQuotaWindow(remaining, None, resets_in_minutes),
+        gemini_five_hour=AgyQuotaWindow(remaining, None, resets_in_minutes),
     )
     return menubar_agy.AgyRefreshResult(projection=projection, hide_agy=False)
 
@@ -195,6 +197,38 @@ def test_maybe_ping_fires_and_stamps_dispatch(
     assert agy_window_keeper._load_last_ping() is not None
     assert len(_SyncThread.instances) == 1
     assert _SyncThread.instances[0].daemon is True
+
+
+@pytest.mark.parametrize("preference", ["claude_gpt", "argon"])
+@pytest.mark.parametrize("gemini_remaining", [None, 45.0, 100.0])
+def test_maybe_ping_uses_gemini_window_regardless_of_display(
+    monkeypatch: pytest.MonkeyPatch,
+    isolated_state: Path,
+    preference: str,
+    gemini_remaining: float | None,
+) -> None:
+    calls = _arm_ping(monkeypatch)
+    displayed = AgyQuotaWindow(100.0 if gemini_remaining != 100.0 else 45.0, None, 120)
+    groups = [
+        AgyQuotaGroup("CLAUDE AND GPT MODELS", [], None, displayed),
+        AgyQuotaGroup("GEMINI 4 ARGON", [], displayed, None),
+    ]
+    if gemini_remaining is not None:
+        groups.insert(
+            0,
+            AgyQuotaGroup("GEMINI MODELS", [], None, AgyQuotaWindow(gemini_remaining, None, 120)),
+        )
+    quota = AgyQuotaResult(groups, datetime.now(UTC).isoformat())
+    projection = menubar_agy.project_quota(quota, "en", group_preference=preference)
+    assert projection is not None
+    assert projection.group_name == groups[-1 if preference == "argon" else -2].name
+    assert projection.five_hour == (None if preference == "argon" else displayed)
+
+    agy_window_keeper.maybe_ping(
+        menubar_agy.AgyRefreshResult(projection=projection, hide_agy=False), mock=False
+    )
+
+    assert calls == (["/fake/agy"] if gemini_remaining == 100.0 else [])
 
 
 def test_maybe_ping_disabled_has_no_side_effects(

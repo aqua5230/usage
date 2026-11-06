@@ -252,7 +252,7 @@ def test_other_keepers_retry_once_without_active_window(
     else:
         monkeypatch.setattr(module, "_agy_window_keeper_enabled", lambda: True)
         window = SimpleNamespace(remaining_percent=100)
-        result = SimpleNamespace(projection=SimpleNamespace(five_hour=window, stale=None))
+        result = SimpleNamespace(projection=SimpleNamespace(gemini_five_hour=window, stale=None))
 
         def dispatch() -> None:
             module.maybe_ping(result, False)
@@ -387,7 +387,9 @@ def test_warning_across_windows(
     )
     if tool == "codex":
         monkeypatch.setattr(module, "load_rate_limits", lambda: limits)
-    projection = SimpleNamespace(five_hour=SimpleNamespace(remaining_percent=100), stale=None)
+    projection = SimpleNamespace(
+        gemini_five_hour=SimpleNamespace(remaining_percent=100), stale=None
+    )
     clock = [1000.0]
     monkeypatch.setattr(time, "time", lambda: clock[0])
     result = [subprocess.CompletedProcess([], 2, "", "login")]
