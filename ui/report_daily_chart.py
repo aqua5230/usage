@@ -64,7 +64,9 @@ def pricing_usage(cube: Mapping[str, Any]) -> tuple[int, int, list[str]]:
             continue
         tokens = _row_tokens(row)
         model = models[int(row[2])] if 0 <= int(row[2]) < len(models) else {}
-        if model.get("cost_known"):
+        # A ledger row with no recorded cost has tokens but no price data.
+        ledger_without_cost = len(row) > 10 and row[10] == 1 and not float(row[8] or 0)
+        if model.get("cost_known") and not ledger_without_cost:
             priced += tokens
         else:
             unpriced += tokens
@@ -193,7 +195,7 @@ def render_daily_chart(
     svg.append("</svg>")
     legend = "".join(
         f'<span class="daily-legend-item"><i style="background:{escape(agent["color"], quote=True)}"></i>'
-        f"{escape(agent['name'])} <b>{escape(fmt_tokens(sum(agent['tokens'])))}</b></span>"
+        f"{escape(t('unknown') if agent['name'] == 'unknown' else agent['name'])} <b>{escape(fmt_tokens(sum(agent['tokens'])))}</b></span>"
         for agent in agents
         if sum(agent["tokens"]) > 0
     )
@@ -316,7 +318,7 @@ REPORT_DAILY_CHART_JS = r"""(() => {
     const days = rangeDays(summary);
     const positions = Object.fromEntries(cube.dates.map((day, index) => [day, index]));
     const agents = (cube.agents || []).map((agent, index) => ({
-      id: String(agent.id || ''), name: String(agent.name || agent.id || ''),
+      id: String(agent.id || ''), name: displayName(agent.name || agent.id || ''),
       color: agentColors[String(agent.id || '')] || '#8b8577',
       tokens: Array(days.length).fill(0), cost: Array(days.length).fill(0), index,
     }));
@@ -446,7 +448,7 @@ REPORT_DAILY_CHART_JS = r"""(() => {
     let priced = 0; let unpriced = 0; const models = {};
     summary.rows.forEach((row) => {
       const value = tokens(row); const model = cube.models[Number(row[2])];
-      if (model && model.cost_known) priced += value;
+      if (model && model.cost_known && !(row[10] === 1 && !Number(row[8]))) priced += value;
       else { unpriced += value; const name = String((model && model.name) || 'unknown'); models[name] = (models[name] || 0) + value; }
     });
     return {priced, unpriced, names: Object.entries(models).sort((a, b) => b[1] - a[1]).map(([name]) => name)};

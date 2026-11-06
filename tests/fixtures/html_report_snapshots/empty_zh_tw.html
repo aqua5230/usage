@@ -1173,7 +1173,7 @@ document.addEventListener('click', async (e) => {
     const days = rangeDays(summary);
     const positions = Object.fromEntries(cube.dates.map((day, index) => [day, index]));
     const agents = (cube.agents || []).map((agent, index) => ({
-      id: String(agent.id || ''), name: String(agent.name || agent.id || ''),
+      id: String(agent.id || ''), name: displayName(agent.name || agent.id || ''),
       color: agentColors[String(agent.id || '')] || '#8b8577',
       tokens: Array(days.length).fill(0), cost: Array(days.length).fill(0), index,
     }));
@@ -1303,7 +1303,7 @@ document.addEventListener('click', async (e) => {
     let priced = 0; let unpriced = 0; const models = {};
     summary.rows.forEach((row) => {
       const value = tokens(row); const model = cube.models[Number(row[2])];
-      if (model && model.cost_known) priced += value;
+      if (model && model.cost_known && !(row[10] === 1 && !Number(row[8]))) priced += value;
       else { unpriced += value; const name = String((model && model.name) || 'unknown'); models[name] = (models[name] || 0) + value; }
     });
     return {priced, unpriced, names: Object.entries(models).sort((a, b) => b[1] - a[1]).map(([name]) => name)};
@@ -1505,7 +1505,7 @@ document.addEventListener('click', async (e) => {
       const day = cube.dates[Number(row[0])];
       byDay[day] = (byDay[day] || 0) + tokens;
       const model = cube.models[Number(row[2])];
-      if (!model || !model.cost_known) unpricedTokens += tokens;
+      if (!model || !model.cost_known || (row[10] === 1 && !Number(row[8]))) unpricedTokens += tokens;
     });
     let peakDate = bounds.from;
     let peakTokens = -1;

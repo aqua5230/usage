@@ -174,7 +174,7 @@ REPORT_FILTER_JS = r"""(() => {
       const day = cube.dates[Number(row[0])];
       byDay[day] = (byDay[day] || 0) + tokens;
       const model = cube.models[Number(row[2])];
-      if (!model || !model.cost_known) unpricedTokens += tokens;
+      if (!model || !model.cost_known || (row[10] === 1 && !Number(row[8]))) unpricedTokens += tokens;
     });
     let peakDate = bounds.from;
     let peakTokens = -1;

@@ -41,6 +41,7 @@ from ui.report_charts import (
 )
 from ui.report_daily_chart import (
     REPORT_DAILY_CHART_JS,
+    pricing_usage,
     render_daily_chart,
     render_daily_chart_toggle,
     render_pricing_section,
@@ -688,10 +689,15 @@ def _summary_cards(data: ReportData, lang: str) -> list[tuple[str, str, str]]:
         if cost_delta:
             cost_sub = f"{cost_sub}\n{cost_delta}" if cost_sub else cost_delta
 
-    unpriced_tokens = sum(
-        int(model["tokens"])
-        for model in data["by_model"]
-        if not model.get("cost_known", True) and int(model["tokens"]) > 0
+    cube = data.get("cube")
+    unpriced_tokens = (
+        pricing_usage(cube)[1]
+        if isinstance(cube, Mapping)
+        else sum(
+            int(model["tokens"])
+            for model in data["by_model"]
+            if not model.get("cost_known", True) and int(model["tokens"]) > 0
+        )
     )
     if unpriced_tokens:
         cost_unpriced = _t(lang, "kpi_cost_unpriced", tokens=_fmt_tokens(unpriced_tokens))
