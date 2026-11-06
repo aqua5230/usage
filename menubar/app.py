@@ -843,7 +843,10 @@ class AppDelegate(NSObject):
 
     def _process_quota_notifications(self, state: PopoverState) -> None:
         try:
-            events = self._quota_notifier.update(menubar_notify.notification_channels(state))
+            events = self._quota_notifier.update(
+                menubar_notify.notification_channels(state),
+                menubar_notify.notification_scopes(state),
+            )
             for event in events:
                 if _quota_notifications_enabled() and not self.mock:
                     self._send_quota_notification(event, state)

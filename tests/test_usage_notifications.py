@@ -172,3 +172,34 @@ def test_thresholds_still_warn_separately_when_crossed_one_at_a_time() -> None:
 
     assert [(event.kind, event.threshold) for event in first] == [("warn", 50.0)]
     assert [(event.kind, event.threshold) for event in second] == [("warn", 90.0)]
+
+
+def test_switching_agy_group_is_not_a_reset() -> None:
+    notifier = QuotaNotifier([90.0])
+    gemini = {"agy_weekly": "Gemini"}
+    argon = {"agy_weekly": "Argon"}
+
+    depleted = notifier.update({"agy_weekly": (100.0, True)}, gemini)
+    assert [event.kind for event in depleted] == ["depleted"]
+    assert notifier.update({"agy_weekly": (12.0, True)}, argon) == []
+    assert notifier.update({"agy_weekly": (100.0, True)}, gemini) == []
+
+    restored = notifier.update({"agy_weekly": (0.0, True)}, gemini)
+    assert [(event.kind, event.channel) for event in restored] == [("restored", "agy_weekly")]
+
+
+def test_rotating_all_agy_groups_sends_nothing_new() -> None:
+    notifier = QuotaNotifier([90.0])
+    readings: dict[str, dict[str, tuple[float | None, bool]]] = {
+        "Gemini": {"agy_session": (None, True), "agy_weekly": (100.0, True)},
+        "Argon": {"agy_session": (None, True), "agy_weekly": (12.0, True)},
+        "Claude / GPT": {"agy_session": (11.0, True), "agy_weekly": (76.0, True)},
+    }
+
+    def show(group: str) -> list[str]:
+        scopes = {"agy_session": group, "agy_weekly": group}
+        return [event.kind for event in notifier.update(readings[group], scopes)]
+
+    assert show("Gemini") == ["depleted"]
+    for group in ("Claude / GPT", "Argon", "Gemini", "Claude / GPT", "Gemini", "Argon"):
+        assert show(group) == []

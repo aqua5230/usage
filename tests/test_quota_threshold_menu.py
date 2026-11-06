@@ -20,10 +20,10 @@ def test_set_thresholds_keeps_observations_and_waits_for_crossing() -> None:
     notifier = QuotaNotifier()
     channel = "claude_session"
     assert notifier.update({channel: (85.0, True)}) == []
-    state = notifier._channels[channel]
+    state = notifier._channels[(channel, "")]
     notifier.set_thresholds([95.0, 70.0, 90.0, 70.0])
     assert notifier.thresholds == [70.0, 90.0, 95.0]
-    assert notifier._channels[channel] is state
+    assert notifier._channels[(channel, "")] is state
     assert state.last_percent == 85.0
     assert notifier.update({channel: (85.0, True)}) == []
     assert notifier.update({channel: (86.0, True)}) == []

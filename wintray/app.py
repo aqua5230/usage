@@ -2140,7 +2140,8 @@ class _WindowsTrayController:
                         state.muse_weekly.display_percent,
                         state.muse_weekly.available and state.muse_stale is None,
                     ),
-                }
+                },
+                {"agy_session": state.agy_group_name, "agy_weekly": state.agy_group_name},
             )
             if _quota_notifications_enabled() and not self.mock:
                 for event in events:
