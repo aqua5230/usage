@@ -59,6 +59,7 @@ class AgyQuotaProjection:
     five_hour: AgyQuotaWindow | None
     group_switchable: bool = False
     weekly_only: bool = False
+    gemini_five_hour: AgyQuotaWindow | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -162,6 +163,10 @@ def project_quota(
         weekly=weekly,
         stale=stale,
         five_hour=selected.five_hour,
+        gemini_five_hour=next(
+            (group.five_hour for group in quota.groups if _matches_group(group.name, "gemini")),
+            None,
+        ),
     )
 
 

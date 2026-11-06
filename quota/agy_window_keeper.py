@@ -118,7 +118,7 @@ def maybe_ping(result: AgyRefreshResult, mock: bool) -> None:
     if not enabled:
         return
     projection = result.projection
-    five_hour = projection.five_hour if projection is not None else None
+    five_hour = projection.gemini_five_hour if projection is not None else None
     now = time.time()
     last_ping_at = _load_last_ping()
     state = keeper_outcome.read_state(AGY_WINDOW_KEEPER_STATE_PATH)
