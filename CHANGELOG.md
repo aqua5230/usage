@@ -7,6 +7,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.34.15] - 2026-11-07
+
+### Fixed
+- **The Antigravity Gemini weekly quota keeps updating on networks that only allow traffic through a proxy.** The pre-launch check from 0.34.14 connected to Google directly, so behind a proxy it always looked offline and the CLI never ran. A configured HTTPS proxy now counts as online; a bare `NO_PROXY` setting still runs the check.
+- **The offline check can no longer hold up a refresh when DNS hangs after a wake.** Its 3-second limit now covers the name lookup, not just the connection.
+- **The Antigravity auto-start window keeper now follows the Gemini quota, whichever model group the card shows.** It always sends its message to a Gemini model, but decided from the displayed group, so with Claude/GPT or Argon selected it started the window at the wrong time or never.
+- **The Gemini weekly quota no longer jumps into the 5-hour row in its last five hours.** When usage falls back to Google's model list, a weekly limit close to its reset was mistaken for a 5-hour one.
+- **Signing in to Antigravity again takes effect on the next refresh.** After Google rejected the sign-in, usage kept retrying the rejected token for up to an hour.
+- **A damaged Antigravity quota cache no longer hides the card for good.** An unreadable cache file is now moved to `~/.usage/quarantine/` and the quota is fetched fresh.
+- **On Windows, the taskbar countdown starts and clears promptly with the panel closed.** It could lag up to five minutes when a quota filled or reset between refreshes.
+
 ## [0.34.14] - 2026-11-07
 
 ### Added
