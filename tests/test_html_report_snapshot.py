@@ -501,6 +501,8 @@ def test_generate_html_omits_unpriced_cost_note_when_all_models_are_priced() -> 
 
 def test_generate_html_shows_formatted_unpriced_cost_note() -> None:
     data = _full_report_data()
+    # Without a cube the card falls back to by_model; the cube path is in the snapshots.
+    data.pop("cube", None)
     data["by_model"].append(
         {
             "model": "grok-4",
@@ -513,7 +515,7 @@ def test_generate_html_shows_formatted_unpriced_cost_note() -> None:
 
     html = html_report.generate_html(data, language="zh-TW")
 
-    assert "其中 1.2M tokens 無公開價格，未計入" in html
+    assert "其中 1.2M tokens 沒有價格資料，未計入" in html
     assert "另有 1234567 tokens 無公開價格" not in html
 
 

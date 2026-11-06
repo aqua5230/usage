@@ -29,7 +29,7 @@ from adapters.types import AgentInfo, UsageEntry
 from usage_common.pricing import calculate_cost, is_model_priced
 
 from .aggregator import aggregate_sessions
-from . import diagnoser, dispatch_ledger, ledger_backfill, usage_snapshot
+from . import diagnoser, dispatch_ledger, ledger_backfill, ledger_legacy_backfill, usage_snapshot
 
 logger = logging.getLogger(__name__)
 
@@ -45,9 +45,9 @@ _YEAR_WEEKS = 53
 YEAR_CACHE_PATH = Path(os.path.expanduser("~/.usage/year_cache.json"))
 YEAR_LEDGER_PATH = YEAR_CACHE_PATH.with_name("year_ledger.json")
 YEAR_CACHE_TTL_SECONDS = 6 * 3600
-_YEAR_CACHE_SCHEMA = 6
+_YEAR_CACHE_SCHEMA = 7
 _YEAR_LEDGER_SCHEMA = 1
-_year_ledger_lock = threading.Lock()
+_year_ledger_lock = threading.RLock()
 _YEAR_LEDGER_TRIM_BUFFER_DAYS = 60
 
 
@@ -572,6 +572,14 @@ def _year_day_from_json(value: object) -> _YearDay | None:
 
 
 def _read_year_ledger() -> _YearLedger:
+    with _year_ledger_lock:
+        ledger = _read_year_ledger_unlocked()
+        if ledger_legacy_backfill.backfill_days(ledger["days"]):
+            _write_year_ledger(ledger)
+        return ledger
+
+
+def _read_year_ledger_unlocked() -> _YearLedger:
     try:
         with YEAR_LEDGER_PATH.open(encoding="utf-8") as file:
             ledger = json.load(file)

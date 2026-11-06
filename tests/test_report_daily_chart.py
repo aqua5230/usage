@@ -124,3 +124,24 @@ def test_daily_date_labels_keep_endpoints_and_skip_nearby_month_starts() -> None
     rendered = render_daily_chart(_cube([[0, 0, 0, 0, 42, 0, 0, 0, 0, 1]]), _t, _tokens, str)
     assert "05-01 · 42" in rendered
     assert rendered.count("daily-x-label") == 1
+
+
+def test_daily_chart_legend_translates_unknown_agent() -> None:
+    cube = _cube([[0, 0, 0, 0, 5, 0, 0, 0, 0, 1]])
+    cube["agents"] = [{"id": "unknown", "name": "unknown"}]
+
+    html = render_daily_chart(cube, _display_name, _tokens, str)
+
+    assert "未知 <b>5</b>" in html
+
+
+def test_pricing_usage_counts_zero_cost_ledger_rows_as_unpriced() -> None:
+    cube = _cube(
+        [
+            [0, 0, 0, 0, 10, 0, 0, 0, 0, 1, 1],
+            [0, 0, 0, 0, 7, 0, 0, 0, 0.5, 1, 1],
+            [0, 0, 0, 0, 3, 0, 0, 0, 0.1, 1],
+        ]
+    )
+
+    assert pricing_usage(cube) == (10, 10, ["priced"])

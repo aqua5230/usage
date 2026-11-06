@@ -794,7 +794,8 @@ td:first-child{color:var(--muted)}
   <div class="filter-scope">
   <div class="date-filter" data-date-filter><div class="date-shortcuts"><button type="button" data-range="today">今日</button><button type="button" data-range="last7">最近 7 天</button><button type="button" data-range="last30">最近 30 天</button><button type="button" data-range="month">本月</button><button type="button" data-range="all">全部</button></div><div class="date-inputs"><label>起<input type="date" data-date-from min="2026-05-04" max="2026-05-20"></label><label>迄<input type="date" data-date-to min="2026-05-04" max="2026-05-20"></label></div></div><p class="composition-hint" data-history-note hidden>分工具紀錄從 2026-05-04 起；更早的每日總量只在下方熱力圖</p>
   <section class="cards"><div class="card" data-card="tokens"><span>燒掉 Tokens</span><b>≈ 2.3M</b><i>2,345,678
-↑56% 較前期</i></div><div class="card" data-card="cost"><span>API 等值</span><b>$45.68</b><i>↑52% 較前期</i></div><div class="card" data-card="active"><span>活躍日</span><b>18 / 23 天</b><i>任一工具當天有用量就算一天</i></div><div class="card" data-card="peak"><span>燒最兇的一天</span><b>2026-05-13</b><i>300.0K Tokens</i></div></section>
+↑56% 較前期</i></div><div class="card" data-card="cost"><span>API 等值</span><b>$45.68</b><i>↑52% 較前期
+其中 80.0K tokens 沒有價格資料，未計入</i></div><div class="card" data-card="active"><span>活躍日</span><b>18 / 23 天</b><i>任一工具當天有用量就算一天</i></div><div class="card" data-card="peak"><span>燒最兇的一天</span><b>2026-05-13</b><i>300.0K Tokens</i></div></section>
 
     <section class="section insights-section">
       <div class="prompt"><span>[usage]&gt;</span> <span class="prompt-title">洞察</span><small class="fixed-range-tag">固定區間</small></div>
@@ -859,7 +860,7 @@ td:first-child{color:var(--muted)}
         
     </section>
     
-  <details class="report-appendix"><summary><span>[usage]&gt;</span> API 等值怎麼算的<span class="appendix-desc">公開 API 價目換算 · API 價格覆蓋率（依 token 數）</span><i class="appendix-caret" aria-hidden="true">▸</i></summary><section class="section pricing-section"><div class="prompt"><span>[usage]&gt;</span> API 價格覆蓋率（依 token 數）</div><div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div><div class="pricing-bar" aria-hidden="true"><i style="width:91.8%;background:var(--cost)"></i><i style="width:8.2%;background:#8b8577"></i></div><div class="rank-list pricing-list"><div class="rank-line pricing-line"><span class="left-tick"></span><span class="arrow">→</span><span class="name">可換算 API 等值</span><span class="pct">91.8%</span><span class="tokens">900.0K</span></div><div class="rank-line pricing-line"><span class="left-tick" style="background:#8b8577"></span><span class="arrow">→</span><span class="name">無公開價格<span class="pricing-models">未知</span></span><span class="pct">8.2%</span><span class="tokens">80.0K</span></div></div><p class="pricing-hint">API 等值是用公開 API 價目表換算的等值金額，不是你的訂閱帳單；無公開價格的用量不計入 API 等值。 沒有公開價格不代表免費，只是無法換算。</p></section></details>
+  <details class="report-appendix"><summary><span>[usage]&gt;</span> API 等值怎麼算的<span class="appendix-desc">公開 API 價目換算 · API 價格覆蓋率（依 token 數）</span><i class="appendix-caret" aria-hidden="true">▸</i></summary><section class="section pricing-section"><div class="prompt"><span>[usage]&gt;</span> API 價格覆蓋率（依 token 數）</div><div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div><div class="pricing-bar" aria-hidden="true"><i style="width:91.8%;background:var(--cost)"></i><i style="width:8.2%;background:#8b8577"></i></div><div class="rank-list pricing-list"><div class="rank-line pricing-line"><span class="left-tick"></span><span class="arrow">→</span><span class="name">可換算 API 等值</span><span class="pct">91.8%</span><span class="tokens">900.0K</span></div><div class="rank-line pricing-line"><span class="left-tick" style="background:#8b8577"></span><span class="arrow">→</span><span class="name">沒有價格資料<span class="pricing-models">未知</span></span><span class="pct">8.2%</span><span class="tokens">80.0K</span></div></div><p class="pricing-hint">API 等值是用公開 API 價目表換算的等值金額，不是你的訂閱帳單；沒有價格資料的用量不計入 API 等值，包括沒有公開價格的模型，以及只存了總量的舊紀錄。沒有價格資料不代表免費，只是無法換算。</p></section></details>
   </div>
   
     <section class="section contribution-section">
@@ -927,7 +928,7 @@ reportThemeMedia.addEventListener('change', () => {
   updateThemeToggle();
 });
 
-const shareConfig = {"collapse": "收合", "copied": "已複製到剪貼簿 ✓", "expand": "展開", "pathCopied": "路徑已複製 ✓", "projectShare": "佔本專案", "projectOthers": "其他專案", "title_tools_top": "{tool} 用得最多，佔 {pct}%", "title_tools_single": "全部用量來自 {tool}", "sub_tools": "各工具 token 佔比 · 共 {total} tokens", "title_projects_top3": "前 3 個專案佔了 {pct}% 的用量", "sub_projects": "各專案 token 佔比", "title_trend_peak_week": "{date} 那週用量最高", "sub_trend": "每日與每週 token 用量", "title_composition_top": "{pct}% 的 token 是{kind}", "sub_composition": "各類 token 佔比", "title_sessions_top": "最大的一段會話用了 {tokens} tokens", "source_note": "資料來源：本機 {tools} 使用紀錄 · {from} – {to}", "source_pricing": "API 等值依公開 API 價目換算", "weekly_chart_title": "每週用量", "tools_section": "你的工具", "project_section": "專案熱區", "trend_section": "用量趨勢", "composition_section": "Token 組成", "session_section": "Token 用量最多的 5 段會話", "sourceSeparator": "、", "chartOther": "其他", "cost": "API 等值", "costUnpriced": "其中 {tokens} tokens 無公開價格，未計入", "emptyProjects": "這段期間還沒有專案用量", "kpiActiveHint": "任一工具當天有用量就算一天", "kpiActiveValue": "{active} / {total} 天", "narrative": "過去這段時間你燒了 {tokens} tokens。{peak_date} 是高峰（{peak_tokens}/天），Token 用量最多的模型是 {top_model}。", "projectSection": "專案熱區", "share": "Token 佔比", "tokens": "Tokens", "unknown": "未知", "vsPrevious": "較前期", "compositionCacheRead": "快取讀取", "compositionCacheWrite": "快取寫入", "compositionHitRate": "快取命中率", "compositionInput": "輸入", "compositionMissing": "另有 {tokens} tokens 沒有輸入／輸出拆解", "trendPartialWeek": "僅 {days} 天", "trendIncompleteWeek": "不完整週", "compositionOutput": "輸出", "duration": "時長", "dailyChartTitle": "每日用量", "dailyChartModeTokens": "Tokens", "dailyChartModeCost": "API 等值", "dailyChartTotal": "合計", "emptyDaily": "這段期間還沒有每日用量", "emptySessions": "這段期間還沒有可列出的會話", "model": "模型", "project": "專案", "pricingAllPriced": "全部用量都有公開價格。", "pricingHint": "API 等值是用公開 API 價目表換算的等值金額，不是你的訂閱帳單；無公開價格的用量不計入 API 等值。 沒有公開價格不代表免費，只是無法換算。", "pricingModelSeparator": "、", "pricingPriced": "可換算 API 等值", "pricingUnpriced": "無公開價格", "rank": "排名", "startTime": "開始時間", "trendCompareDown": "上個完整週（W{week}）比前一週少 {pct}%。", "trendCompareFirst": "尚不足兩個完整週可比較。", "trendCompareFlat": "上個完整週（W{week}）跟前一週差不多。", "trendCompareNew": "上個完整週（W{week}）比前一週新增用量。", "trendCompareUp": "上個完整週（W{week}）是前一週的 {ratio} 倍。", "trendMarkerNew": "new", "trendWeekInProgress": "進行中"};
+const shareConfig = {"collapse": "收合", "copied": "已複製到剪貼簿 ✓", "expand": "展開", "pathCopied": "路徑已複製 ✓", "projectShare": "佔本專案", "projectOthers": "其他專案", "title_tools_top": "{tool} 用得最多，佔 {pct}%", "title_tools_single": "全部用量來自 {tool}", "sub_tools": "各工具 token 佔比 · 共 {total} tokens", "title_projects_top3": "前 3 個專案佔了 {pct}% 的用量", "sub_projects": "各專案 token 佔比", "title_trend_peak_week": "{date} 那週用量最高", "sub_trend": "每日與每週 token 用量", "title_composition_top": "{pct}% 的 token 是{kind}", "sub_composition": "各類 token 佔比", "title_sessions_top": "最大的一段會話用了 {tokens} tokens", "source_note": "資料來源：本機 {tools} 使用紀錄 · {from} – {to}", "source_pricing": "API 等值依公開 API 價目換算", "weekly_chart_title": "每週用量", "tools_section": "你的工具", "project_section": "專案熱區", "trend_section": "用量趨勢", "composition_section": "Token 組成", "session_section": "Token 用量最多的 5 段會話", "sourceSeparator": "、", "chartOther": "其他", "cost": "API 等值", "costUnpriced": "其中 {tokens} tokens 沒有價格資料，未計入", "emptyProjects": "這段期間還沒有專案用量", "kpiActiveHint": "任一工具當天有用量就算一天", "kpiActiveValue": "{active} / {total} 天", "narrative": "過去這段時間你燒了 {tokens} tokens。{peak_date} 是高峰（{peak_tokens}/天），Token 用量最多的模型是 {top_model}。", "projectSection": "專案熱區", "share": "Token 佔比", "tokens": "Tokens", "unknown": "未知", "vsPrevious": "較前期", "compositionCacheRead": "快取讀取", "compositionCacheWrite": "快取寫入", "compositionHitRate": "快取命中率", "compositionInput": "輸入", "compositionMissing": "另有 {tokens} tokens 沒有輸入／輸出拆解", "trendPartialWeek": "僅 {days} 天", "trendIncompleteWeek": "不完整週", "compositionOutput": "輸出", "duration": "時長", "dailyChartTitle": "每日用量", "dailyChartModeTokens": "Tokens", "dailyChartModeCost": "API 等值", "dailyChartTotal": "合計", "emptyDaily": "這段期間還沒有每日用量", "emptySessions": "這段期間還沒有可列出的會話", "model": "模型", "project": "專案", "pricingAllPriced": "全部用量都有公開價格。", "pricingHint": "API 等值是用公開 API 價目表換算的等值金額，不是你的訂閱帳單；沒有價格資料的用量不計入 API 等值，包括沒有公開價格的模型，以及只存了總量的舊紀錄。沒有價格資料不代表免費，只是無法換算。", "pricingModelSeparator": "、", "pricingPriced": "可換算 API 等值", "pricingUnpriced": "沒有價格資料", "rank": "排名", "startTime": "開始時間", "trendCompareDown": "上個完整週（W{week}）比前一週少 {pct}%。", "trendCompareFirst": "尚不足兩個完整週可比較。", "trendCompareFlat": "上個完整週（W{week}）跟前一週差不多。", "trendCompareNew": "上個完整週（W{week}）比前一週新增用量。", "trendCompareUp": "上個完整週（W{week}）是前一週的 {ratio} 倍。", "trendMarkerNew": "new", "trendWeekInProgress": "進行中"};
 const maskedCsvData = JSON.parse(document.querySelector('#usage-masked-csv-data').textContent);
 const csvDataNode = document.querySelector('#usage-csv-data');
 const csvData = csvDataNode ? JSON.parse(csvDataNode.textContent) : maskedCsvData;
@@ -1268,7 +1269,7 @@ document.addEventListener('click', async (e) => {
     const days = rangeDays(summary);
     const positions = Object.fromEntries(cube.dates.map((day, index) => [day, index]));
     const agents = (cube.agents || []).map((agent, index) => ({
-      id: String(agent.id || ''), name: String(agent.name || agent.id || ''),
+      id: String(agent.id || ''), name: displayName(agent.name || agent.id || ''),
       color: agentColors[String(agent.id || '')] || '#8b8577',
       tokens: Array(days.length).fill(0), cost: Array(days.length).fill(0), index,
     }));
@@ -1398,7 +1399,7 @@ document.addEventListener('click', async (e) => {
     let priced = 0; let unpriced = 0; const models = {};
     summary.rows.forEach((row) => {
       const value = tokens(row); const model = cube.models[Number(row[2])];
-      if (model && model.cost_known) priced += value;
+      if (model && model.cost_known && !(row[10] === 1 && !Number(row[8]))) priced += value;
       else { unpriced += value; const name = String((model && model.name) || 'unknown'); models[name] = (models[name] || 0) + value; }
     });
     return {priced, unpriced, names: Object.entries(models).sort((a, b) => b[1] - a[1]).map(([name]) => name)};
@@ -1600,7 +1601,7 @@ document.addEventListener('click', async (e) => {
       const day = cube.dates[Number(row[0])];
       byDay[day] = (byDay[day] || 0) + tokens;
       const model = cube.models[Number(row[2])];
-      if (!model || !model.cost_known) unpricedTokens += tokens;
+      if (!model || !model.cost_known || (row[10] === 1 && !Number(row[8]))) unpricedTokens += tokens;
     });
     let peakDate = bounds.from;
     let peakTokens = -1;
