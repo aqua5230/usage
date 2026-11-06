@@ -1437,12 +1437,18 @@ class _WindowsTrayController:
     def _poll_loop(self) -> None:
         current_thread = threading.current_thread()
         self._poll_thread = current_thread
+        waited = 0.0
         try:
-            while not self.stopping.wait(
-                self.interval
-                if self.visible or (self.quota_label_enabled and self._tray_countdown() is not None)
-                else max(self.interval, SLOW_POLL_INTERVAL_S)
-            ):
+            # Wake every interval even while hidden, so a countdown or panel that
+            # appears mid-wait refreshes promptly instead of after the slow interval.
+            while not self.stopping.wait(self.interval):
+                waited += self.interval
+                fast = self.visible or (
+                    self.quota_label_enabled and self._tray_countdown() is not None
+                )
+                if not fast and waited < SLOW_POLL_INTERVAL_S:
+                    continue
+                waited = 0.0
                 self.refresh()
                 self._clear_stale_update_cache()
                 if self._auto_check_schedule.try_begin(time.time()):

@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import socket
+import urllib.request
 
 # The host the Antigravity CLI refreshes its OAuth token against.
 _GOOGLE_AUTH_HOST = "oauth2.googleapis.com"
@@ -21,7 +22,12 @@ def google_auth_reachable(timeout: float = _PROBE_TIMEOUT_SECONDS) -> bool:
     Right after a sleep wake the network is often still down. The Antigravity CLI
     treats a failed token refresh as "not logged in" and opens a browser sign-in
     page, so callers skip launching it while this returns False.
+
+    A proxy-only network blocks this direct probe even though the CLI can connect
+    through the proxy, so a configured proxy counts as reachable.
     """
+    if urllib.request.getproxies():
+        return True
     try:
         with socket.create_connection((_GOOGLE_AUTH_HOST, 443), timeout=timeout):
             return True
