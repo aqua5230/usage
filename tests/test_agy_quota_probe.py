@@ -1021,16 +1021,14 @@ def test_cli_probe_is_skipped_while_offline(monkeypatch: pytest.MonkeyPatch) -> 
     assert agy_quota_probe._cli_retry_after_monotonic == 0.0
 
 
-def test_cli_probe_is_skipped_when_auth_expired(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_cli_probe_still_runs_when_auth_expired(monkeypatch: pytest.MonkeyPatch) -> None:
+    # The marker can outlive a re-sign-in (e.g. a stale legacy token on Windows), so it
+    # must not veto the CLI; only the failure cooldown limits repeat launches.
     calls = _fake_cli(monkeypatch, _usage_command_output(datetime.now(UTC)))
     agy_quota_probe.AUTH_EXPIRED_PATH.touch()
-    monkeypatch.setattr(
-        agy_quota_probe, "google_auth_reachable", lambda: pytest.fail("must not probe network")
-    )
 
-    assert _real_probe_via_cli(15) is None
-    assert calls == []
-    assert agy_quota_probe._cli_retry_after_monotonic == 0.0
+    assert _real_probe_via_cli(15) is not None
+    assert len(calls) == 1
 
 
 def test_cli_failure_cooldown_and_success_reset(monkeypatch: pytest.MonkeyPatch) -> None:

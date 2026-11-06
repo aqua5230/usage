@@ -167,8 +167,6 @@ def _probe_via_cli(timeout: float) -> AgyQuotaResult | None:
         return None
     if time.monotonic() < _cli_retry_after_monotonic:
         return None
-    if auth_expired():
-        return None
     # Offline (e.g. just after a sleep wake) the CLI would open a browser sign-in page.
     if not google_auth_reachable():
         return None
