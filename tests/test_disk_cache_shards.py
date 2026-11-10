@@ -283,6 +283,81 @@ def test_codex_legacy_single_file_is_deleted(tmp_path: Path) -> None:
     assert not info
 
 
+@pytest.mark.parametrize("is_thread_spawn", [False, True])
+def test_codex_file_info_round_trips_spawn_flag_without_replay_key(
+    tmp_path: Path, is_thread_spawn: bool
+) -> None:
+    cache_path = tmp_path / "codex.json"
+    source = tmp_path / "session.jsonl"
+    source.write_text("", encoding="utf-8")
+    metadata = _SessionFileInfo(
+        session_id="child",
+        forked_from_id="parent",
+        is_thread_spawn=is_thread_spawn,
+    )
+    entries = OrderedDict([(source, _codex_entry(source))])
+    info = OrderedDict([(source, (1.0, 10, metadata))])
+    schema = codex_loader._CODEX_JSONL_CACHE_SCHEMA
+    sqlite_cache = codex_loader._SqliteLogCache()
+
+    codex_disk_cache.flush_caches(cache_path, schema, entries, info, sqlite_cache)
+    shard_path = codex_disk_cache._shard_path(cache_path, codex_disk_cache._shard_index(source))
+    file_data = json.loads(shard_path.read_text(encoding="utf-8"))["files"][str(source)]
+    assert file_data["is_thread_spawn"] is is_thread_spawn
+    assert file_data["forked_from_id"] == "parent"
+    assert file_data["entries"] is None
+
+    seeded: OrderedDict[Path, codex_loader._JsonlCacheEntry] = OrderedDict()
+    seeded_info: OrderedDict[Path, tuple[float, int, _SessionFileInfo]] = OrderedDict()
+    codex_disk_cache.seed_caches(cache_path, schema, 4096, seeded, seeded_info, sqlite_cache)
+
+    assert seeded_info[source][2] == metadata
+    assert not seeded
+
+
+@pytest.mark.parametrize("stale_schema", [False, True])
+def test_codex_seed_does_not_assume_missing_spawn_flag_is_false(
+    tmp_path: Path, stale_schema: bool
+) -> None:
+    cache_path = tmp_path / "codex.json"
+    source = tmp_path / "session.jsonl"
+    source.write_text(
+        json.dumps(
+            {
+                "type": "session_meta",
+                "payload": {
+                    "id": "child",
+                    "forked_from_id": "parent",
+                    "source": {"subagent": {"thread_spawn": {"parent_thread_id": "parent"}}},
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    entries = OrderedDict([(source, _codex_entry(source))])
+    stat = source.stat()
+    info = OrderedDict(
+        [(source, (stat.st_mtime, stat.st_size, _SessionFileInfo("child", "parent", True)))]
+    )
+    schema = codex_loader._CODEX_JSONL_CACHE_SCHEMA
+    sqlite_cache = codex_loader._SqliteLogCache()
+    codex_disk_cache.flush_caches(cache_path, schema, entries, info, sqlite_cache)
+    shard_path = codex_disk_cache._shard_path(cache_path, codex_disk_cache._shard_index(source))
+    payload = json.loads(shard_path.read_text(encoding="utf-8"))
+    del payload["files"][str(source)]["is_thread_spawn"]
+    if stale_schema:
+        payload["schema_version"] = schema - 1
+    shard_path.write_text(json.dumps(payload), encoding="utf-8")
+    seeded: OrderedDict[Path, codex_loader._JsonlCacheEntry] = OrderedDict()
+    seeded_info: OrderedDict[Path, tuple[float, int, _SessionFileInfo]] = OrderedDict()
+
+    codex_disk_cache.seed_caches(cache_path, schema, 4096, seeded, seeded_info, sqlite_cache)
+
+    assert not seeded
+    assert not seeded_info
+    assert codex_loader._read_session_file_info_uncached(source).is_thread_spawn is True
+
+
 def test_codex_seed_skips_missing_but_keeps_stat_errors(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:

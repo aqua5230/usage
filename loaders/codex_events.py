@@ -32,6 +32,7 @@ class _ThreadMetadata:
 class _SessionFileInfo:
     session_id: str = ""
     forked_from_id: str = ""
+    is_thread_spawn: bool = False
 
 
 @dataclass(frozen=True, slots=True)
