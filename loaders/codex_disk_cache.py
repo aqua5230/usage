@@ -116,6 +116,9 @@ def seed_caches(
                 size = file_data["size"]
                 session_id = file_data["session_id"]
                 forked_from_id = file_data["forked_from_id"]
+                is_thread_spawn = file_data["is_thread_spawn"]
+                if not isinstance(is_thread_spawn, bool):
+                    continue
                 entries_data = file_data["entries"]
                 confirmed_offset = int(file_data.get("confirmed_offset", 0))
                 digest_hex = file_data.get("confirmed_prefix_digest", "")
@@ -128,7 +131,11 @@ def seed_caches(
                 file_info_cache[path] = (
                     mtime,
                     size,
-                    _SessionFileInfo(session_id=session_id, forked_from_id=forked_from_id),
+                    _SessionFileInfo(
+                        session_id=session_id,
+                        forked_from_id=forked_from_id,
+                        is_thread_spawn=is_thread_spawn,
+                    ),
                 )
                 if entries_data is None:
                     continue
@@ -184,7 +191,7 @@ def flush_caches(
         shards: list[dict[str, Any]] = [{} for _ in range(_SHARD_COUNT)]
         for path, entry in jsonl_cache.items():
             info = file_info_cache.get(path)
-            if entry.replay_cache_key is not None:
+            if entry.replay_cache_key is not None or (info is not None and info[2].forked_from_id):
                 if info is None:
                     continue
                 entries_data = None
@@ -205,6 +212,7 @@ def flush_caches(
                 "size": entry.size,
                 "session_id": session_id,
                 "forked_from_id": forked_from_id,
+                "is_thread_spawn": info[2].is_thread_spawn if info is not None else False,
                 "entries": entries_data,
                 "confirmed_offset": entry.confirmed_offset,
                 "confirmed_prefix_digest": entry.confirmed_prefix_digest.hex(),

@@ -163,7 +163,7 @@ def _sqlite_file_fingerprint(path: Path) -> _SqliteFileFingerprint:
 
 # Disk cache for JSONL parsing results. Schema version must be bumped when the
 # serialization format or parsing logic changes incompatibly.
-_CODEX_JSONL_CACHE_SCHEMA = 6
+_CODEX_JSONL_CACHE_SCHEMA = 7
 JSONL_CACHE_PATH = Path(os.path.expanduser("~/.usage/codex_jsonl_cache.json"))
 
 # Module-level flag to ensure seed loading happens exactly once.
@@ -410,6 +410,8 @@ def _read_session_file_info_uncached(path: Path) -> _SessionFileInfo:
                 return _SessionFileInfo(
                     session_id=_as_str(payload.get("id")),
                     forked_from_id=_as_str(payload.get("forked_from_id")),
+                    is_thread_spawn="thread_spawn"
+                    in _as_dict(_as_dict(payload.get("source")).get("subagent")),
                 )
     except (OSError, UnicodeDecodeError):
         return _SessionFileInfo()
@@ -1114,7 +1116,8 @@ def _fork_replay_boundary(
             match_count,
         )
 
-    if child_events and best_match == 0:
+    # Newer spawned threads inherit context without the parent's usage events.
+    if child_events and best_match == 0 and not info.is_thread_spawn:
         result = (None, None)
         _cache_fork_replay_boundary(path, lookup_key, result)
         return result
@@ -1318,6 +1321,9 @@ def _parse_jsonl(
         logger.warning("failed to parse codex session %s: %s", path, exc)
         return []
 
+    if replay_boundary is None:
+        return []
+
     cache_entry = _jsonl_cache.get(path)
     # An entry without model provenance must be rebuilt from the source.
     if cache_entry is not None and cache_entry.fallback_entry_count is None:
@@ -1338,8 +1344,6 @@ def _parse_jsonl(
         return [entry for entry in cached_entries if entry.timestamp >= cutoff]
 
     info = file_info or _read_session_file_info(path)
-    if replay_boundary is None:
-        return []
 
     if not info.forked_from_id and replay_boundary == 0 and replay_cache_key is None:
         refreshed = _refresh_linear_jsonl_cache(path, st, info.session_id, models, cache_entry)

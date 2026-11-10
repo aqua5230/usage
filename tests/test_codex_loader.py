@@ -113,6 +113,7 @@ def _write_fork_session(
     timestamp: str,
     replay_events: list[dict[str, Any]],
     own_events: list[tuple[str, dict[str, Any]]],
+    source: str | dict[str, Any] = "exec",
 ) -> None:
     lines = [
         {
@@ -123,6 +124,7 @@ def _write_fork_session(
                 "forked_from_id": parent_session_id,
                 "timestamp": timestamp,
                 "cwd": "/tmp/fork",
+                "source": source,
             },
         },
         {
@@ -132,6 +134,7 @@ def _write_fork_session(
                 "id": parent_session_id,
                 "timestamp": "2026-01-01T00:00:00+00:00",
                 "cwd": "/tmp/parent",
+                "source": "exec",
             },
         },
     ]
@@ -581,6 +584,141 @@ def test_load_entries_handles_duplicate_snapshots_across_multiple_forks(
         "fork-1",
     ]
     assert [entry.total_tokens for entry in entries] == [130, 60, 68, 69]
+
+
+@pytest.mark.parametrize("cold_start", [False, True])
+def test_load_entries_counts_spawn_usage_without_replayed_prefix(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, cold_start: bool
+) -> None:
+    sessions_dir = tmp_path / "sessions"
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    timestamp = "2026-11-10T00:00:00+00:00"
+    parent_path = sessions_dir / "parent.jsonl"
+    _write_session_with_usage_events(
+        parent_path,
+        session_id="parent",
+        events=[(timestamp, {"input_tokens": 2_000_000, "output_tokens": 10})],
+    )
+    _write_fork_session(
+        sessions_dir / "spawn.jsonl",
+        session_id="spawn",
+        parent_session_id="parent",
+        timestamp=timestamp,
+        source={"subagent": {"thread_spawn": {"parent_thread_id": "parent", "depth": 1}}},
+        replay_events=[],
+        own_events=[
+            (
+                timestamp,
+                {
+                    "input_tokens": total - 31,
+                    "cached_input_tokens": 1000,
+                    "output_tokens": 31,
+                    "total_tokens": total,
+                },
+            )
+            for total in (26731, 59927, 97631)
+        ],
+    )
+
+    entries = codex_loader.load_entries()
+    if cold_start:
+        codex_loader._flush_caches_to_disk(force=True)
+        codex_loader._jsonl_cache.clear()
+        codex_loader._file_info_cache.clear()
+        codex_loader._fork_replay_cache.clear()
+        monkeypatch.setattr(codex_loader, "_disk_cache_seeded", False)
+        entries = codex_loader.load_entries()
+
+    child_entries = [entry for entry in entries if entry.session_id == "spawn"]
+    assert [entry.total_tokens for entry in child_entries] == [26731, 33196, 37704]
+    assert sum(entry.total_tokens for entry in child_entries) == 97631
+
+    # A previously parsed child must also be excluded if its parent disappears.
+    parent_path.rename(tmp_path / "moved-parent.jsonl")
+    assert codex_loader.load_entries() == []
+
+
+def test_load_entries_excludes_spawn_replayed_prefix(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    sessions_dir = tmp_path / "sessions"
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    timestamp = "2026-11-10T00:00:00+00:00"
+    parent_usage = [
+        {"input_tokens": 100, "cached_input_tokens": 20, "output_tokens": 30},
+        {"input_tokens": 150, "cached_input_tokens": 30, "output_tokens": 40},
+    ]
+    _write_session_with_usage_events(
+        sessions_dir / "parent.jsonl",
+        session_id="parent",
+        events=[(timestamp, usage) for usage in parent_usage],
+    )
+    _write_fork_session(
+        sessions_dir / "spawn.jsonl",
+        session_id="spawn",
+        parent_session_id="parent",
+        timestamp=timestamp,
+        source={"subagent": {"thread_spawn": {"parent_thread_id": "parent"}}},
+        replay_events=parent_usage,
+        own_events=[
+            (timestamp, {"input_tokens": 60, "cached_input_tokens": 10, "output_tokens": 8}),
+            (timestamp, {"input_tokens": 90, "cached_input_tokens": 20, "output_tokens": 12}),
+        ],
+    )
+
+    entries = codex_loader.load_entries()
+
+    assert [entry.total_tokens for entry in entries if entry.session_id == "spawn"] == [68, 34]
+
+
+def test_load_entries_skips_user_fork_without_matching_prefix(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    sessions_dir = tmp_path / "sessions"
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    timestamp = "2026-11-10T00:00:00+00:00"
+    _write_session_with_usage_events(
+        sessions_dir / "parent.jsonl",
+        session_id="parent",
+        events=[(timestamp, {"input_tokens": 100, "output_tokens": 30})],
+    )
+    _write_fork_session(
+        sessions_dir / "fork.jsonl",
+        session_id="fork",
+        parent_session_id="parent",
+        timestamp=timestamp,
+        replay_events=[],
+        own_events=[(timestamp, {"input_tokens": 60, "output_tokens": 8})],
+    )
+
+    entries = codex_loader.load_entries()
+
+    assert [entry.session_id for entry in entries] == ["parent"]
+    fork_path = sessions_dir / "fork.jsonl"
+    assert codex_loader._fork_replay_boundary(
+        fork_path,
+        codex_loader._read_session_file_info(fork_path),
+        [sessions_dir / "parent.jsonl"],
+    ) == (None, None)
+
+
+def test_load_entries_skips_spawn_when_parent_is_missing(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    sessions_dir = tmp_path / "sessions"
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    timestamp = "2026-11-10T00:00:00+00:00"
+    _write_fork_session(
+        sessions_dir / "spawn.jsonl",
+        session_id="spawn",
+        parent_session_id="missing-parent",
+        timestamp=timestamp,
+        source={"subagent": {"thread_spawn": {"parent_thread_id": "missing-parent"}}},
+        replay_events=[],
+        own_events=[(timestamp, {"input_tokens": 26700, "output_tokens": 31})],
+    )
+
+    assert codex_loader.load_entries() == []
 
 
 def test_load_entries_skips_fork_jsonl_when_parent_replay_source_is_missing(
@@ -2463,6 +2601,7 @@ def test_disk_cache_seed_loads_on_cold_start(
                 "size": 1000,
                 "session_id": "test-session",
                 "forked_from_id": "",
+                "is_thread_spawn": False,
                 "confirmed_offset": 1000,
                 "confirmed_prefix_digest": "abcd",
                 "parse_state": {
