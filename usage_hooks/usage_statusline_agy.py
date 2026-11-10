@@ -343,10 +343,16 @@ def _quota_parts(data: Dict[str, Any], bar_width: int) -> List[Tuple[str, str, s
         reset = _as_float(entry.get("reset_in_seconds"))
         reset_str = ""
         if reset is not None and reset > 0:
+            now = datetime.now()
+            reset_dt = datetime.fromtimestamp(now.timestamp() + reset)
+            clock = f"{reset_dt:%H:%M}"
+            if reset_dt.date() != now.date():
+                clock = f"{reset_dt.month}/{reset_dt.day} {clock}"
             if lang in ("zh-TW", "zh-CN"):
-                reset_str = f" ({_t('remaining_prefix')}{fmt_duration(reset)})"
+                remaining_text = f"{_t('remaining_prefix')}{fmt_duration(reset)}"
             else:
-                reset_str = f" ({fmt_duration(reset)} {_t('remaining_prefix')})"
+                remaining_text = f"{fmt_duration(reset)} {_t('remaining_prefix')}"
+            reset_str = f" {C['dim']}{clock}({remaining_text}){C['reset']}"
         parts.append(
             (
                 f"{C['blue']}{label}:{C['reset']}{progress_bar(pct, bar_width)}{reset_str}",
