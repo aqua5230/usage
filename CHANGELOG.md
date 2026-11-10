@@ -7,6 +7,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.34.16] - 2026-11-10
+
+### Added
+- **The Antigravity status line shows when each quota resets.** Next to the 5-hour and weekly percentages it now prints the reset clock time and the time left, for example `18:37(2h30m left)`, in the same format as the Claude Code status line.
+
+### Changed
+- **The Antigravity status line now uses two lines, like the Claude Code one.** Project and quota windows stay on the first line, and the model and context window move to the second, so the reset times still fit in an 80-column terminal instead of being dropped first.
+- **Terse mode keeps replies readable while it shortens them.** Its instructions now set a floor: the reader gets each reply in one pass. They ask for common word pairings and the verb near its subject, and keep connecting words such as "because" and "so". This follows a recent study that found pressure to be brief is one cause of hard-to-read AI text.
+
+### Fixed
+- **Codex subagent threads are counted again.** A thread started by `spawn_agent` repeats the parent's session header but no longer its token events, so usage could not match it to the parent and skipped the whole file. These threads are now counted from zero; on the machine where it was found, about 0.4% of Codex tokens had been missing.
+- **Fable 5.2 has an offline price and a short name.** Costs for it no longer show as missing when the price table cannot be downloaded, and it appears as `Fable 5.2` in tables and charts.
+
 ## [0.34.15] - 2026-11-07
 
 ### Fixed
