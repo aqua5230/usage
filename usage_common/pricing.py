@@ -503,6 +503,12 @@ def _fallback_pricing() -> PricingTable:
             "cache_creation_input_token_cost": 12.5e-6,
             "cache_read_input_token_cost": 0.25e-6,
         },
+        "claude-fable-5-2": {
+            "input_cost_per_token": 8e-6,
+            "output_cost_per_token": 40e-6,
+            "cache_creation_input_token_cost": 10e-6,
+            "cache_read_input_token_cost": 0.2e-6,
+        },
         "claude-haiku-4-5-20251001": {
             "input_cost_per_token": 1e-6,
             "output_cost_per_token": 5e-6,

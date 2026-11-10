@@ -399,6 +399,13 @@ def test_fallback_pricing_contains_expected_models() -> None:
         "cache_creation_input_token_cost": 12.5e-6,
         "cache_read_input_token_cost": 0.25e-6,
     }
+    assert fallback["claude-fable-5-2"] == {
+        "input_cost_per_token": 8e-6,
+        "output_cost_per_token": 40e-6,
+        "cache_creation_input_token_cost": 10e-6,
+        "cache_read_input_token_cost": 0.2e-6,
+    }
+    assert pricing._resolve_model_key("claude-fable-5-1", fallback) == "claude-fable-5-1"
     assert fallback["claude-opus-4-6"] == {
         "input_cost_per_token": 5e-6,
         "output_cost_per_token": 25e-6,

@@ -120,6 +120,7 @@ MODEL_SHORT = {
     "claude-haiku": "Haiku",
     "claude-fable-5": "Fable 5",
     "claude-fable-5-1": "Fable 5.1",
+    "claude-fable-5-2": "Fable 5.2",
 }
 
 
