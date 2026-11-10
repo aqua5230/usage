@@ -636,3 +636,39 @@ def test_fresh_cache_does_not_mix_cli_weekly(monkeypatch: pytest.MonkeyPatch) ->
     parts = usage_statusline_agy._quota_parts(data, 4)
     assert len(parts) == 1
     assert "Weekly" not in parts[0][0]
+
+
+@pytest.mark.parametrize(
+    ("lang", "expected_five", "expected_weekly"),
+    [
+        ("zh-TW", "14:40(剩2h", "11/14 18:00(剩4d"),
+        ("en", "14:40(2h", "11/14 18:00(4d"),
+    ],
+)
+def test_render_shows_reset_clock_like_claude_statusline(
+    monkeypatch: pytest.MonkeyPatch, lang: str, expected_five: str, expected_weekly: str
+) -> None:
+    fixed_now = datetime(2026, 11, 10, 11, 56)
+
+    class _FixedDatetime(datetime):
+        @classmethod
+        def now(cls, tz: Any = None) -> Any:
+            return fixed_now if tz is None else fixed_now.astimezone(tz)
+
+    monkeypatch.setattr(usage_statusline_agy, "datetime", _FixedDatetime)
+    monkeypatch.setenv("USAGE_LANG", lang)
+    data = _fixture_data()
+    data["terminal_width"] = 300
+    data["model"]["id"] = "Gemini 3.6 Flash"
+    data["quota"] = {
+        "gemini-5h": {"remaining_fraction": 0.6, "reset_in_seconds": 2 * 3600 + 44 * 60},
+        "gemini-weekly": {
+            "remaining_fraction": 0.7,
+            "reset_in_seconds": 4 * 86400 + 6 * 3600 + 4 * 60,
+        },
+    }
+
+    output = re.sub(r"\x1b\[[0-9;]*m", "", usage_statusline_agy.render(data))
+
+    assert expected_five in output
+    assert expected_weekly in output
