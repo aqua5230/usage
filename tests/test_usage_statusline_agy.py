@@ -123,7 +123,9 @@ def test_render_fixture_contains_expected_status(monkeypatch: pytest.MonkeyPatch
     assert "Context:" in output
     assert "0%" in output
     assert "Gemini 3.6 Flash/Quick" in output
-    assert "\n" not in output
+    first, second = output.split("\n")
+    assert "project" in first and "60%" in first
+    assert "Context:" in second and "Gemini 3.6 Flash/Quick" in second
 
 
 @pytest.mark.parametrize(
