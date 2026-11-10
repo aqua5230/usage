@@ -419,20 +419,19 @@ def _render_core(data: Dict[str, Any]) -> str:
             model_name += f"/{effort_label}"
         model_parts.append(f"{C['dim']}{C['magenta']}{safe_text(model_name)}{C['reset']}")
 
-    full = project_parts + [part[0] for part in quota_parts] + context_parts[:1] + model_parts
-    if vlen(" | ".join(full)) <= width:
-        selected = full
-    else:
-        no_reset = (
-            project_parts + [part[1] for part in quota_parts] + context_parts[:1] + model_parts
-        )
-        if vlen(" | ".join(no_reset)) <= width:
-            selected = no_reset
-        else:
-            selected = (
-                project_parts + [part[2] for part in quota_parts] + context_parts[1:2] + model_parts
-            )
-    return " | ".join(selected) if selected else "usage"
+    # Two lines like the Claude status line: quota first, model and context below.
+    first = project_parts + [part[0] for part in quota_parts]
+    for level in (1, 2):
+        if vlen(" | ".join(first)) <= width:
+            break
+        first = project_parts + [part[level] for part in quota_parts]
+
+    second = model_parts + context_parts[:1]
+    if vlen(" | ".join(second)) > width:
+        second = model_parts + context_parts[1:2]
+
+    lines = [" | ".join(line) for line in (first, second) if line]
+    return "\n".join(lines) if lines else "usage"
 
 
 def render(data: Dict[str, Any]) -> str:
