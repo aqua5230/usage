@@ -39,6 +39,11 @@ _QUOTA_URL = agy_quota_probe._QUOTA_URL
 _FUTURE_RESET = (datetime.now(UTC) + timedelta(days=7)).isoformat()
 
 
+@pytest.fixture(autouse=True)
+def _isolate_cli_log(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(agy_quota_probe, "_CLI_LOG_PATH", tmp_path / "agy_usage_cli.log")
+
+
 class _FakeResponse:
     """Minimal file-like object that json.load can read inside a with-block."""
 

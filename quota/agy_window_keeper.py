@@ -15,6 +15,7 @@ import threading
 import time
 from pathlib import Path
 
+from loaders import agy_quota_probe
 from menubar.agy import AgyRefreshResult
 from menubar.prefs import _agy_window_keeper_enabled
 from quota import keeper_outcome
@@ -35,6 +36,10 @@ _AGY_BIN_FALLBACKS = (
 
 _lock = threading.Lock()
 _ping_in_flight = False
+
+
+class _PingSkipped(Exception):
+    """The background safety gate refused this launch."""
 
 
 def should_ping(
@@ -83,18 +88,31 @@ def _release() -> None:
 
 
 def _run_agy_ping(agy_bin: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(  # noqa: S603 - resolved local Antigravity CLI
-        [agy_bin, "-p", "ok", "--model", AGY_MODEL],
-        stdin=subprocess.DEVNULL,
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-        timeout=PING_TIMEOUT_SECONDS,
-        cwd=os.path.expanduser("~"),
-        check=False,
-        env=cli_env(agy_bin),
-        **hidden_console_kwargs(),
-    )
+    if not agy_quota_probe.BACKGROUND_AGY_LOCK.acquire(blocking=False):
+        raise _PingSkipped("background agy is busy")
+    try:
+        if not agy_quota_probe.agy_cli_signed_in(PING_TIMEOUT_SECONDS):
+            raise _PingSkipped("CLI is signed out")
+        result = subprocess.run(  # noqa: S603 - resolved local Antigravity CLI
+            [agy_bin, "-p", "ok", "--model", AGY_MODEL],
+            stdin=subprocess.DEVNULL,
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=PING_TIMEOUT_SECONDS,
+            cwd=os.path.expanduser("~"),
+            check=False,
+            env=cli_env(agy_bin),
+            **hidden_console_kwargs(),
+        )
+        output = f"{result.stdout or ''}\n{result.stderr or ''}".lower()
+        if result.returncode != 0 and (
+            "authentication required" in output or "authentication failed" in output
+        ):
+            agy_quota_probe.mark_cli_signed_out()
+        return result
+    finally:
+        agy_quota_probe.BACKGROUND_AGY_LOCK.release()
 
 
 def _ping_worker(started_at: float) -> None:
@@ -102,6 +120,20 @@ def _ping_worker(started_at: float) -> None:
         binary = _resolve_agy_bin()
         result = _run_agy_ping(binary) if binary is not None else FileNotFoundError()
         fields = keeper_outcome.classify(result)
+    except _PingSkipped as exc:
+        _debug_log(f"Antigravity ping skipped: {exc}")
+        # A probe may win the shared lock after dispatch. Allow the next refresh
+        # to retry, and preserve any previous outcome rather than recording failure.
+        try:
+            keeper_outcome.update_state(
+                AGY_WINDOW_KEEPER_STATE_PATH,
+                lambda state: (
+                    {"last_ping_at": None} if state.get("last_ping_at") == started_at else {}
+                ),
+            )
+        finally:
+            _release()
+        return
     except Exception as exc:
         fields = keeper_outcome.classify(exc)
     try:
@@ -141,6 +173,12 @@ def maybe_ping(result: AgyRefreshResult, mock: bool) -> None:
     # Offline (e.g. just after a sleep wake) the CLI would open a browser sign-in page;
     # leave the state untouched so the next refresh tries again.
     if not google_auth_reachable():
+        return
+    if agy_quota_probe.BACKGROUND_AGY_LOCK.locked():
+        _debug_log("Antigravity ping skipped: background agy is busy")
+        return
+    if not agy_quota_probe.agy_cli_signed_in(PING_TIMEOUT_SECONDS):
+        _debug_log("Antigravity ping skipped: CLI is signed out")
         return
     if not _try_acquire():
         return
