@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
-__version__ = "1.7"
+__version__ = "1.8"
 CLAUDE_STATUS = Path.home() / ".claude/usage-status.json"
 QUOTA_SNAPSHOT = Path.home() / ".usage/quota_snapshot.json"
 SERVICE_SNAPSHOT = Path.home() / ".usage/service_status_snapshot.json"
@@ -218,13 +218,50 @@ def reminder(session_id: str, now: float) -> str:
         if key == "services"
         or (
             isinstance(value, dict)
-            and (_number(value.get("resets_at")) or 0) > now
+            and _number(value.get("resets_at")) is not None
             and _number(value.get("level")) is not None
         )
     }
     messages = []
     limited = set()
     windows = _windows(session_id, now)
+    current = {(tool, window): (used, reset) for tool, window, used, reset, _suffix in windows}
+    reset_lines = []
+    quota_changed = False
+    for key, seen in list(state.items()):
+        if key == "services":
+            continue
+        try:
+            parts = json.loads(key)
+        except ValueError:
+            parts = None
+        if not (
+            isinstance(parts, list)
+            and len(parts) == 3
+            and all(isinstance(part, str) for part in parts)
+            and parts[0] == session_id
+            and parts[2] in ("five_hour", "seven_day")
+        ):
+            if seen["resets_at"] < now - 7 * 86400:
+                del state[key]
+                quota_changed = True
+            continue
+        _, tool, window = parts
+        latest = current.get((tool, window))
+        if seen["resets_at"] > now and not (
+            latest is not None and latest[1] - seen["resets_at"] >= 600
+        ):
+            continue
+        label = "5-hour" if window == "five_hour" else "weekly"
+        if tool.startswith("Antigravity ("):
+            tool = f'Antigravity CLI (agy) model group "{tool[len("Antigravity (") : -1]}"'
+        usage = f" (now {latest[0]:g}% used)" if latest is not None else ""
+        reset_lines.append(
+            f"{tool} {label} quota has reset{usage}. "
+            f"The earlier {tool} {label} quota notice no longer applies."
+        )
+        del state[key]
+        quota_changed = True
     for tool, window, used, reset, suffix in windows:
         thresholds = (80, 90, 95) if window == "five_hour" else (95,)
         level = max((threshold for threshold in thresholds if used >= threshold), default=0)
@@ -254,10 +291,11 @@ def reminder(session_id: str, now: float) -> str:
     service_block = (
         "[usage service status] " + "\n".join(service_messages) if service_messages else ""
     )
-    if messages or services_changed:
+    if messages or quota_changed or services_changed:
         _save(state)
     if not messages:
-        return service_block
+        quota_block = "[usage quota] " + "\n".join(reset_lines) if reset_lines else ""
+        return "\n\n".join(block for block in (quota_block, service_block) if block)
     # A spent agy model group reads as "Antigravity is used up" unless the groups that
     # still have quota are named next to it.
     open_groups: dict[str, float] = {}
@@ -282,7 +320,7 @@ def reminder(session_id: str, now: float) -> str:
         else "unknown."
     )
     quota_block = (
-        "[usage quota] " + "\n".join(messages) + "\n"
+        "[usage quota] " + "\n".join(reset_lines + messages) + "\n"
         "Quotas for other tools or model groups do not limit this Claude Code session. "
         "Before starting a large task (many files, long runs, subagents) that will use one "
         "of these quotas, tell the user the remaining quota and reset time, and ask whether "
