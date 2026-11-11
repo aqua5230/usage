@@ -418,6 +418,14 @@ def reminder(session_id: str, now: float) -> str:
         return _reminder(session_id, now)
 
 
+def _same_window(seen: dict[str, float], observed_reset: float, observed_used: float) -> bool:
+    if not seen:
+        return False
+    delta = observed_reset - seen["anchor_resets_at"]
+    # A later estimate alone cannot reset a notice while usage remains at its level.
+    return -600 < delta < 600 or (delta >= 600 and observed_used >= seen["level"])
+
+
 def _reminder(session_id: str, now: float) -> str:
     state: dict[str, Any] = {
         key: value
@@ -467,7 +475,7 @@ def _reminder(session_id: str, now: float) -> str:
         if tool == "Claude Code" and window in old_limits:
             continue
         latest = current.get((tool, window))
-        if latest is not None and abs(seen["anchor_resets_at"] - latest[1]) < 600:
+        if latest is not None and _same_window(seen, latest[1], latest[0]):
             if seen["resets_at"] != latest[1]:
                 seen["resets_at"] = latest[1]
                 quota_changed = True
@@ -491,11 +499,9 @@ def _reminder(session_id: str, now: float) -> str:
         level = max((threshold for threshold in thresholds if used >= threshold), default=0)
         if level:
             limited.add(tool)
-        # Antigravity's reset is derived from a seconds countdown and drifts by up to about a
-        # minute between snapshots, so a reset within 10 minutes is the same window.
         key = json.dumps([session_id, tool, window])
         seen = state.get(key, {})
-        same_window = abs(seen.get("anchor_resets_at", 0) - reset) < 600
+        same_window = _same_window(seen, reset, used)
         announced = seen.get("level", 0) if same_window else 0
         if same_window and seen["resets_at"] != reset:
             seen["resets_at"] = reset

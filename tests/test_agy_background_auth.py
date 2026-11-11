@@ -10,6 +10,7 @@ from collections.abc import Iterator
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -148,7 +149,8 @@ def test_keeper_signed_out_skip_leaves_dispatch_state_untouched(
 def test_signin_removes_marker_resets_cooldown_and_launches(
     monkeypatch: pytest.MonkeyPatch, caller: str
 ) -> None:
-    probe.CLI_SIGNED_OUT_PATH.touch()
+    probe._TOKEN_PATH.write_text(json.dumps({"token": {"access_token": "old-fake-token"}}))
+    probe.mark_cli_signed_out(probe._credential_fingerprint())
     monkeypatch.setattr(probe, "_cli_retry_after_monotonic", time.monotonic() + 1800)
     probe._TOKEN_PATH.write_text(json.dumps({"token": {"access_token": "new-fake-token"}}))
     calls: list[list[str]] = []
@@ -464,7 +466,7 @@ def test_legacy_marker_waits_for_a_credential(content: str) -> None:
     probe._cli_retry_after_monotonic = 1800.0
     assert probe.agy_cli_signed_in(15)
     assert not probe.CLI_SIGNED_OUT_PATH.exists()
-    assert probe._cli_retry_after_monotonic == 0.0
+    assert probe._cli_retry_after_monotonic == 1800.0
 
 
 def test_disappearing_credential_does_not_open_gate(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -473,3 +475,46 @@ def test_disappearing_credential_does_not_open_gate(monkeypatch: pytest.MonkeyPa
     monkeypatch.setattr(probe, "_read_token_file", lambda: None)
     assert not probe.agy_cli_signed_in(15)
     assert probe.CLI_SIGNED_OUT_PATH.exists()
+
+
+def test_f2_transient_keychain_reads_reopen_unchanged_credential(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    credential = {
+        "token": {
+            "access_token": "unchanged-fake-token",
+            "refresh_token": "fake-refresh",
+            "expiry": "2030-01-01T00:00:00+00:00",
+        }
+    }
+    monkeypatch.setattr(probe, "sys", SimpleNamespace(platform="darwin"))
+    answers: Iterator[object] = iter(())
+    monkeypatch.setattr(probe, "_read_macos_credential", lambda: next(answers))
+    clock = [0.0]
+    monkeypatch.setattr(
+        probe, "time", SimpleNamespace(monotonic=lambda: clock[0], time=lambda: clock[0])
+    )
+    launches: list[float] = []
+
+    def run(command: list[str], **kwargs: object) -> subprocess.CompletedProcess[bytes]:
+        launches.append(clock[0])
+        return subprocess.CompletedProcess(command, 1, b"Authentication required", b"")
+
+    monkeypatch.setattr(subprocess, "run", run)
+    for at in (0, 180, 360, 540, 1799, 1800, 1980, 3599, 3600):
+        clock[0] = at
+        # Gate reads A; the reads before and after a failed run are unavailable.
+        answers = iter(
+            [credential, None, None] if probe.CLI_SIGNED_OUT_PATH.exists() else [None, None]
+        )
+        assert _probe_via_cli(15) is None
+        if at % 1800 == 0:
+            assert json.loads(probe.CLI_SIGNED_OUT_PATH.read_text()) == {
+                "fingerprint": None,
+                "marked_at": at,
+            }
+        else:
+            assert not probe.CLI_SIGNED_OUT_PATH.exists()
+        assert probe._cli_retry_after_monotonic == (at // 1800 + 1) * 1800
+    assert launches == [0, 1800, 3600]
+    assert probe._cli_retry_after_monotonic == 5400

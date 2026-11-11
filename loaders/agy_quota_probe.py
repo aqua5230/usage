@@ -72,7 +72,7 @@ def mark_cli_signed_out(before: str | None) -> None:
 
 
 def agy_cli_signed_in(timeout: float) -> bool:
-    """Retry a known signed-out CLI only after its stored credential changes."""
+    """Open the gate for a readable credential; bypass cooldown only for a known change."""
     global _cli_retry_after_monotonic
     if not CLI_SIGNED_OUT_PATH.exists():
         return True
@@ -86,7 +86,8 @@ def agy_cli_signed_in(timeout: float) -> bool:
         return False
     with suppress(OSError):
         CLI_SIGNED_OUT_PATH.unlink(missing_ok=True)
-    _cli_retry_after_monotonic = 0.0
+    if isinstance(stored, str):
+        _cli_retry_after_monotonic = 0.0
     return True
 
 

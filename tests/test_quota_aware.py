@@ -3,18 +3,22 @@ from __future__ import annotations
 import io
 import json
 import os
+import subprocess
 import sys
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
-from datetime import UTC, datetime
+from datetime import UTC, datetime, tzinfo
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
 
 from installer import session_hooks, setup_hook
-from quota import quota_snapshot
+from loaders import agy_quota_probe as probe
+from loaders.agy_quota_probe import _probe_via_cli
+from quota import quota_snapshot, status_payload
 from usage_hooks import usage_quota_aware as hook
 
 NOW = 1_800_000_000.0
@@ -563,7 +567,7 @@ def test_exception_silent(
 
 
 def test_expired_state_pruned_and_new_reset(paths: Path) -> None:
-    claude(82)
+    claude(95)
     hook.reminder("one", NOW)
     claude(82, reset=RESET + 7200)
     assert "82% used" in hook.reminder("one", RESET + 1)
@@ -712,7 +716,7 @@ def test_reset_drift_within_a_window_is_announced_once(paths: Path) -> None:
     claude(91, reset=NOW + 4800 + 29)
     assert hook.reminder("one", NOW) == ""
     claude(91, reset=NOW + 4800 + 3600)
-    assert "91% used" in hook.reminder("one", NOW)
+    assert hook.reminder("one", NOW) == ""
 
 
 def service_snapshot(
@@ -986,6 +990,126 @@ def test_early_codex_reset(paths: Path, difference: float) -> None:
         else:
             assert hook.STATE_PATH.read_text() == previous
     assert hook.reminder("one", NOW) == ""
+
+
+@pytest.mark.parametrize("difference", [600, 7200])
+@pytest.mark.parametrize("used", [95, 99])
+@pytest.mark.parametrize("at", [NOW, RESET])
+def test_later_reset_estimate_keeps_announced_level_and_anchor(
+    paths: Path, difference: float, used: float, at: float
+) -> None:
+    claude(95)
+    assert "5-hour quota: 95% used" in hook.reminder("one", NOW)
+    claude(used, reset=RESET + difference)
+    assert hook.reminder("one", at) == ""
+    key = json.dumps(["one", "Claude Code", "five_hour"])
+    assert hook._read(hook.STATE_PATH)[key] == {
+        "resets_at": RESET + difference,
+        "anchor_resets_at": RESET,
+        "level": 95,
+    }
+
+
+def test_f1_real_loader_cli_rounding_then_fallback_source(
+    paths: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    at = [NOW]
+    launches: list[float] = []
+
+    class Clock(datetime):
+        @classmethod
+        def now(cls, tz: tzinfo | None = None) -> Clock:
+            return cls.fromtimestamp(at[0], tz)
+
+    monkeypatch.setattr(probe, "datetime", Clock)
+    monkeypatch.setattr(probe, "time", SimpleNamespace(monotonic=lambda: at[0]))
+    monkeypatch.setattr(probe, "_probe_via_cli", _probe_via_cli)
+    monkeypatch.setattr(probe, "find_agy", lambda: "/fake/agy")
+    monkeypatch.setattr(probe, "_CLI_LOG_PATH", paths / "cli.log")
+    monkeypatch.setattr(probe, "_cli_retry_after_monotonic", 0.0)
+    monkeypatch.setattr(probe, "_rate_limit_until_monotonic", 0.0)
+    monkeypatch.setattr(probe, "_group_seen_at", {})
+    monkeypatch.setattr(probe, "_weekly_reset_times", set())
+    monkeypatch.setattr(probe, "BACKGROUND_AGY_LOCK", threading.Lock())
+    monkeypatch.setattr(probe, "_token_cache", {})
+    probe._TOKEN_PATH.write_text(
+        json.dumps(
+            {"token": {"access_token": "fake-access-token", "expiry": "2030-01-01T00:00:00+00:00"}}
+        )
+    )
+
+    def run(command: list[str], **kwargs: object) -> subprocess.CompletedProcess[bytes]:
+        assert command[0] == "/fake/agy"
+        launches.append(at[0])
+        if len(launches) == 3:
+            return subprocess.CompletedProcess(command, 1, b"", b"offline CLI")
+        payload = {
+            "command": {
+                "data": {
+                    "groups": [
+                        {
+                            "name": "Gemini models",
+                            "buckets": [
+                                {
+                                    "bucketId": "session",
+                                    "remainingFraction": 0.05,
+                                    "resetTime": datetime.fromtimestamp(
+                                        NOW + 18059, UTC
+                                    ).isoformat(),
+                                }
+                            ],
+                        }
+                    ]
+                }
+            }
+        }
+        return subprocess.CompletedProcess(command, 0, json.dumps(payload).encode(), b"")
+
+    def post(url: str, *args: object) -> object:
+        if url == probe._QUOTA_URL:
+            return {"groups": [{"name": "Claude and GPT models", "buckets": []}]}
+        assert url == probe._MODELS_URL
+        return {
+            "models": {
+                "gemini-flash": {
+                    "quotaInfo": {
+                        "remainingFraction": 0.05,
+                        "resetTime": datetime.fromtimestamp(NOW + 18600, UTC).isoformat(),
+                    }
+                }
+            }
+        }
+
+    monkeypatch.setattr(subprocess, "run", run)
+    monkeypatch.setattr(probe, "_post_json", post)
+    outputs = []
+    reset_offsets = []
+    for elapsed in (0, 330, 660):
+        at[0] = NOW + elapsed
+        assert probe.load_quota(max_age_minutes=0) is not None
+        agent = status_payload._status_antigravity(int(at[0]))
+        window = agent["groups"][0]["five_hour"]
+        assert window["used_percent"] == 95
+        reset_offsets.append(elapsed + window["resets_in_seconds"])
+        hook.QUOTA_SNAPSHOT.write_text(
+            json.dumps(
+                {
+                    "generated_at": datetime.fromtimestamp(at[0], UTC).isoformat(),
+                    "agents": {"antigravity": agent},
+                }
+            )
+        )
+        outputs.append(hook.reminder("one", at[0]))
+    assert launches == [NOW, NOW + 330, NOW + 660]
+    assert reset_offsets == [18000, 18030, 18600]
+    assert "5-hour quota: 95% used" in outputs[0]
+    assert outputs[1:] == ["", ""]
+    key = json.dumps(["one", "Antigravity (GEMINI MODELS)", "five_hour"])
+    assert hook._read(hook.STATE_PATH)[key] == {
+        "resets_at": NOW + 18600,
+        "anchor_resets_at": NOW + 18000,
+        "level": 95,
+    }
 
 
 @pytest.mark.parametrize("drift", [60, 599])
@@ -1617,10 +1741,11 @@ def test_drift_walk_uses_fixed_anchor_across_real_reset(paths: Path, tool: str) 
     assert "95% used" in observe(NOW, NOW + 18000, 95)
     key = json.dumps(["one", tool, "five_hour"])
     for i in range(1, 34):
-        observe(NOW + i * 540, NOW + 18000 + i * 540, 95)
+        assert observe(NOW + i * 540, NOW + 18000 + i * 540, 95) == ""
         record = hook._read(hook.STATE_PATH)[key]
         assert record["resets_at"] == NOW + 18000 + i * 540
-        assert abs(record["resets_at"] - record["anchor_resets_at"]) < 600
+        assert record["anchor_resets_at"] == NOW + 18000
+        assert record["level"] == 95
     assert "5-hour quota has reset (now 1% used)" in observe(NOW + 18000, NOW + 36000, 1)
     assert "5-hour quota: 95% used" in observe(NOW + 18100, NOW + 36000, 95)
     assert hook._read(hook.STATE_PATH)[key] == {
