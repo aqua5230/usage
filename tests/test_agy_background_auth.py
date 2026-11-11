@@ -149,10 +149,14 @@ def test_keeper_signed_out_skip_leaves_dispatch_state_untouched(
 def test_signin_removes_marker_resets_cooldown_and_launches(
     monkeypatch: pytest.MonkeyPatch, caller: str
 ) -> None:
-    probe._TOKEN_PATH.write_text(json.dumps({"token": {"access_token": "old-fake-token"}}))
+    probe._TOKEN_PATH.write_text(
+        json.dumps({"token": {"access_token": "old-fake-token", "expiry": "2099-01-01T00:00:00Z"}})
+    )
     probe.mark_cli_signed_out(probe._credential_fingerprint())
     monkeypatch.setattr(probe, "_cli_retry_after_monotonic", time.monotonic() + 1800)
-    probe._TOKEN_PATH.write_text(json.dumps({"token": {"access_token": "new-fake-token"}}))
+    probe._TOKEN_PATH.write_text(
+        json.dumps({"token": {"access_token": "new-fake-token", "expiry": "2099-01-01T00:00:00Z"}})
+    )
     calls: list[list[str]] = []
 
     def run(command: list[str], **kwargs: object) -> subprocess.CompletedProcess[bytes]:
@@ -367,10 +371,14 @@ def test_unchanged_stale_credential_keeps_gate_and_cooldown(
 def test_changed_credential_failed_launch_rewrites_digest_and_keeps_cooldown(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    probe._TOKEN_PATH.write_text(json.dumps({"token": {"access_token": "old-fake-token"}}))
+    probe._TOKEN_PATH.write_text(
+        json.dumps({"token": {"access_token": "old-fake-token", "expiry": "2099-01-01T00:00:00Z"}})
+    )
     probe.mark_cli_signed_out(probe._credential_fingerprint())
     old_digest = json.loads(probe.CLI_SIGNED_OUT_PATH.read_text())["fingerprint"]
-    probe._TOKEN_PATH.write_text(json.dumps({"token": {"access_token": "new-fake-token"}}))
+    probe._TOKEN_PATH.write_text(
+        json.dumps({"token": {"access_token": "new-fake-token", "expiry": "2099-01-01T00:00:00Z"}})
+    )
     clock = [100.0]
     monkeypatch.setattr(time, "monotonic", lambda: clock[0])
     monkeypatch.setattr(probe, "_cli_retry_after_monotonic", 1800.0)
@@ -412,7 +420,9 @@ def test_changed_credential_failed_launch_rewrites_digest_and_keeps_cooldown(
 def test_failed_run_marks_only_unchanged_credential_and_retries_after_cooldown(
     monkeypatch: pytest.MonkeyPatch, caller: str, failure: str, changed: bool
 ) -> None:
-    probe._TOKEN_PATH.write_text(json.dumps({"token": {"access_token": "old-fake-token"}}))
+    probe._TOKEN_PATH.write_text(
+        json.dumps({"token": {"access_token": "old-fake-token", "expiry": "2099-01-01T00:00:00Z"}})
+    )
     before = probe._credential_fingerprint()
     clock = [100.0]
     monkeypatch.setattr(time, "monotonic", lambda: clock[0])
@@ -423,7 +433,11 @@ def test_failed_run_marks_only_unchanged_credential_and_retries_after_cooldown(
         if len(launches) > 1:
             return _success(command)
         if changed:
-            probe._TOKEN_PATH.write_text(json.dumps({"token": {"access_token": "new-fake-token"}}))
+            probe._TOKEN_PATH.write_text(
+                json.dumps(
+                    {"token": {"access_token": "new-fake-token", "expiry": "2099-01-01T00:00:00Z"}}
+                )
+            )
         if "log" in failure:
             probe._CLI_LOG_PATH.write_text("triggering interactive OAuth\n", encoding="utf-8")
         stream = "stderr" if "stderr" in failure else "stdout"
@@ -462,7 +476,9 @@ def test_failed_run_marks_only_unchanged_credential_and_retries_after_cooldown(
 def test_legacy_marker_waits_for_a_credential(content: str) -> None:
     probe.CLI_SIGNED_OUT_PATH.write_bytes(content.encode("utf-8", errors="surrogateescape"))
     assert not probe.agy_cli_signed_in(15)
-    probe._TOKEN_PATH.write_text(json.dumps({"token": {"access_token": "new-fake-token"}}))
+    probe._TOKEN_PATH.write_text(
+        json.dumps({"token": {"access_token": "new-fake-token", "expiry": "2099-01-01T00:00:00Z"}})
+    )
     probe._cli_retry_after_monotonic = 1800.0
     assert probe.agy_cli_signed_in(15)
     assert not probe.CLI_SIGNED_OUT_PATH.exists()
