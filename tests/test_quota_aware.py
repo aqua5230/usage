@@ -17,6 +17,17 @@ NOW = 1_800_000_000.0
 RESET = NOW + 4800
 
 
+@pytest.fixture(autouse=True)
+def isolate_overview(monkeypatch: pytest.MonkeyPatch, request: pytest.FixtureRequest) -> None:
+    if "overview" not in request.fixturenames:
+        monkeypatch.setattr(hook, "_overview_reminder", lambda *_args: ("", False))
+
+
+@pytest.fixture
+def overview(paths: Path) -> None:
+    """Opt new overview tests into the production behavior with isolated files."""
+
+
 @pytest.fixture
 def paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Path:
     monkeypatch.setattr(hook, "CLAUDE_STATUS", tmp_path / "claude.json")
@@ -703,7 +714,7 @@ def test_service_normal_without_record_is_silent(paths: Path) -> None:
 
 
 def test_service_hook_versions_match() -> None:
-    assert hook.__version__ == session_hooks.QUOTA_AWARE_HOOK_VERSION == "1.8"
+    assert hook.__version__ == session_hooks.QUOTA_AWARE_HOOK_VERSION == "1.9"
 
 
 @pytest.mark.parametrize("window,label", [("five_hour", "5-hour"), ("seven_day", "weekly")])
@@ -852,3 +863,170 @@ def test_reset_only_and_service_blocks_ordered(paths: Path) -> None:
         "The earlier Claude Code 5-hour quota notice no longer applies.\n\n" + service
     )
     assert hook.reminder("one", NOW + 2) == ""
+
+
+def overview_snapshot() -> None:
+    hook.QUOTA_SNAPSHOT.write_text(
+        json.dumps(
+            {
+                "generated_at": datetime.fromtimestamp(NOW, UTC).isoformat(),
+                "agents": {
+                    "codex": {
+                        "available": True,
+                        "updated_at": datetime.fromtimestamp(NOW, UTC).isoformat(),
+                        "five_hour": {"used_percent": 5, "resets_at": RESET},
+                        "seven_day": {"used_percent": 20, "resets_at": RESET},
+                    },
+                    "muse": {
+                        "available": True,
+                        "updated_at": datetime.fromtimestamp(NOW, UTC).isoformat(),
+                        "five_hour": {"used_percent": 9, "resets_at": RESET},
+                    },
+                    "antigravity": {
+                        "available": True,
+                        "updated_at": datetime.fromtimestamp(NOW, UTC).isoformat(),
+                        "groups": [
+                            {
+                                "name": "GEMINI 4 ARGON",
+                                "seven_day": {"used_percent": 75.6, "resets_in_seconds": 4800},
+                            }
+                        ],
+                    },
+                },
+            }
+        )
+    )
+
+
+def test_overview_exact_text_and_once_per_session(overview: None) -> None:
+    claude(3, 12)
+    overview_snapshot()
+    assert hook.reminder("one", NOW) == (
+        "[usage quota overview] Quota at the start of this conversation:\n"
+        "Claude Code: 5-hour 3% used, resets in 1h 20m (at 09:20 local time); "
+        "weekly 12% used, resets in 1h 20m (at 09:20 local time).\n"
+        "Codex: 5-hour 5% used, resets in 1h 20m (at 09:20 local time); "
+        "weekly 20% used, resets in 1h 20m (at 09:20 local time).\n"
+        "Muse: 5-hour 9% used, resets in 1h 20m (at 09:20 local time).\n"
+        'Antigravity CLI (agy) model group "GEMINI 4 ARGON": '
+        "weekly 75.6% used, resets in 1h 20m (at 09:20 local time).\n"
+        "Current local time: Fri 08:00.\n"
+        "Use this only to choose which tool or agent to send work to and whether to wait "
+        "for a reset; plenty of quota is not a reason to do more than the user asked. "
+        "Don't mention it unless the user asks or it changes a decision."
+    )
+    assert json.loads(hook.STATE_PATH.read_text()) == {"overview": {"one": NOW}}
+    assert hook.reminder("one", NOW + 1) == ""
+    assert json.loads(hook.STATE_PATH.read_text()) == {"overview": {"one": NOW}}
+
+
+def test_overview_waits_until_claude_quota_belongs_to_session(overview: None) -> None:
+    claude(3, 12)
+    status = json.loads(hook.CLAUDE_STATUS.read_text())
+    status["_rate_limits_session_id"] = "previous"
+    hook.CLAUDE_STATUS.write_text(json.dumps(status))
+    overview_snapshot()
+    assert hook.reminder("one", NOW) == ""
+    assert not hook.STATE_PATH.exists()
+    status["_rate_limits_session_id"] = "one"
+    hook.CLAUDE_STATUS.write_text(json.dumps(status))
+    assert "\nClaude Code: 5-hour 3% used" in hook.reminder("one", NOW + 1)
+
+
+def test_overview_each_session_gets_its_own(overview: None) -> None:
+    claude(0, 0)
+    assert hook.reminder("one", NOW).startswith("[usage quota overview] ")
+    assert hook.reminder("two", NOW + 1).startswith("[usage quota overview] ")
+    assert hook.reminder("one", NOW + 2) == ""
+    assert json.loads(hook.STATE_PATH.read_text()) == {"overview": {"one": NOW, "two": NOW + 1}}
+
+
+@pytest.mark.parametrize(
+    "tool,label", [("codex", "Codex:"), ("muse", "Muse:"), ("antigravity", "Antigravity CLI")]
+)
+def test_overview_excludes_stale_tool(overview: None, tool: str, label: str) -> None:
+    claude(3, 12)
+    overview_snapshot()
+    data = json.loads(hook.QUOTA_SNAPSHOT.read_text())
+    data["agents"][tool]["updated_at"] = datetime.fromtimestamp(NOW - 3600, UTC).isoformat()
+    hook.QUOTA_SNAPSHOT.write_text(json.dumps(data))
+    output = hook.reminder("one", NOW)
+    assert output.startswith("[usage quota overview] ")
+    assert "Claude Code: 5-hour 3% used" in output
+    assert label not in output
+    assert "last updated" not in output
+    assert json.loads(hook.STATE_PATH.read_text())["overview"] == {"one": NOW}
+
+
+@pytest.mark.parametrize("data_kind", ["missing", "stale", "expired_snapshot"])
+def test_overview_waits_for_usable_data(overview: None, data_kind: str) -> None:
+    if data_kind != "missing":
+        overview_snapshot()
+        data = json.loads(hook.QUOTA_SNAPSHOT.read_text())
+        if data_kind == "stale":
+            for agent in data["agents"].values():
+                agent["updated_at"] = datetime.fromtimestamp(NOW - 3600, UTC).isoformat()
+        else:
+            data["generated_at"] = datetime.fromtimestamp(NOW - 901, UTC).isoformat()
+        hook.QUOTA_SNAPSHOT.write_text(json.dumps(data))
+    assert hook.reminder("one", NOW) == ""
+    assert not hook.STATE_PATH.exists()
+    overview_snapshot()
+    assert hook.reminder("one", NOW + 1).startswith("[usage quota overview] ")
+    assert json.loads(hook.STATE_PATH.read_text()) == {"overview": {"one": NOW + 1}}
+
+
+def test_overview_threshold_and_service_blocks_ordered(
+    overview: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    claude(82)
+    service_snapshot()
+    output = hook.reminder("one", NOW)
+    blocks = output.split("\n\n")
+    assert len(blocks) == 3
+    assert blocks[0].startswith("[usage quota overview] ")
+    assert blocks[1].startswith("[usage quota] Claude Code 5-hour quota: 82% used")
+    assert blocks[2].startswith("[usage service status] Codex API official status:")
+    monkeypatch.setattr(hook, "_overview_reminder", lambda *_args: ("", False))
+    assert "\n\n".join(blocks[1:]) == hook.reminder("without-overview", NOW)
+    state = json.loads(hook.STATE_PATH.read_text())
+    assert state["overview"] == {"one": NOW}
+    assert state[json.dumps(["one", "Claude Code", "five_hour"])] == {
+        "resets_at": RESET,
+        "level": 80,
+    }
+
+
+def test_overview_prunes_its_records_and_preserves_quota_records(overview: None) -> None:
+    quota_key = json.dumps(["other", "Codex", "five_hour"])
+    quota_record = {"resets_at": RESET, "level": 80}
+    records = {
+        "one": NOW,
+        "boundary": NOW - 7 * 86400,
+        "expired": NOW - 7 * 86400 - 1,
+        "invalid": "bad",
+        "boolean": True,
+    }
+    hook.STATE_PATH.write_text(json.dumps({"overview": records, quota_key: quota_record}))
+    claude(3, 12)
+    assert hook.reminder("one", NOW) == ""
+    assert json.loads(hook.STATE_PATH.read_text()) == {
+        "overview": {"one": NOW, "boundary": NOW - 7 * 86400},
+        quota_key: quota_record,
+    }
+    assert hook.reminder("expired", NOW).startswith("[usage quota overview] ")
+    assert json.loads(hook.STATE_PATH.read_text())[quota_key] == quota_record
+    output = hook.reminder("other", RESET)
+    assert output == (
+        "[usage quota] Codex 5-hour quota has reset. "
+        "The earlier Codex 5-hour quota notice no longer applies."
+    )
+    assert json.loads(hook.STATE_PATH.read_text()) == {"overview": {"one": NOW, "expired": NOW}}
+
+
+@pytest.mark.parametrize("previous", [None, [], "invalid", {"invalid": {"at": NOW}}])
+def test_overview_malformed_state_does_not_block_output(overview: None, previous: Any) -> None:
+    hook.STATE_PATH.write_text(json.dumps({"overview": previous}))
+    claude(0, 0)
+    assert hook.reminder("one", NOW).startswith("[usage quota overview] ")
+    assert json.loads(hook.STATE_PATH.read_text()) == {"overview": {"one": NOW}}
