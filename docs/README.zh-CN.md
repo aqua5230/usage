@@ -124,7 +124,7 @@ uvx usage-cli
 - **Linux：** CI 会在 Ubuntu 上验证 `usage setup`。
 - **进度管家：** 当你用 `/resume` 接回放置过久导致缓存已过期的对话时，它会提示下一条消息需要重新发送多少 token，并建议先执行 `/compact`。
 - **新手模式（macOS 和 Windows）：** 术语会以你的界面语言出现在输入框上方。按 9 标成“懂了”；跳过的术语会在 1、3、7 天后再出现。标成懂了的术语，会在 7、21、60 天后变成一道选择题小测验，一天最多一题；答错就回到提示里。输入 `/terms` 可以查看术语记录。挑术语会通过你的 Claude Code 请 Claude Haiku 帮忙，并在 5 小时额度达到 90% 以上时自动暂停。
-- **额度感知模式（macOS 和 Windows）：** 5 小时额度超过 80%、90%、95%，或周额度超过 95% 时，Claude Code 会收到一行字，写明还剩多少、几点重置。Claude Code、Codex、Antigravity 和 Muse 的额度都会看，每一级在同一个对话里只说一次；提醒过的额度重置时，也会告诉 Claude 一次，且各个额度和模型组分别独立处理，因此用尽的额度只影响运行在其上的工作。Claude Code／Claude API 或 Codex API 官方服务出状况或恢复时，也会通知 Claude，每次状态变化在同一对话里只说一次。每个对话开始时，也会给 Claude 一份各家额度的简短总览。
+- **额度感知模式（macOS 和 Windows）：** 5 小时额度超过 80%、90%、95%，或周额度超过 95% 时，Claude Code 会收到一行字，写明还剩多少、几点重置。Claude Code、Codex、Antigravity 和 Muse 的额度都会看，每一级在同一个对话里只说一次；提醒过的额度重置时，也会告诉 Claude 一次，且各个额度和模型组分别独立处理，因此用尽的额度只影响运行在其上的工作。Claude Code／Claude API 或 Codex API 官方服务出状况或恢复时，也会通知 Claude，每次状态变化在同一对话里只说一次。每个对话开始时，也会给 Claude 一份各家额度的简短总览。用 `/login` 切换账号后，也会告诉 Claude 一次：先前的 Claude Code 额度提醒已不适用。
 - **自动启动 5 小时计时：** Claude 用 Haiku、Antigravity 用 Gemini 3.8 Flash Low、Codex 用最省成本的模型。消耗的额度微乎其微。Claude 与 Codex 的这条消息不会触发你自己设置的 hook，也不会出现在 `claude --resume` 与 `codex resume` 的列表里。
 - **面板：** 切换到其他 App 时也不会消失；再次点击菜单栏图标或按 Esc 键即可关闭。卡片顺序在所有包含配额卡的主题间共享（除 World Cup 2026 之外），并在重启后保留。
 - **HTML 报告：** “最近在做什么”一区列出 Claude Code 为你近期对话取的名字，遮蔽功能也会涵盖这些标题。
