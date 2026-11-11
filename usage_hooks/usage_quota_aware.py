@@ -120,6 +120,10 @@ def _services(now: float) -> list[dict[str, Any]]:
         for entry in services
         if isinstance(entry, dict)
         and entry.get("source") in ("fetched", "cache")
+        # Same statuses the menu bar alerts on; "unknown" and maintenance are neither an
+        # incident nor a recovery.
+        and entry.get("status")
+        in ("operational", "degraded_performance", "partial_outage", "major_outage")
         and isinstance(entry.get("is_abnormal"), bool)
         and all(
             isinstance(entry.get(key), str) for key in ("service_name", "status", "description")

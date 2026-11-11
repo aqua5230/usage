@@ -553,6 +553,17 @@ def test_suppressed_service_alert_is_not_called_recovered(paths: Path) -> None:
     assert hook.reminder("one", NOW + 2) == ""
 
 
+@pytest.mark.parametrize("status", ["unknown", "under_maintenance"])
+def test_unrecognized_service_status_neither_announces_nor_recovers(
+    paths: Path, status: str
+) -> None:
+    service_snapshot()
+    assert "official status: partial_outage" in hook.reminder("one", NOW)
+    service_snapshot(status=status, abnormal=status != "unknown")
+    assert hook.reminder("one", NOW + 1) == ""
+    assert json.dumps(["one", "Codex"]) in json.loads(hook.STATE_PATH.read_text())["services"]
+
+
 @pytest.mark.parametrize("name,label", [("Claude", "Claude Code / Claude API"), ("Other", "Other")])
 def test_service_claude_and_unknown_wording(paths: Path, name: str, label: str) -> None:
     service_snapshot(name=name)
