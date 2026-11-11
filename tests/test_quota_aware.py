@@ -250,7 +250,14 @@ def test_accounts_pruned_and_reserved_state_preserved(accounts: Path, overview: 
     assert hook.reminder("one", NOW) == ""
     del state["accounts"]["old"]
     del state["accounts"]["bad"]
-    assert json.loads(hook.STATE_PATH.read_text()) == state
+    assert json.loads(hook.STATE_PATH.read_text()) == {
+        **state,
+        json.dumps(["other", "Claude Code", "five_hour"]): {
+            "resets_at": RESET,
+            "anchor_resets_at": RESET,
+            "level": 95,
+        },
+    }
 
 
 def test_account_line_precedes_resets_and_thresholds(accounts: Path) -> None:
@@ -881,6 +888,7 @@ def test_quota_only_unchanged_and_both_blocks_ordered(paths: Path) -> None:
     state = json.loads(hook.STATE_PATH.read_text())
     assert state[json.dumps(["both", "Claude Code", "five_hour"])] == {
         "resets_at": RESET,
+        "anchor_resets_at": RESET,
         "level": 80,
     }
     assert state["services"][json.dumps(["both", "Codex"])] == {
@@ -911,7 +919,7 @@ def test_service_records_pruned_and_saved_without_notices(paths: Path) -> None:
     )
     assert hook.reminder("one", NOW) == ""
     state = json.loads(hook.STATE_PATH.read_text())
-    assert state[quota_key] == quota_record
+    assert state[quota_key] == {**quota_record, "anchor_resets_at": RESET}
     assert state["services"] == {current: {"status": "major_outage", "at": NOW - 7 * 86400}}
     assert not list(paths.glob("*.tmp"))
 
@@ -923,7 +931,7 @@ def test_service_normal_without_record_is_silent(paths: Path) -> None:
 
 
 def test_service_hook_versions_match() -> None:
-    assert hook.__version__ == session_hooks.QUOTA_AWARE_HOOK_VERSION == "1.11"
+    assert hook.__version__ == session_hooks.QUOTA_AWARE_HOOK_VERSION == "1.12"
 
 
 @pytest.mark.parametrize("window,label", [("five_hour", "5-hour"), ("seven_day", "weekly")])
@@ -1042,12 +1050,16 @@ def test_quota_pruning_is_saved_without_notices(paths: Path) -> None:
     hook.STATE_PATH.write_text(json.dumps(records))
     assert hook.reminder("one", NOW) == ""
     records.pop(old)
-    assert json.loads(hook.STATE_PATH.read_text()) == records
+    assert json.loads(hook.STATE_PATH.read_text()) == {
+        key: {**record, "anchor_resets_at": record["resets_at"]} for key, record in records.items()
+    }
     assert hook.reminder("boundary", NOW) == (
         "[usage quota] Muse weekly quota has reset. "
         "The earlier Muse weekly quota notice no longer applies."
     )
-    assert json.loads(hook.STATE_PATH.read_text()) == {current: records[current]}
+    assert json.loads(hook.STATE_PATH.read_text()) == {
+        current: {**records[current], "anchor_resets_at": RESET}
+    }
 
 
 def test_reset_before_new_threshold_and_record(paths: Path) -> None:
@@ -1066,6 +1078,7 @@ def test_reset_before_new_threshold_and_record(paths: Path) -> None:
     assert json.loads(hook.STATE_PATH.read_text()) == {
         json.dumps(["one", "Claude Code", "five_hour"]): {
             "resets_at": RESET + 5 * 3600,
+            "anchor_resets_at": RESET + 5 * 3600,
             "level": 80,
         }
     }
@@ -1213,6 +1226,7 @@ def test_overview_threshold_and_service_blocks_ordered(
     assert state["overview"] == {"one": NOW}
     assert state[json.dumps(["one", "Claude Code", "five_hour"])] == {
         "resets_at": RESET,
+        "anchor_resets_at": RESET,
         "level": 80,
     }
 
@@ -1232,10 +1246,13 @@ def test_overview_prunes_its_records_and_preserves_quota_records(overview: None)
     assert hook.reminder("one", NOW) == ""
     assert json.loads(hook.STATE_PATH.read_text()) == {
         "overview": {"one": NOW, "boundary": NOW - 7 * 86400},
-        quota_key: quota_record,
+        quota_key: {**quota_record, "anchor_resets_at": RESET},
     }
     assert hook.reminder("expired", NOW).startswith("[usage quota overview] ")
-    assert json.loads(hook.STATE_PATH.read_text())[quota_key] == quota_record
+    assert json.loads(hook.STATE_PATH.read_text())[quota_key] == {
+        **quota_record,
+        "anchor_resets_at": RESET,
+    }
     output = hook.reminder("other", RESET)
     assert output == (
         "[usage quota] Codex 5-hour quota has reset. "
@@ -1435,7 +1452,11 @@ def test_same_window_drift_keeps_level_and_does_not_reset(
     assert hook.reminder("one", NOW + 30) == ""
     assert hook.reminder("one", NOW + 60) == ""
     key = json.dumps(["one", tool, "five_hour"])
-    assert hook._read(hook.STATE_PATH)[key] == {"resets_at": NOW + 120, "level": 95}
+    assert hook._read(hook.STATE_PATH)[key] == {
+        "resets_at": NOW + 120,
+        "anchor_resets_at": NOW + 60,
+        "level": 95,
+    }
     observation(NOW + 61, NOW + 120, 95)
     assert hook.reminder("one", NOW + 61) == ""
     assert "5-hour quota has reset" in hook.reminder("one", NOW + 120)
@@ -1447,7 +1468,11 @@ def test_expired_record_with_same_window_observation_does_not_reset(paths: Path)
     hook.STATE_PATH.write_text(json.dumps({key: {"resets_at": NOW - 1, "level": 95}}))
     claude(95, reset=NOW + 598)
     assert hook.reminder("one", NOW) == ""
-    assert hook._read(hook.STATE_PATH)[key] == {"resets_at": NOW + 598, "level": 95}
+    assert hook._read(hook.STATE_PATH)[key] == {
+        "resets_at": NOW + 598,
+        "anchor_resets_at": NOW - 1,
+        "level": 95,
+    }
 
 
 @pytest.mark.parametrize("owner", [None, "missing", "previous"])
@@ -1523,3 +1548,100 @@ def test_lock_retries_then_releases(
     claude(95)
     assert "Claude Code 5-hour quota: 95% used" in hook.reminder("one", NOW)
     assert calls == [6, 6, 8]
+
+
+@pytest.mark.parametrize("freshness", ["updated_at", "age_seconds", "both"])
+def test_carried_weekly_omitted_from_overview_and_notice_marks_age(
+    overview: None, freshness: str
+) -> None:
+    weekly: dict[str, Any] = {"used_percent": 98, "resets_in_seconds": 3600}
+    if freshness in ("updated_at", "both"):
+        weekly["updated_at"] = datetime.fromtimestamp(NOW - 7200, UTC).isoformat()
+    if freshness in ("age_seconds", "both"):
+        weekly["age_seconds"] = 7200
+    hook.QUOTA_SNAPSHOT.write_text(
+        json.dumps(
+            {
+                "generated_at": datetime.fromtimestamp(NOW, UTC).isoformat(),
+                "agents": {
+                    "antigravity": {
+                        "available": True,
+                        "updated_at": datetime.fromtimestamp(NOW, UTC).isoformat(),
+                        "age_seconds": 0,
+                        "groups": [
+                            {
+                                "name": "GEMINI",
+                                "five_hour": {"used_percent": 10, "resets_in_seconds": 18000},
+                                "seven_day": weekly,
+                            }
+                        ],
+                    }
+                },
+            }
+        )
+    )
+    output = hook.reminder("one", NOW + 60)
+    overview_block, notice = output.split("\n\n")
+    assert "5-hour 10% used" in overview_block
+    assert "weekly" not in overview_block
+    assert "weekly quota: 98% used, resets in 59m" in notice
+    assert "last updated 2h ago" in notice
+
+
+@pytest.mark.parametrize("tool", ["Claude Code", "Codex", "Antigravity (GEMINI)"])
+def test_drift_walk_uses_fixed_anchor_across_real_reset(paths: Path, tool: str) -> None:
+    def observe(at: float, reset: float, used: float) -> str:
+        window = {"used_percent": used, "resets_at": reset}
+        agents: dict[str, Any] = {}
+        if tool == "Claude Code":
+            claude(used, reset=reset)
+        elif tool == "Codex":
+            agents["codex"] = {"available": True, "five_hour": window}
+        else:
+            window.pop("resets_at")
+            window["resets_in_seconds"] = reset - at
+            agents["antigravity"] = {
+                "available": True,
+                "groups": [{"name": "GEMINI", "five_hour": window}],
+            }
+        hook.QUOTA_SNAPSHOT.write_text(
+            json.dumps(
+                {
+                    "generated_at": datetime.fromtimestamp(at, UTC).isoformat(),
+                    "agents": agents,
+                }
+            )
+        )
+        return hook.reminder("one", at)
+
+    assert "95% used" in observe(NOW, NOW + 18000, 95)
+    key = json.dumps(["one", tool, "five_hour"])
+    for i in range(1, 34):
+        observe(NOW + i * 540, NOW + 18000 + i * 540, 95)
+        record = hook._read(hook.STATE_PATH)[key]
+        assert record["resets_at"] == NOW + 18000 + i * 540
+        assert abs(record["resets_at"] - record["anchor_resets_at"]) < 600
+    assert "5-hour quota has reset (now 1% used)" in observe(NOW + 18000, NOW + 36000, 1)
+    assert "5-hour quota: 95% used" in observe(NOW + 18100, NOW + 36000, 95)
+    assert hook._read(hook.STATE_PATH)[key] == {
+        "resets_at": NOW + 36000,
+        "anchor_resets_at": NOW + 36000,
+        "level": 95,
+    }
+
+
+def test_legacy_quota_record_anchor_is_saved_on_first_load(paths: Path) -> None:
+    key = json.dumps(["one", "Claude Code", "five_hour"])
+    hook.STATE_PATH.write_text(json.dumps({key: {"resets_at": RESET, "level": 95}}))
+    claude(95)
+    assert hook.reminder("one", NOW) == ""
+    assert hook._read(hook.STATE_PATH)[key] == {
+        "resets_at": RESET,
+        "anchor_resets_at": RESET,
+        "level": 95,
+    }
+    claude(95, reset=RESET + 540)
+    assert hook.reminder("one", NOW + 1) == ""
+    record = hook._read(hook.STATE_PATH)[key]
+    assert record["anchor_resets_at"] == RESET
+    assert record["resets_at"] == RESET + 540

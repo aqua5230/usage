@@ -128,13 +128,23 @@ def _status_antigravity(now: int) -> dict[str, Any]:
             ),
         }
 
+    def weekly_status(group: agy_quota_probe.AgyQuotaGroup) -> dict[str, Any]:
+        window = window_status(group.weekly)
+        if group.weekly_fetched_at is not None:
+            window["updated_at"] = group.weekly_fetched_at
+            window["age_seconds"] = _age_seconds(group.weekly_fetched_at, now)
+        resets_at = parse_optional_iso8601_utc(group.weekly_resets_at)
+        if resets_at is not None:
+            window["resets_in_seconds"] = int(max(0, resets_at.timestamp() - now))
+        return window
+
     return {
         "available": True,
         "groups": [
             {
                 "name": group.name,
                 "five_hour": window_status(group.five_hour),
-                "seven_day": window_status(group.weekly),
+                "seven_day": weekly_status(group),
             }
             for group in quota.groups
         ],

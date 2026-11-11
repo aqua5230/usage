@@ -175,6 +175,8 @@ def _isolate_dispatch_ledger_sources(monkeypatch: pytest.MonkeyPatch, tmp_path: 
     monkeypatch.setattr(agy_quota_probe, "AUTH_EXPIRED_PATH", tmp_path / "agy_auth_expired")
     monkeypatch.setattr(agy_quota_probe, "CLI_SIGNED_OUT_PATH", tmp_path / "agy_cli_signed_out")
     monkeypatch.setattr(agy_quota_probe, "_TOKEN_PATH", tmp_path / "antigravity-oauth-token")
+    monkeypatch.setattr(agy_quota_probe, "_read_macos_credential", lambda: None)
+    monkeypatch.setattr(agy_quota_probe, "_read_windows_credential", lambda: None)
     monkeypatch.setattr(agy_quota_probe, "_probe_via_cli", lambda timeout: None)
 
 

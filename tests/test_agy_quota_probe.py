@@ -12,7 +12,7 @@ import sys
 import time
 from base64 import b64encode
 from collections.abc import Callable, Iterator
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime, timedelta, tzinfo
 from email.message import Message
 from email.utils import format_datetime
 from pathlib import Path
@@ -1290,3 +1290,162 @@ def test_agy_quota_probe_finds_nvm_cli(monkeypatch: pytest.MonkeyPatch, tmp_path
         os.path, "isfile", lambda path: str(path) == str(binary) and original_isfile(path)
     )
     assert _original_nvm_lookup() == str(binary)
+
+
+@pytest.mark.parametrize("source", ["memory", "legacy", "macos", "windows"])
+def test_stale_resolved_token_does_not_reopen_cli_gate(
+    monkeypatch: pytest.MonkeyPatch, source: str
+) -> None:
+    from types import SimpleNamespace
+
+    credential = {
+        "token": {
+            "access_token": "expired-fake-token",
+            "expiry": "2000-01-01T00:00:00Z",
+            "refresh_token": "revoked-fake-refresh",
+        }
+    }
+    monkeypatch.setattr(
+        agy_quota_probe,
+        "sys",
+        SimpleNamespace(platform={"macos": "darwin", "windows": "win32"}.get(source, "linux")),
+    )
+    refreshes = []
+
+    def refresh(*args: object) -> None:
+        refreshes.append(args)
+
+    monkeypatch.setattr(agy_quota_probe, "_refresh_token", refresh)
+    if source == "memory":
+        agy_quota_probe._token_cache.update(
+            access_token="cached-fake-token", expires_monotonic=1e20
+        )
+    elif source == "legacy":
+        agy_quota_probe._TOKEN_PATH.write_text(json.dumps(credential))
+    else:
+        monkeypatch.setattr(agy_quota_probe, f"_read_{source}_credential", lambda: credential)
+    agy_quota_probe.mark_cli_signed_out()
+    assert agy_quota_probe._resolve_access_token(15) == (
+        "cached-fake-token" if source == "memory" else "expired-fake-token"
+    )
+    assert bool(refreshes) == (source != "memory")
+    refreshes.clear()
+    for _ in range(10):
+        assert not agy_quota_probe.agy_cli_signed_in(15)
+    assert not refreshes
+    assert agy_quota_probe.CLI_SIGNED_OUT_PATH.exists()
+
+
+@pytest.mark.parametrize("platform_name", ["darwin", "linux", "win32"])
+def test_credential_fingerprint_uses_resolver_fallthrough(
+    monkeypatch: pytest.MonkeyPatch, platform_name: str
+) -> None:
+    import hashlib
+    from types import SimpleNamespace
+
+    monkeypatch.setattr(agy_quota_probe, "sys", SimpleNamespace(platform=platform_name))
+    token = {"expiry": "2030-01-01T00:00:00Z", "access_token": "fake"}
+    credential = {"token": token}
+    calls = []
+
+    def read(source: str, data: object) -> object:
+        calls.append(source)
+        return data
+
+    monkeypatch.setattr(agy_quota_probe, "_read_macos_credential", lambda: read("macos", {}))
+    monkeypatch.setattr(agy_quota_probe, "_read_token_file", lambda: read("file", credential))
+    monkeypatch.setattr(agy_quota_probe, "_read_windows_credential", lambda: read("windows", {}))
+    expected = hashlib.sha256(json.dumps(token, sort_keys=True).encode()).hexdigest()
+    assert agy_quota_probe._credential_fingerprint() == expected
+    assert calls == (["macos", "file"] if platform_name == "darwin" else ["file"])
+    if platform_name == "darwin":
+        calls.clear()
+        monkeypatch.setattr(
+            agy_quota_probe, "_read_macos_credential", lambda: read("macos", credential)
+        )
+        assert agy_quota_probe._credential_fingerprint() == expected
+        assert calls == ["macos"]
+    elif platform_name == "win32":
+        calls.clear()
+        monkeypatch.setattr(agy_quota_probe, "_read_token_file", lambda: read("file", None))
+        monkeypatch.setattr(
+            agy_quota_probe, "_read_windows_credential", lambda: read("windows", credential)
+        )
+        assert agy_quota_probe._credential_fingerprint() == expected
+        assert calls == ["file", "windows"]
+
+
+def test_carried_weekly_repeated_partial_minutes_keep_original_reset(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    start = datetime(2026, 11, 12, tzinfo=UTC)
+
+    def quota(at: datetime, weekly: AgyQuotaWindow | None = None) -> AgyQuotaResult:
+        return AgyQuotaResult([AgyQuotaGroup("GEMINI MODELS", [], weekly, None)], at.isoformat())
+
+    result = quota(start, AgyQuotaWindow(0, "30m", 30))
+    reset = start + timedelta(minutes=30)
+    for i, minutes in enumerate([25, 19, 14, 8, 3], start=1):
+        result = agy_quota_probe._carry_missing_weekly(
+            quota(start + timedelta(seconds=i * 330)), result
+        )
+        group = result.groups[0]
+        assert group.weekly is not None
+        assert group.weekly.resets_in_minutes == minutes
+        assert group.weekly_fetched_at == start.isoformat()
+        assert group.weekly_resets_at == reset.isoformat()
+        assert (
+            agy_quota_probe._result_from_payload(agy_quota_probe._result_to_payload(result))
+            == result
+        )
+    agy_quota_probe._write_cache(result)
+
+    class Clock(datetime):
+        @classmethod
+        def now(cls, tz: tzinfo | None = None) -> Clock:
+            return cls.fromtimestamp(reset.timestamp(), tz)
+
+    monkeypatch.setattr(agy_quota_probe, "datetime", Clock)
+    cached = agy_quota_probe._read_cache()
+    assert cached is not None
+    assert cached.groups[0].weekly is None
+    assert cached.groups[0].weekly_fetched_at is None
+    assert cached.groups[0].weekly_resets_at is None
+    assert agy_quota_probe._carry_missing_weekly(quota(reset), result).groups[0].weekly is None
+
+
+@pytest.mark.parametrize("value", ["invalid", 42, ""])
+def test_invalid_weekly_absolute_reset_rejects_group(value: object) -> None:
+    payload = {
+        "name": "GEMINI",
+        "models": [],
+        "weekly": None,
+        "five_hour": None,
+        "weekly_resets_at": value,
+    }
+    assert agy_quota_probe._group_from_payload(payload) is None
+
+
+def test_missing_group_preserves_absolute_weekly_reset(monkeypatch: pytest.MonkeyPatch) -> None:
+    now = datetime.now(UTC)
+    original = AgyQuotaResult(
+        [AgyQuotaGroup("GEMINI", [], AgyQuotaWindow(0, "30m", 30), None)], now.isoformat()
+    )
+    partial = AgyQuotaResult(
+        [AgyQuotaGroup("GEMINI", [], None, None)], (now + timedelta(seconds=330)).isoformat()
+    )
+    carried = agy_quota_probe._carry_missing_weekly(partial, original)
+    monkeypatch.setattr(agy_quota_probe, "_group_seen_at", {"GEMINI": now})
+    missing = AgyQuotaResult(
+        [AgyQuotaGroup("OTHER", [], None, None)], (now + timedelta(seconds=660)).isoformat()
+    )
+    group = next(
+        g
+        for g in agy_quota_probe._carry_missing_groups(missing, carried).groups
+        if g.name == "GEMINI"
+    )
+    assert group.weekly_fetched_at == now.isoformat()
+    assert group.weekly_resets_at == (now + timedelta(minutes=30)).isoformat()
+    fresh = agy_quota_probe._carry_missing_weekly(original, carried).groups[0]
+    assert fresh.weekly_fetched_at is None
+    assert fresh.weekly_resets_at is None

@@ -293,7 +293,8 @@ def _usage_cached_quota(now: Optional[datetime] = None) -> Dict[str, Dict[str, f
         with open(USAGE_AGY_CACHE, encoding="utf-8") as fh:
             cache = _as_dict(json.load(fh))
         fetched_at = datetime.fromisoformat(str(cache.get("fetched_at")))
-        age = ((now or datetime.now(timezone.utc)) - fetched_at).total_seconds()
+        now = now or datetime.now(timezone.utc)
+        age = (now - fetched_at).total_seconds()
     except (OSError, ValueError, TypeError):
         return {}
     if not 0 <= age <= _CACHE_MAX_AGE_SECONDS:
@@ -312,6 +313,14 @@ def _usage_cached_quota(now: Optional[datetime] = None) -> Dict[str, Dict[str, f
                 (five_hour_key, group.get("five_hour")),
                 (weekly_key, group.get("weekly")),
             ):
+                if key == weekly_key and group.get("weekly_fetched_at") is not None:
+                    try:
+                        weekly_at = datetime.fromisoformat(str(group["weekly_fetched_at"]))
+                        weekly_age = (now - weekly_at).total_seconds()
+                    except (ValueError, TypeError):
+                        continue
+                    if not 0 <= weekly_age <= _CACHE_MAX_AGE_SECONDS:
+                        continue
                 if window is None:
                     continue
                 window = _as_dict(window)
