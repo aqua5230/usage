@@ -703,4 +703,152 @@ def test_service_normal_without_record_is_silent(paths: Path) -> None:
 
 
 def test_service_hook_versions_match() -> None:
-    assert hook.__version__ == session_hooks.QUOTA_AWARE_HOOK_VERSION == "1.7"
+    assert hook.__version__ == session_hooks.QUOTA_AWARE_HOOK_VERSION == "1.8"
+
+
+@pytest.mark.parametrize("window,label", [("five_hour", "5-hour"), ("seven_day", "weekly")])
+@pytest.mark.parametrize("visible", [False, True])
+def test_warned_quota_resets_once(paths: Path, window: str, label: str, visible: bool) -> None:
+    claude(95 if window == "five_hour" else 0, 95 if window == "seven_day" else 0)
+    assert f"Claude Code {label} quota: 95% used" in hook.reminder("one", NOW)
+    if visible:
+        claude(20, 20, reset=RESET + 5 * 3600)
+    usage = " (now 20% used)" if visible else ""
+    assert hook.reminder("one", RESET) == (
+        f"[usage quota] Claude Code {label} quota has reset{usage}. "
+        f"The earlier Claude Code {label} quota notice no longer applies."
+    )
+    assert json.loads(hook.STATE_PATH.read_text()) == {}
+    assert hook.reminder("one", RESET + 1) == ""
+
+
+@pytest.mark.parametrize("difference", [599, 600, 7200, -7200])
+def test_early_codex_reset(paths: Path, difference: float) -> None:
+    snapshot()
+    data = json.loads(hook.QUOTA_SNAPSHOT.read_text())
+    data["agents"] = {
+        "codex": {
+            "available": True,
+            "five_hour": {"used_percent": 95, "resets_at": NOW + 3 * 3600},
+        }
+    }
+    hook.QUOTA_SNAPSHOT.write_text(json.dumps(data))
+    assert "Codex 5-hour quota: 95% used" in hook.reminder("one", NOW)
+    data["agents"]["codex"]["five_hour"] = {
+        "used_percent": 10,
+        "resets_at": NOW + 3 * 3600 + difference,
+    }
+    hook.QUOTA_SNAPSHOT.write_text(json.dumps(data))
+    previous = hook.STATE_PATH.read_text()
+    output = hook.reminder("one", NOW)
+    if difference >= 600:
+        assert output == (
+            "[usage quota] Codex 5-hour quota has reset (now 10% used). "
+            "The earlier Codex 5-hour quota notice no longer applies."
+        )
+        assert json.loads(hook.STATE_PATH.read_text()) == {}
+    else:
+        assert output == ""
+        assert hook.STATE_PATH.read_text() == previous
+    assert hook.reminder("one", NOW) == ""
+
+
+@pytest.mark.parametrize("drift", [60, 599])
+def test_agy_reset_within_tolerance_keeps_notice(paths: Path, drift: float) -> None:
+    agy_weekly()
+    assert "weekly quota: 100% used" in hook.reminder("one", NOW)
+    data = json.loads(hook.QUOTA_SNAPSHOT.read_text())
+    data["agents"]["antigravity"]["groups"][0]["seven_day"]["resets_in_seconds"] += drift
+    hook.QUOTA_SNAPSHOT.write_text(json.dumps(data))
+    previous = hook.STATE_PATH.read_text()
+    assert hook.reminder("one", NOW) == ""
+    assert hook.STATE_PATH.read_text() == previous
+
+
+def test_agy_reset_uses_group_name_without_current_window(paths: Path) -> None:
+    agy_weekly()
+    hook.reminder("one", NOW)
+    assert hook.reminder("one", NOW + 177300) == (
+        '[usage quota] Antigravity CLI (agy) model group "CLAUDE AND GPT MODELS" '
+        "weekly quota has reset. "
+        'The earlier Antigravity CLI (agy) model group "CLAUDE AND GPT MODELS" '
+        "weekly quota notice no longer applies."
+    )
+    assert hook.reminder("one", NOW + 177301) == ""
+
+
+def test_never_warned_reset_is_silent(paths: Path) -> None:
+    claude(79, 94)
+    assert hook.reminder("one", NOW) == ""
+    assert hook.reminder("one", RESET) == ""
+    claude(20, 20, reset=RESET + 5 * 3600)
+    assert hook.reminder("one", RESET + 1) == ""
+    assert not hook.STATE_PATH.exists()
+
+
+def test_reset_waits_for_own_session(paths: Path) -> None:
+    claude(95)
+    hook.reminder("one", NOW)
+    previous = hook.STATE_PATH.read_text()
+    assert hook.reminder("two", RESET) == ""
+    assert hook.STATE_PATH.read_text() == previous
+    assert hook.reminder("one", RESET + 1) == (
+        "[usage quota] Claude Code 5-hour quota has reset. "
+        "The earlier Claude Code 5-hour quota notice no longer applies."
+    )
+    assert hook.reminder("one", RESET + 2) == ""
+
+
+def test_quota_pruning_is_saved_without_notices(paths: Path) -> None:
+    old = json.dumps(["old", "Codex", "five_hour"])
+    boundary = json.dumps(["boundary", "Muse", "seven_day"])
+    current = json.dumps(["other", "Claude Code", "five_hour"])
+    records = {
+        old: {"resets_at": NOW - 7 * 86400 - 1, "level": 95},
+        boundary: {"resets_at": NOW - 7 * 86400, "level": 95},
+        current: {"resets_at": RESET, "level": 80},
+    }
+    hook.STATE_PATH.write_text(json.dumps(records))
+    assert hook.reminder("one", NOW) == ""
+    records.pop(old)
+    assert json.loads(hook.STATE_PATH.read_text()) == records
+    assert hook.reminder("boundary", NOW) == (
+        "[usage quota] Muse weekly quota has reset. "
+        "The earlier Muse weekly quota notice no longer applies."
+    )
+    assert json.loads(hook.STATE_PATH.read_text()) == {current: records[current]}
+
+
+def test_reset_before_new_threshold_and_record(paths: Path) -> None:
+    claude(95)
+    hook.reminder("one", NOW)
+    claude(82, reset=RESET + 5 * 3600)
+    output = hook.reminder("one", RESET)
+    assert output.startswith(
+        "[usage quota] Claude Code 5-hour quota has reset (now 82% used). "
+        "The earlier Claude Code 5-hour quota notice no longer applies.\n"
+        "Claude Code 5-hour quota: 82% used, "
+    )
+    assert "Before starting a large task" in output
+    assert "Current local time:" in output
+    assert "Claude Code's own quota:" in output
+    assert json.loads(hook.STATE_PATH.read_text()) == {
+        json.dumps(["one", "Claude Code", "five_hour"]): {
+            "resets_at": RESET + 5 * 3600,
+            "level": 80,
+        }
+    }
+    assert hook.reminder("one", RESET + 1) == ""
+
+
+def test_reset_only_and_service_blocks_ordered(paths: Path) -> None:
+    claude(95, reset=NOW + 1)
+    hook.reminder("one", NOW)
+    service_snapshot()
+    service = hook.reminder("service-only", NOW + 1)
+    assert service.startswith("[usage service status] Codex API official status:")
+    assert hook.reminder("one", NOW + 1) == (
+        "[usage quota] Claude Code 5-hour quota has reset. "
+        "The earlier Claude Code 5-hour quota notice no longer applies.\n\n" + service
+    )
+    assert hook.reminder("one", NOW + 2) == ""
