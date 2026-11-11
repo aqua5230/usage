@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
-__version__ = "1.8"
+__version__ = "1.9"
 CLAUDE_STATUS = Path.home() / ".claude/usage-status.json"
 QUOTA_SNAPSHOT = Path.home() / ".usage/quota_snapshot.json"
 SERVICE_SNAPSHOT = Path.home() / ".usage/service_status_snapshot.json"
@@ -211,11 +211,58 @@ def _usage(used: float, reset: float, now: float) -> str:
     return f"{used:g}% used, resets in {duration} (at {clock} local time)"
 
 
+def _claude_pending(session_id: str) -> bool:
+    # Claude Code's quota is tied to this session only after its first reply (see _windows),
+    # so an overview sent before that would leave out the quota this session runs on.
+    owner = _read(CLAUDE_STATUS).get("_rate_limits_session_id")
+    return isinstance(owner, str) and owner != session_id
+
+
+def _overview_reminder(
+    session_id: str,
+    now: float,
+    state: dict[str, Any],
+    windows: list[tuple[str, str, float, float, str]],
+) -> tuple[str, bool]:
+    previous = state.get("overview", {})
+    records = {
+        key: value
+        for key, value in (previous.items() if isinstance(previous, dict) else [])
+        if (shown := _number(value)) is not None and shown >= now - 7 * 86400
+    }
+    changed = records != previous
+    tools: dict[str, list[str]] = {}
+    if session_id not in records and not _claude_pending(session_id):
+        for tool, window, used, reset, suffix in windows:
+            if suffix:
+                continue
+            if tool.startswith("Antigravity ("):
+                tool = f'Antigravity CLI (agy) model group "{tool[len("Antigravity (") : -1]}"'
+            label = "5-hour" if window == "five_hour" else "weekly"
+            tools.setdefault(tool, []).append(f"{label} {_usage(used, reset, now)}")
+    block = ""
+    if tools:
+        lines = [f"{tool}: {'; '.join(usage)}." for tool, usage in tools.items()]
+        block = (
+            "[usage quota overview] Quota at the start of this conversation:\n"
+            + "\n".join(lines)
+            + f"\nCurrent local time: {_local(now):%a %H:%M}.\n"
+            "Use this only to choose which tool or agent to send work to and whether to wait "
+            "for a reset; plenty of quota is not a reason to do more than the user asked. "
+            "Don't mention it unless the user asks or it changes a decision."
+        )
+        records[session_id] = now
+        changed = True
+    if records or "overview" in state:
+        state["overview"] = records
+    return block, changed
+
+
 def reminder(session_id: str, now: float) -> str:
     state: dict[str, Any] = {
         key: value
         for key, value in _read(STATE_PATH).items()
-        if key == "services"
+        if key in ("services", "overview")
         or (
             isinstance(value, dict)
             and _number(value.get("resets_at")) is not None
@@ -225,11 +272,12 @@ def reminder(session_id: str, now: float) -> str:
     messages = []
     limited = set()
     windows = _windows(session_id, now)
+    overview_block, overview_changed = _overview_reminder(session_id, now, state, windows)
     current = {(tool, window): (used, reset) for tool, window, used, reset, _suffix in windows}
     reset_lines = []
     quota_changed = False
     for key, seen in list(state.items()):
-        if key == "services":
+        if key in ("services", "overview"):
             continue
         try:
             parts = json.loads(key)
@@ -291,11 +339,11 @@ def reminder(session_id: str, now: float) -> str:
     service_block = (
         "[usage service status] " + "\n".join(service_messages) if service_messages else ""
     )
-    if messages or quota_changed or services_changed:
+    if messages or quota_changed or services_changed or overview_changed:
         _save(state)
     if not messages:
         quota_block = "[usage quota] " + "\n".join(reset_lines) if reset_lines else ""
-        return "\n\n".join(block for block in (quota_block, service_block) if block)
+        return "\n\n".join(block for block in (overview_block, quota_block, service_block) if block)
     # A spent agy model group reads as "Antigravity is used up" unless the groups that
     # still have quota are named next to it.
     open_groups: dict[str, float] = {}
@@ -329,7 +377,7 @@ def reminder(session_id: str, now: float) -> str:
         f"Current local time: {_local(now):%a %H:%M}.\n"
         f"Claude Code's own quota: {own_status} This Claude Code session runs on this quota."
     )
-    return quota_block + ("\n\n" + service_block if service_block else "")
+    return "\n\n".join(block for block in (overview_block, quota_block, service_block) if block)
 
 
 def main() -> None:
