@@ -18,6 +18,19 @@ RESET = NOW + 4800
 
 
 @pytest.fixture(autouse=True)
+def isolate_accounts(monkeypatch: pytest.MonkeyPatch, request: pytest.FixtureRequest) -> None:
+    if "accounts" not in request.fixturenames:
+        monkeypatch.setattr(hook, "_account_reminder", lambda *_args: ("", False, False))
+
+
+@pytest.fixture
+def accounts(paths: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """Opt account tests into production behavior, using only temporary config files."""
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(paths))
+    return paths / ".claude.json"
+
+
+@pytest.fixture(autouse=True)
 def isolate_overview(monkeypatch: pytest.MonkeyPatch, request: pytest.FixtureRequest) -> None:
     if "overview" not in request.fixturenames:
         monkeypatch.setattr(hook, "_overview_reminder", lambda *_args: ("", False))
@@ -80,6 +93,192 @@ def snapshot(age: float = 0) -> None:
             }
         )
     )
+
+
+ACCOUNT_LINE = (
+    "Claude Code account changed since earlier in this conversation (/login). "
+    "Earlier Claude Code quota notices no longer apply; "
+    "the new account's quota shows up after your next reply."
+)
+
+
+def account_config(path: Path, uuid: str) -> None:
+    path.write_text(json.dumps({"oauthAccount": {"accountUuid": uuid}}))
+
+
+def test_first_account_is_recorded_silently(accounts: Path) -> None:
+    account_config(accounts, "A")
+    assert hook.reminder("one", NOW) == ""
+    assert json.loads(hook.STATE_PATH.read_text()) == {
+        "accounts": {"one": {"uuid": "A", "at": NOW}}
+    }
+    previous = hook.STATE_PATH.read_text()
+    assert hook.reminder("one", NOW + 1) == ""
+    assert hook.STATE_PATH.read_text() == previous
+
+
+def test_account_switch_clears_only_own_claude_notices(accounts: Path) -> None:
+    account_config(accounts, "A")
+    claude(95, 95, reset=NOW + 1)
+    snapshot()
+    hook.reminder("one", NOW)
+    hook.reminder("two", NOW)
+    before = json.loads(hook.STATE_PATH.read_text())
+    account_config(accounts, "B")
+
+    assert hook.reminder("one", NOW + 1) == "[usage quota] " + ACCOUNT_LINE
+    after = json.loads(hook.STATE_PATH.read_text())
+    for window in ("five_hour", "seven_day"):
+        assert json.dumps(["one", "Claude Code", window]) not in after
+    for key, value in before.items():
+        if key != "accounts" and not key.startswith('["one", "Claude Code",'):
+            assert after[key] == value
+    assert after["accounts"] == {
+        "one": {
+            "uuid": "B",
+            "at": NOW + 1,
+            "changed_at": NOW + 1,
+            "old_limits": json.loads(hook.CLAUDE_STATUS.read_text())["rate_limits"],
+        },
+        "two": {"uuid": "A", "at": NOW},
+    }
+    assert hook.reminder("one", NOW + 2) == ""
+
+
+@pytest.mark.parametrize("received", [None, NOW - 1, NOW, NOW + 1, "later", True])
+def test_account_switch_waits_for_new_status(accounts: Path, received: Any) -> None:
+    account_config(accounts, "A")
+    claude(95)
+    hook.reminder("one", NOW)
+    status = json.loads(hook.CLAUDE_STATUS.read_text())
+    status.update({"_rate_limits_session_id": "one", "_received_at_ts": received})
+    hook.CLAUDE_STATUS.write_text(json.dumps(status))
+    account_config(accounts, "B")
+
+    assert hook.reminder("one", NOW + 1) == "[usage quota] " + ACCOUNT_LINE
+    assert hook.reminder("one", NOW + 2) == ""
+    assert json.loads(hook.STATE_PATH.read_text())["accounts"]["one"]["changed_at"] == NOW + 1
+    status["_received_at_ts"] = NOW + 3
+    hook.CLAUDE_STATUS.write_text(json.dumps(status))
+    # A redraw re-stamps the old account's cached numbers; they still don't count.
+    assert hook.reminder("one", NOW + 3) == ""
+    assert json.loads(hook.STATE_PATH.read_text())["accounts"]["one"]["changed_at"] == NOW + 1
+    status["rate_limits"]["five_hour"]["used_percentage"] = 96
+    hook.CLAUDE_STATUS.write_text(json.dumps(status))
+    output = hook.reminder("one", NOW + 4)
+    assert "Claude Code 5-hour quota: 96% used" in output
+    assert ACCOUNT_LINE not in output
+    assert "changed_at" not in json.loads(hook.STATE_PATH.read_text())["accounts"]["one"]
+    assert hook.reminder("one", NOW + 5) == ""
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [None, "broken", "[]", "{}", '{"oauthAccount": null}', '{"oauthAccount": {}}']
+    + [json.dumps({"oauthAccount": {"accountUuid": value}}) for value in ("", None, 1, True)],
+)
+def test_unknown_account_is_silent(accounts: Path, payload: str | None) -> None:
+    if payload is not None:
+        accounts.write_text(payload)
+    assert hook.reminder("one", NOW) == ""
+    assert not hook.STATE_PATH.exists()
+    hook.STATE_PATH.write_text(json.dumps({"accounts": {"one": {"uuid": "A", "at": NOW}}}))
+    previous = hook.STATE_PATH.read_text()
+    assert hook.reminder("one", NOW + 1) == ""
+    assert hook.STATE_PATH.read_text() == previous
+
+
+def test_account_switch_is_scoped_to_session(accounts: Path) -> None:
+    account_config(accounts, "A")
+    hook.reminder("one", NOW)
+    account_config(accounts, "B")
+    claude(95)
+    assert ACCOUNT_LINE not in hook.reminder("two", NOW + 1)
+    assert hook.reminder("one", NOW + 2) == "[usage quota] " + ACCOUNT_LINE
+    assert "Claude Code 5-hour quota: 95% used" in hook.reminder("three", NOW + 3)
+    assert hook.reminder("two", NOW + 3) == ""
+    assert "changed_at" not in json.loads(hook.STATE_PATH.read_text())["accounts"]["two"]
+
+
+def test_account_config_path_is_dynamic_and_uses_first_dir(
+    accounts: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    account_config(accounts, "A")
+    assert hook._account_uuid() == "A"
+    second = accounts.parent / "second"
+    second.mkdir()
+    account_config(second / ".claude.json", "B")
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", f" , {second} , {accounts.parent}, ")
+    assert hook._account_uuid() == "B"
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", f"{second / 'missing'},{accounts.parent}")
+    assert hook._account_uuid() is None
+    monkeypatch.setattr(Path, "home", classmethod(lambda cls: accounts.parent))
+    monkeypatch.delenv("CLAUDE_CONFIG_DIR")
+    assert hook._account_uuid() == "A"
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", " , ")
+    assert hook._account_uuid() == "A"
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", "~/second")
+    monkeypatch.setenv("HOME", str(accounts.parent))
+    monkeypatch.setenv("USERPROFILE", str(accounts.parent))
+    assert hook._account_uuid() == "B"
+
+
+def test_accounts_pruned_and_reserved_state_preserved(accounts: Path, overview: None) -> None:
+    boundary = NOW - 7 * 86400
+    state: dict[str, Any] = {
+        "accounts": {
+            "old": {"uuid": "A", "at": boundary - 1},
+            "boundary": {"uuid": "B", "at": boundary},
+            "one": {"uuid": "C", "at": NOW},
+            "bad": {"uuid": "D", "at": "invalid"},
+        },
+        "services": {json.dumps(["one", "Codex"]): {"status": "major_outage", "at": NOW}},
+        "overview": {"one": NOW},
+        json.dumps(["other", "Claude Code", "five_hour"]): {"resets_at": RESET, "level": 95},
+    }
+    hook.STATE_PATH.write_text(json.dumps(state))
+    assert hook.reminder("one", NOW) == ""
+    del state["accounts"]["old"]
+    del state["accounts"]["bad"]
+    assert json.loads(hook.STATE_PATH.read_text()) == state
+
+
+def test_account_line_precedes_resets_and_thresholds(accounts: Path) -> None:
+    account_config(accounts, "A")
+    hook.reminder("one", NOW)
+    hook.STATE_PATH.write_text(
+        json.dumps(
+            {
+                "accounts": {"one": {"uuid": "A", "at": NOW}},
+                json.dumps(["one", "Muse", "five_hour"]): {"resets_at": NOW, "level": 95},
+            }
+        )
+    )
+    account_config(accounts, "B")
+    snapshot()
+    claude(95)
+    output = hook.reminder("one", NOW + 1)
+    assert output.startswith("[usage quota] " + ACCOUNT_LINE + "\nMuse 5-hour quota has reset")
+    assert output.index("Muse 5-hour quota has reset") < output.index("Codex 5-hour quota:")
+    assert "Claude Code 5-hour quota" not in output
+    assert "Claude Code's own quota: unknown." in output
+    assert "Before starting a large task" in output
+
+
+def test_pending_account_excludes_claude_from_overview(accounts: Path, overview: None) -> None:
+    account_config(accounts, "A")
+    hook.reminder("one", NOW)
+    account_config(accounts, "B")
+    claude(95)
+    assert hook.reminder("one", NOW + 1) == "[usage quota] " + ACCOUNT_LINE
+    state = json.loads(hook.STATE_PATH.read_text())
+    assert "one" not in state.get("overview", {})
+    snapshot()
+    output = hook.reminder("one", NOW + 2)
+    overview_block = output.split("\n\n")[0]
+    assert overview_block.startswith("[usage quota overview]")
+    assert "Codex:" in overview_block
+    assert "Claude Code:" not in overview_block
 
 
 def test_low_quota_is_silent(paths: Path) -> None:
@@ -714,7 +913,7 @@ def test_service_normal_without_record_is_silent(paths: Path) -> None:
 
 
 def test_service_hook_versions_match() -> None:
-    assert hook.__version__ == session_hooks.QUOTA_AWARE_HOOK_VERSION == "1.9"
+    assert hook.__version__ == session_hooks.QUOTA_AWARE_HOOK_VERSION == "1.10"
 
 
 @pytest.mark.parametrize("window,label", [("five_hour", "5-hour"), ("seven_day", "weekly")])

@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
-__version__ = "1.9"
+__version__ = "1.10"
 CLAUDE_STATUS = Path.home() / ".claude/usage-status.json"
 QUOTA_SNAPSHOT = Path.home() / ".usage/quota_snapshot.json"
 SERVICE_SNAPSHOT = Path.home() / ".usage/service_status_snapshot.json"
@@ -31,6 +31,66 @@ def _number(value: Any) -> Optional[float]:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return None
     return float(value) if math.isfinite(value) else None
+
+
+def _account_uuid() -> Optional[str]:
+    configured = [
+        Path(part.strip()).expanduser()
+        for part in os.environ.get("CLAUDE_CONFIG_DIR", "").split(",")
+        if part.strip()
+    ]
+    path = configured[0] / ".claude.json" if configured else Path.home() / ".claude.json"
+    account = _read(path).get("oauthAccount")
+    uuid = account.get("accountUuid") if isinstance(account, dict) else None
+    return uuid if isinstance(uuid, str) and uuid else None
+
+
+def _account_reminder(session_id: str, now: float, state: dict[str, Any]) -> tuple[str, bool, bool]:
+    previous = state.get("accounts", {})
+    records = {
+        key: value
+        for key, value in (previous.items() if isinstance(previous, dict) else [])
+        if isinstance(value, dict)
+        and isinstance(value.get("uuid"), str)
+        and value["uuid"]
+        and (_number(value.get("at")) or 0) >= now - 7 * 86400
+    }
+    changed = records != previous
+    message = ""
+    uuid = _account_uuid()
+    seen = records.get(session_id)
+    if uuid is not None and (seen is None or seen["uuid"] != uuid):
+        records[session_id] = {"uuid": uuid, "at": now}
+        if seen is not None:
+            message = (
+                "Claude Code account changed since earlier in this conversation (/login). "
+                "Earlier Claude Code quota notices no longer apply; "
+                "the new account's quota shows up after your next reply."
+            )
+            for window in ("five_hour", "seven_day"):
+                state.pop(json.dumps([session_id, "Claude Code", window]), None)
+            records[session_id]["changed_at"] = now
+            # The status line re-stamps the old account's cached numbers on every redraw,
+            # so only numbers that differ from these count as the new account's.
+            records[session_id]["old_limits"] = _read(CLAUDE_STATUS).get("rate_limits")
+        seen = records[session_id]
+        changed = True
+    pending = False
+    if seen is not None and (changed_at := _number(seen.get("changed_at"))) is not None:
+        status = _read(CLAUDE_STATUS)
+        received = _number(status.get("_received_at_ts"))
+        pending = (
+            received is None
+            or received <= changed_at
+            or status.get("rate_limits") == seen.get("old_limits")
+        )
+        if not pending:
+            del seen["changed_at"]
+            seen.pop("old_limits", None)
+            changed = True
+    if records or "accounts" in state:
+        state["accounts"] = records
+    return message, changed, pending
 
 
 def _generated_at(value: Any) -> float:
@@ -262,7 +322,7 @@ def reminder(session_id: str, now: float) -> str:
     state: dict[str, Any] = {
         key: value
         for key, value in _read(STATE_PATH).items()
-        if key in ("services", "overview")
+        if key in ("services", "overview", "accounts")
         or (
             isinstance(value, dict)
             and _number(value.get("resets_at")) is not None
@@ -271,13 +331,16 @@ def reminder(session_id: str, now: float) -> str:
     }
     messages = []
     limited = set()
+    account_line, accounts_changed, account_pending = _account_reminder(session_id, now, state)
     windows = _windows(session_id, now)
+    if account_pending:
+        windows = [entry for entry in windows if entry[0] != "Claude Code"]
     overview_block, overview_changed = _overview_reminder(session_id, now, state, windows)
     current = {(tool, window): (used, reset) for tool, window, used, reset, _suffix in windows}
-    reset_lines = []
+    reset_lines = [account_line] if account_line else []
     quota_changed = False
     for key, seen in list(state.items()):
-        if key in ("services", "overview"):
+        if key in ("services", "overview", "accounts"):
             continue
         try:
             parts = json.loads(key)
@@ -295,6 +358,8 @@ def reminder(session_id: str, now: float) -> str:
                 quota_changed = True
             continue
         _, tool, window = parts
+        if account_pending and tool == "Claude Code":
+            continue
         latest = current.get((tool, window))
         if seen["resets_at"] > now and not (
             latest is not None and latest[1] - seen["resets_at"] >= 600
@@ -339,7 +404,7 @@ def reminder(session_id: str, now: float) -> str:
     service_block = (
         "[usage service status] " + "\n".join(service_messages) if service_messages else ""
     )
-    if messages or quota_changed or services_changed or overview_changed:
+    if messages or quota_changed or services_changed or overview_changed or accounts_changed:
         _save(state)
     if not messages:
         quota_block = "[usage quota] " + "\n".join(reset_lines) if reset_lines else ""
