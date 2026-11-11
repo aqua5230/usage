@@ -16,6 +16,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ### Changed
 - **Quota-aware mode now tells Claude the reset clock time and the current time.** Each reminder used to give only the time left, such as `resets in 2h 10m`. It now adds the local clock time, such as `(at 02:40 local time)`, and a `Current local time` line, so Claude can tell you when a quota resets instead of only how long it takes. A reset on another day also shows the weekday.
 
+### Fixed
+- **usage no longer opens Google sign-in pages in the background when the Antigravity CLI is signed out.** When a background `agy` run reports it is not signed in, usage stops starting `agy` in the background until the sign-in works again, and runs at most one background `agy` at a time. After you sign in again, the next refresh reads the quota right away instead of waiting 30 minutes.
+- **The Antigravity weekly quota no longer disappears after one failed read.** The card keeps the last weekly reading, marked as old data, until its reset time.
+
 ## [0.34.16] - 2026-11-10
 
 ### Added

@@ -90,7 +90,12 @@ def project_quota(
     )
     current_time = time.time() if now is None else now
     age_minutes = _cache_age_minutes(quota.fetched_at, current_time)
-    stale = _stale_state(quota.fetched_at, current_time, language)
+    stale = _stale_state(
+        selected.weekly_fetched_at or quota.fetched_at,
+        current_time,
+        language,
+        force=selected.weekly_fetched_at is not None,
+    )
     session_forecast: float | None = None
     weekly_forecast: float | None = None
     if stale is None and burn_rate_trackers is not None:
@@ -363,7 +368,9 @@ def _window_row(
     )
 
 
-def _stale_state(fetched_at: str, now: float, language: str) -> AgyStaleState | None:
+def _stale_state(
+    fetched_at: str, now: float, language: str, *, force: bool = False
+) -> AgyStaleState | None:
     if auth_expired():
         return {
             "ageText": _t(language, "agy_signin_expired"),
@@ -373,7 +380,7 @@ def _stale_state(fetched_at: str, now: float, language: str) -> AgyStaleState | 
         age_seconds = now - parse_iso8601_utc_or_raise(fetched_at).timestamp()
     except (TypeError, ValueError):
         return None
-    if age_seconds <= AGY_STALE_SECONDS:
+    if age_seconds <= AGY_STALE_SECONDS and not force:
         return None
     if age_seconds < 3600:
         return cast(
