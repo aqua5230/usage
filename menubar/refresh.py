@@ -36,6 +36,7 @@ from menubar.prefs import (
 from quota import quota_snapshot
 from quota.burn_rate import BurnRateTracker
 from quota.usage_rate import UsageRateTracker
+from usage_common import service_status
 from usage_common.service_status import CLAUDE_STATUS, CODEX_STATUS, get_service_status
 
 logger = logging.getLogger(__name__)
@@ -197,6 +198,8 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
             get_service_status(CLAUDE_STATUS),
             get_service_status(CODEX_STATUS),
         )
+        if not app.mock:
+            service_status.write_snapshot(service_statuses)
         group = int(app.tracker.group())
         state = menubar_state.build_popover_state(
             outcome=outcome,

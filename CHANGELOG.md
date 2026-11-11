@@ -7,6 +7,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+- **Quota-aware mode now tells Claude when Claude Code or Codex has an official service incident.** When Claude Code / Claude API or Codex API is degraded or down, Claude gets one line saying so. For Codex it also says not to keep retrying a failed dispatch or debugging the task brief, and to switch agents or tell you instead. Claude hears it once per conversation, again if the status changes, and once more when the service recovers. The app writes these statuses to `~/.usage/service_status_snapshot.json`; statuses older than 15 minutes are ignored.
+
 ### Changed
 - **Quota-aware mode now tells Claude the reset clock time and the current time.** Each reminder used to give only the time left, such as `resets in 2h 10m`. It now adds the local clock time, such as `(at 02:40 local time)`, and a `Current local time` line, so Claude can tell you when a quota resets instead of only how long it takes. A reset on another day also shows the weekday.
 

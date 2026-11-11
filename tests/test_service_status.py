@@ -538,3 +538,55 @@ def test_live_incident_feed_answers_with_an_incidents_key(
         f"{config.service_name} no longer publishes incidents at {config.incidents_url}; "
         "alert suppression will silently stop working"
     )
+
+
+def test_snapshot_writer_round_trip(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    path = tmp_path / "nested" / "service_status_snapshot.json"
+    monkeypatch.setattr(service_status, "SNAPSHOT_PATH", path)
+    statuses = [
+        service_status.ServiceStatus("Claude", False, "operational", "All good", "cache"),
+        service_status.ServiceStatus("Codex", True, "partial_outage", "Errors", "fetched"),
+    ]
+    before = datetime.now(UTC)
+    service_status.write_snapshot(statuses)
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    generated = datetime.fromisoformat(payload["generated_at"])
+    assert generated.utcoffset() == timedelta(0)
+    assert before <= generated <= datetime.now(UTC)
+    assert payload["services"] == [
+        {
+            "service_name": status.service_name,
+            "is_abnormal": status.is_abnormal,
+            "status": status.status,
+            "description": status.description,
+            "source": status.source,
+        }
+        for status in statuses
+    ]
+    service_status.write_snapshot(())
+    assert json.loads(path.read_text())["services"] == []
+    assert not list(path.parent.glob("*.tmp"))
+
+
+@pytest.mark.parametrize("error", [OSError, ValueError])
+def test_snapshot_write_failure_preserves_previous_and_cleans_temp(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+    error: type[Exception],
+) -> None:
+    path = tmp_path / "service_status_snapshot.json"
+    path.write_text("previous")
+    monkeypatch.setattr(service_status, "SNAPSHOT_PATH", path)
+
+    def fail_replace(source: str, destination: Path) -> None:
+        assert Path(source).parent == destination.parent
+        assert json.loads(Path(source).read_text())["services"] == []
+        assert destination.read_text() == "previous"
+        raise error("snapshot write failed")
+
+    monkeypatch.setattr(os, "replace", fail_replace)
+    service_status.write_snapshot([])
+    assert path.read_text() == "previous"
+    assert "Service status snapshot write failed" in caplog.text
+    assert not list(tmp_path.glob("*.tmp"))

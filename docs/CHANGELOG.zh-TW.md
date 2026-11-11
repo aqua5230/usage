@@ -6,6 +6,9 @@
 
 ## [Unreleased]
 
+### 新增
+- **額度感知模式會在 Claude Code 或 Codex 官方服務出狀況時告訴 Claude。** Claude Code／Claude API 或 Codex API 降級或中斷時，Claude 會收到一行字。Codex 那行還會提醒：派工失敗別一直重試、別去改任務書，改派別隻或告訴你。同一個對話只說一次，狀態變了再說，恢復時再說一次。app 把狀態寫在 `~/.usage/service_status_snapshot.json`，超過 15 分鐘沒更新就不採用。
+
 ### 變更
 - **額度感知模式會告訴 Claude 幾點重置、現在幾點。** 以前提醒只寫還剩多久，例如 `resets in 2h 10m`。現在會補上本地時間，例如 `(at 02:40 local time)`，再多一行 `Current local time`。Claude 就能直接說幾點重置，不只說還要多久。不是當天重置的，會加上星期幾。
 
