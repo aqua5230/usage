@@ -22,6 +22,7 @@ def paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Path:
     monkeypatch.setattr(hook, "CLAUDE_STATUS", tmp_path / "claude.json")
     monkeypatch.setattr(hook, "QUOTA_SNAPSHOT", tmp_path / "snapshot.json")
     monkeypatch.setattr(hook, "STATE_PATH", tmp_path / "state.json")
+    monkeypatch.setattr(hook, "_local", lambda ts: datetime.fromtimestamp(ts, UTC))
     return tmp_path
 
 
@@ -78,7 +79,8 @@ def test_low_quota_is_silent(paths: Path) -> None:
 
 def test_thresholds_and_sessions(paths: Path) -> None:
     claude(82)
-    assert "Claude Code 5-hour quota: 82% used, resets in 1h 20m." in hook.reminder("one", NOW)
+    output = hook.reminder("one", NOW)
+    assert "Claude Code 5-hour quota: 82% used, resets in 1h 20m (at 09:20 local time)." in output
     assert hook.reminder("one", NOW) == ""
     claude(91)
     assert "91% used" in hook.reminder("one", NOW)
@@ -88,6 +90,13 @@ def test_thresholds_and_sessions(paths: Path) -> None:
     assert "96% used" in hook.reminder("one", NOW)
     claude(82)
     assert hook.reminder("one", NOW) == ""
+
+
+def test_reset_and_current_clock_time(paths: Path) -> None:
+    claude(91, reset=NOW + 20 * 3600)
+    output = hook.reminder("one", NOW)
+    assert "resets in 20h 0m (at Sat 04:00 local time)." in output
+    assert "\nCurrent local time: Fri 08:00.\nClaude Code's own quota:" in output
 
 
 def test_weekly_threshold(paths: Path) -> None:
@@ -114,7 +123,10 @@ def test_snapshot_and_agy_reset(paths: Path) -> None:
     output = hook.reminder("one", NOW)
     assert "Codex 5-hour quota: 91% used" in output
     assert 'Antigravity CLI (agy) model group "Gemini": 5-hour quota: 82% used' in output
-    assert "resets in 40m. Only limits work sent to agy with those models." in output
+    assert (
+        "resets in 40m (at 08:40 local time). Only limits work sent to agy with those models."
+        in output
+    )
     state = json.loads(hook.STATE_PATH.read_text(encoding="utf-8"))
     assert any(value["resets_at"] == NOW + 2400 for value in state.values())
     assert hook.reminder("one", NOW) == ""
@@ -183,12 +195,13 @@ def test_agy_weekly_has_explicit_scope_and_own_quota(paths: Path) -> None:
     output = hook.reminder("one", NOW)
     assert output.startswith(
         '[usage quota] Antigravity CLI (agy) model group "CLAUDE AND GPT MODELS": '
-        "weekly quota: 100% used, resets in 49h 15m. "
+        "weekly quota: 100% used, resets in 49h 15m (at Sun 09:15 local time). "
         "Only limits work sent to agy with those models.\n"
     )
     assert output.endswith(
-        "Claude Code's own quota: 5-hour 3% used, resets in 1h 20m; "
-        "weekly 12% used, resets in 1h 20m. This Claude Code session runs on this quota."
+        "Claude Code's own quota: 5-hour 3% used, resets in 1h 20m (at 09:20 local time); "
+        "weekly 12% used, resets in 1h 20m (at 09:20 local time). "
+        "This Claude Code session runs on this quota."
     )
     assert hook.reminder("one", NOW) == ""
 
@@ -235,12 +248,13 @@ def test_missing_own_quota_is_explicit(paths: Path, status: str | None) -> None:
 def test_own_quota_agrees_with_threshold_reminder(paths: Path) -> None:
     claude(96, 100)
     output = hook.reminder("one", NOW)
-    assert "Claude Code 5-hour quota: 96% used, resets in 1h 20m." in output
-    assert "Claude Code weekly quota: 100% used, resets in 1h 20m." in output
+    assert "Claude Code 5-hour quota: 96% used, resets in 1h 20m (at 09:20 local time)." in output
+    assert "Claude Code weekly quota: 100% used, resets in 1h 20m (at 09:20 local time)." in output
     assert output.count("Claude Code's own quota:") == 1
     assert output.endswith(
-        "Claude Code's own quota: 5-hour 96% used, resets in 1h 20m; "
-        "weekly 100% used, resets in 1h 20m. This Claude Code session runs on this quota."
+        "Claude Code's own quota: 5-hour 96% used, resets in 1h 20m (at 09:20 local time); "
+        "weekly 100% used, resets in 1h 20m (at 09:20 local time). "
+        "This Claude Code session runs on this quota."
     )
     assert "unknown" not in output
 
@@ -267,7 +281,8 @@ def test_partial_own_quota_keeps_missing_window_unknown(paths: Path) -> None:
         json.dumps({"rate_limits": {"five_hour": {"used_percentage": 0, "resets_at": RESET}}})
     )
     agy_weekly()
-    assert "5-hour 0% used, resets in 1h 20m; weekly unknown." in hook.reminder("one", NOW)
+    output = hook.reminder("one", NOW)
+    assert "5-hour 0% used, resets in 1h 20m (at 09:20 local time); weekly unknown." in output
 
 
 def test_empty_agy_groups(paths: Path) -> None:

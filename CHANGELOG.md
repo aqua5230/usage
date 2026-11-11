@@ -7,6 +7,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Changed
+- **Quota-aware mode now tells Claude the reset clock time and the current time.** Each reminder used to give only the time left, such as `resets in 2h 10m`. It now adds the local clock time, such as `(at 02:40 local time)`, and a `Current local time` line, so Claude can tell you when a quota resets instead of only how long it takes. A reset on another day also shows the weekday.
+
 ## [0.34.16] - 2026-11-10
 
 ### Added
