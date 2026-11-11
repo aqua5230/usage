@@ -1324,7 +1324,7 @@ def test_stale_resolved_token_does_not_reopen_cli_gate(
         agy_quota_probe._TOKEN_PATH.write_text(json.dumps(credential))
     else:
         monkeypatch.setattr(agy_quota_probe, f"_read_{source}_credential", lambda: credential)
-    agy_quota_probe.mark_cli_signed_out()
+    agy_quota_probe.mark_cli_signed_out(agy_quota_probe._credential_fingerprint())
     assert agy_quota_probe._resolve_access_token(15) == (
         "cached-fake-token" if source == "memory" else "expired-fake-token"
     )

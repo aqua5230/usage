@@ -91,6 +91,7 @@ def _run_agy_ping(agy_bin: str) -> subprocess.CompletedProcess[str]:
     if not agy_quota_probe.BACKGROUND_AGY_LOCK.acquire(blocking=False):
         raise _PingSkipped("background agy is busy")
     try:
+        before = agy_quota_probe._credential_fingerprint()
         if not agy_quota_probe.agy_cli_signed_in(PING_TIMEOUT_SECONDS):
             raise _PingSkipped("CLI is signed out")
         result = subprocess.run(  # noqa: S603 - resolved local Antigravity CLI
@@ -109,7 +110,7 @@ def _run_agy_ping(agy_bin: str) -> subprocess.CompletedProcess[str]:
         if result.returncode != 0 and (
             "authentication required" in output or "authentication failed" in output
         ):
-            agy_quota_probe.mark_cli_signed_out()
+            agy_quota_probe.mark_cli_signed_out(before)
         return result
     finally:
         agy_quota_probe.BACKGROUND_AGY_LOCK.release()

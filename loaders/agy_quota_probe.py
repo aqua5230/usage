@@ -59,11 +59,14 @@ def _mark_auth_expired() -> None:
         AUTH_EXPIRED_PATH.touch()
 
 
-def mark_cli_signed_out() -> None:
+def mark_cli_signed_out(before: str | None) -> None:
+    after = _credential_fingerprint()
+    if after != before:
+        return
     with suppress(OSError):
         CLI_SIGNED_OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
         CLI_SIGNED_OUT_PATH.write_text(
-            json.dumps({"fingerprint": _credential_fingerprint(), "marked_at": time.time()}),
+            json.dumps({"fingerprint": after, "marked_at": time.time()}),
             encoding="utf-8",
         )
 
@@ -212,10 +215,11 @@ def _probe_via_cli(timeout: float) -> AgyQuotaResult | None:
         # Offline, the CLI would open a browser sign-in page.
         if not google_auth_reachable():
             return None
+        before = _credential_fingerprint()
         log_offset = 0
         with suppress(OSError):
             log_offset = _CLI_LOG_PATH.stat().st_size
-        result = _run_usage_command(agy, timeout)
+        result = _run_usage_command(agy, timeout, before)
         if result is None:
             with suppress(OSError):
                 with _CLI_LOG_PATH.open("rb") as log:
@@ -227,7 +231,7 @@ def _probe_via_cli(timeout: float) -> AgyQuotaResult | None:
                     b"Print mode: not authenticated" in tail
                     or b"triggering interactive OAuth" in tail
                 ):
-                    mark_cli_signed_out()
+                    mark_cli_signed_out(before)
         _cli_retry_after_monotonic = (
             0.0 if result is not None else time.monotonic() + _CLI_FAILURE_COOLDOWN_SECONDS
         )
@@ -236,7 +240,7 @@ def _probe_via_cli(timeout: float) -> AgyQuotaResult | None:
         BACKGROUND_AGY_LOCK.release()
 
 
-def _run_usage_command(agy: str, timeout: float) -> AgyQuotaResult | None:
+def _run_usage_command(agy: str, timeout: float, before: str | None) -> AgyQuotaResult | None:
     command = [agy, "-p", "/usage", "--output-format", "json", "--log-file", str(_CLI_LOG_PATH)]
     try:
         completed = subprocess.run(
@@ -252,14 +256,14 @@ def _run_usage_command(agy: str, timeout: float) -> AgyQuotaResult | None:
         if "Authentication required" in str(exc.stdout) or "Authentication required" in str(
             exc.stderr
         ):
-            mark_cli_signed_out()
+            mark_cli_signed_out(before)
         return None
     except (OSError, subprocess.SubprocessError):
         return None
     if "Authentication required" in str(completed.stdout) or "Authentication required" in str(
         getattr(completed, "stderr", "")
     ):
-        mark_cli_signed_out()
+        mark_cli_signed_out(before)
         return None
     if completed.returncode != 0:
         return None

@@ -344,7 +344,7 @@ def test_unchanged_stale_credential_keeps_gate_and_cooldown(
         probe, "_resolve_access_token", lambda _: pytest.fail("gate must not resolve tokens")
     )
     monkeypatch.setattr(probe, "_refresh_token", lambda *_: pytest.fail("gate must not refresh"))
-    probe.mark_cli_signed_out()
+    probe.mark_cli_signed_out(probe._credential_fingerprint())
     marker = json.loads(probe.CLI_SIGNED_OUT_PATH.read_text())
     assert set(marker) == {"fingerprint", "marked_at"}
     assert len(marker["fingerprint"]) == 64
@@ -356,7 +356,8 @@ def test_unchanged_stale_credential_keeps_gate_and_cooldown(
     for i in range(10):
         clock[0] = i * 180.0
         assert _invoke(caller) is None
-    assert len(reads) == 10
+    # The keeper also captures the pre-run digest immediately after taking the lock.
+    assert len(reads) == (20 if caller == "keeper" else 10)
     assert probe._cli_retry_after_monotonic == 1800.0
     assert json.loads(probe.CLI_SIGNED_OUT_PATH.read_text()) == marker
 
@@ -365,7 +366,7 @@ def test_changed_credential_failed_launch_rewrites_digest_and_keeps_cooldown(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     probe._TOKEN_PATH.write_text(json.dumps({"token": {"access_token": "old-fake-token"}}))
-    probe.mark_cli_signed_out()
+    probe.mark_cli_signed_out(probe._credential_fingerprint())
     old_digest = json.loads(probe.CLI_SIGNED_OUT_PATH.read_text())["fingerprint"]
     probe._TOKEN_PATH.write_text(json.dumps({"token": {"access_token": "new-fake-token"}}))
     clock = [100.0]
@@ -392,6 +393,69 @@ def test_changed_credential_failed_launch_rewrites_digest_and_keeps_cooldown(
     assert probe._cli_retry_after_monotonic == 1900.0
 
 
+@pytest.mark.parametrize(
+    ("caller", "failure"),
+    [
+        ("probe", "stdout"),
+        ("probe", "stderr"),
+        ("probe", "timeout_stdout"),
+        ("probe", "timeout_stderr"),
+        ("probe", "log"),
+        ("probe", "timeout_log"),
+        ("keeper", "stdout"),
+        ("keeper", "stderr"),
+    ],
+)
+@pytest.mark.parametrize("changed", [False, True])
+def test_failed_run_marks_only_unchanged_credential_and_retries_after_cooldown(
+    monkeypatch: pytest.MonkeyPatch, caller: str, failure: str, changed: bool
+) -> None:
+    probe._TOKEN_PATH.write_text(json.dumps({"token": {"access_token": "old-fake-token"}}))
+    before = probe._credential_fingerprint()
+    clock = [100.0]
+    monkeypatch.setattr(time, "monotonic", lambda: clock[0])
+    launches: list[float] = []
+
+    def run(command: list[str], **kwargs: object) -> subprocess.CompletedProcess[bytes]:
+        launches.append(clock[0])
+        if len(launches) > 1:
+            return _success(command)
+        if changed:
+            probe._TOKEN_PATH.write_text(json.dumps({"token": {"access_token": "new-fake-token"}}))
+        if "log" in failure:
+            probe._CLI_LOG_PATH.write_text("triggering interactive OAuth\n", encoding="utf-8")
+        stream = "stderr" if "stderr" in failure else "stdout"
+        if failure.startswith("timeout"):
+            error = subprocess.TimeoutExpired(command, 15)
+            if "log" not in failure:
+                setattr(error, stream, b"Authentication required")
+            raise error
+        result = subprocess.CompletedProcess(command, 1, b"", b"")
+        if failure != "log":
+            setattr(result, stream, b"Authentication required")
+        return result
+
+    monkeypatch.setattr(subprocess, "run", run)
+    _invoke(caller)
+    assert launches == [100.0]
+    assert probe.CLI_SIGNED_OUT_PATH.exists() is not changed
+    if not changed:
+        marker = json.loads(probe.CLI_SIGNED_OUT_PATH.read_text())
+        assert marker["fingerprint"] == before == probe._credential_fingerprint()
+    if caller == "probe":
+        assert probe._cli_retry_after_monotonic == 1900.0
+        clock[0] = 1899.0
+        assert _invoke(caller) is None
+        assert launches == [100.0]
+        assert probe._cli_retry_after_monotonic == 1900.0
+    clock[0] = 1900.0
+    assert (_invoke(caller) is not None) is changed
+    assert launches == ([100.0, 1900.0] if changed else [100.0])
+    assert probe.CLI_SIGNED_OUT_PATH.exists() is not changed
+    if changed:
+        assert probe._cli_retry_after_monotonic == 0.0
+
+
 @pytest.mark.parametrize("content", ["", "{broken", "[]", '{"fingerprint": null}', "\udcff"])
 def test_legacy_marker_waits_for_a_credential(content: str) -> None:
     probe.CLI_SIGNED_OUT_PATH.write_bytes(content.encode("utf-8", errors="surrogateescape"))
@@ -405,7 +469,7 @@ def test_legacy_marker_waits_for_a_credential(content: str) -> None:
 
 def test_disappearing_credential_does_not_open_gate(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(probe, "_read_token_file", lambda: {"token": {"access_token": "fake"}})
-    probe.mark_cli_signed_out()
+    probe.mark_cli_signed_out(probe._credential_fingerprint())
     monkeypatch.setattr(probe, "_read_token_file", lambda: None)
     assert not probe.agy_cli_signed_in(15)
     assert probe.CLI_SIGNED_OUT_PATH.exists()
