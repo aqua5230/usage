@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
-__version__ = "1.5"
+__version__ = "1.6"
 CLAUDE_STATUS = Path.home() / ".claude/usage-status.json"
 QUOTA_SNAPSHOT = Path.home() / ".usage/quota_snapshot.json"
 STATE_PATH = Path.home() / ".usage/quota_aware_state.json"
@@ -117,11 +117,17 @@ def _save(state: dict[str, Any]) -> None:
             os.unlink(temporary)
 
 
+def _local(timestamp: float) -> datetime:
+    return datetime.fromtimestamp(timestamp, timezone.utc).astimezone()
+
+
 def _usage(used: float, reset: float, now: float) -> str:
     minutes = max(1, math.ceil((reset - now) / 60))
     hours, minutes = divmod(minutes, 60)
     duration = f"{hours}h {minutes}m" if hours else f"{minutes}m"
-    return f"{used:g}% used, resets in {duration}"
+    at = _local(reset)
+    clock = f"{at:%H:%M}" if at.date() == _local(now).date() else f"{at:%a %H:%M}"
+    return f"{used:g}% used, resets in {duration} (at {clock} local time)"
 
 
 def reminder(session_id: str, now: float) -> str:
@@ -193,6 +199,7 @@ def reminder(session_id: str, now: float) -> str:
         "of these quotas, tell the user the remaining quota and reset time, and ask whether "
         "to do a smaller part now or wait for the reset. Otherwise, just proceed and don't "
         "mention quota.\n"
+        f"Current local time: {_local(now):%a %H:%M}.\n"
         f"Claude Code's own quota: {own_status} This Claude Code session runs on this quota."
     )
 
