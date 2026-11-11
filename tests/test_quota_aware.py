@@ -486,3 +486,210 @@ def test_reset_drift_within_a_window_is_announced_once(paths: Path) -> None:
     assert hook.reminder("one", NOW) == ""
     claude(91, reset=NOW + 4800 + 3600)
     assert "91% used" in hook.reminder("one", NOW)
+
+
+def service_snapshot(
+    *,
+    name: str = "Codex",
+    status: str = "partial_outage",
+    abnormal: Any = True,
+    source: str = "fetched",
+    age: float = 0,
+) -> None:
+    hook.SERVICE_SNAPSHOT.parent.mkdir(parents=True, exist_ok=True)
+    hook.SERVICE_SNAPSHOT.write_text(
+        json.dumps(
+            {
+                "generated_at": datetime.fromtimestamp(NOW - age, UTC).isoformat(),
+                "services": [
+                    {
+                        "service_name": name,
+                        "is_abnormal": abnormal,
+                        "status": status,
+                        "description": "Elevated errors",
+                        "source": source,
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+
+def test_service_incident_changes_and_recovers_once_per_session(paths: Path) -> None:
+    service_snapshot()
+    assert hook.reminder("one", NOW) == (
+        "[usage service status] Codex API official status: partial_outage (Elevated errors). "
+        "If a codex exec dispatch fails or hangs, suspect this incident first: "
+        "don't retry repeatedly or debug the task brief; switch to another agent "
+        "or tell the user. If you are not sending work to Codex, don't mention it."
+    )
+    assert hook.reminder("one", NOW + 1) == ""
+    assert "Codex API official status: partial_outage" in hook.reminder("two", NOW + 1)
+    service_snapshot(status="major_outage", source="cache")
+    assert "official status: major_outage" in hook.reminder("one", NOW + 2)
+    assert hook.reminder("one", NOW + 3) == ""
+    service_snapshot(status="operational", abnormal=False)
+    assert hook.reminder("one", NOW + 4) == (
+        "[usage service status] Codex API official status is back to operational; "
+        "the earlier incident notice no longer applies."
+    )
+    assert hook.reminder("one", NOW + 5) == ""
+    records = json.loads(hook.STATE_PATH.read_text())["services"]
+    assert json.dumps(["one", "Codex"]) not in records
+    assert json.dumps(["two", "Codex"]) in records
+    assert "back to operational" in hook.reminder("two", NOW + 5)
+
+
+def test_suppressed_service_alert_is_not_called_recovered(paths: Path) -> None:
+    service_snapshot(status="degraded_performance")
+    assert "official status: degraded_performance" in hook.reminder("one", NOW)
+    service_snapshot(status="degraded_performance", abnormal=False)
+    assert hook.reminder("one", NOW + 1) == (
+        "[usage service status] Codex API official status is still degraded_performance, "
+        "but it looks like a long-running minor issue; treat the service as usable and the "
+        "earlier incident notice as no longer applying."
+    )
+    assert hook.reminder("one", NOW + 2) == ""
+
+
+@pytest.mark.parametrize("name,label", [("Claude", "Claude Code / Claude API"), ("Other", "Other")])
+def test_service_claude_and_unknown_wording(paths: Path, name: str, label: str) -> None:
+    service_snapshot(name=name)
+    assert hook.reminder("one", NOW) == (
+        f"[usage service status] {label} official status: partial_outage (Elevated errors). "
+        "Slow responses, API errors, or failed subagents in this session may come "
+        "from this incident, not from the code; say so if it happens. "
+        "Otherwise don't mention it."
+    )
+    service_snapshot(name=name, status="operational", abnormal=False)
+    assert f"{label} official status is back to operational" in hook.reminder("one", NOW)
+
+
+@pytest.mark.parametrize("source", ["stale", "fallback", "unknown"])
+@pytest.mark.parametrize("abnormal", [True, False, "false", 0, 1, None])
+def test_untrusted_service_does_not_announce_or_recover(
+    paths: Path, source: str, abnormal: Any
+) -> None:
+    service_snapshot(source=source, abnormal=abnormal)
+    assert hook.reminder("one", NOW) == ""
+    service_snapshot()
+    hook.reminder("one", NOW)
+    previous = hook.STATE_PATH.read_text()
+    service_snapshot(source=source, abnormal=abnormal)
+    assert hook.reminder("one", NOW) == ""
+    assert hook.STATE_PATH.read_text() == previous
+
+
+@pytest.mark.parametrize("abnormal", ["true", "false", 0, 1, None])
+def test_service_requires_boolean_abnormal(paths: Path, abnormal: Any) -> None:
+    service_snapshot(abnormal=abnormal)
+    assert hook.reminder("one", NOW) == ""
+    assert not hook.STATE_PATH.exists()
+
+
+@pytest.mark.parametrize("generated", [None, "invalid", "2026-01-01T00:00:00", "old"])
+@pytest.mark.parametrize("abnormal", [True, False])
+def test_invalid_or_expired_service_snapshot_does_not_recover(
+    paths: Path, generated: Any, abnormal: bool
+) -> None:
+    service_snapshot()
+    hook.reminder("one", NOW)
+    previous = hook.STATE_PATH.read_text()
+    service_snapshot(abnormal=abnormal, age=901)
+    data = json.loads(hook.SERVICE_SNAPSHOT.read_text())
+    if generated != "old":
+        data["generated_at"] = generated
+    hook.SERVICE_SNAPSHOT.write_text(json.dumps(data))
+    assert hook.reminder("one", NOW) == ""
+    assert hook.reminder("new-session", NOW) == ""
+    assert hook.STATE_PATH.read_text() == previous
+
+
+@pytest.mark.parametrize("payload", ["broken", "[]", '{"services": []}'])
+def test_bad_service_snapshot_does_not_block_quota(paths: Path, payload: str) -> None:
+    hook.SERVICE_SNAPSHOT.parent.mkdir(parents=True, exist_ok=True)
+    hook.SERVICE_SNAPSHOT.write_text(payload)
+    claude(82)
+    assert hook.reminder("one", NOW).startswith("[usage quota] Claude Code 5-hour quota:")
+
+
+def test_service_snapshot_boundary_and_malformed_entries(paths: Path) -> None:
+    service_snapshot(age=900)
+    data = json.loads(hook.SERVICE_SNAPSHOT.read_text())
+    data["services"] += [None, "broken", {}, {"source": "cache", "is_abnormal": True}]
+    hook.SERVICE_SNAPSHOT.write_text(json.dumps(data))
+    output = hook.reminder("one", NOW)
+    assert output.startswith("[usage service status] Codex API official status:")
+    assert "[usage quota]" not in output
+    assert "Before starting a large task" not in output
+    assert "Claude Code's own quota" not in output
+
+
+def test_quota_only_unchanged_and_both_blocks_ordered(paths: Path) -> None:
+    claude(82)
+    quota = hook.reminder("quota-only", NOW)
+    assert quota == (
+        "[usage quota] Claude Code 5-hour quota: 82% used, resets in 1h 20m "
+        "(at 09:20 local time). Only limits work run in Claude Code.\n"
+        "Quotas for other tools or model groups do not limit this Claude Code session. "
+        "Before starting a large task (many files, long runs, subagents) that will use one "
+        "of these quotas, tell the user the remaining quota and reset time, and ask whether "
+        "to do a smaller part now or wait for the reset. Otherwise, just proceed and don't "
+        "mention quota.\nCurrent local time: Fri 08:00.\n"
+        "Claude Code's own quota: 5-hour 82% used, resets in 1h 20m "
+        "(at 09:20 local time); weekly 0% used, resets in 1h 20m "
+        "(at 09:20 local time). This Claude Code session runs on this quota."
+    )
+    service_snapshot()
+    both = hook.reminder("both", NOW)
+    assert both.startswith(quota + "\n\n[usage service status] ")
+    assert hook.reminder("both", NOW) == ""
+    service_snapshot(status="major_outage")
+    assert hook.reminder("both", NOW).startswith("[usage service status] ")
+    state = json.loads(hook.STATE_PATH.read_text())
+    assert state[json.dumps(["both", "Claude Code", "five_hour"])] == {
+        "resets_at": RESET,
+        "level": 80,
+    }
+    assert state["services"][json.dumps(["both", "Codex"])] == {
+        "status": "major_outage",
+        "at": NOW,
+    }
+    claude(91)
+    assert hook.reminder("both", NOW).startswith("[usage quota] ")
+    assert hook.reminder("both", NOW) == ""
+
+
+def test_service_records_pruned_and_saved_without_notices(paths: Path) -> None:
+    expired = json.dumps(["old", "Codex"])
+    current = json.dumps(["other", "Claude"])
+    quota_key = json.dumps(["one", "Claude Code", "five_hour"])
+    quota_record = {"resets_at": RESET, "level": 80}
+    hook.STATE_PATH.write_text(
+        json.dumps(
+            {
+                quota_key: quota_record,
+                "services": {
+                    expired: {"status": "partial_outage", "at": NOW - 7 * 86400 - 1},
+                    current: {"status": "major_outage", "at": NOW - 7 * 86400},
+                    "bad": {"status": "partial_outage", "at": "invalid"},
+                },
+            }
+        )
+    )
+    assert hook.reminder("one", NOW) == ""
+    state = json.loads(hook.STATE_PATH.read_text())
+    assert state[quota_key] == quota_record
+    assert state["services"] == {current: {"status": "major_outage", "at": NOW - 7 * 86400}}
+    assert not list(paths.glob("*.tmp"))
+
+
+def test_service_normal_without_record_is_silent(paths: Path) -> None:
+    service_snapshot(status="operational", abnormal=False)
+    assert hook.reminder("one", NOW) == ""
+    assert not hook.STATE_PATH.exists()
+
+
+def test_service_hook_versions_match() -> None:
+    assert hook.__version__ == session_hooks.QUOTA_AWARE_HOOK_VERSION == "1.7"

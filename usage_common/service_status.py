@@ -19,6 +19,7 @@ import os
 import tempfile
 import time
 import urllib.request
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -37,6 +38,7 @@ USER_AGENT = "usage/0.9"
 # make us buffer an unbounded response.
 MAX_RESPONSE_BYTES = 4 * 1024 * 1024
 ALERT_STATE_PATH = Path(os.path.expanduser("~/.usage/service_alert_state.json"))
+SNAPSHOT_PATH = Path(os.path.expanduser("~/.usage/service_status_snapshot.json"))
 
 StatusSource = Literal["fetched", "cache", "stale", "fallback"]
 _SEVERITY = {
@@ -97,6 +99,38 @@ class ServiceStatus:
 
 
 _last_failure_at: dict[str, float] = {}
+
+
+def write_snapshot(statuses: Sequence[ServiceStatus]) -> None:
+    """Publish the app's service decisions for standalone hooks."""
+    temporary = None
+    try:
+        payload = {
+            "generated_at": datetime.now(UTC).isoformat(),
+            "services": [
+                {
+                    "service_name": status.service_name,
+                    "is_abnormal": status.is_abnormal,
+                    "status": status.status,
+                    "description": status.description,
+                    "source": status.source,
+                }
+                for status in statuses
+            ],
+        }
+        SNAPSHOT_PATH.parent.mkdir(parents=True, exist_ok=True)
+        with tempfile.NamedTemporaryFile(
+            mode="w", encoding="utf-8", dir=SNAPSHOT_PATH.parent, suffix=".tmp", delete=False
+        ) as handle:
+            temporary = handle.name
+            json.dump(payload, handle)
+        os.replace(temporary, SNAPSHOT_PATH)
+    except (OSError, ValueError):
+        logger.warning("Service status snapshot write failed", exc_info=True)
+    finally:
+        if temporary is not None:
+            with contextlib.suppress(OSError):
+                os.unlink(temporary)
 
 
 def get_service_status(config: ServiceStatusConfig) -> ServiceStatus:

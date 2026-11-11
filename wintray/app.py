@@ -1759,6 +1759,8 @@ class _WindowsTrayController:
                         config.service_name,
                         exc_info=True,
                     )
+        if not self.mock:
+            service_status.write_snapshot(statuses)
         return tuple(statuses)
 
     async def _fetch(self) -> Any:

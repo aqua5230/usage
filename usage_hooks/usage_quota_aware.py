@@ -12,9 +12,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
-__version__ = "1.6"
+__version__ = "1.7"
 CLAUDE_STATUS = Path.home() / ".claude/usage-status.json"
 QUOTA_SNAPSHOT = Path.home() / ".usage/quota_snapshot.json"
+SERVICE_SNAPSHOT = Path.home() / ".usage/service_status_snapshot.json"
 STATE_PATH = Path.home() / ".usage/quota_aware_state.json"
 
 
@@ -103,6 +104,82 @@ def _windows(session_id: str, now: float) -> list[tuple[str, str, float, float, 
     return windows
 
 
+def _services(now: float) -> list[dict[str, Any]]:
+    snapshot = _read(SERVICE_SNAPSHOT)
+    try:
+        generated = _generated_at(snapshot.get("generated_at"))
+    except (ValueError, OverflowError):
+        return []
+    if now - generated > 900:
+        return []
+    services = snapshot.get("services")
+    if not isinstance(services, list):
+        return []
+    return [
+        entry
+        for entry in services
+        if isinstance(entry, dict)
+        and entry.get("source") in ("fetched", "cache")
+        and isinstance(entry.get("is_abnormal"), bool)
+        and all(
+            isinstance(entry.get(key), str) for key in ("service_name", "status", "description")
+        )
+    ]
+
+
+def _service_reminders(
+    session_id: str, now: float, state: dict[str, Any]
+) -> tuple[list[str], bool]:
+    previous = state.get("services", {})
+    records = {
+        key: value
+        for key, value in (previous.items() if isinstance(previous, dict) else [])
+        if isinstance(value, dict)
+        and isinstance(value.get("status"), str)
+        and (_number(value.get("at")) or 0) >= now - 7 * 86400
+    }
+    changed = records != previous
+    messages = []
+    for entry in _services(now):
+        name = entry["service_name"]
+        label = {"Claude": "Claude Code / Claude API", "Codex": "Codex API"}.get(name, name)
+        key = json.dumps([session_id, name])
+        seen = records.get(key)
+        if not entry["is_abnormal"]:
+            if seen is not None:
+                # The app also clears is_abnormal for long-running minor issues it suppresses.
+                messages.append(
+                    f"{label} official status is back to operational; "
+                    "the earlier incident notice no longer applies."
+                    if entry["status"] == "operational"
+                    else f"{label} official status is still {entry['status']}, but it looks like "
+                    "a long-running minor issue; treat the service as usable and the earlier "
+                    "incident notice as no longer applying."
+                )
+                del records[key]
+                changed = True
+        elif seen is None or seen["status"] != entry["status"]:
+            message = f"{label} official status: {entry['status']} ({entry['description']}). "
+            if name == "Codex":
+                message += (
+                    "If a codex exec dispatch fails or hangs, suspect this incident first: "
+                    "don't retry repeatedly or debug the task brief; switch to another agent "
+                    "or tell the user. If you are not sending work to Codex, don't mention it."
+                )
+            else:
+                message += (
+                    "Slow responses, API errors, or failed subagents in this session may come "
+                    "from this incident, not from the code; say so if it happens. "
+                    "Otherwise don't mention it."
+                )
+            messages.append(message)
+            records[key] = {"status": entry["status"], "at": now}
+            changed = True
+    if records or "services" in state:
+        state["services"] = records
+    return messages, changed
+
+
 def _save(state: dict[str, Any]) -> None:
     STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.NamedTemporaryFile(
@@ -131,12 +208,15 @@ def _usage(used: float, reset: float, now: float) -> str:
 
 
 def reminder(session_id: str, now: float) -> str:
-    state = {
+    state: dict[str, Any] = {
         key: value
         for key, value in _read(STATE_PATH).items()
-        if isinstance(value, dict)
-        and (_number(value.get("resets_at")) or 0) > now
-        and _number(value.get("level")) is not None
+        if key == "services"
+        or (
+            isinstance(value, dict)
+            and (_number(value.get("resets_at")) or 0) > now
+            and _number(value.get("level")) is not None
+        )
     }
     messages = []
     limited = set()
@@ -166,9 +246,14 @@ def reminder(session_id: str, now: float) -> str:
             messages.append(f"{tool} {label} quota: {usage}. Only limits {scope}.")
         messages[-1] += suffix
         state[key] = {"resets_at": reset, "level": level}
+    service_messages, services_changed = _service_reminders(session_id, now, state)
+    service_block = (
+        "[usage service status] " + "\n".join(service_messages) if service_messages else ""
+    )
+    if messages or services_changed:
+        _save(state)
     if not messages:
-        return ""
-    _save(state)
+        return service_block
     # A spent agy model group reads as "Antigravity is used up" unless the groups that
     # still have quota are named next to it.
     open_groups: dict[str, float] = {}
@@ -192,7 +277,7 @@ def reminder(session_id: str, now: float) -> str:
         if own
         else "unknown."
     )
-    return (
+    quota_block = (
         "[usage quota] " + "\n".join(messages) + "\n"
         "Quotas for other tools or model groups do not limit this Claude Code session. "
         "Before starting a large task (many files, long runs, subagents) that will use one "
@@ -202,6 +287,7 @@ def reminder(session_id: str, now: float) -> str:
         f"Current local time: {_local(now):%a %H:%M}.\n"
         f"Claude Code's own quota: {own_status} This Claude Code session runs on this quota."
     )
+    return quota_block + ("\n\n" + service_block if service_block else "")
 
 
 def main() -> None:
