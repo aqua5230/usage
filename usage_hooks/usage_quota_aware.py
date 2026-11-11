@@ -3,20 +3,102 @@
 
 from __future__ import annotations
 
+import errno
 import json
 import math
 import os
 import sys
 import tempfile
+import time
+from contextlib import contextmanager, suppress
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
-__version__ = "1.10"
+__version__ = "1.11"
 CLAUDE_STATUS = Path.home() / ".claude/usage-status.json"
 QUOTA_SNAPSHOT = Path.home() / ".usage/quota_snapshot.json"
 SERVICE_SNAPSHOT = Path.home() / ".usage/service_status_snapshot.json"
 STATE_PATH = Path.home() / ".usage/quota_aware_state.json"
+
+
+_fcntl: Any = None
+_msvcrt: Any = None
+if sys.platform == "win32":
+    try:
+        import msvcrt
+    except ImportError:
+        pass
+    else:
+        _msvcrt = msvcrt
+else:
+    try:
+        import fcntl
+    except ImportError:
+        pass
+    else:
+        _fcntl = fcntl
+
+_LOCK_TIMEOUT_S = 0.5
+_LOCK_POLL_INTERVAL_S = 0.001
+_LOCK_CONTENDED_ERRNOS = frozenset(
+    (errno.EACCES, getattr(errno, "EDEADLOCK", errno.EDEADLK), errno.EDEADLK)
+)
+
+
+def _acquire_msvcrt_lock(lock_fd: int) -> bool:
+    deadline = time.monotonic() + _LOCK_TIMEOUT_S
+    while True:
+        try:
+            if os.fstat(lock_fd).st_size == 0:
+                os.write(lock_fd, b"\0")
+            os.lseek(lock_fd, 0, os.SEEK_SET)
+            _msvcrt.locking(lock_fd, _msvcrt.LK_NBLCK, 1)
+            return True
+        except OSError as exc:
+            if exc.errno not in _LOCK_CONTENDED_ERRNOS or time.monotonic() >= deadline:
+                return False
+            time.sleep(_LOCK_POLL_INTERVAL_S)
+
+
+@contextmanager
+def _exclusive_lock() -> Any:
+    """Bound the wait; unavailable locks must not prevent a prompt."""
+    try:
+        STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        lock_fd = os.open(STATE_PATH.with_suffix(".lock"), os.O_CREAT | os.O_RDWR, 0o600)
+    except OSError:
+        yield
+        return
+    locked = False
+    try:
+        if _fcntl is not None:
+            deadline = time.monotonic() + _LOCK_TIMEOUT_S
+            while True:
+                try:
+                    _fcntl.flock(lock_fd, _fcntl.LOCK_EX | _fcntl.LOCK_NB)
+                    locked = True
+                    break
+                except OSError as exc:
+                    if (
+                        exc.errno not in (errno.EACCES, errno.EAGAIN)
+                        or time.monotonic() >= deadline
+                    ):
+                        break
+                    time.sleep(_LOCK_POLL_INTERVAL_S)
+        elif _msvcrt is not None:
+            locked = _acquire_msvcrt_lock(lock_fd)
+        yield
+    finally:
+        if locked:
+            with suppress(OSError):
+                if _fcntl is not None:
+                    _fcntl.flock(lock_fd, _fcntl.LOCK_UN)
+                elif _msvcrt is not None:
+                    os.lseek(lock_fd, 0, os.SEEK_SET)
+                    _msvcrt.locking(lock_fd, _msvcrt.LK_UNLCK, 1)
+        with suppress(OSError):
+            os.close(lock_fd)
 
 
 def _read(path: Path) -> dict[str, Any]:
@@ -69,24 +151,30 @@ def _account_reminder(session_id: str, now: float, state: dict[str, Any]) -> tup
             )
             for window in ("five_hour", "seven_day"):
                 state.pop(json.dumps([session_id, "Claude Code", window]), None)
-            records[session_id]["changed_at"] = now
-            # The status line re-stamps the old account's cached numbers on every redraw,
-            # so only numbers that differ from these count as the new account's.
-            records[session_id]["old_limits"] = _read(CLAUDE_STATUS).get("rate_limits")
+            limits = _read(CLAUDE_STATUS).get("rate_limits")
+            records[session_id]["old_limits"] = {
+                name: limits[name]
+                for name in ("five_hour", "seven_day")
+                if isinstance(limits, dict) and isinstance(limits.get(name), dict)
+            }
         seen = records[session_id]
         changed = True
     pending = False
-    if seen is not None and (changed_at := _number(seen.get("changed_at"))) is not None:
-        status = _read(CLAUDE_STATUS)
-        received = _number(status.get("_received_at_ts"))
-        pending = (
-            received is None
-            or received <= changed_at
-            or status.get("rate_limits") == seen.get("old_limits")
-        )
+    if seen is not None and isinstance(seen.get("old_limits"), dict):
+        limits = _read(CLAUDE_STATUS).get("rate_limits")
+        old_limits = seen["old_limits"]
+        for name, window in list(old_limits.items()):
+            reset = _number(window.get("resets_at")) if isinstance(window, dict) else None
+            if (
+                not isinstance(limits, dict)
+                or limits.get(name) != window
+                or (reset is not None and reset <= now)
+            ):
+                del old_limits[name]
+                changed = True
+        pending = bool(old_limits)
         if not pending:
-            del seen["changed_at"]
-            seen.pop("old_limits", None)
+            del seen["old_limits"]
             changed = True
     if records or "accounts" in state:
         state["accounts"] = records
@@ -274,8 +362,11 @@ def _usage(used: float, reset: float, now: float) -> str:
 def _claude_pending(session_id: str) -> bool:
     # Claude Code's quota is tied to this session only after its first reply (see _windows),
     # so an overview sent before that would leave out the quota this session runs on.
-    owner = _read(CLAUDE_STATUS).get("_rate_limits_session_id")
-    return isinstance(owner, str) and owner != session_id
+    status = _read(CLAUDE_STATUS)
+    owner = status.get("_rate_limits_session_id")
+    return (isinstance(owner, str) and owner != session_id) or (
+        "_rate_limits_session_id" in status and owner is None and _account_uuid() is not None
+    )
 
 
 def _overview_reminder(
@@ -319,6 +410,11 @@ def _overview_reminder(
 
 
 def reminder(session_id: str, now: float) -> str:
+    with _exclusive_lock():
+        return _reminder(session_id, now)
+
+
+def _reminder(session_id: str, now: float) -> str:
     state: dict[str, Any] = {
         key: value
         for key, value in _read(STATE_PATH).items()
@@ -333,8 +429,10 @@ def reminder(session_id: str, now: float) -> str:
     limited = set()
     account_line, accounts_changed, account_pending = _account_reminder(session_id, now, state)
     windows = _windows(session_id, now)
-    if account_pending:
-        windows = [entry for entry in windows if entry[0] != "Claude Code"]
+    old_limits = state["accounts"][session_id]["old_limits"] if account_pending else {}
+    windows = [
+        entry for entry in windows if entry[0] != "Claude Code" or entry[1] not in old_limits
+    ]
     overview_block, overview_changed = _overview_reminder(session_id, now, state, windows)
     current = {(tool, window): (used, reset) for tool, window, used, reset, _suffix in windows}
     reset_lines = [account_line] if account_line else []
@@ -358,9 +456,14 @@ def reminder(session_id: str, now: float) -> str:
                 quota_changed = True
             continue
         _, tool, window = parts
-        if account_pending and tool == "Claude Code":
+        if tool == "Claude Code" and window in old_limits:
             continue
         latest = current.get((tool, window))
+        if latest is not None and abs(seen["resets_at"] - latest[1]) < 600:
+            if seen["resets_at"] != latest[1]:
+                seen["resets_at"] = latest[1]
+                quota_changed = True
+            continue
         if seen["resets_at"] > now and not (
             latest is not None and latest[1] - seen["resets_at"] >= 600
         ):
@@ -384,7 +487,11 @@ def reminder(session_id: str, now: float) -> str:
         # minute between snapshots, so a reset within 10 minutes is the same window.
         key = json.dumps([session_id, tool, window])
         seen = state.get(key, {})
-        announced = seen.get("level", 0) if abs(seen.get("resets_at", 0) - reset) < 600 else 0
+        same_window = abs(seen.get("resets_at", 0) - reset) < 600
+        announced = seen.get("level", 0) if same_window else 0
+        if same_window and seen["resets_at"] != reset:
+            seen["resets_at"] = reset
+            quota_changed = True
         if not level or level <= announced:
             continue
         label = "5-hour" if window == "five_hour" else "weekly"

@@ -2,7 +2,11 @@ from __future__ import annotations
 
 import io
 import json
+import os
 import sys
+import threading
+import time
+from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -137,8 +141,6 @@ def test_account_switch_clears_only_own_claude_notices(accounts: Path) -> None:
         "one": {
             "uuid": "B",
             "at": NOW + 1,
-            "changed_at": NOW + 1,
-            "old_limits": json.loads(hook.CLAUDE_STATUS.read_text())["rate_limits"],
         },
         "two": {"uuid": "A", "at": NOW},
     }
@@ -157,18 +159,26 @@ def test_account_switch_waits_for_new_status(accounts: Path, received: Any) -> N
 
     assert hook.reminder("one", NOW + 1) == "[usage quota] " + ACCOUNT_LINE
     assert hook.reminder("one", NOW + 2) == ""
-    assert json.loads(hook.STATE_PATH.read_text())["accounts"]["one"]["changed_at"] == NOW + 1
+    assert (
+        json.loads(hook.STATE_PATH.read_text())["accounts"]["one"]["old_limits"]
+        == status["rate_limits"]
+    )
     status["_received_at_ts"] = NOW + 3
     hook.CLAUDE_STATUS.write_text(json.dumps(status))
     # A redraw re-stamps the old account's cached numbers; they still don't count.
     assert hook.reminder("one", NOW + 3) == ""
-    assert json.loads(hook.STATE_PATH.read_text())["accounts"]["one"]["changed_at"] == NOW + 1
+    assert (
+        json.loads(hook.STATE_PATH.read_text())["accounts"]["one"]["old_limits"]
+        == status["rate_limits"]
+    )
     status["rate_limits"]["five_hour"]["used_percentage"] = 96
     hook.CLAUDE_STATUS.write_text(json.dumps(status))
     output = hook.reminder("one", NOW + 4)
     assert "Claude Code 5-hour quota: 96% used" in output
     assert ACCOUNT_LINE not in output
-    assert "changed_at" not in json.loads(hook.STATE_PATH.read_text())["accounts"]["one"]
+    assert json.loads(hook.STATE_PATH.read_text())["accounts"]["one"]["old_limits"] == {
+        "seven_day": status["rate_limits"]["seven_day"]
+    }
     assert hook.reminder("one", NOW + 5) == ""
 
 
@@ -197,7 +207,7 @@ def test_account_switch_is_scoped_to_session(accounts: Path) -> None:
     assert hook.reminder("one", NOW + 2) == "[usage quota] " + ACCOUNT_LINE
     assert "Claude Code 5-hour quota: 95% used" in hook.reminder("three", NOW + 3)
     assert hook.reminder("two", NOW + 3) == ""
-    assert "changed_at" not in json.loads(hook.STATE_PATH.read_text())["accounts"]["two"]
+    assert "old_limits" not in json.loads(hook.STATE_PATH.read_text())["accounts"]["two"]
 
 
 def test_account_config_path_is_dynamic_and_uses_first_dir(
@@ -913,7 +923,7 @@ def test_service_normal_without_record_is_silent(paths: Path) -> None:
 
 
 def test_service_hook_versions_match() -> None:
-    assert hook.__version__ == session_hooks.QUOTA_AWARE_HOOK_VERSION == "1.10"
+    assert hook.__version__ == session_hooks.QUOTA_AWARE_HOOK_VERSION == "1.11"
 
 
 @pytest.mark.parametrize("window,label", [("five_hour", "5-hour"), ("seven_day", "weekly")])
@@ -959,7 +969,14 @@ def test_early_codex_reset(paths: Path, difference: float) -> None:
         assert json.loads(hook.STATE_PATH.read_text()) == {}
     else:
         assert output == ""
-        assert hook.STATE_PATH.read_text() == previous
+        if abs(difference) < 600:
+            state = json.loads(hook.STATE_PATH.read_text())
+            key = json.dumps(["one", "Codex", "five_hour"])
+            expected = json.loads(previous)[key]
+            expected["resets_at"] = NOW + 3 * 3600 + difference
+            assert state[key] == expected
+        else:
+            assert hook.STATE_PATH.read_text() == previous
     assert hook.reminder("one", NOW) == ""
 
 
@@ -972,7 +989,11 @@ def test_agy_reset_within_tolerance_keeps_notice(paths: Path, drift: float) -> N
     hook.QUOTA_SNAPSHOT.write_text(json.dumps(data))
     previous = hook.STATE_PATH.read_text()
     assert hook.reminder("one", NOW) == ""
-    assert hook.STATE_PATH.read_text() == previous
+    state = json.loads(hook.STATE_PATH.read_text())
+    key = json.dumps(["one", "Antigravity (CLAUDE AND GPT MODELS)", "seven_day"])
+    expected = json.loads(previous)[key]
+    expected["resets_at"] += drift
+    assert state[key] == expected
 
 
 def test_agy_reset_uses_group_name_without_current_window(paths: Path) -> None:
@@ -1229,3 +1250,276 @@ def test_overview_malformed_state_does_not_block_output(overview: None, previous
     claude(0, 0)
     assert hook.reminder("one", NOW).startswith("[usage quota overview] ")
     assert json.loads(hook.STATE_PATH.read_text()) == {"overview": {"one": NOW}}
+
+
+def test_parallel_prompts_preserve_all_records(
+    accounts: Path, overview: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    account_config(accounts, "A")
+    overview_snapshot()
+    data = json.loads(hook.QUOTA_SNAPSHOT.read_text())
+    data["agents"]["codex"]["five_hour"]["used_percent"] = 91
+    hook.QUOTA_SNAPSHOT.write_text(json.dumps(data))
+    service_snapshot()
+    read = hook._read
+    start = threading.Barrier(2)
+
+    def slow_read(path: Path) -> dict[str, Any]:
+        result = read(path)
+        if path == hook.STATE_PATH:
+            # Leave enough overlap to expose an unlocked read-decide-write.
+            time.sleep(0.05)
+        return result
+
+    def prompt(session: str) -> str:
+        start.wait(timeout=5)
+        return hook.reminder(session, NOW)
+
+    with monkeypatch.context() as patch:
+        patch.setattr(hook, "_read", slow_read)
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            futures = [pool.submit(prompt, session) for session in ("one", "two")]
+            assert all("[usage quota overview]" in future.result(timeout=5) for future in futures)
+    state = read(hook.STATE_PATH)
+    assert set(state["accounts"]) == set(state["overview"]) == {"one", "two"}
+    for session in ("one", "two"):
+        assert json.dumps([session, "Codex"]) in state["services"]
+        assert json.dumps([session, "Codex", "five_hour"]) in state
+        assert hook.reminder(session, NOW) == ""
+    if sys.platform != "win32":
+        assert hook.STATE_PATH.with_suffix(".lock").stat().st_mode & 0o777 == 0o600
+
+
+def test_parallel_prompts_same_session_warn_once(paths: Path) -> None:
+    claude(95)
+    start = threading.Barrier(2)
+
+    def prompt() -> str:
+        start.wait(timeout=5)
+        return hook.reminder("one", NOW)
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        futures = [pool.submit(prompt) for _ in range(2)]
+        outputs = [future.result(timeout=5) for future in futures]
+    assert sum("Claude Code 5-hour quota: 95% used" in output for output in outputs) == 1
+    assert outputs.count("") == 1
+
+
+@pytest.mark.parametrize("backend", ["posix", "windows"])
+@pytest.mark.parametrize("contended", [False, True])
+def test_lock_errors_and_deadline_allow_prompt(
+    paths: Path, monkeypatch: pytest.MonkeyPatch, backend: str, contended: bool
+) -> None:
+    import errno
+    from types import SimpleNamespace
+
+    attempts = []
+
+    def unavailable(*args: Any) -> None:
+        attempts.append(args)
+        raise OSError(errno.EACCES if contended else errno.EBADF, "lock unavailable")
+
+    native = SimpleNamespace(flock=unavailable, LOCK_EX=2, LOCK_NB=4, LOCK_UN=8)
+    windows = SimpleNamespace(locking=unavailable, LK_NBLCK=2, LK_UNLCK=0)
+    monkeypatch.setattr(hook, "_fcntl", native if backend == "posix" else None)
+    monkeypatch.setattr(hook, "_msvcrt", windows if backend == "windows" else None)
+    clock = iter([0.0, 0.1, 0.6])
+    monkeypatch.setattr(time, "monotonic", lambda: next(clock))
+    monkeypatch.setattr(time, "sleep", lambda _: None)
+    claude(95)
+    assert "Claude Code 5-hour quota: 95% used" in hook.reminder("one", NOW)
+    assert len(attempts) == (2 if contended else 1)
+    assert hook._LOCK_TIMEOUT_S <= 1
+
+
+def test_lock_open_failure_allows_prompt(paths: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    open_file = os.open
+
+    def unavailable(path: Any, *args: Any, **kwargs: Any) -> int:
+        if path == hook.STATE_PATH.with_suffix(".lock"):
+            raise OSError("lock file unavailable")
+        return open_file(path, *args, **kwargs)
+
+    monkeypatch.setattr(os, "open", unavailable)
+    claude(95)
+    assert "Claude Code 5-hour quota: 95% used" in hook.reminder("one", NOW)
+
+
+@pytest.fixture
+def status_writer(paths: Path, monkeypatch: pytest.MonkeyPatch) -> Any:
+    from usage_hooks import usage_statusline
+
+    monkeypatch.setattr(usage_statusline, "STATUS_FILE", str(hook.CLAUDE_STATUS))
+    monkeypatch.setattr(usage_statusline, "LOCK_FILE", str(paths / "status.lock"))
+    return usage_statusline.save
+
+
+@pytest.mark.parametrize("fresh", ["five_hour", "seven_day"])
+def test_account_switch_filters_each_cached_window(
+    accounts: Path, overview: None, status_writer: Any, fresh: str
+) -> None:
+    account_config(accounts, "A")
+    old = {
+        "five_hour": {"used_percentage": 95, "resets_at": RESET},
+        "seven_day": {"used_percentage": 96, "resets_at": NOW + 86400},
+    }
+    status_writer({"session_id": "one", "rate_limits": old}, datetime.fromtimestamp(NOW, UTC))
+    hook.reminder("one", NOW)
+    account_config(accounts, "B")
+    assert ACCOUNT_LINE in hook.reminder("one", NOW + 1)
+    status_writer(
+        {"session_id": "one", "rate_limits": {fresh: {**old[fresh], "used_percentage": 3}}},
+        datetime.fromtimestamp(NOW + 2, UTC),
+    )
+    cached = "seven_day" if fresh == "five_hour" else "five_hour"
+    assert hook._read(hook.CLAUDE_STATUS)["rate_limits"][cached] == old[cached]
+    # Force a new overview and a quota warning to check both descriptions.
+    state = hook._read(hook.STATE_PATH)
+    state.pop("overview")
+    hook._save(state)
+    snapshot()
+    output = hook.reminder("one", NOW + 3)
+    label = "weekly" if fresh == "seven_day" else "5-hour"
+    stale_label = "5-hour" if fresh == "seven_day" else "weekly"
+    assert f"Claude Code: {label} 3% used" in output
+    assert f"{stale_label} unknown" in output
+    assert "95% used" not in output and "96% used" not in output
+    assert "Claude Code " + stale_label + " quota has reset" not in output
+    assert hook._read(hook.STATE_PATH)["accounts"]["one"]["old_limits"] == {cached: old[cached]}
+    status_writer(
+        {"session_id": "one", "rate_limits": {cached: {**old[cached], "used_percentage": 97}}},
+        datetime.fromtimestamp(NOW + 4, UTC),
+    )
+    assert f"Claude Code {stale_label} quota: 97% used" in hook.reminder("one", NOW + 4)
+    assert "old_limits" not in hook._read(hook.STATE_PATH)["accounts"]["one"]
+
+
+def test_account_switch_drops_expired_cached_windows(accounts: Path) -> None:
+    account_config(accounts, "A")
+    claude(95, 96, reset=NOW + 2)
+    hook.reminder("one", NOW)
+    account_config(accounts, "B")
+    assert ACCOUNT_LINE in hook.reminder("one", NOW + 1)
+    assert hook.reminder("one", NOW + 2) == ""
+    assert "old_limits" not in hook._read(hook.STATE_PATH)["accounts"]["one"]
+
+
+@pytest.mark.parametrize("tool", ["Claude Code", "Codex", "Antigravity (GEMINI)"])
+@pytest.mark.parametrize("used", [10, 95])
+def test_same_window_drift_keeps_level_and_does_not_reset(
+    paths: Path, tool: str, used: float
+) -> None:
+    def observation(at: float, reset: float, percentage: float) -> None:
+        window = {"used_percent": percentage, "resets_at": reset}
+        agents: dict[str, Any] = {}
+        if tool == "Claude Code":
+            claude(percentage, reset=reset)
+        elif tool == "Codex":
+            agents["codex"] = {"available": True, "five_hour": window}
+        else:
+            window.pop("resets_at")
+            window["resets_in_seconds"] = reset - at
+            agents["antigravity"] = {
+                "available": True,
+                "groups": [{"name": "GEMINI", "five_hour": window}],
+            }
+        hook.QUOTA_SNAPSHOT.write_text(
+            json.dumps(
+                {"generated_at": datetime.fromtimestamp(at, UTC).isoformat(), "agents": agents}
+            )
+        )
+
+    observation(NOW, NOW + 60, 95)
+    assert "5-hour quota: 95% used" in hook.reminder("one", NOW)
+    observation(NOW + 30, NOW + 120, used)
+    assert hook.reminder("one", NOW + 30) == ""
+    assert hook.reminder("one", NOW + 60) == ""
+    key = json.dumps(["one", tool, "five_hour"])
+    assert hook._read(hook.STATE_PATH)[key] == {"resets_at": NOW + 120, "level": 95}
+    observation(NOW + 61, NOW + 120, 95)
+    assert hook.reminder("one", NOW + 61) == ""
+    assert "5-hour quota has reset" in hook.reminder("one", NOW + 120)
+    assert hook.reminder("one", NOW + 121) == ""
+
+
+def test_expired_record_with_same_window_observation_does_not_reset(paths: Path) -> None:
+    key = json.dumps(["one", "Claude Code", "five_hour"])
+    hook.STATE_PATH.write_text(json.dumps({key: {"resets_at": NOW - 1, "level": 95}}))
+    claude(95, reset=NOW + 598)
+    assert hook.reminder("one", NOW) == ""
+    assert hook._read(hook.STATE_PATH)[key] == {"resets_at": NOW + 598, "level": 95}
+
+
+@pytest.mark.parametrize("owner", [None, "missing", "previous"])
+@pytest.mark.parametrize("oauth", [False, True])
+def test_overview_owner_null_waits_only_for_known_oauth(
+    accounts: Path, overview: None, status_writer: Any, owner: Any, oauth: bool
+) -> None:
+    if oauth:
+        account_config(accounts, "A")
+    overview_snapshot()
+    status_writer({"session_id": "one"}, datetime.fromtimestamp(NOW, UTC))
+    status = hook._read(hook.CLAUDE_STATUS)
+    assert status["_rate_limits_session_id"] is None
+    if owner == "missing":
+        status.pop("_rate_limits_session_id")
+    else:
+        status["_rate_limits_session_id"] = owner
+    hook.CLAUDE_STATUS.write_text(json.dumps(status))
+    pending = owner == "previous" or (owner is None and oauth)
+    first = hook.reminder("one", NOW)
+    assert ("[usage quota overview]" not in first) == pending
+    assert ("one" not in hook._read(hook.STATE_PATH).get("overview", {})) == pending
+    status_writer(
+        {
+            "session_id": "one",
+            "rate_limits": {
+                "five_hour": {"used_percentage": 3, "resets_at": RESET},
+                "seven_day": {"used_percentage": 12, "resets_at": RESET},
+            },
+        },
+        datetime.fromtimestamp(NOW + 1, UTC),
+    )
+    second = hook.reminder("one", NOW + 2)
+    if pending:
+        assert "Claude Code: 5-hour 3% used" in second and "weekly 12% used" in second
+    else:
+        assert second == ""
+    assert hook.reminder("one", NOW + 3) == ""
+
+
+@pytest.mark.parametrize("backend", ["posix", "windows"])
+def test_lock_retries_then_releases(
+    paths: Path, monkeypatch: pytest.MonkeyPatch, backend: str
+) -> None:
+    import errno
+    from types import SimpleNamespace
+
+    calls = []
+
+    def native_lock(fd: int, operation: int, *args: Any) -> None:
+        calls.append(operation)
+        if len(calls) == 1:
+            raise OSError(errno.EACCES, "contended")
+        if backend == "windows":
+            assert os.lseek(fd, 0, os.SEEK_CUR) == 0
+        if operation == 8:
+            raise OSError("unlock failed")
+
+    monkeypatch.setattr(
+        hook,
+        "_fcntl",
+        SimpleNamespace(flock=native_lock, LOCK_EX=2, LOCK_NB=4, LOCK_UN=8)
+        if backend == "posix"
+        else None,
+    )
+    monkeypatch.setattr(
+        hook,
+        "_msvcrt",
+        SimpleNamespace(locking=native_lock, LK_NBLCK=6, LK_UNLCK=8)
+        if backend == "windows"
+        else None,
+    )
+    claude(95)
+    assert "Claude Code 5-hour quota: 95% used" in hook.reminder("one", NOW)
+    assert calls == [6, 6, 8]
