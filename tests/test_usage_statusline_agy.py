@@ -674,3 +674,16 @@ def test_render_shows_reset_clock_like_claude_statusline(
 
     assert expected_five in output
     assert expected_weekly in output
+
+
+@pytest.mark.parametrize("age", [60, 7200])
+def test_carried_weekly_cache_age_gate_keeps_five_hour(age: int) -> None:
+    now = datetime.now(UTC)
+    _write_usage_cache(timedelta(minutes=1))
+    path = Path(usage_statusline_agy.USAGE_AGY_CACHE)
+    cache = json.loads(path.read_text())
+    cache["groups"][0]["weekly_fetched_at"] = (now - timedelta(seconds=age)).isoformat()
+    path.write_text(json.dumps(cache))
+    quota = usage_statusline_agy._usage_cached_quota(now)
+    assert "gemini-5h" in quota
+    assert ("gemini-weekly" in quota) == (age == 60)

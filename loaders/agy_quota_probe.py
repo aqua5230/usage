@@ -15,7 +15,9 @@ the internal ``retrieveUserQuotaSummary`` endpoint for the quota summary.
 
 from __future__ import annotations
 
+import hashlib
 import json
+import math
 import os
 import platform
 import subprocess
@@ -57,22 +59,35 @@ def _mark_auth_expired() -> None:
         AUTH_EXPIRED_PATH.touch()
 
 
-def mark_cli_signed_out() -> None:
+def mark_cli_signed_out(before: str | None) -> None:
+    after = _credential_fingerprint()
+    if after != before:
+        return
     with suppress(OSError):
         CLI_SIGNED_OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-        CLI_SIGNED_OUT_PATH.touch()
+        CLI_SIGNED_OUT_PATH.write_text(
+            json.dumps({"fingerprint": after, "marked_at": time.time()}),
+            encoding="utf-8",
+        )
 
 
 def agy_cli_signed_in(timeout: float) -> bool:
-    """Retry a known signed-out CLI only after the existing token resolver succeeds."""
+    """Open the gate for a readable credential; bypass cooldown only for a known change."""
     global _cli_retry_after_monotonic
     if not CLI_SIGNED_OUT_PATH.exists():
         return True
-    if not _resolve_access_token(timeout):
+    try:
+        marker = json.loads(CLI_SIGNED_OUT_PATH.read_text(encoding="utf-8"))
+    except (OSError, ValueError, UnicodeError):
+        marker = {}
+    stored = marker.get("fingerprint") if isinstance(marker, dict) else None
+    current = _credential_fingerprint()
+    if current is None or current == stored:
         return False
     with suppress(OSError):
         CLI_SIGNED_OUT_PATH.unlink(missing_ok=True)
-    _cli_retry_after_monotonic = 0.0
+    if isinstance(stored, str):
+        _cli_retry_after_monotonic = 0.0
     return True
 
 
@@ -144,6 +159,7 @@ class AgyQuotaGroup:
     weekly: AgyQuotaWindow | None
     five_hour: AgyQuotaWindow | None
     weekly_fetched_at: str | None = None
+    weekly_resets_at: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -200,10 +216,11 @@ def _probe_via_cli(timeout: float) -> AgyQuotaResult | None:
         # Offline, the CLI would open a browser sign-in page.
         if not google_auth_reachable():
             return None
+        before = _credential_fingerprint()
         log_offset = 0
         with suppress(OSError):
             log_offset = _CLI_LOG_PATH.stat().st_size
-        result = _run_usage_command(agy, timeout)
+        result = _run_usage_command(agy, timeout, before)
         if result is None:
             with suppress(OSError):
                 with _CLI_LOG_PATH.open("rb") as log:
@@ -215,7 +232,7 @@ def _probe_via_cli(timeout: float) -> AgyQuotaResult | None:
                     b"Print mode: not authenticated" in tail
                     or b"triggering interactive OAuth" in tail
                 ):
-                    mark_cli_signed_out()
+                    mark_cli_signed_out(before)
         _cli_retry_after_monotonic = (
             0.0 if result is not None else time.monotonic() + _CLI_FAILURE_COOLDOWN_SECONDS
         )
@@ -224,7 +241,7 @@ def _probe_via_cli(timeout: float) -> AgyQuotaResult | None:
         BACKGROUND_AGY_LOCK.release()
 
 
-def _run_usage_command(agy: str, timeout: float) -> AgyQuotaResult | None:
+def _run_usage_command(agy: str, timeout: float, before: str | None) -> AgyQuotaResult | None:
     command = [agy, "-p", "/usage", "--output-format", "json", "--log-file", str(_CLI_LOG_PATH)]
     try:
         completed = subprocess.run(
@@ -240,14 +257,14 @@ def _run_usage_command(agy: str, timeout: float) -> AgyQuotaResult | None:
         if "Authentication required" in str(exc.stdout) or "Authentication required" in str(
             exc.stderr
         ):
-            mark_cli_signed_out()
+            mark_cli_signed_out(before)
         return None
     except (OSError, subprocess.SubprocessError):
         return None
     if "Authentication required" in str(completed.stdout) or "Authentication required" in str(
         getattr(completed, "stderr", "")
     ):
-        mark_cli_signed_out()
+        mark_cli_signed_out(before)
         return None
     if completed.returncode != 0:
         return None
@@ -294,7 +311,6 @@ def _carry_missing_weekly(probed: AgyQuotaResult, cached: AgyQuotaResult | None)
     probed_at = _parse_timestamp(probed.fetched_at)
     if cached_at is None or probed_at is None:
         return probed
-    elapsed = max(0, int((probed_at - cached_at).total_seconds() // 60))
     previous = {group.name: group for group in cached.groups}
     groups = []
     for group in probed.groups:
@@ -305,13 +321,22 @@ def _carry_missing_weekly(probed: AgyQuotaResult, cached: AgyQuotaResult | None)
             and old is not None
             and window is not None
             and window.resets_in_minutes is not None
-            and cached_at + timedelta(minutes=window.resets_in_minutes) > probed_at
         ):
-            group = replace(
-                group,
-                weekly=_age_window(window, elapsed),
-                weekly_fetched_at=old.weekly_fetched_at or cached.fetched_at,
+            resets_at = (
+                _parse_timestamp(old.weekly_resets_at)
+                if old.weekly_resets_at is not None
+                else cached_at + timedelta(minutes=window.resets_in_minutes)
             )
+            if resets_at is not None and resets_at > probed_at:
+                minutes = max(0, math.ceil((resets_at - probed_at).total_seconds() / 60))
+                group = replace(
+                    group,
+                    weekly=replace(
+                        window, resets_in_minutes=minutes, resets_in=_format_resets_in(minutes)
+                    ),
+                    weekly_fetched_at=old.weekly_fetched_at or cached.fetched_at,
+                    weekly_resets_at=resets_at.isoformat(),
+                )
         groups.append(group)
     return replace(probed, groups=groups)
 
@@ -364,6 +389,21 @@ def _carry_missing_groups(probed: AgyQuotaResult, cached: AgyQuotaResult | None)
     order = {group.name: index for index, group in enumerate(cached.groups)}
     groups = sorted([*probed.groups, *missing], key=lambda group: order.get(group.name, 0))
     return AgyQuotaResult(groups=groups, fetched_at=probed.fetched_at)
+
+
+def _credential_fingerprint() -> str | None:
+    """Hash only the stored credential, without resolving or refreshing a token."""
+    token_data: object = None
+    if sys.platform == "darwin":
+        token_data = _read_macos_credential()
+    if not _has_usable_token(token_data):
+        token_data = _read_token_file()
+    if not _has_usable_token(token_data) and sys.platform == "win32":
+        token_data = _read_windows_credential()
+    token = token_data.get("token") if isinstance(token_data, dict) else None
+    if not isinstance(token, dict):
+        return None
+    return hashlib.sha256(json.dumps(token, sort_keys=True).encode()).hexdigest()
 
 
 def _resolve_access_token(timeout: float) -> str | None:
@@ -941,12 +981,21 @@ def _read_cache() -> AgyQuotaResult | None:
     fetched_at = _parse_timestamp(result.fetched_at)
     assert fetched_at is not None
     now = datetime.now(UTC)
+
+    def weekly_expired(group: AgyQuotaGroup) -> bool:
+        if group.weekly_resets_at is not None:
+            resets_at = _parse_timestamp(group.weekly_resets_at)
+            if resets_at is not None:
+                return resets_at <= now
+        return (
+            group.weekly is not None
+            and group.weekly.resets_in_minutes is not None
+            and fetched_at + timedelta(minutes=group.weekly.resets_in_minutes) <= now
+        )
+
     groups = [
-        replace(group, weekly=None, weekly_fetched_at=None)
-        if group.weekly_fetched_at is not None
-        and group.weekly is not None
-        and group.weekly.resets_in_minutes is not None
-        and fetched_at + timedelta(minutes=group.weekly.resets_in_minutes) <= now
+        replace(group, weekly=None, weekly_fetched_at=None, weekly_resets_at=None)
+        if group.weekly_fetched_at is not None and weekly_expired(group)
         else group
         for group in result.groups
     ]
@@ -984,6 +1033,7 @@ def _result_to_payload(result: AgyQuotaResult) -> dict[str, object]:
                     if group.weekly_fetched_at
                     else {}
                 ),
+                **({"weekly_resets_at": group.weekly_resets_at} if group.weekly_resets_at else {}),
             }
             for group in result.groups
         ],
@@ -1028,6 +1078,7 @@ def _group_from_payload(payload: object) -> AgyQuotaGroup | None:
     weekly = _window_from_payload(payload.get("weekly"))
     five_hour = _window_from_payload(payload.get("five_hour"))
     weekly_fetched_at = payload.get("weekly_fetched_at")
+    weekly_resets_at = payload.get("weekly_resets_at")
     if (
         not isinstance(name, str)
         or not name
@@ -1044,6 +1095,12 @@ def _group_from_payload(payload: object) -> AgyQuotaGroup | None:
                 or _parse_timestamp(weekly_fetched_at) is None
             )
         )
+        or (
+            weekly_resets_at is not None
+            and (
+                not isinstance(weekly_resets_at, str) or _parse_timestamp(weekly_resets_at) is None
+            )
+        )
     ):
         return None
     return AgyQuotaGroup(
@@ -1052,6 +1109,7 @@ def _group_from_payload(payload: object) -> AgyQuotaGroup | None:
         weekly=weekly,
         five_hour=five_hour,
         weekly_fetched_at=weekly_fetched_at,
+        weekly_resets_at=weekly_resets_at,
     )
 
 

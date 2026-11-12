@@ -3,18 +3,22 @@ from __future__ import annotations
 import io
 import json
 import os
+import subprocess
 import sys
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
-from datetime import UTC, datetime
+from datetime import UTC, datetime, tzinfo
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
 
 from installer import session_hooks, setup_hook
-from quota import quota_snapshot
+from loaders import agy_quota_probe as probe
+from loaders.agy_quota_probe import _probe_via_cli
+from quota import quota_snapshot, status_payload
 from usage_hooks import usage_quota_aware as hook
 
 NOW = 1_800_000_000.0
@@ -250,7 +254,14 @@ def test_accounts_pruned_and_reserved_state_preserved(accounts: Path, overview: 
     assert hook.reminder("one", NOW) == ""
     del state["accounts"]["old"]
     del state["accounts"]["bad"]
-    assert json.loads(hook.STATE_PATH.read_text()) == state
+    assert json.loads(hook.STATE_PATH.read_text()) == {
+        **state,
+        json.dumps(["other", "Claude Code", "five_hour"]): {
+            "resets_at": RESET,
+            "anchor_resets_at": RESET,
+            "level": 95,
+        },
+    }
 
 
 def test_account_line_precedes_resets_and_thresholds(accounts: Path) -> None:
@@ -556,7 +567,7 @@ def test_exception_silent(
 
 
 def test_expired_state_pruned_and_new_reset(paths: Path) -> None:
-    claude(82)
+    claude(95)
     hook.reminder("one", NOW)
     claude(82, reset=RESET + 7200)
     assert "82% used" in hook.reminder("one", RESET + 1)
@@ -705,7 +716,7 @@ def test_reset_drift_within_a_window_is_announced_once(paths: Path) -> None:
     claude(91, reset=NOW + 4800 + 29)
     assert hook.reminder("one", NOW) == ""
     claude(91, reset=NOW + 4800 + 3600)
-    assert "91% used" in hook.reminder("one", NOW)
+    assert hook.reminder("one", NOW) == ""
 
 
 def service_snapshot(
@@ -881,6 +892,7 @@ def test_quota_only_unchanged_and_both_blocks_ordered(paths: Path) -> None:
     state = json.loads(hook.STATE_PATH.read_text())
     assert state[json.dumps(["both", "Claude Code", "five_hour"])] == {
         "resets_at": RESET,
+        "anchor_resets_at": RESET,
         "level": 80,
     }
     assert state["services"][json.dumps(["both", "Codex"])] == {
@@ -911,7 +923,7 @@ def test_service_records_pruned_and_saved_without_notices(paths: Path) -> None:
     )
     assert hook.reminder("one", NOW) == ""
     state = json.loads(hook.STATE_PATH.read_text())
-    assert state[quota_key] == quota_record
+    assert state[quota_key] == {**quota_record, "anchor_resets_at": RESET}
     assert state["services"] == {current: {"status": "major_outage", "at": NOW - 7 * 86400}}
     assert not list(paths.glob("*.tmp"))
 
@@ -923,7 +935,7 @@ def test_service_normal_without_record_is_silent(paths: Path) -> None:
 
 
 def test_service_hook_versions_match() -> None:
-    assert hook.__version__ == session_hooks.QUOTA_AWARE_HOOK_VERSION == "1.11"
+    assert hook.__version__ == session_hooks.QUOTA_AWARE_HOOK_VERSION == "1.12"
 
 
 @pytest.mark.parametrize("window,label", [("five_hour", "5-hour"), ("seven_day", "weekly")])
@@ -978,6 +990,126 @@ def test_early_codex_reset(paths: Path, difference: float) -> None:
         else:
             assert hook.STATE_PATH.read_text() == previous
     assert hook.reminder("one", NOW) == ""
+
+
+@pytest.mark.parametrize("difference", [600, 7200])
+@pytest.mark.parametrize("used", [95, 99])
+@pytest.mark.parametrize("at", [NOW, RESET])
+def test_later_reset_estimate_keeps_announced_level_and_anchor(
+    paths: Path, difference: float, used: float, at: float
+) -> None:
+    claude(95)
+    assert "5-hour quota: 95% used" in hook.reminder("one", NOW)
+    claude(used, reset=RESET + difference)
+    assert hook.reminder("one", at) == ""
+    key = json.dumps(["one", "Claude Code", "five_hour"])
+    assert hook._read(hook.STATE_PATH)[key] == {
+        "resets_at": RESET + difference,
+        "anchor_resets_at": RESET,
+        "level": 95,
+    }
+
+
+def test_f1_real_loader_cli_rounding_then_fallback_source(
+    paths: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    at = [NOW]
+    launches: list[float] = []
+
+    class Clock(datetime):
+        @classmethod
+        def now(cls, tz: tzinfo | None = None) -> Clock:
+            return cls.fromtimestamp(at[0], tz)
+
+    monkeypatch.setattr(probe, "datetime", Clock)
+    monkeypatch.setattr(probe, "time", SimpleNamespace(monotonic=lambda: at[0]))
+    monkeypatch.setattr(probe, "_probe_via_cli", _probe_via_cli)
+    monkeypatch.setattr(probe, "find_agy", lambda: "/fake/agy")
+    monkeypatch.setattr(probe, "_CLI_LOG_PATH", paths / "cli.log")
+    monkeypatch.setattr(probe, "_cli_retry_after_monotonic", 0.0)
+    monkeypatch.setattr(probe, "_rate_limit_until_monotonic", 0.0)
+    monkeypatch.setattr(probe, "_group_seen_at", {})
+    monkeypatch.setattr(probe, "_weekly_reset_times", set())
+    monkeypatch.setattr(probe, "BACKGROUND_AGY_LOCK", threading.Lock())
+    monkeypatch.setattr(probe, "_token_cache", {})
+    probe._TOKEN_PATH.write_text(
+        json.dumps(
+            {"token": {"access_token": "fake-access-token", "expiry": "2030-01-01T00:00:00+00:00"}}
+        )
+    )
+
+    def run(command: list[str], **kwargs: object) -> subprocess.CompletedProcess[bytes]:
+        assert command[0] == "/fake/agy"
+        launches.append(at[0])
+        if len(launches) == 3:
+            return subprocess.CompletedProcess(command, 1, b"", b"offline CLI")
+        payload = {
+            "command": {
+                "data": {
+                    "groups": [
+                        {
+                            "name": "Gemini models",
+                            "buckets": [
+                                {
+                                    "bucketId": "session",
+                                    "remainingFraction": 0.05,
+                                    "resetTime": datetime.fromtimestamp(
+                                        NOW + 18059, UTC
+                                    ).isoformat(),
+                                }
+                            ],
+                        }
+                    ]
+                }
+            }
+        }
+        return subprocess.CompletedProcess(command, 0, json.dumps(payload).encode(), b"")
+
+    def post(url: str, *args: object) -> object:
+        if url == probe._QUOTA_URL:
+            return {"groups": [{"name": "Claude and GPT models", "buckets": []}]}
+        assert url == probe._MODELS_URL
+        return {
+            "models": {
+                "gemini-flash": {
+                    "quotaInfo": {
+                        "remainingFraction": 0.05,
+                        "resetTime": datetime.fromtimestamp(NOW + 18600, UTC).isoformat(),
+                    }
+                }
+            }
+        }
+
+    monkeypatch.setattr(subprocess, "run", run)
+    monkeypatch.setattr(probe, "_post_json", post)
+    outputs = []
+    reset_offsets = []
+    for elapsed in (0, 330, 660):
+        at[0] = NOW + elapsed
+        assert probe.load_quota(max_age_minutes=0) is not None
+        agent = status_payload._status_antigravity(int(at[0]))
+        window = agent["groups"][0]["five_hour"]
+        assert window["used_percent"] == 95
+        reset_offsets.append(elapsed + window["resets_in_seconds"])
+        hook.QUOTA_SNAPSHOT.write_text(
+            json.dumps(
+                {
+                    "generated_at": datetime.fromtimestamp(at[0], UTC).isoformat(),
+                    "agents": {"antigravity": agent},
+                }
+            )
+        )
+        outputs.append(hook.reminder("one", at[0]))
+    assert launches == [NOW, NOW + 330, NOW + 660]
+    assert reset_offsets == [18000, 18030, 18600]
+    assert "5-hour quota: 95% used" in outputs[0]
+    assert outputs[1:] == ["", ""]
+    key = json.dumps(["one", "Antigravity (GEMINI MODELS)", "five_hour"])
+    assert hook._read(hook.STATE_PATH)[key] == {
+        "resets_at": NOW + 18600,
+        "anchor_resets_at": NOW + 18000,
+        "level": 95,
+    }
 
 
 @pytest.mark.parametrize("drift", [60, 599])
@@ -1042,12 +1174,16 @@ def test_quota_pruning_is_saved_without_notices(paths: Path) -> None:
     hook.STATE_PATH.write_text(json.dumps(records))
     assert hook.reminder("one", NOW) == ""
     records.pop(old)
-    assert json.loads(hook.STATE_PATH.read_text()) == records
+    assert json.loads(hook.STATE_PATH.read_text()) == {
+        key: {**record, "anchor_resets_at": record["resets_at"]} for key, record in records.items()
+    }
     assert hook.reminder("boundary", NOW) == (
         "[usage quota] Muse weekly quota has reset. "
         "The earlier Muse weekly quota notice no longer applies."
     )
-    assert json.loads(hook.STATE_PATH.read_text()) == {current: records[current]}
+    assert json.loads(hook.STATE_PATH.read_text()) == {
+        current: {**records[current], "anchor_resets_at": RESET}
+    }
 
 
 def test_reset_before_new_threshold_and_record(paths: Path) -> None:
@@ -1066,6 +1202,7 @@ def test_reset_before_new_threshold_and_record(paths: Path) -> None:
     assert json.loads(hook.STATE_PATH.read_text()) == {
         json.dumps(["one", "Claude Code", "five_hour"]): {
             "resets_at": RESET + 5 * 3600,
+            "anchor_resets_at": RESET + 5 * 3600,
             "level": 80,
         }
     }
@@ -1213,6 +1350,7 @@ def test_overview_threshold_and_service_blocks_ordered(
     assert state["overview"] == {"one": NOW}
     assert state[json.dumps(["one", "Claude Code", "five_hour"])] == {
         "resets_at": RESET,
+        "anchor_resets_at": RESET,
         "level": 80,
     }
 
@@ -1232,10 +1370,13 @@ def test_overview_prunes_its_records_and_preserves_quota_records(overview: None)
     assert hook.reminder("one", NOW) == ""
     assert json.loads(hook.STATE_PATH.read_text()) == {
         "overview": {"one": NOW, "boundary": NOW - 7 * 86400},
-        quota_key: quota_record,
+        quota_key: {**quota_record, "anchor_resets_at": RESET},
     }
     assert hook.reminder("expired", NOW).startswith("[usage quota overview] ")
-    assert json.loads(hook.STATE_PATH.read_text())[quota_key] == quota_record
+    assert json.loads(hook.STATE_PATH.read_text())[quota_key] == {
+        **quota_record,
+        "anchor_resets_at": RESET,
+    }
     output = hook.reminder("other", RESET)
     assert output == (
         "[usage quota] Codex 5-hour quota has reset. "
@@ -1435,7 +1576,11 @@ def test_same_window_drift_keeps_level_and_does_not_reset(
     assert hook.reminder("one", NOW + 30) == ""
     assert hook.reminder("one", NOW + 60) == ""
     key = json.dumps(["one", tool, "five_hour"])
-    assert hook._read(hook.STATE_PATH)[key] == {"resets_at": NOW + 120, "level": 95}
+    assert hook._read(hook.STATE_PATH)[key] == {
+        "resets_at": NOW + 120,
+        "anchor_resets_at": NOW + 60,
+        "level": 95,
+    }
     observation(NOW + 61, NOW + 120, 95)
     assert hook.reminder("one", NOW + 61) == ""
     assert "5-hour quota has reset" in hook.reminder("one", NOW + 120)
@@ -1447,7 +1592,11 @@ def test_expired_record_with_same_window_observation_does_not_reset(paths: Path)
     hook.STATE_PATH.write_text(json.dumps({key: {"resets_at": NOW - 1, "level": 95}}))
     claude(95, reset=NOW + 598)
     assert hook.reminder("one", NOW) == ""
-    assert hook._read(hook.STATE_PATH)[key] == {"resets_at": NOW + 598, "level": 95}
+    assert hook._read(hook.STATE_PATH)[key] == {
+        "resets_at": NOW + 598,
+        "anchor_resets_at": NOW - 1,
+        "level": 95,
+    }
 
 
 @pytest.mark.parametrize("owner", [None, "missing", "previous"])
@@ -1523,3 +1672,101 @@ def test_lock_retries_then_releases(
     claude(95)
     assert "Claude Code 5-hour quota: 95% used" in hook.reminder("one", NOW)
     assert calls == [6, 6, 8]
+
+
+@pytest.mark.parametrize("freshness", ["updated_at", "age_seconds", "both"])
+def test_carried_weekly_omitted_from_overview_and_notice_marks_age(
+    overview: None, freshness: str
+) -> None:
+    weekly: dict[str, Any] = {"used_percent": 98, "resets_in_seconds": 3600}
+    if freshness in ("updated_at", "both"):
+        weekly["updated_at"] = datetime.fromtimestamp(NOW - 7200, UTC).isoformat()
+    if freshness in ("age_seconds", "both"):
+        weekly["age_seconds"] = 7200
+    hook.QUOTA_SNAPSHOT.write_text(
+        json.dumps(
+            {
+                "generated_at": datetime.fromtimestamp(NOW, UTC).isoformat(),
+                "agents": {
+                    "antigravity": {
+                        "available": True,
+                        "updated_at": datetime.fromtimestamp(NOW, UTC).isoformat(),
+                        "age_seconds": 0,
+                        "groups": [
+                            {
+                                "name": "GEMINI",
+                                "five_hour": {"used_percent": 10, "resets_in_seconds": 18000},
+                                "seven_day": weekly,
+                            }
+                        ],
+                    }
+                },
+            }
+        )
+    )
+    output = hook.reminder("one", NOW + 60)
+    overview_block, notice = output.split("\n\n")
+    assert "5-hour 10% used" in overview_block
+    assert "weekly" not in overview_block
+    assert "weekly quota: 98% used, resets in 59m" in notice
+    assert "last updated 2h ago" in notice
+
+
+@pytest.mark.parametrize("tool", ["Claude Code", "Codex", "Antigravity (GEMINI)"])
+def test_drift_walk_uses_fixed_anchor_across_real_reset(paths: Path, tool: str) -> None:
+    def observe(at: float, reset: float, used: float) -> str:
+        window = {"used_percent": used, "resets_at": reset}
+        agents: dict[str, Any] = {}
+        if tool == "Claude Code":
+            claude(used, reset=reset)
+        elif tool == "Codex":
+            agents["codex"] = {"available": True, "five_hour": window}
+        else:
+            window.pop("resets_at")
+            window["resets_in_seconds"] = reset - at
+            agents["antigravity"] = {
+                "available": True,
+                "groups": [{"name": "GEMINI", "five_hour": window}],
+            }
+        hook.QUOTA_SNAPSHOT.write_text(
+            json.dumps(
+                {
+                    "generated_at": datetime.fromtimestamp(at, UTC).isoformat(),
+                    "agents": agents,
+                }
+            )
+        )
+        return hook.reminder("one", at)
+
+    assert "95% used" in observe(NOW, NOW + 18000, 95)
+    key = json.dumps(["one", tool, "five_hour"])
+    for i in range(1, 34):
+        assert observe(NOW + i * 540, NOW + 18000 + i * 540, 95) == ""
+        record = hook._read(hook.STATE_PATH)[key]
+        assert record["resets_at"] == NOW + 18000 + i * 540
+        assert record["anchor_resets_at"] == NOW + 18000
+        assert record["level"] == 95
+    assert "5-hour quota has reset (now 1% used)" in observe(NOW + 18000, NOW + 36000, 1)
+    assert "5-hour quota: 95% used" in observe(NOW + 18100, NOW + 36000, 95)
+    assert hook._read(hook.STATE_PATH)[key] == {
+        "resets_at": NOW + 36000,
+        "anchor_resets_at": NOW + 36000,
+        "level": 95,
+    }
+
+
+def test_legacy_quota_record_anchor_is_saved_on_first_load(paths: Path) -> None:
+    key = json.dumps(["one", "Claude Code", "five_hour"])
+    hook.STATE_PATH.write_text(json.dumps({key: {"resets_at": RESET, "level": 95}}))
+    claude(95)
+    assert hook.reminder("one", NOW) == ""
+    assert hook._read(hook.STATE_PATH)[key] == {
+        "resets_at": RESET,
+        "anchor_resets_at": RESET,
+        "level": 95,
+    }
+    claude(95, reset=RESET + 540)
+    assert hook.reminder("one", NOW + 1) == ""
+    record = hook._read(hook.STATE_PATH)[key]
+    assert record["anchor_resets_at"] == RESET
+    assert record["resets_at"] == RESET + 540

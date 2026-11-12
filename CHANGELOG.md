@@ -18,7 +18,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Fixed
 - **usage no longer opens Google sign-in pages in the background when the Antigravity CLI is signed out.** When a background `agy` run reports it is not signed in, usage stops starting `agy` in the background until the sign-in works again, and runs at most one background `agy` at a time. After you sign in again, the next refresh reads the quota right away instead of waiting 30 minutes.
-- **The Antigravity weekly quota no longer disappears after one failed read.** The card keeps the last weekly reading, marked as old data, until its reset time.
+- **The Antigravity weekly quota no longer disappears after one failed read.** The card keeps the last weekly reading, marked as old data, until its reset time. The status line and quota-aware notices also treat the kept weekly reading as old data.
 
 ## [0.34.16] - 2026-11-10
 

@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
-__version__ = "1.11"
+__version__ = "1.12"
 CLAUDE_STATUS = Path.home() / ".claude/usage-status.json"
 QUOTA_SNAPSHOT = Path.home() / ".usage/quota_snapshot.json"
 SERVICE_SNAPSHOT = Path.home() / ".usage/service_status_snapshot.json"
@@ -198,17 +198,21 @@ def _windows(session_id: str, now: float) -> list[tuple[str, str, float, float, 
     ) -> None:
         if not isinstance(data, dict):
             return
-        suffix = ""
-        try:
-            age = now - _generated_at(updated_at)
-            if age >= 3600:
-                suffix = f" (last updated {int(age // 3600)}h ago; it may have reset since)"
-        except (ValueError, OverflowError):
-            pass
         for name in ("five_hour", "seven_day"):
             window = data.get(name)
             if not isinstance(window, dict):
                 continue
+            suffix = ""
+            age = None
+            if "age_seconds" in window and "updated_at" not in window:
+                age = _number(window["age_seconds"])
+                if age is not None and generated:
+                    age += max(0, now - generated)
+            else:
+                with suppress(ValueError, OverflowError):
+                    age = now - _generated_at(window.get("updated_at", updated_at))
+            if age is not None and age >= 3600:
+                suffix = f" (last updated {int(age // 3600)}h ago; it may have reset since)"
             used = _number(window.get("used_percentage" if claude else "used_percent"))
             reset = _number(window.get("resets_at"))
             if reset is None and generated:
@@ -414,6 +418,14 @@ def reminder(session_id: str, now: float) -> str:
         return _reminder(session_id, now)
 
 
+def _same_window(seen: dict[str, float], observed_reset: float, observed_used: float) -> bool:
+    if not seen:
+        return False
+    delta = observed_reset - seen["anchor_resets_at"]
+    # A later estimate alone cannot reset a notice while usage remains at its level.
+    return -600 < delta < 600 or (delta >= 600 and observed_used >= seen["level"])
+
+
 def _reminder(session_id: str, now: float) -> str:
     state: dict[str, Any] = {
         key: value
@@ -425,6 +437,11 @@ def _reminder(session_id: str, now: float) -> str:
             and _number(value.get("level")) is not None
         )
     }
+    quota_changed = False
+    for key, seen in state.items():
+        if key not in ("services", "overview", "accounts") and "anchor_resets_at" not in seen:
+            seen["anchor_resets_at"] = seen["resets_at"]
+            quota_changed = True
     messages = []
     limited = set()
     account_line, accounts_changed, account_pending = _account_reminder(session_id, now, state)
@@ -436,7 +453,6 @@ def _reminder(session_id: str, now: float) -> str:
     overview_block, overview_changed = _overview_reminder(session_id, now, state, windows)
     current = {(tool, window): (used, reset) for tool, window, used, reset, _suffix in windows}
     reset_lines = [account_line] if account_line else []
-    quota_changed = False
     for key, seen in list(state.items()):
         if key in ("services", "overview", "accounts"):
             continue
@@ -459,13 +475,13 @@ def _reminder(session_id: str, now: float) -> str:
         if tool == "Claude Code" and window in old_limits:
             continue
         latest = current.get((tool, window))
-        if latest is not None and abs(seen["resets_at"] - latest[1]) < 600:
+        if latest is not None and _same_window(seen, latest[1], latest[0]):
             if seen["resets_at"] != latest[1]:
                 seen["resets_at"] = latest[1]
                 quota_changed = True
             continue
         if seen["resets_at"] > now and not (
-            latest is not None and latest[1] - seen["resets_at"] >= 600
+            latest is not None and latest[1] - seen["anchor_resets_at"] >= 600
         ):
             continue
         label = "5-hour" if window == "five_hour" else "weekly"
@@ -483,11 +499,9 @@ def _reminder(session_id: str, now: float) -> str:
         level = max((threshold for threshold in thresholds if used >= threshold), default=0)
         if level:
             limited.add(tool)
-        # Antigravity's reset is derived from a seconds countdown and drifts by up to about a
-        # minute between snapshots, so a reset within 10 minutes is the same window.
         key = json.dumps([session_id, tool, window])
         seen = state.get(key, {})
-        same_window = abs(seen.get("resets_at", 0) - reset) < 600
+        same_window = _same_window(seen, reset, used)
         announced = seen.get("level", 0) if same_window else 0
         if same_window and seen["resets_at"] != reset:
             seen["resets_at"] = reset
@@ -506,7 +520,11 @@ def _reminder(session_id: str, now: float) -> str:
             scope = "work run in Claude Code" if tool == "Claude Code" else f"work sent to {tool}"
             messages.append(f"{tool} {label} quota: {usage}. Only limits {scope}.")
         messages[-1] += suffix
-        state[key] = {"resets_at": reset, "level": level}
+        state[key] = {
+            "resets_at": reset,
+            "anchor_resets_at": seen["anchor_resets_at"] if same_window else reset,
+            "level": level,
+        }
     service_messages, services_changed = _service_reminders(session_id, now, state)
     service_block = (
         "[usage service status] " + "\n".join(service_messages) if service_messages else ""
