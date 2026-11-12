@@ -121,6 +121,9 @@ MODEL_SHORT = {
     "claude-fable-5": "Fable 5",
     "claude-fable-5-1": "Fable 5.1",
     "claude-fable-5-2": "Fable 5.2",
+    "gemini-3.8-flash": "Flash 3.8",
+    "gemini-4-argon": "Argon 4",
+    "gemini-4-hydrogen": "Hydrogen 4",
 }
 
 

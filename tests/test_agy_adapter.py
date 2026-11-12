@@ -15,6 +15,7 @@ import adapters.registry as registry
 from adapters import agy
 from adapters.types import AgentInfo
 from loaders import agy_loader
+from usage_common import pricing
 from usage_common.i18n import t
 
 
@@ -95,6 +96,7 @@ def test_normalize_model_covers_tokscale_aliases() -> None:
     assert [
         agy._normalize_model(model)
         for model in [
+            "gemini-3-flash-a",
             "gemini-3-flash-c",
             "gemini-3-flash",
             "gemini-3.1-pro-high",
@@ -102,16 +104,88 @@ def test_normalize_model_covers_tokscale_aliases() -> None:
             "gemini-3-pro-high",
             "gemini-3-pro-low",
             "gemini-3.5-flash-low",
+            "gemini-3.5-flash-custom",
         ]
     ] == [
         "gemini-3-flash-preview",
         "gemini-3-flash-preview",
+        "gemini-3-flash-preview",
         "gemini-3.1-pro",
         "gemini-3.1-pro",
         "gemini-3-pro",
         "gemini-3-pro",
-        "gemini-3.5-flash-low",
+        "gemini-3.5-flash",
+        "gemini-3.5-flash-custom",
     ]
+
+
+def test_normalize_model_strips_agy_suffixes() -> None:
+    expected = {
+        "gemini-3.8-flash-n": "gemini-3.8-flash",
+        "gemini-3.8-flash-tiered": "gemini-3.8-flash",
+        "gemini-4-argon": "gemini-4-argon",
+        "gemini-4-argon-s": "gemini-4-argon",
+        "gemini-4-argon-trial": "gemini-4-argon",
+        "gemini-4-hydrogen": "gemini-4-hydrogen",
+        "gemini-4-hydrogen-xhigh": "gemini-4-hydrogen",
+        "claude-sonnet-5-5-medium": "claude-sonnet-5-5",
+        "claude-sonnet-5-5-low": "claude-sonnet-5-5",
+        "claude-opus-5-5-high": "claude-opus-5-5",
+        "gpt-oss-120b-medium": "gpt-oss-120b",
+    }
+
+    assert {model: agy._normalize_model(model) for model in expected} == expected
+
+
+def test_normalize_model_only_strips_single_known_trailing_segment() -> None:
+    assert agy._normalize_model("gemini-4-argon-s-high") == "gemini-4-argon-s"
+    assert agy._normalize_model("gemini-4-low-argon") == "gemini-4-low-argon"
+    assert agy._normalize_model("gemini-4-argon-preview") == "gemini-4-argon-preview"
+    assert agy._normalize_model("-low") == "-low"
+    assert agy._normalize_model("") == ""
+
+
+def test_agy_models_resolve_against_litellm_pricing_table() -> None:
+    litellm_table: pricing.PricingTable = {
+        "gemini-3.8-flash": {"input_cost_per_token": 1e-6},
+        "gemini/gemini-4-argon": {"input_cost_per_token": 2e-6},
+        "gemini/gemini-4-carbon": {"input_cost_per_token": 3e-6},
+        "claude-sonnet-5-5": {"input_cost_per_token": 2e-6},
+        "claude-opus-5-5": {"input_cost_per_token": 4e-6},
+    }
+    expected_keys: dict[str, str | None] = {
+        "gemini-3.8-flash-n": "gemini-3.8-flash",
+        "gemini-3.8-flash-tiered": "gemini-3.8-flash",
+        "gemini-4-argon": "gemini/gemini-4-argon",
+        "gemini-4-argon-s": "gemini/gemini-4-argon",
+        "gemini-4-argon-trial": "gemini/gemini-4-argon",
+        "gemini-4-hydrogen": None,
+        "gemini-4-hydrogen-xhigh": None,
+        "claude-sonnet-5-5-medium": "claude-sonnet-5-5",
+        "claude-sonnet-5-5-low": "claude-sonnet-5-5",
+        "claude-opus-5-5-high": "claude-opus-5-5",
+        "gpt-oss-120b-medium": None,
+    }
+
+    resolved = {
+        raw: pricing._resolve_model_key(agy._normalize_model(raw), litellm_table)
+        for raw in expected_keys
+    }
+    assert resolved == expected_keys
+
+    expanded_table: pricing.PricingTable = {
+        **litellm_table,
+        "gemini/gemini-4-hydrogen": {"input_cost_per_token": 5e-6},
+        "gpt-oss-120b": {"input_cost_per_token": 0.5e-6},
+    }
+    assert (
+        pricing._resolve_model_key(agy._normalize_model("gemini-4-hydrogen-xhigh"), expanded_table)
+        == "gemini/gemini-4-hydrogen"
+    )
+    assert (
+        pricing._resolve_model_key(agy._normalize_model("gpt-oss-120b-medium"), expanded_table)
+        == "gpt-oss-120b"
+    )
 
 
 def test_registry_includes_antigravity(monkeypatch: pytest.MonkeyPatch) -> None:

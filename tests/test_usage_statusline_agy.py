@@ -687,3 +687,19 @@ def test_carried_weekly_cache_age_gate_keeps_five_hour(age: int) -> None:
     quota = usage_statusline_agy._usage_cached_quota(now)
     assert "gemini-5h" in quota
     assert ("gemini-weekly" in quota) == (age == 60)
+
+
+@pytest.mark.parametrize("effort", ["xhigh", None])
+def test_render_labels_xhigh_effort(monkeypatch: pytest.MonkeyPatch, effort: str | None) -> None:
+    monkeypatch.setenv("USAGE_LANG", "en")
+    data = _fixture_data()
+    data["model"]["display_name"] = "Gemini 4 Hydrogen (XHigh)"
+    if effort is None:
+        data["model"].pop("effort")
+    else:
+        data["model"]["effort"] = effort
+
+    output = usage_statusline_agy.render(data)
+
+    assert "Gemini 4 Hydrogen/Extended" in output
+    assert "(XHigh)" not in output

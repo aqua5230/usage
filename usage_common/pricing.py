@@ -375,6 +375,11 @@ def _resolve_model_key(model: str, pricing: PricingTable) -> str | None:
         if xai_key in pricing:
             return xai_key
 
+    if normalized.startswith("gemini-"):
+        gemini_key = f"gemini/{normalized}"
+        if gemini_key in pricing:
+            return gemini_key
+
     dated_matches = [key for key in pricing if DATE_SUFFIX_RE.sub("", key) == normalized]
     if dated_matches:
         return sorted(dated_matches, key=lambda key: (len(key), key))[0]

@@ -339,6 +339,57 @@ def test_resolve_model_key_not_found() -> None:
     assert pricing._resolve_model_key("missing", {"known": {}}) is None
 
 
+def test_resolve_model_key_resolves_gemini_prefix_and_keeps_hydrogen_unpriced() -> None:
+    pricing_table: pricing.PricingTable = {
+        "gemini-3.8-flash": {"input_cost_per_token": 1e-6},
+        "gemini/gemini-4-argon": {"input_cost_per_token": 2e-6},
+        "gemini/gemini-4-carbon": {"input_cost_per_token": 3e-6},
+        "claude-sonnet-5-5": {"input_cost_per_token": 2e-6},
+        "claude-opus-5-5": {"input_cost_per_token": 4e-6},
+    }
+
+    assert pricing._resolve_model_key("gemini-3.8-flash", pricing_table) == "gemini-3.8-flash"
+    assert pricing._resolve_model_key("gemini-4-argon", pricing_table) == "gemini/gemini-4-argon"
+    assert (
+        pricing._resolve_model_key("google/gemini-4-argon", pricing_table)
+        == "gemini/gemini-4-argon"
+    )
+    assert pricing._resolve_model_key("claude-sonnet-5-5", pricing_table) == "claude-sonnet-5-5"
+    assert pricing._resolve_model_key("claude-opus-5-5", pricing_table) == "claude-opus-5-5"
+    assert pricing._resolve_model_key("gemini-4-hydrogen", pricing_table) is None
+
+    table_with_hydrogen: pricing.PricingTable = {
+        **pricing_table,
+        "gemini/gemini-4-hydrogen": {"input_cost_per_token": 5e-6},
+    }
+    assert (
+        pricing._resolve_model_key("gemini-4-hydrogen", table_with_hydrogen)
+        == "gemini/gemini-4-hydrogen"
+    )
+
+
+def test_gemini_argon_priced_and_hydrogen_unpriced_with_mocked_table(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pricing_table: pricing.PricingTable = {
+        "gemini/gemini-4-argon": {
+            "input_cost_per_token": 2e-6,
+            "output_cost_per_token": 10e-6,
+        },
+        "gemini/gemini-4-carbon": {
+            "input_cost_per_token": 3e-6,
+            "output_cost_per_token": 15e-6,
+        },
+    }
+    pricing._set_pricing_cache_for_test((pricing_table, "cache", 0.0))
+    monkeypatch.setattr(pricing, "warm_up_pricing", lambda on_ready=None, **kwargs: None)
+
+    assert pricing.is_model_priced("gemini-4-argon") is True
+    assert pricing.calculate_cost(_entry(model="gemini-4-argon", input_tokens=1_000_000)) == 2.0
+    assert pricing.is_model_priced("gemini-4-hydrogen") is False
+    assert pricing.calculate_cost(_entry(model="gemini-4-hydrogen", input_tokens=1_000_000)) == 0.0
+
+
 def test_normalize_pricing_rejects_non_dict_and_empty_dict() -> None:
     assert pricing._normalize_pricing(["not", "a", "dict"]) is None
     assert pricing._normalize_pricing({}) is None
