@@ -38,7 +38,7 @@ AGY_SESSIONS_DIR = Path(os.path.expanduser("~/.gemini/antigravity-cli/conversati
 # below that count evicts databases parsed during the prior refresh, causing a
 # permanent full SQLite/protobuf reparse on every load (LRU thrashing).
 _FILE_CACHE_MAXSIZE = 4096
-_AGY_DB_CACHE_SCHEMA = 4
+_AGY_DB_CACHE_SCHEMA = 5
 AGY_CACHE_PATH = Path(os.path.expanduser("~/.usage/agy_db_cache.json"))
 _disk_cache_seeded = False
 _DISK_CACHE_FLUSH_INTERVAL_S = 300.0
@@ -356,14 +356,14 @@ def _parse_generation(
     if usage is None:
         return None, 0
 
-    system_tokens = _varint_field(usage, 1) or 0
-    new_input_tokens = _varint_field(usage, 2) or 0
+    input_tokens = _varint_field(usage, 2) or 0
     cache_read_tokens = _varint_field(usage, 5) or 0
-    output_tokens = _varint_field(usage, 9) or 0
-    thinking_tokens = _varint_field(usage, 10) or 0
+    thinking_tokens = _varint_field(usage, 9) or 0
+    output_tokens = _varint_field(usage, 10)
+    if output_tokens is None:
+        output_tokens = max((_varint_field(usage, 3) or 0) - thinking_tokens, 0)
     token_counts = (
-        system_tokens,
-        new_input_tokens,
+        input_tokens,
         cache_read_tokens,
         output_tokens,
         thinking_tokens,
@@ -389,7 +389,7 @@ def _parse_generation(
         AgyUsageEntry(
             timestamp=timestamp,
             model=model,
-            input_tokens=system_tokens + new_input_tokens,
+            input_tokens=input_tokens,
             output_tokens=output_tokens,
             cache_read_tokens=cache_read_tokens,
             thinking_tokens=thinking_tokens,
