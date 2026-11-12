@@ -46,21 +46,25 @@ def _generation_blob(
     timestamp: datetime | None,
     dedup_key: str | None,
     model: str = "gemini-3.5-flash-low",
-    system_tokens: int = 1_020,
+    model_enum: int = 1_525,
     input_tokens: int = 200,
     cache_read_tokens: int = 70_000,
-    output_tokens: int = 30,
+    output_tokens: int | None = 30,
     thinking_tokens: int = 4,
+    total_output_tokens: int | None = 34,
 ) -> bytes:
     usage = b"".join(
         (
-            _varint_field(1, system_tokens),
+            _varint_field(1, model_enum),
             _varint_field(2, input_tokens),
             _varint_field(5, cache_read_tokens),
-            _varint_field(9, output_tokens),
-            _varint_field(10, thinking_tokens),
+            _varint_field(9, thinking_tokens),
         )
     )
+    if total_output_tokens is not None:
+        usage += _varint_field(3, total_output_tokens)
+    if output_tokens is not None:
+        usage += _varint_field(10, output_tokens)
     if dedup_key is not None:
         usage += _message_field(11, dedup_key.encode())
     chat_model = _message_field(4, usage) + _message_field(19, model.encode())
@@ -178,11 +182,51 @@ def test_load_entries_parses_usage_deduplicates_and_skips_non_generation_rows(
     assert entry.timestamp == now
     assert entry.session_id == "first"
     assert entry.model == "gemini-3.5-flash-low"
-    assert entry.input_tokens == 1_220
+    assert entry.input_tokens == 200
     assert entry.output_tokens == 30
     assert entry.cache_read_tokens == 70_000
     assert entry.thinking_tokens == 4
     assert entry.dedup_key == "opaque-response-id"
+
+
+def test_generation_with_only_model_enum_is_skipped(sessions_dir: Path) -> None:
+    now = datetime.now(UTC)
+    usage = _varint_field(1, 1525)
+    blob = _message_field(1, _message_field(4, usage))
+    _write_database(sessions_dir / "empty.db", [blob], now)
+
+    result = agy_loader.load_entries_with_stats()
+
+    assert result.entries == []
+    assert result.skipped_missing_dedup_key == 0
+
+
+@pytest.mark.parametrize(
+    ("total_output", "thinking", "output", "expected"),
+    [(30, 4, None, 26), (3, 4, None, 0), (None, 4, None, 0), (30, 4, 0, 0)],
+)
+def test_generation_output_fallback(
+    sessions_dir: Path,
+    total_output: int | None,
+    thinking: int,
+    output: int | None,
+    expected: int,
+) -> None:
+    now = datetime.now(UTC)
+    blob = _generation_blob(
+        timestamp=now,
+        dedup_key="response",
+        total_output_tokens=total_output,
+        thinking_tokens=thinking,
+        output_tokens=output,
+    )
+    _write_database(sessions_dir / "output.db", [blob], now)
+
+    entries = agy_loader.load_entries()
+
+    assert len(entries) == 1
+    assert entries[0].output_tokens == expected
+    assert entries[0].thinking_tokens == thinking
 
 
 def test_load_entries_filters_on_generation_timestamp_and_falls_back_to_session_timestamp(
