@@ -34,6 +34,7 @@ STATUSLINE_TRANSLATIONS = {
         "weekly": "本週",
         "context": "對話窗",
         "remaining_prefix": "剩",
+        "effort_xhigh": "深思熟慮",
         "effort_high": "深思",
         "effort_normal": "標準",
         "effort_low": "速答",
@@ -43,6 +44,7 @@ STATUSLINE_TRANSLATIONS = {
         "weekly": "本周",
         "context": "对话窗",
         "remaining_prefix": "剩",
+        "effort_xhigh": "深思熟虑",
         "effort_high": "深思",
         "effort_normal": "标准",
         "effort_low": "速答",
@@ -52,6 +54,7 @@ STATUSLINE_TRANSLATIONS = {
         "weekly": "Weekly",
         "context": "Context",
         "remaining_prefix": "left",
+        "effort_xhigh": "Extended",
         "effort_high": "Deep",
         "effort_normal": "Standard",
         "effort_low": "Quick",
@@ -61,6 +64,7 @@ STATUSLINE_TRANSLATIONS = {
         "weekly": "週間",
         "context": "コンテキスト",
         "remaining_prefix": "残り",
+        "effort_xhigh": "長考",
         "effort_high": "熟考",
         "effort_normal": "標準",
         "effort_low": "即答",
@@ -70,6 +74,7 @@ STATUSLINE_TRANSLATIONS = {
         "weekly": "주간",
         "context": "컨텍스트",
         "remaining_prefix": "남음",
+        "effort_xhigh": "심사숙고",
         "effort_high": "깊은 사고",
         "effort_normal": "표준",
         "effort_low": "빠른 답변",
@@ -372,7 +377,7 @@ def _quota_parts(data: Dict[str, Any], bar_width: int) -> List[Tuple[str, str, s
     return parts
 
 
-_EFFORT_SUFFIXES = {"(low)": "low", "(medium)": "medium", "(high)": "high"}
+_EFFORT_SUFFIXES = {"(low)": "low", "(medium)": "medium", "(high)": "high", "(xhigh)": "xhigh"}
 
 
 def _split_effort_suffix(name: str) -> Tuple[str, Optional[str]]:
@@ -424,6 +429,7 @@ def _render_core(data: Dict[str, Any]) -> str:
                 "low": _t("effort_low"),
                 "medium": _t("effort_normal"),
                 "high": _t("effort_high"),
+                "xhigh": _t("effort_xhigh"),
             }.get(effort.lower(), effort)
             model_name += f"/{effort_label}"
         model_parts.append(f"{C['dim']}{C['magenta']}{safe_text(model_name)}{C['reset']}")
