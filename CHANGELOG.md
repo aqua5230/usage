@@ -7,6 +7,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.34.17] - 2026-11-12
+
 ### Added
 - **Quota-aware mode now tells Claude when Claude Code or Codex has an official service incident.** When Claude Code / Claude API or Codex API is degraded or down, Claude gets one line saying so. For Codex it also says not to keep retrying a failed dispatch or debugging the task brief, and to switch agents or tell you instead. Claude hears it once per conversation, again if the status changes, and once more when the service recovers. The app writes these statuses to `~/.usage/service_status_snapshot.json`; statuses older than 15 minutes are ignored.
 - **Quota-aware mode tells Claude once when a quota it warned about resets.** The next prompt clears the earlier notice, including when a new quota window starts early, and includes current usage when known. Only quotas warned about in that conversation trigger a reset notice. Records for other conversations stay for up to seven days after reset so resumed conversations can hear it too.
