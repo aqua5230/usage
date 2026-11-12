@@ -7,6 +7,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+- **Antigravity usage is priced again in the HTML report.** The model IDs that Antigravity now records (such as `gemini-4-argon-s`, `gemini-3.8-flash-n` and `claude-sonnet-5-5-medium`) matched no entry in the price table, so all Antigravity tokens were listed as unpriced. usage now drops Antigravity's own suffixes (`-n`, `-s`, `-trial`, `-tiered`, `-low`, `-medium`, `-high`, `-xhigh`) and also looks up `gemini/`-prefixed prices. Gemini 4 Hydrogen is priced too.
+- **The Antigravity status line names the `xhigh` effort level.** Gemini 4 Hydrogen at `xhigh` used to show the raw English name. It now shows a localized label like the other levels, such as `Extended` in English.
+
 ## [0.34.17] - 2026-11-12
 
 ### Added

@@ -6,6 +6,10 @@
 
 ## [Unreleased]
 
+### 修正
+- **HTML 報表重新算得出 Antigravity 的花費。** Antigravity 現在記下的模型名稱（例如 `gemini-4-argon-s`、`gemini-3.8-flash-n`、`claude-sonnet-5-5-medium`）對不到價目表，所有 Antigravity 的 token 都被列成「沒有價格」。現在會先去掉 Antigravity 自己加的尾巴（`-n`、`-s`、`-trial`、`-tiered`、`-low`、`-medium`、`-high`、`-xhigh`），也會找 `gemini/` 開頭的價格。Gemini 4 Hydrogen 也算得出來。
+- **Antigravity 狀態列認得 `xhigh` 思考強度。** Gemini 4 Hydrogen 選 `xhigh` 時原本直接印英文，現在跟其他強度一樣用當地語言標示，例如中文「深思熟慮」。
+
 ## [0.34.17] - 2026-11-12
 
 ### 新增

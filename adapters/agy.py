@@ -23,6 +23,7 @@ _MODEL_ALIASES = {
     "gemini-3-pro-high": "gemini-3-pro",
     "gemini-3-pro-low": "gemini-3-pro",
 }
+_AGY_SUFFIXES = frozenset({"n", "s", "trial", "tiered", "low", "medium", "high", "xhigh"})
 
 _PROJECT_NAME = "Antigravity"
 
@@ -65,4 +66,10 @@ def _to_usage_entry(entry: shared_agy_loader.AgyUsageEntry) -> UsageEntry:
 
 
 def _normalize_model(model: str) -> str:
-    return _MODEL_ALIASES.get(model.lower(), model)
+    aliased = _MODEL_ALIASES.get(model.lower())
+    if aliased is not None:
+        return aliased
+    stem, sep, tail = model.rpartition("-")
+    if sep and stem and tail.lower() in _AGY_SUFFIXES:
+        return stem
+    return model
