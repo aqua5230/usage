@@ -61,6 +61,7 @@ PricingSource = Literal["cache", "stale", "fetched", "fallback"]
 _pricing_cache: tuple[PricingTable, PricingSource, float] | None = None
 _pricing_cache_lock = threading.Lock()
 _pricing_warm_up_in_progress = False
+_pricing_warm_up_attempted_at: float | None = None
 _pricing_miss_refresh_at: float | None = None
 _pricing_miss_refresh_lock = threading.Lock()
 _model_key_cache_lock = threading.Lock()
@@ -126,6 +127,7 @@ def _resolve_model_key_cached(model: str, pricing: PricingTable) -> str | None:
     with _model_key_cache_lock:
         per_table_cache = _model_key_cache.get(id(pricing))
         if per_table_cache is None or per_table_cache[0] is not pricing:
+            _model_key_cache.clear()
             model_cache: dict[str, str | None] = {}
             _model_key_cache[id(pricing)] = (pricing, model_cache)
         else:
@@ -172,11 +174,19 @@ def warm_up_pricing(
     *,
     force: bool = False,
 ) -> None:
-    global _pricing_warm_up_in_progress
+    global _pricing_warm_up_in_progress, _pricing_warm_up_attempted_at
     with _pricing_cache_lock:
         if _pricing_warm_up_in_progress:
             return
+        now = time.monotonic()
+        if (
+            not force
+            and _pricing_warm_up_attempted_at is not None
+            and (now - _pricing_warm_up_attempted_at) < FALLBACK_RETRY_SECONDS
+        ):
+            return
         _pricing_warm_up_in_progress = True
+        _pricing_warm_up_attempted_at = now
 
     thread = threading.Thread(
         target=_warm_up_pricing_worker,
@@ -242,13 +252,17 @@ def _get_pricing_cache_for_test() -> tuple[PricingTable, PricingSource, float] |
 
 
 def _reset_pricing_warm_up_for_test() -> None:
-    global _fallback_warning_emitted, _pricing_miss_refresh_at, _pricing_warm_up_in_progress
+    global _fallback_warning_emitted, _pricing_miss_refresh_at
+    global _pricing_warm_up_attempted_at, _pricing_warm_up_in_progress
     with _pricing_cache_lock:
         _pricing_warm_up_in_progress = False
+        _pricing_warm_up_attempted_at = None
     with _pricing_miss_refresh_lock:
         _pricing_miss_refresh_at = None
     with _fallback_warning_lock:
         _fallback_warning_emitted = False
+    with _model_key_cache_lock:
+        _model_key_cache.clear()
 
 
 def _load_pricing_with_source() -> tuple[PricingTable, PricingSource]:
