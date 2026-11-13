@@ -13,9 +13,9 @@ import time
 from contextlib import contextmanager, suppress
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, cast
 
-__version__ = "1.12"
+__version__ = "1.13"
 CLAUDE_STATUS = Path.home() / ".claude/usage-status.json"
 QUOTA_SNAPSHOT = Path.home() / ".usage/quota_snapshot.json"
 SERVICE_SNAPSHOT = Path.home() / ".usage/service_status_snapshot.json"
@@ -337,16 +337,17 @@ def _service_reminders(
 
 
 def _save(state: dict[str, Any]) -> None:
-    STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    with tempfile.NamedTemporaryFile(
-        mode="w", encoding="utf-8", dir=STATE_PATH.parent, suffix=".tmp", delete=False
-    ) as handle:
-        temporary = handle.name
-        json.dump(state, handle)
+    temporary: Optional[str] = None
     try:
+        STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        with tempfile.NamedTemporaryFile(
+            mode="w", encoding="utf-8", dir=STATE_PATH.parent, suffix=".tmp", delete=False
+        ) as handle:
+            temporary = handle.name
+            json.dump(state, handle)
         os.replace(temporary, STATE_PATH)
     finally:
-        if os.path.exists(temporary):
+        if temporary is not None and os.path.exists(temporary):
             os.unlink(temporary)
 
 
@@ -444,6 +445,7 @@ def _reminder(session_id: str, now: float) -> str:
             quota_changed = True
     messages = []
     limited = set()
+    announced_agy = False
     account_line, accounts_changed, account_pending = _account_reminder(session_id, now, state)
     windows = _windows(session_id, now)
     old_limits = state["accounts"][session_id]["old_limits"] if account_pending else {}
@@ -512,6 +514,7 @@ def _reminder(session_id: str, now: float) -> str:
         usage = _usage(used, reset, now)
         if tool.startswith("Antigravity ("):
             group = tool[len("Antigravity (") : -1]
+            announced_agy = True
             messages.append(
                 f'Antigravity CLI (agy) model group "{group}": {label} quota: {usage}. '
                 "Only limits work sent to agy with those models."
@@ -541,7 +544,7 @@ def _reminder(session_id: str, now: float) -> str:
         if tool.startswith("Antigravity (") and tool not in limited:
             group = tool[len("Antigravity (") : -1]
             open_groups[group] = max(used, open_groups.get(group, 0.0))
-    if open_groups and any(tool.startswith("Antigravity (") for tool in limited):
+    if open_groups and announced_agy:
         usable = "; ".join(f'"{group}" {used:g}% used' for group, used in open_groups.items())
         messages.append(
             f"Other agy model groups still have quota: {usable}. Work sent to agy with "
@@ -570,9 +573,19 @@ def _reminder(session_id: str, now: float) -> str:
     return "\n\n".join(block for block in (overview_block, quota_block, service_block) if block)
 
 
+def _read_stdin_utf8() -> str:
+    buffer = getattr(sys.stdin, "buffer", None)
+    if buffer is None:
+        return sys.stdin.read()
+    return cast(bytes, buffer.read()).decode("utf-8", "replace")
+
+
 def main() -> None:
     try:
-        payload = json.load(sys.stdin)
+        if hasattr(sys.stdout, "reconfigure"):
+            with suppress(AttributeError, OSError, ValueError):
+                cast(Any, sys.stdout).reconfigure(encoding="utf-8", errors="replace")
+        payload = json.loads(_read_stdin_utf8())
         if not isinstance(payload, dict):
             return
         session_id = payload.get("session_id")
