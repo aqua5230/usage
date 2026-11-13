@@ -79,10 +79,10 @@ def test_load_entries_maps_usage_without_precomputing_cost(
 
     assert calls == {"hours_back": 24}
     assert [(entry.model, entry.output_tokens) for entry in entries] == [
-        ("gemini-3-flash-preview", 30),
+        ("gemini-3-flash-preview", 70),
         ("gemini-default", 2),
     ]
-    assert entries[0].total_tokens == 240
+    assert entries[0].total_tokens == 280
     assert entries[0].message_id == "request-1"
     assert entries[0].request_id == ""
     assert entries[0].cache_creation_tokens == 0
@@ -196,3 +196,48 @@ def test_registry_includes_antigravity(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("adapters.registry.grok.detect", lambda: None)
 
     assert registry.detect_agents() == [info]
+
+
+def test_thinking_tokens_are_included_in_output_cost(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    cache_path = tmp_path / "pricing_cache.json"
+    legacy_path = tmp_path / "legacy_pricing_cache.json"
+    monkeypatch.setattr(pricing, "CACHE_PATH", cache_path)
+    monkeypatch.setattr(pricing, "DEFAULT_CACHE_PATH", cache_path)
+    monkeypatch.setattr(pricing, "LEGACY_CACHE_PATH", legacy_path)
+    monkeypatch.setattr(pricing, "DEFAULT_LEGACY_CACHE_PATH", legacy_path)
+    monkeypatch.setattr(
+        pricing,
+        "get_pricing",
+        lambda: {
+            "gemini/gemini-4-argon": {
+                "input_cost_per_token": 1e-6,
+                "output_cost_per_token": 1e-5,
+            }
+        },
+    )
+    monkeypatch.setattr(pricing, "warm_up_pricing", lambda *args, **kwargs: None)
+    pricing._set_pricing_cache_for_test(None)
+    pricing._reset_pricing_warm_up_for_test()
+    try:
+        raw = agy_loader.AgyUsageEntry(
+            timestamp=datetime(2026, 11, 13, tzinfo=UTC),
+            model="gemini-4-argon-s",
+            input_tokens=100,
+            output_tokens=30,
+            cache_read_tokens=0,
+            thinking_tokens=5000,
+            dedup_key="request-thinking",
+            session_id="session-thinking",
+            project="my-project",
+        )
+        usage_entry = agy._to_usage_entry(raw)
+
+        assert usage_entry.output_tokens == 5030
+        assert usage_entry.total_tokens == 5130
+        assert pricing.calculate_cost(usage_entry) == pytest.approx(100 * 1e-6 + 5030 * 1e-5)
+    finally:
+        pricing._set_pricing_cache_for_test(None)
+        pricing._reset_pricing_warm_up_for_test()
