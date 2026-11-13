@@ -87,7 +87,7 @@ def _isolate_user_state_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -
     from installer import claude_pane, session_hooks, setup_hook
     from loaders import cache_quarantine, history_loader
     from quota import quota_snapshot
-    from usage_common import prefs, service_status
+    from usage_common import prefs, pricing, service_status
     from usage_hooks import usage_quota_aware, usage_session_resume
 
     state_dir = tmp_path / "user-state"
@@ -115,6 +115,8 @@ def _isolate_user_state_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -
     )
     monkeypatch.setattr(claude_pane, "INSTALL_DIR", state_dir / "claude-pane" / "usage-dash")
     monkeypatch.setattr(prefs, "PREFERENCES_FILE", state_dir / "usage-preferences.json")
+    monkeypatch.setattr(pricing, "CACHE_PATH", state_dir / "pricing_cache.json")
+    monkeypatch.setattr(pricing, "LEGACY_CACHE_PATH", state_dir / "legacy_pricing_cache.json")
     monkeypatch.setattr(
         usage_session_resume, "DIAGNOSIS_SNAPSHOT", state_dir / "usage-diagnosis.json"
     )

@@ -204,7 +204,7 @@ def _build_popover_state(
     )
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def _cached_state_delegate() -> menubar.AppDelegate:
     delegate: menubar.AppDelegate = menubar.AppDelegate.alloc().initWithMock_interval_(False, 60)
     return delegate
