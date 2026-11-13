@@ -7,6 +7,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.34.20] - 2026-11-14
+
 ### Fixed
 - **New Antigravity models are now noticed by quota-aware mode.** usage recorded Antigravity only by quota group, and those groups list broad families such as Gemini Flash and Gemini Pro, so a new model added to an existing group, like Gemini 4 Hydrogen, was never announced. Models from your Antigravity conversations are now recorded too, with effort and tier suffixes removed so each model is announced once. Antigravity models you have already used are recorded as known, so updating does not announce them as new.
 
