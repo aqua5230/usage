@@ -8,11 +8,11 @@ from __future__ import annotations
 
 import json
 import sys
-from datetime import UTC, datetime
+from datetime import UTC, datetime, tzinfo
 from importlib import import_module
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Any
+from typing import Any, Self
 
 import pytest
 
@@ -618,8 +618,14 @@ def test_main_export_defaults_to_daily_stdout(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
+    class _UtcLocalDateTime(datetime):
+        # Pin no-arg astimezone() to UTC so aggregate_daily keeps the UTC date across timezones.
+        def astimezone(self, tz: tzinfo | None = None) -> Self:
+            return super().astimezone(tz if tz is not None else UTC)
+
     agent = AgentInfo("codex", "Codex", "~/.codex", True)
     entry = _entry()
+    entry.timestamp = _UtcLocalDateTime(2026, 1, 1, 12, 0, tzinfo=UTC)
 
     monkeypatch.setattr(sys, "argv", ["usage", "export"])
     monkeypatch.setattr(usage_cli, "detect_agents", lambda: [agent])
