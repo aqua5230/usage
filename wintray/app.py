@@ -1557,7 +1557,8 @@ class _WindowsTrayController:
                     )
                 if not self.mock:
                     quota_snapshot.write_snapshot()
-                    model_registry.update(entries=None)
+                    history = self._cached_history
+                    model_registry.update(entries=history.entries if history else None)
                 self._process_quota_notifications(self.latest_state)
                 started_at = time.monotonic() if debug_timing else 0.0
                 self._update_tray()

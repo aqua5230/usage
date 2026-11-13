@@ -28,7 +28,7 @@ from menubar import agy as menubar_agy
 from menubar import prefs as menubar_prefs
 from menubar import state as menubar_state
 from panels.payload import _state_payload
-from quota import quota_snapshot
+from quota import model_registry, quota_snapshot
 from quota.notifications import NotificationEvent
 from updates import checker as update_checker
 from usage_common import prefs, service_status
@@ -2190,6 +2190,29 @@ def test_refresh_writes_quota_snapshot_only_outside_mock_mode(
     controller._refresh_worker()
 
     assert len(writes) == expected_writes
+
+
+def test_refresh_feeds_cached_history_entries_to_model_registry(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    controller = wintray._WindowsTrayController(mock=False, interval=60)
+    entries: list[Any] = [object()]
+    calls: list[object] = []
+    monkeypatch.setattr(controller, "_ensure_windows_watcher", lambda: None)
+
+    def build_state(**_kwargs: object) -> menubar_state.PopoverState:
+        controller._cached_history = wintray._RefreshData(entries, None)
+        return _state()
+
+    monkeypatch.setattr(controller, "_build_state", build_state)
+    monkeypatch.setattr(controller, "_process_quota_notifications", lambda _state: None)
+    monkeypatch.setattr(controller, "_update_tray", lambda: None)
+    monkeypatch.setattr(quota_snapshot, "write_snapshot", lambda: None)
+    monkeypatch.setattr(model_registry, "update", lambda entries: calls.append(entries))
+
+    controller._refresh_worker()
+
+    assert calls == [entries]
 
 
 def test_refresh_requested_while_busy_runs_once_after_current_refresh(
