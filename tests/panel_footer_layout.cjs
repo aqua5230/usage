@@ -139,6 +139,35 @@ async function main() {
           }
         }
       }
+      // #341: the settings button moves to the first visible quota card; a stale
+      // notice there must not push it out of the card.
+      for (const host of ['agy', 'grok', 'muse']) {
+        for (const width of [364, 380]) {
+          await page.setViewportSize({ width, height: panel.height });
+          const overflow = await page.evaluate(host => {
+            usageApplyPanelZoom(1);
+            usageDemoSetLanguage('en');
+            const state = structuredClone(usageDemoPayloads.en);
+            state.hideClaude = true;
+            state.hideCodex = true;
+            state.hideAgy = host !== 'agy';
+            state.hideGrok = host === 'muse';
+            for (const id of ['agy', 'grok', 'muse']) {
+              state[id].stale = { ageText: 'about 59 minutes ago', tooltip: 'cached' };
+            }
+            state.agy.groupSwitchable = true;
+            state.footer.showInstall = true;
+            usageApplyState(state);
+            const button = document.querySelector('[data-action="switch"]');
+            const card = button && button.closest('[data-card]');
+            if (!card || card.dataset.card !== host) return null;
+            const b = button.getBoundingClientRect();
+            const c = card.getBoundingClientRect();
+            return b.left < c.left - 1 || b.right > c.right + 1;
+          }, host);
+          assert.notEqual(overflow, true, `settings overflows ${panel.id}/${host}/${width}`);
+        }
+      }
       const groupButton = page.locator('[data-action="set_agy_quota_group"]');
       if (await groupButton.count()) {
         for (const switchable of [false, true, false, true]) {
