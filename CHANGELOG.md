@@ -7,6 +7,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.34.21] - 2026-11-14
+
+### Fixed
+- **The Codex card shows 100% used once Codex refuses a request for hitting its limit.** Current Codex CLI no longer logs quota after a refused run, so the card kept the last reading, such as 99% from hours earlier, with an "about N hours ago" warning. A refusal newer than that reading now marks the refused window as 100% used, keeps its reset time, and counts the data's age from the refusal. Once that window resets, the card goes back to the normal reading instead of moving the 100% to the other window. A refusal in another session is found even when a different session was modified more recently.
+- **The Set Up Status Line button now also sets up the Antigravity and Grok status lines.** The button only set up Claude Code; the Antigravity and Grok CLI status lines were added on the next app launch or by turning the status line switch off and on. They are now set up right away when those CLIs are installed, on macOS and Windows.
+
 ## [0.34.20] - 2026-11-14
 
 ### Fixed

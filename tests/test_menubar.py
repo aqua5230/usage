@@ -3821,6 +3821,33 @@ def test_statusline_action_reports_return_code(
     assert results[0][1]["ok"] is (code == 0)
 
 
+@pytest.mark.parametrize("code", [0, 1])
+def test_install_hook_also_sets_up_agy_and_grok_status_lines(
+    monkeypatch: pytest.MonkeyPatch, code: int
+) -> None:
+    from installer import session_hooks, setup_hook, statusline_settings
+
+    calls: list[str] = []
+    results = []
+    delegate = SimpleNamespace(
+        performSelectorOnMainThread_withObject_waitUntilDone_=lambda *args: results.append(args)
+    )
+    monkeypatch.setattr(setup_hook, "setup", lambda: code)
+    monkeypatch.setattr(
+        session_hooks, "_migrate_bundled_python_commands_if_needed", lambda: calls.append("migrate")
+    )
+    monkeypatch.setattr(
+        statusline_settings, "_sync_agy_statusline", lambda enable: calls.append(f"agy:{enable}")
+    )
+    monkeypatch.setattr(
+        statusline_settings, "_sync_grok_statusline", lambda enable: calls.append(f"grok:{enable}")
+    )
+    menubar_actions.install_hook_in_background(delegate)
+    assert calls == (["migrate", "agy:True", "grok:True"] if code == 0 else [])
+    assert results[0][0] == "_finishHookInstall:"
+    assert results[0][1]["success"] is (code == 0)
+
+
 def test_statusline_failure_shows_existing_alert(monkeypatch: pytest.MonkeyPatch) -> None:
     messages: list[str] = []
     alert = SimpleNamespace(

@@ -26,7 +26,7 @@
 </p>
 
 - **所有額度一眼看完：** Claude Code、Codex、Antigravity、Muse Code 的 Session 與每週額度加重置倒數，還有 Grok CLI 的每週額度。
-- **讀你機器上本來就有的資料：** Claude Code、Codex、Grok CLI、Muse Code 的 token 與花費讀自本機紀錄檔。Antigravity 額度先問它自己的 CLI（不呼叫模型），不行再用該 CLI 本來就存著的登入身分向 Google 官方端點查。Muse 額度則透過已登入的 Muse 命令列工具，在背景送一次很小的請求取得。
+- **讀你機器上本來就有的資料：** Claude Code、Codex、Grok CLI、Muse Code 的 token 與花費讀自本機紀錄檔。Antigravity 額度先問它自己的 CLI（不呼叫模型），不行再用該 CLI 本來就存著的登入身分向 Google 官方端點查。Muse 額度則先執行不呼叫模型的 `muse usage --json`（Muse 1.4.13 起支援），讀不到才退回在空資料夾用 `muse exec` 在背景送一次小模型呼叫。
 - **token 浪費前先提醒：** Claude Code 狀態列會在對話窗快膨脹、提示快取快冷掉時提醒你。Claude 或 Codex 故障時會跳警示橫幅。
 - **Claude Code 裡的小幫手：** 側邊面板、精簡回覆、開新對話自動接回進度、看額度規劃任務。全部可選。
 - **報表與 16 款主題：** token 趨勢與花費的 HTML 報表，還有 16 款面板主題可以挑。
@@ -97,7 +97,7 @@ uvx usage-cli
 
 | 功能 | 用途 | 預設 · 額度用量 |
 |---------|--------------|---------------------|
-| **進度管家 (Progress Concierge)** | 開新對話時，自動把你上次的請求、未提交的變更與待辦清單交給 AI，不用 `/resume`，也不用重講進度。 | 預設關閉 · 不額外呼叫模型 |
+| **進度管家 (Progress Concierge)**（選單名稱：**接著上次做**） | 開新對話時，自動把你上次的請求、未提交的變更與待辦清單交給 AI，不用 `/resume`，也不用重講進度。 | 預設關閉 · 不額外呼叫模型 |
 | **省 token 模式 (Token Saver)** | 讓 Claude Code 與 Codex 講話更精簡、更白話，程式碼與錯誤訊息一個字都不縮水。在真實 Session 的 A/B 測試中，對話後段回覆維持**少約 40%**，而不是走鐘變長 84%。 | 預設關閉 · 不額外呼叫模型 |
 | **側邊面板** | 在工作旁邊看額度、其他對話與背景工作。[看側邊面板介紹](#claude-code-側邊面板)。 | 預設關閉 · 不額外呼叫模型 |
 | **新手模式** | 從每則回答挑最多 3 個專有名詞，各配一行白話解釋，之後再拿出來複習。 | 預設關閉 · 少量 Claude 額度 |
@@ -222,7 +222,7 @@ Windows 可完整使用核心功能：系統匣 UI（與 macOS 相同的 16 款�
 <details>
 <summary>系統匣圖示、工作列標籤與其他差異</summary>
 
-系統匣圖示顯示 Claude 或 Codex 目前工作階段額度的剩餘百分比。在右鍵選單或面板選單中選擇 **系統匣顯示來源 → Claude Code / Codex**，立即生效並於重啟後保留（預設 Claude）；Codex 沒有工作階段視窗時改用每週額度，並於提示文字中註明；沒有額度資料時顯示 `--`。提示文字摘要兩個工具的各視窗，並優先顯示所選來源。左鍵會用 WebView2 開啟額度主題面板；右鍵也提供「重設面板位置」與「結束」；面板切換、重新整理、開機自啟與檢查更新都在面板選單。
+系統匣圖示顯示 Claude 或 Codex 目前工作階段額度的剩餘百分比。在右鍵選單或面板選單中選擇 **系統匣顯示來源 → Claude Code / Codex**，立即生效並於重啟後保留（預設 Claude）；Codex 沒有工作階段視窗時改用每週額度，並於提示文字中註明；沒有額度資料時顯示 `--`。提示文字先列出 Claude 與 Codex（所選來源排在最前），再列出卡片有顯示的 Antigravity、Grok、Muse；Windows 的提示文字上限是 127 個字元，太長時尾端會被截掉。左鍵會用 WebView2 開啟額度主題面板；右鍵也提供「重設面板位置」與「結束」；面板切換、重新整理、開機自啟與檢查更新都在面板選單。
 
 在右鍵選單或面板選單中開啟 **顯示工作列額度**，即可在工作列內部、通知區域左側透明顯示 `Codex: 92%`。標籤自動跟隨工作列位置、螢幕縮放及明暗主題，全螢幕或工作列自動隱藏時隱藏；點擊文字開啟面板。空間不足時自動移至工作列外側，避免遮住按鈕。系統匣保留一般程式圖示作為選單入口；文字使用所選來源及額度視窗。右鍵點標籤會開啟跟系統匣圖示一樣的選單。
 
@@ -249,7 +249,7 @@ Windows 可完整使用核心功能：系統匣 UI（與 macOS 相同的 16 款�
 - **本機紀錄：** Claude Code、Codex、Grok CLI 與 Muse Code 的 token 與花費數字讀自你機器上的紀錄檔，內容不會被上傳。
 - **Claude 桌面版：** 沒裝 Claude Code CLI、也沒設定狀態列時，保持 Claude 桌面版開啟，`usage` 會讀它的本機額度歷史。不需要 Cookie、登入權杖或 API 呼叫。重置時間只在本機快取能確認時才顯示，不推測。
 - **Antigravity** 需要連網，而且只有你真的使用它才會發生：額度先用 `agy -p /usage` 問 Antigravity CLI（不呼叫模型）；失敗時才用 Antigravity CLI 登入後存下的 OAuth 憑證，向 Google 官方額度端點查詢——依 CLI 版本不同，這個憑證讀自 macOS Keychain、Windows 認證管理員，或本機 token 檔。`usage` 只讀取這個憑證而不寫回，任何刷新後的 access token 也只留在記憶體中；這個呼叫本身讀取額度資訊。
-- **Muse 額度：** Muse 本機沒有額度檔。`usage` 用 Muse 自己的登入執行 `muse exec --json`，把回傳額度存到 `~/.usage/muse_quota.json`。這會連到 Muse，真的呼叫一次模型，用掉一點 Muse 額度。探測在空資料夾執行，帶有 `--no-session-log`。裝了 Muse 且有對話時會取得第一份快照；之後只在快照超過 30 分鐘且有更新的 Muse 對話時探測。失敗後至少等 30 分鐘，還要有新的 Muse 用量才重試。可在「隱藏區塊」關掉 Muse 額度卡。
+- **Muse 額度：** Muse 本機沒有額度檔。`usage` 會先執行不呼叫模型的 `muse usage --json`（Muse 1.4.13 起支援），把回傳額度存到 `~/.usage/muse_quota.json`；讀不到才退回在空資料夾用 Muse 自己的登入執行 `muse exec`（帶 `--no-session-log`），這會連到 Muse 送一次小模型呼叫，用掉一點 Muse 額度。裝了 Muse 且有對話時會取得第一份快照；之後只在快照超過 30 分鐘且有更新的 Muse 對話時探測。失敗後至少等 30 分鐘，還要有新的 Muse 用量才重試。可在「隱藏區塊」關掉 Muse 額度卡。
 - **其他背景連網：** 用來標示故障的 Claude 與 Codex 公開狀態頁、估算成本用的公開價格表（斷網會用內建預設），以及偶爾檢查 GitHub 版本更新。
 - **新手模式**只有你打開才會連網：它透過你自己的 Claude Code 登入，把 Claude Code 最新一則回答送給 Claude Haiku 挑名詞。你的名詞紀錄存在 `~/.usage/glossary.json`。
 - **長期紀錄**：Claude Code 預設會刪掉 30 天前的對話紀錄。app 開著時，`usage` 每 6 小時把每日總量存進 `~/.usage/usage_snapshot.json` 和 `~/.usage/year_ledger.json`，報表才看得到更早的日子。這些檔只存在本機。換電腦時，記得把整個 `~/.usage/` 資料夾一起搬過去。
