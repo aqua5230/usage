@@ -114,6 +114,7 @@ def _isolate_user_state_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -
     monkeypatch.setattr(
         usage_quota_aware, "SERVICE_SNAPSHOT", state_dir / "service_status_snapshot.json"
     )
+    monkeypatch.setattr(usage_quota_aware, "MODEL_REGISTRY", state_dir / "model_registry.json")
     monkeypatch.setattr(
         session_hooks, "QUOTA_AWARE_HOOK_TARGET", state_dir / "usage-quota-aware.py"
     )

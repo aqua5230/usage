@@ -7,6 +7,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+- **Quota-aware mode tells Claude once per conversation when new models or Antigravity quota groups appear.** When a new model or Antigravity quota group shows up in the last seven days, Claude hears about it once per conversation along with whether usage's price table knows it yet. New Codex models are picked up from Codex's own model list; models from other tools appear after you use them once.
+
 ### Fixed
 - **The Antigravity CLI recovers automatically after a temporary sign-out error.** When a background CLI check fails once with an authentication error and locks the gate, if the fallback quota check still succeeds with the same credential after six hours, usage clears the marker and resumes using the CLI.
 - **The Antigravity window keeper also stops launching sign-in pages after a timed-out ping.** When the auto-start ping times out while waiting on an authentication prompt, usage now records the CLI as signed out just like the quota check does.
