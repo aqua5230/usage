@@ -26,7 +26,7 @@
 </p>
 
 - **Every quota at a glance:** Claude Code, Codex, Antigravity, and Muse Code session and weekly limits with reset countdowns, plus Grok CLI's weekly credit.
-- **Reads what's already on your machine:** Claude Code, Codex, Grok CLI, and Muse Code tokens and cost come from local logs. Antigravity quota comes from its own CLI (no model call), or from Google's official endpoint using the sign-in that CLI already stores. Muse quota comes from `muse usage --json` (no model call, Muse 1.4.13+), or from a small background model call through `muse exec` when that has no reading.
+- **Reads what's already on your machine:** Claude Code, Codex, Grok CLI, and Muse Code tokens and cost come from local logs. Antigravity quota comes from its own CLI (no model call), or from Google's official endpoint using the sign-in that CLI already stores. Muse quota comes from `muse usage --json` (no model call, Muse 1.4.13+), or from a small background model call through `muse exec` in an empty folder when that has no reading.
 - **Warns before tokens go to waste:** The Claude Code status line flags a bloating context window and a cold prompt cache. A banner shows Claude or Codex outages.
 - **Helpers inside Claude Code:** A side pane, shorter replies, a progress hand-off for new sessions, and quota-aware planning. All optional.
 - **Reports and 16 themes:** HTML reports of token trends and cost, and 16 panel themes to pick from.
