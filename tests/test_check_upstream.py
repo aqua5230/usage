@@ -235,6 +235,49 @@ def test_codex_no_token_count_in_any_session() -> None:
     assert "started.jsonl" in detail
 
 
+CODEX_LIMIT_ERROR = {
+    "type": "event_msg",
+    "timestamp": now(),
+    "payload": {
+        "type": "task_complete",
+        "error": {"message": "usage limit", "codex_error_info": "usage_limit_exceeded"},
+    },
+}
+
+
+def test_codex_skips_session_that_hit_usage_limit(codex_event: dict[str, Any]) -> None:
+    older = write_rows(check.codex_loader.SESSIONS_DIR / "older.jsonl", [codex_event])
+    old = time.time() - 60
+    os.utime(older, (old, old))
+    refused = {
+        "type": "event_msg",
+        "timestamp": now(),
+        "payload": {
+            "type": "token_count",
+            "info": None,
+            "rate_limits": {"limit_id": "premium", "primary": None, "secondary": None},
+        },
+    }
+    write_rows(check.codex_loader.SESSIONS_DIR / "limited.jsonl", [refused, CODEX_LIMIT_ERROR])
+    state, detail = check.check_codex_sessions()
+    assert state == "OK"
+    assert detail.endswith("older.jsonl")
+
+
+def test_codex_only_usage_limit_refusals_is_no_data() -> None:
+    write_rows(check.codex_loader.SESSIONS_DIR / "limited.jsonl", [CODEX_LIMIT_ERROR])
+    state, detail = check.check_codex_sessions()
+    assert state == "NO_DATA"
+    assert "limited.jsonl" in detail
+
+
+def test_codex_checks_session_with_usage_before_limit(codex_event: dict[str, Any]) -> None:
+    write_rows(check.codex_loader.SESSIONS_DIR / "used.jsonl", [codex_event, CODEX_LIMIT_ERROR])
+    state, detail = check.check_codex_sessions()
+    assert state == "OK"
+    assert detail.endswith("used.jsonl")
+
+
 @pytest.mark.parametrize("field", ["rate_limits", "info"])
 def test_codex_missing(codex_event: dict[str, Any], field: str) -> None:
     del codex_event["payload"][field]

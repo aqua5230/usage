@@ -325,18 +325,24 @@ def check_codex_sessions() -> Result:
         return result
     # A session that has only just started has no token_count rows yet. Check the
     # newest recent session that has some; if none has any, report the newest.
-    path, rows = paths[0], []
+    # A run refused by the usage limit logs only empty token_count rows; skip it too.
+    path, rows, refused = paths[0], [], False
     for candidate in paths:
         if _fresh(candidate):
             break
-        found = [
-            r
-            for r in _rows(candidate, 10000)
-            if r.get("type") == "event_msg" and _get(r, "payload.type") == "token_count"
-        ]
+        events = [r for r in _rows(candidate, 10000) if r.get("type") == "event_msg"]
+        found = [r for r in events if _get(r, "payload.type") == "token_count"]
+        limited = any(
+            _get(r, "payload.error.codex_error_info") == "usage_limit_exceeded" for r in events
+        )
+        if limited and all(_get(r, "payload.info") is None for r in found):
+            refused = True
+            continue
         if found:
             path, rows = candidate, found
             break
+    if not rows and refused:
+        return "NO_DATA", f"{path}: only usage-limit refusals in recent sessions"
     fields: dict[str, Callable[[Any], bool]] = {
         "timestamp": lambda v: _timestamp(v) is not None,
         **{f"payload.info.total_token_usage.{key}": _number for key in CODEX_TOKENS},
