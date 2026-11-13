@@ -113,7 +113,12 @@ def agy_cli_signed_in(timeout: float) -> bool:
         return True
     try:
         marker = json.loads(CLI_SIGNED_OUT_PATH.read_text(encoding="utf-8"))
-    except (OSError, ValueError, UnicodeError):
+    except FileNotFoundError:
+        return True
+    except OSError:
+        # Windows refuses the read while the marker is being replaced; keep the gate shut.
+        return False
+    except (ValueError, UnicodeError):
         marker = {}
     stored = marker.get("fingerprint") if isinstance(marker, dict) else None
     current = _credential_fingerprint()

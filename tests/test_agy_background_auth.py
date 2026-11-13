@@ -710,7 +710,8 @@ def test_mark_cli_signed_out_atomic_concurrent_read_never_opens_gate(
             spy.seen.clear()
             reads += 1
             assert probe.agy_cli_signed_in(180) is False
-            assert spy.seen and all(text.endswith("}") for text in spy.seen)
+            # Windows may refuse the read mid-replace, so the parser can see nothing.
+            assert all(text.endswith("}") for text in spy.seen)
     finally:
         stop.set()
         thread.join(timeout=5)
@@ -732,3 +733,21 @@ def test_mark_cli_signed_out_cleans_temp_file_on_replace_failure(
     assert not probe.CLI_SIGNED_OUT_PATH.exists()
     leftovers = list(probe.CLI_SIGNED_OUT_PATH.parent.glob("*.tmp"))
     assert leftovers == []
+
+
+def test_unreadable_signed_out_marker_keeps_gate_closed(monkeypatch: pytest.MonkeyPatch) -> None:
+    fingerprint = "f" * 64
+    monkeypatch.setattr(probe, "_credential_fingerprint", lambda: "e" * 64)
+    probe.mark_cli_signed_out("e" * 64)
+    assert probe.CLI_SIGNED_OUT_PATH.exists()
+    original = Path.read_text
+
+    def refuse(self: Path, *args: object, **kwargs: object) -> str:
+        if self == probe.CLI_SIGNED_OUT_PATH:
+            raise PermissionError(13, "in use")
+        return original(self, *args, **kwargs)  # type: ignore[arg-type]
+
+    monkeypatch.setattr(Path, "read_text", refuse)
+    monkeypatch.setattr(probe, "_credential_fingerprint", lambda: fingerprint)
+    assert probe.agy_cli_signed_in(180) is False
+    assert probe.CLI_SIGNED_OUT_PATH.exists()
