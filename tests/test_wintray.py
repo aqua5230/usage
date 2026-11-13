@@ -4038,6 +4038,29 @@ def test_launch_at_login_failure_shows_message(monkeypatch: pytest.MonkeyPatch) 
     assert messages == [_t("zh-TW", "launch_at_login_failed", error="access denied")]
 
 
+@pytest.mark.parametrize("code", [0, 1])
+def test_install_hook_also_sets_up_agy_and_grok_status_lines(
+    monkeypatch: pytest.MonkeyPatch, code: int
+) -> None:
+    from installer import setup_hook, statusline_settings
+
+    calls: list[str] = []
+    monkeypatch.setattr(setup_hook, "setup", lambda: code)
+    monkeypatch.setattr(
+        session_hooks, "_migrate_bundled_python_commands_if_needed", lambda: calls.append("migrate")
+    )
+    monkeypatch.setattr(
+        statusline_settings, "_sync_agy_statusline", lambda enable: calls.append(f"agy:{enable}")
+    )
+    monkeypatch.setattr(
+        statusline_settings, "_sync_grok_statusline", lambda enable: calls.append(f"grok:{enable}")
+    )
+    controller = SimpleNamespace(refresh=lambda: calls.append("refresh"))
+    wintray._WindowsTrayController._install_hook(cast(Any, controller))
+    expected = ["migrate", "agy:True", "grok:True"] if code == 0 else []
+    assert calls == [*expected, "refresh"]
+
+
 @pytest.mark.parametrize("raises", [False, True])
 def test_statusline_toggle_failure_shows_message(
     monkeypatch: pytest.MonkeyPatch, raises: bool

@@ -2501,10 +2501,12 @@ class _WindowsTrayController:
         self.refresh()
 
     def _install_hook(self) -> None:
-        from installer import session_hooks, setup_hook
+        from installer import session_hooks, setup_hook, statusline_settings
 
         if setup_hook.setup() == 0:
             session_hooks._migrate_bundled_python_commands_if_needed()
+            statusline_settings._sync_agy_statusline(True)
+            statusline_settings._sync_grok_statusline(True)
         self.refresh()
 
     def _analyze_usage(self, project_range: str) -> None:
