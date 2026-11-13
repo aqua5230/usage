@@ -7,6 +7,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.34.18] - 2026-11-14
+
 ### Added
 - **Quota-aware mode tells Claude once per conversation when new models or Antigravity quota groups appear.** When a new model or Antigravity quota group shows up in the last seven days, Claude hears about it once per conversation along with whether usage's price table knows it yet. New Codex models are picked up from Codex's own model list; models from other tools appear after you use them once.
 
