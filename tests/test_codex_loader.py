@@ -2541,6 +2541,122 @@ def test_load_rate_limits_uses_turn_context_model_when_state_db_missing(
     )
 
 
+def test_load_rate_limits_records_newer_usage_limit_exceeded_rejection(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    sessions_dir = tmp_path / "sessions"
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    monkeypatch.setattr(codex_loader, "_load_thread_models", lambda: {})
+    now = datetime.now(UTC)
+    valid_ts = (now - timedelta(hours=2)).isoformat()
+    rejected_ts = (now - timedelta(minutes=10)).isoformat()
+
+    _write_rate_limit_session(
+        sessions_dir / "valid.jsonl",
+        valid_ts,
+        {
+            "limit_id": "codex",
+            "primary": {"used_percent": 40.0, "resets_at": now.timestamp() + 3600},
+            "secondary": {"used_percent": 99.0, "resets_at": now.timestamp() + 86400},
+        },
+        now.timestamp() - 7200,
+    )
+    rejected_path = sessions_dir / "rejected.jsonl"
+    rejected_lines = [
+        {
+            "timestamp": rejected_ts,
+            "type": "session_meta",
+            "payload": {"id": "rejected-session"},
+        },
+        {
+            "timestamp": rejected_ts,
+            "type": "event_msg",
+            "payload": {
+                "type": "token_count",
+                "rate_limits": {"primary": None, "secondary": None},
+            },
+        },
+        {
+            "timestamp": rejected_ts,
+            "type": "event_msg",
+            "payload": {
+                "type": "task_complete",
+                "error": {
+                    "message": "You've hit your usage limit. Try again at 3:10 AM.",
+                    "codex_error_info": "usage_limit_exceeded",
+                },
+            },
+        },
+    ]
+    rejected_path.write_text(
+        "\n".join(json.dumps(line) for line in rejected_lines),
+        encoding="utf-8",
+    )
+    os.utime(rejected_path, (now.timestamp(), now.timestamp()))
+
+    result = codex_loader.load_rate_limits()
+
+    assert result is not None
+    assert result.limit_reached_at == rejected_ts
+    assert result.five_hour_pct == 40.0
+    assert result.seven_day_pct == 99.0
+    assert result.updated_at == valid_ts
+
+
+def test_load_rate_limits_ignores_older_usage_limit_exceeded_rejection(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    sessions_dir = tmp_path / "sessions"
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    monkeypatch.setattr(codex_loader, "_load_thread_models", lambda: {})
+    now = datetime.now(UTC)
+    older_rejection_ts = (now - timedelta(hours=3)).isoformat()
+    valid_ts = (now - timedelta(minutes=5)).isoformat()
+
+    session_path = sessions_dir / "recovered.jsonl"
+    session_path.parent.mkdir(parents=True, exist_ok=True)
+    lines = [
+        {
+            "timestamp": older_rejection_ts,
+            "type": "session_meta",
+            "payload": {"id": "recovered-session"},
+        },
+        {
+            "timestamp": older_rejection_ts,
+            "type": "event_msg",
+            "payload": {
+                "type": "task_complete",
+                "error": {
+                    "message": "You've hit your usage limit.",
+                    "codex_error_info": "usage_limit_exceeded",
+                },
+            },
+        },
+        {
+            "timestamp": valid_ts,
+            "type": "event_msg",
+            "payload": {
+                "type": "token_count",
+                "rate_limits": {
+                    "limit_id": "codex",
+                    "primary": {"used_percent": 15.0, "resets_at": now.timestamp() + 3600},
+                    "secondary": {"used_percent": 20.0, "resets_at": now.timestamp() + 86400},
+                },
+            },
+        },
+    ]
+    session_path.write_text("\n".join(json.dumps(line) for line in lines), encoding="utf-8")
+    os.utime(session_path, (now.timestamp(), now.timestamp()))
+
+    result = codex_loader.load_rate_limits()
+
+    assert result is not None
+    assert result.limit_reached_at == ""
+    assert result.five_hour_pct == 15.0
+    assert result.seven_day_pct == 20.0
+    assert result.updated_at == valid_ts
+
+
 # ===== Disk cache tests =====
 
 

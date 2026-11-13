@@ -8,9 +8,9 @@ from __future__ import annotations
 
 import time
 from collections.abc import Callable
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime, timedelta, timezone, tzinfo
 from pathlib import Path, PurePosixPath, PureWindowsPath
-from typing import Any, cast
+from typing import Any, Self, cast
 
 import pytest
 
@@ -299,6 +299,101 @@ def test_codex_stale_state_hides_missing_timestamp() -> None:
     now = datetime(2026, 1, 1, 1, 0, tzinfo=UTC).timestamp()
 
     assert menubar_state.codex_stale_state("", now, "en") is None
+
+
+def _fixed_timezone_datetime(fixed_tz: tzinfo) -> type[datetime]:
+    class _FixedLocalDateTime(datetime):
+        def astimezone(self, tz: tzinfo | None = None) -> Self:
+            return super().astimezone(tz if tz is not None else fixed_tz)
+
+    return _FixedLocalDateTime
+
+
+def test_codex_stale_state_shows_limit_reached_at_in_local_hhmm(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        menubar_state,
+        "datetime",
+        _fixed_timezone_datetime(timezone(timedelta(hours=8))),
+    )
+    updated_at = "2026-11-13T11:00:00Z"
+    limit_reached_at = "2026-11-13T18:33:38.235Z"
+    now = datetime(2026, 11, 13, 19, 0, tzinfo=UTC).timestamp()
+    reset_at = datetime(2026, 11, 14, 19, 0, tzinfo=UTC).timestamp()
+
+    en_state = menubar_state.codex_stale_state(
+        updated_at,
+        now,
+        "en",
+        limit_reached_at=limit_reached_at,
+        five_hour_resets_at=None,
+        seven_day_resets_at=reset_at,
+    )
+    zh_state = menubar_state.codex_stale_state(
+        updated_at,
+        now,
+        "zh-TW",
+        limit_reached_at=limit_reached_at,
+        five_hour_resets_at=None,
+        seven_day_resets_at=reset_at,
+    )
+
+    assert en_state == {"ageText": "Limit reached · refused at 02:33"}
+    assert zh_state == {"ageText": "已達上限・02:33 被拒"}
+
+
+def test_codex_stale_state_falls_back_to_age_when_all_resets_passed() -> None:
+    now = datetime(2026, 11, 13, 20, 0, tzinfo=UTC)
+    updated_at = (now - timedelta(hours=2)).isoformat()
+    limit_reached_at = (now - timedelta(hours=1)).isoformat()
+
+    state = menubar_state.codex_stale_state(
+        updated_at,
+        now.timestamp(),
+        "en",
+        limit_reached_at=limit_reached_at,
+        five_hour_resets_at=(now - timedelta(minutes=10)).timestamp(),
+        seven_day_resets_at=(now - timedelta(minutes=5)).timestamp(),
+    )
+
+    assert state == {"ageText": "updated about 2 hr ago"}
+
+
+def test_codex_rows_passes_limit_reached_at_and_keeps_percent(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        menubar_state,
+        "datetime",
+        _fixed_timezone_datetime(timezone(timedelta(hours=-5))),
+    )
+    now = datetime(2026, 11, 13, 19, 0, tzinfo=UTC)
+    monkeypatch.setattr(time, "time", lambda: now.timestamp())
+    monkeypatch.setattr(
+        codex_loader,
+        "load_rate_limits",
+        lambda: codex_loader.CodexRateLimits(
+            five_hour_pct=12.0,
+            five_hour_resets_at=(now + timedelta(hours=2)).timestamp(),
+            seven_day_pct=99.0,
+            seven_day_resets_at=(now + timedelta(days=2)).timestamp(),
+            model="gpt-test",
+            updated_at="2026-11-13T18:55:00Z",
+            limit_reached_at="2026-11-13T18:58:00Z",
+        ),
+    )
+    trackers = {
+        "codex_session": BurnRateTracker(),
+        "codex_weekly": BurnRateTracker(),
+    }
+
+    rows, _menu_pct, _model, stale, _credits = menubar_state.codex_rows(
+        mock=False, language="en", burn_rate_trackers=trackers
+    )
+
+    assert rows[1].percent == 99.0
+    assert stale == {"ageText": "Limit reached · refused at 13:58"}
 
 
 def test_codex_rows_hides_missing_session_and_uses_weekly_for_menu(
