@@ -15,11 +15,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional, cast
 
-__version__ = "1.14"
+__version__ = "1.15"
 CLAUDE_STATUS = Path.home() / ".claude/usage-status.json"
 QUOTA_SNAPSHOT = Path.home() / ".usage/quota_snapshot.json"
 SERVICE_SNAPSHOT = Path.home() / ".usage/service_status_snapshot.json"
+MODEL_REGISTRY = Path.home() / ".usage/model_registry.json"
 STATE_PATH = Path.home() / ".usage/quota_aware_state.json"
+_RESERVED_STATE_KEYS = ("services", "overview", "accounts", "models")
 
 
 _fcntl: Any = None
@@ -369,6 +371,102 @@ def _service_reminders(
     return messages, changed
 
 
+def _clean_model_text(value: Any) -> str:
+    if not isinstance(value, str):
+        return ""
+    return "".join(ch for ch in value if ch.isprintable() and ch != '"').strip()[:60]
+
+
+def _new_models(now: float) -> list[tuple[str, float, str]]:
+    payload = _read(MODEL_REGISTRY)
+    if not payload:
+        return []
+    schema_version = payload.get("schema_version")
+    if isinstance(schema_version, bool) or schema_version != 1:
+        return []
+    raw_items = payload.get("items")
+    if not isinstance(raw_items, dict):
+        return []
+    cutoff = now - 7 * 86400
+    found: list[tuple[str, float, str]] = []
+    for key, entry in raw_items.items():
+        if not isinstance(key, str) or not key or not isinstance(entry, dict):
+            continue
+        if entry.get("baseline") is not False:
+            continue
+        try:
+            first_seen = _generated_at(entry.get("first_seen"))
+        except (ValueError, OverflowError, OSError):
+            continue
+        if first_seen < cutoff:
+            continue
+        source = entry.get("source")
+        name = _clean_model_text(entry.get("name"))
+        if not name:
+            continue
+        if source == "codex_catalog":
+            text = f'Codex model "{name}"'
+        elif source == "agy_group":
+            raw_models = entry.get("models")
+            models = (
+                [cleaned for m in raw_models if (cleaned := _clean_model_text(m))]
+                if isinstance(raw_models, list)
+                else []
+            )
+            models_part = f" (models: {', '.join(models)})" if models else ""
+            text = f'Antigravity quota group "{name}"{models_part}'
+        elif source == "usage_log":
+            text = f'model "{name}" first seen in local usage logs'
+        else:
+            continue
+        if entry.get("priced") is False:
+            text += " (usage's price table does not know it yet)"
+        found.append((key, first_seen, text))
+    found.sort(key=lambda item: item[1], reverse=True)
+    return found
+
+
+def _model_reminders(session_id: str, now: float, state: dict[str, Any]) -> tuple[str, bool]:
+    previous = state.get("models", {})
+    records: dict[str, dict[str, Any]] = {}
+    if isinstance(previous, dict):
+        for key, value in previous.items():
+            if (
+                isinstance(key, str)
+                and key
+                and isinstance(value, dict)
+                and isinstance(value.get("keys"), list)
+                and all(isinstance(item, str) for item in value["keys"])
+                and (seen_at := _number(value.get("at"))) is not None
+                and seen_at >= now - 7 * 86400
+            ):
+                records[key] = {"keys": list(value["keys"]), "at": seen_at}
+    changed = records != previous
+    entry = records.get(session_id)
+    seen_keys = list(entry["keys"]) if entry is not None else []
+    seen_set = set(seen_keys)
+    new_items = [item for item in _new_models(now) if item[0] not in seen_set]
+    block = ""
+    if new_items:
+        shown = [text for _, _, text in new_items[:5]]
+        if len(new_items) > 5:
+            shown.append(f"and {len(new_items) - 5} more")
+        block = (
+            "[usage models] New in the last 7 days: "
+            + "; ".join(shown)
+            + ". Background only: bring it up when it affects the current task, "
+            "such as choosing a model or agent, or when the user asks."
+        )
+        records[session_id] = {
+            "keys": seen_keys + [key for key, _, _ in new_items],
+            "at": now,
+        }
+        changed = True
+    if records or "models" in state:
+        state["models"] = records
+    return block, changed
+
+
 def _save(state: dict[str, Any]) -> None:
     temporary: Optional[str] = None
     try:
@@ -465,7 +563,7 @@ def _reminder(session_id: str, now: float) -> str:
     state: dict[str, Any] = {
         key: value
         for key, value in _read(STATE_PATH).items()
-        if key in ("services", "overview", "accounts")
+        if key in _RESERVED_STATE_KEYS
         or (
             isinstance(value, dict)
             and _number(value.get("resets_at")) is not None
@@ -474,7 +572,7 @@ def _reminder(session_id: str, now: float) -> str:
     }
     quota_changed = False
     for key, seen in state.items():
-        if key not in ("services", "overview", "accounts") and "anchor_resets_at" not in seen:
+        if key not in _RESERVED_STATE_KEYS and "anchor_resets_at" not in seen:
             seen["anchor_resets_at"] = seen["resets_at"]
             quota_changed = True
     messages = []
@@ -490,7 +588,7 @@ def _reminder(session_id: str, now: float) -> str:
     current = {(tool, window): (used, reset) for tool, window, used, reset, _suffix in windows}
     reset_lines = [account_line] if account_line else []
     for key, seen in list(state.items()):
-        if key in ("services", "overview", "accounts"):
+        if key in _RESERVED_STATE_KEYS:
             continue
         try:
             parts = json.loads(key)
@@ -566,11 +664,21 @@ def _reminder(session_id: str, now: float) -> str:
     service_block = (
         "[usage service status] " + "\n".join(service_messages) if service_messages else ""
     )
-    if messages or quota_changed or services_changed or overview_changed or accounts_changed:
+    models_block, models_changed = _model_reminders(session_id, now, state)
+    if (
+        messages
+        or quota_changed
+        or services_changed
+        or overview_changed
+        or accounts_changed
+        or models_changed
+    ):
         _save(state)
     if not messages:
         quota_block = "[usage quota] " + "\n".join(reset_lines) if reset_lines else ""
-        return "\n\n".join(block for block in (overview_block, quota_block, service_block) if block)
+        return "\n\n".join(
+            block for block in (overview_block, quota_block, service_block, models_block) if block
+        )
     # A spent agy model group reads as "Antigravity is used up" unless the groups that
     # still have quota are named next to it.
     open_groups: dict[str, float] = {}
@@ -604,7 +712,9 @@ def _reminder(session_id: str, now: float) -> str:
         f"Current local time: {_local(now):%a %H:%M}.\n"
         f"Claude Code's own quota: {own_status} This Claude Code session runs on this quota."
     )
-    return "\n\n".join(block for block in (overview_block, quota_block, service_block) if block)
+    return "\n\n".join(
+        block for block in (overview_block, quota_block, service_block, models_block) if block
+    )
 
 
 def _read_stdin_utf8() -> str:

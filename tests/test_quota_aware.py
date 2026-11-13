@@ -935,7 +935,7 @@ def test_service_normal_without_record_is_silent(paths: Path) -> None:
 
 
 def test_service_hook_versions_match() -> None:
-    assert hook.__version__ == session_hooks.QUOTA_AWARE_HOOK_VERSION == "1.14"
+    assert hook.__version__ == session_hooks.QUOTA_AWARE_HOOK_VERSION == "1.15"
 
 
 @pytest.mark.parametrize("window,label", [("five_hour", "5-hour"), ("seven_day", "weekly")])
@@ -2034,3 +2034,313 @@ def test_missing_owner_field_keeps_legacy_behavior(accounts: Path, overview: Non
     assert "[usage quota overview]" in out
     assert "Claude Code: 5-hour 96% used" in out
     assert "Claude Code 5-hour quota: 96% used" in out
+
+
+def model_registry(items: dict[str, Any], *, schema_version: Any = 1) -> None:
+    hook.MODEL_REGISTRY.parent.mkdir(parents=True, exist_ok=True)
+    hook.MODEL_REGISTRY.write_text(
+        json.dumps(
+            {
+                "schema_version": schema_version,
+                "codex_identity": "acct-1",
+                "items": items,
+            }
+        ),
+        encoding="utf-8",
+    )
+
+
+def _ts(offset: float = 0) -> str:
+    return datetime.fromtimestamp(NOW + offset, UTC).isoformat()
+
+
+def test_missing_model_registry_is_silent(paths: Path) -> None:
+    assert not hook.MODEL_REGISTRY.exists()
+    assert hook.reminder("one", NOW) == ""
+    assert not hook.STATE_PATH.exists()
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [
+        "broken",
+        "[]",
+        "{}",
+        json.dumps({"schema_version": 2, "items": {"a": {}}}),
+        json.dumps({"schema_version": "1", "items": {"a": {}}}),
+        json.dumps({"schema_version": True, "items": {"a": {}}}),
+        json.dumps({"schema_version": None, "items": {"a": {}}}),
+        json.dumps({"schema_version": 1, "items": []}),
+    ],
+)
+def test_bad_model_registry_is_silent_without_exception(paths: Path, raw: str) -> None:
+    hook.MODEL_REGISTRY.parent.mkdir(parents=True, exist_ok=True)
+    hook.MODEL_REGISTRY.write_text(raw, encoding="utf-8")
+    assert hook.reminder("one", NOW) == ""
+    assert not hook.STATE_PATH.exists()
+
+
+def test_baseline_and_old_models_are_ignored_with_inclusive_boundary(paths: Path) -> None:
+    model_registry(
+        {
+            "codex_catalog:base": {
+                "source": "codex_catalog",
+                "agent": "codex",
+                "name": "gpt-base",
+                "first_seen": _ts(0),
+                "baseline": True,
+                "priced": True,
+            },
+            "codex_catalog:too-old": {
+                "source": "codex_catalog",
+                "agent": "codex",
+                "name": "gpt-old",
+                "first_seen": _ts(-7 * 86400 - 1),
+                "baseline": False,
+                "priced": True,
+            },
+            "codex_catalog:boundary": {
+                "source": "codex_catalog",
+                "agent": "codex",
+                "name": "gpt-boundary",
+                "first_seen": _ts(-7 * 86400),
+                "baseline": False,
+                "priced": True,
+            },
+            "codex_catalog:missing-baseline": {
+                "source": "codex_catalog",
+                "agent": "codex",
+                "name": "gpt-missing-baseline",
+                "first_seen": _ts(0),
+                "priced": True,
+            },
+        }
+    )
+    output = hook.reminder("one", NOW)
+    assert output == (
+        '[usage models] New in the last 7 days: Codex model "gpt-boundary". '
+        "Background only: bring it up when it affects the current task, "
+        "such as choosing a model or agent, or when the user asks."
+    )
+
+
+def test_model_sources_and_pricing_note_formats(paths: Path) -> None:
+    model_registry(
+        {
+            "codex_catalog:gpt-6.2-pro": {
+                "source": "codex_catalog",
+                "agent": "codex",
+                "name": "gpt-6.2-pro",
+                "first_seen": _ts(0),
+                "baseline": False,
+                "priced": False,
+            },
+            "agy_group:gemini 4 argon": {
+                "source": "agy_group",
+                "agent": "antigravity",
+                "name": "GEMINI 4 ARGON",
+                "models": ["Gemini 4 Argon"],
+                "first_seen": _ts(-10),
+                "baseline": False,
+                "priced": None,
+            },
+            "agy_group:empty": {
+                "source": "agy_group",
+                "agent": "antigravity",
+                "name": "EMPTY GROUP",
+                "models": [],
+                "first_seen": _ts(-20),
+                "baseline": False,
+                "priced": None,
+            },
+            "usage_log:claude-fable-5-2": {
+                "source": "usage_log",
+                "agent": "unknown",
+                "name": "claude-fable-5-2",
+                "first_seen": _ts(-30),
+                "baseline": False,
+                "priced": True,
+            },
+            "usage_log:unpriced-log": {
+                "source": "usage_log",
+                "agent": "claude",
+                "name": "mystery-model",
+                "first_seen": _ts(-40),
+                "baseline": False,
+                "priced": False,
+            },
+        }
+    )
+    assert hook.reminder("one", NOW) == (
+        "[usage models] New in the last 7 days: "
+        'Codex model "gpt-6.2-pro" (usage\'s price table does not know it yet); '
+        'Antigravity quota group "GEMINI 4 ARGON" (models: Gemini 4 Argon); '
+        'Antigravity quota group "EMPTY GROUP"; '
+        'model "claude-fable-5-2" first seen in local usage logs; '
+        'model "mystery-model" first seen in local usage logs '
+        "(usage's price table does not know it yet). "
+        "Background only: bring it up when it affects the current task, "
+        "such as choosing a model or agent, or when the user asks."
+    )
+
+
+def test_models_announced_once_per_session_and_incremental_updates(paths: Path) -> None:
+    items: dict[str, Any] = {
+        "codex_catalog:gpt-6.2-pro": {
+            "source": "codex_catalog",
+            "agent": "codex",
+            "name": "gpt-6.2-pro",
+            "first_seen": _ts(-10),
+            "baseline": False,
+            "priced": True,
+        }
+    }
+    model_registry(items)
+    first = hook.reminder("one", NOW)
+    assert 'Codex model "gpt-6.2-pro"' in first
+    assert hook.reminder("one", NOW + 1) == ""
+
+    items["usage_log:claude-fable-5-2"] = {
+        "source": "usage_log",
+        "agent": "claude",
+        "name": "claude-fable-5-2",
+        "first_seen": _ts(2),
+        "baseline": False,
+        "priced": False,
+    }
+    model_registry(items)
+    second = hook.reminder("one", NOW + 3)
+    assert "gpt-6.2-pro" not in second
+    assert 'model "claude-fable-5-2" first seen in local usage logs' in second
+    assert hook.reminder("one", NOW + 4) == ""
+
+    other = hook.reminder("two", NOW + 5)
+    assert 'Codex model "gpt-6.2-pro"' in other
+    assert 'model "claude-fable-5-2" first seen in local usage logs' in other
+    assert hook.reminder("two", NOW + 6) == ""
+
+
+def test_models_capped_at_five_newest_first_with_and_more(paths: Path) -> None:
+    items = {
+        f"codex_catalog:m{i}": {
+            "source": "codex_catalog",
+            "agent": "codex",
+            "name": f"m{i}",
+            "first_seen": _ts(i * 10),
+            "baseline": False,
+            "priced": True,
+        }
+        for i in range(7)
+    }
+    model_registry(items)
+    output = hook.reminder("one", NOW + 100)
+    assert output == (
+        "[usage models] New in the last 7 days: "
+        'Codex model "m6"; Codex model "m5"; Codex model "m4"; '
+        'Codex model "m3"; Codex model "m2"; and 2 more. '
+        "Background only: bring it up when it affects the current task, "
+        "such as choosing a model or agent, or when the user asks."
+    )
+    assert hook.reminder("one", NOW + 101) == ""
+
+
+def test_model_names_sanitized_and_truncated(paths: Path) -> None:
+    long_name = 'x"a\nb\rc\x00' + ("z" * 80)
+    long_member = 'm"1\n' + ("y" * 70)
+    model_registry(
+        {
+            "codex_catalog:dirty": {
+                "source": "codex_catalog",
+                "agent": "codex",
+                "name": long_name,
+                "first_seen": _ts(10),
+                "baseline": False,
+                "priced": True,
+            },
+            "agy_group:dirty": {
+                "source": "agy_group",
+                "agent": "antigravity",
+                "name": 'group"\nname',
+                "models": [long_member, '""\n'],
+                "first_seen": _ts(0),
+                "baseline": False,
+                "priced": None,
+            },
+            "usage_log:empty-after-clean": {
+                "source": "usage_log",
+                "agent": "unknown",
+                "name": '"\n\t\r"',
+                "first_seen": _ts(5),
+                "baseline": False,
+                "priced": True,
+            },
+        }
+    )
+    output = hook.reminder("one", NOW)
+    assert "\n" not in output
+    expected_name = ("xabc" + ("z" * 80))[:60]
+    expected_member = ("m1" + ("y" * 70))[:60]
+    assert f'Codex model "{expected_name}"' in output
+    assert f'Antigravity quota group "groupname" (models: {expected_member})' in output
+    assert '""' not in output
+
+
+def test_model_records_pruned_after_seven_days_preserving_other_state(
+    accounts: Path, overview: None
+) -> None:
+    expired = NOW - 7 * 86400 - 1
+    boundary = NOW - 7 * 86400
+    quota_key = json.dumps(["other", "Claude Code", "five_hour"])
+    quota_record = {"resets_at": RESET, "anchor_resets_at": RESET, "level": 80}
+    hook.STATE_PATH.write_text(
+        json.dumps(
+            {
+                quota_key: quota_record,
+                "overview": {"one": NOW},
+                "models": {
+                    "expired": {"keys": ["codex_catalog:old"], "at": expired},
+                    "boundary": {"keys": ["codex_catalog:keep"], "at": boundary},
+                    "bad": {"keys": "not-a-list", "at": NOW},
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    assert hook.reminder("one", NOW) == ""
+    state = json.loads(hook.STATE_PATH.read_text(encoding="utf-8"))
+    assert state["models"] == {"boundary": {"keys": ["codex_catalog:keep"], "at": boundary}}
+    assert state[quota_key] == quota_record
+    assert state["overview"] == {"one": NOW}
+    assert not list(accounts.parent.glob("*.tmp"))
+
+
+def test_models_block_alone_and_ordered_after_existing_three_blocks(overview: None) -> None:
+    model_registry(
+        {
+            "codex_catalog:gpt-6.2-pro": {
+                "source": "codex_catalog",
+                "agent": "codex",
+                "name": "gpt-6.2-pro",
+                "first_seen": _ts(0),
+                "baseline": False,
+                "priced": False,
+            }
+        }
+    )
+    only_models = hook.reminder("only", NOW)
+    assert only_models == (
+        '[usage models] New in the last 7 days: Codex model "gpt-6.2-pro" '
+        "(usage's price table does not know it yet). "
+        "Background only: bring it up when it affects the current task, "
+        "such as choosing a model or agent, or when the user asks."
+    )
+
+    claude(82)
+    service_snapshot()
+    combined = hook.reminder("all-four", NOW)
+    blocks = combined.split("\n\n")
+    assert len(blocks) == 4
+    assert blocks[0].startswith("[usage quota overview] ")
+    assert blocks[1].startswith("[usage quota] ")
+    assert blocks[2].startswith("[usage service status] ")
+    assert blocks[3] == only_models
