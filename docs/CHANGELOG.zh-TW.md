@@ -7,6 +7,7 @@
 ## [Unreleased]
 
 ### 修正
+- **Antigravity 與 Muse 卡片的快取過期提示不再把設定按鈕擠出面板邊界。** 所有主題的快取提示現在改為獨立顯示在額度條下方，不再與卡片標題列並排。
 - **額度感知模式會發現 Antigravity 的新模型。** usage 原本只用額度池記錄 Antigravity，而額度池只列 Gemini Flash、Gemini Pro 這類大分類，所以加進既有額度池的新模型（例如 Gemini 4 Hydrogen）永遠不會被通知。現在也會記錄 Antigravity 對話裡用到的模型，並去掉強度與方案尾巴，同一個模型只通知一次。已用過的 Antigravity 模型會直接記成已知，更新後不會被當成新模型通知。
 
 ## [0.34.19] - 2026-11-14

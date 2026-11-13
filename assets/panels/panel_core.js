@@ -96,6 +96,34 @@
       [data-card="grok"], [data-card="muse"] { cursor: grab; }
     `;
     document.head.appendChild(switchHostStyle);
+    const cacheWarningStyle = document.createElement("style");
+    cacheWarningStyle.textContent = `
+      .card > :is([data-agy-stale], [data-muse-stale]) {
+        position: relative;
+        z-index: 2;
+        grid-column: 1 / -1;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 8px;
+        margin-left: 0;
+        white-space: nowrap;
+      }
+      .card > :is([data-agy-stale], [data-muse-stale])[hidden] {
+        display: none;
+      }
+      .card > :is([data-agy-stale], [data-muse-stale]) :is(.codex-stale-info, .stale-info) {
+        position: static;
+      }
+      .card > :is([data-agy-stale], [data-muse-stale]) :is(.codex-stale-tooltip, .stale-tooltip) {
+        top: auto;
+        bottom: calc(100% + 8px);
+        left: 0;
+        right: auto;
+        max-width: min(260px, 100%);
+      }
+    `;
+    document.head.appendChild(cacheWarningStyle);
     const compactCardsStyle = document.createElement("style");
     compactCardsStyle.textContent = `
       html.compact-cards .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"], [data-card="muse"]) {
