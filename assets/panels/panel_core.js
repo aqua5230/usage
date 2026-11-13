@@ -76,8 +76,8 @@
     const root = document.documentElement;
     const switchHostStyle = document.createElement("style");
     switchHostStyle.textContent = `
-      [data-card="codex"] .usage-switch-host > h1,
-      [data-card="codex"] .usage-switch-host > .header-copy {
+      .usage-switch-host > h1,
+      .usage-switch-host > .header-copy {
         flex: 0 0 auto !important;
         min-width: max-content !important;
         overflow: visible !important;
@@ -92,6 +92,23 @@
         min-width: 0;
         overflow: hidden;
         text-overflow: ellipsis;
+      }
+      /* Next to the settings button, a warning keeps only its icons; the age moves
+         into the tooltip so the button stays inside the card. */
+      .usage-switch-host > :is([data-agy-stale], [data-grok-stale], [data-muse-stale]) {
+        flex: none !important;
+        margin-left: auto;
+      }
+      .usage-switch-host :is([data-agy-stale-age], [data-grok-stale-age], [data-muse-stale-age]) {
+        display: none !important;
+      }
+      /* Antigravity also carries the quota-group button, so its title has to give way too. */
+      [data-card="agy"] .usage-switch-host > :is(h1, .header-copy) {
+        flex: 0 1 auto !important;
+        min-width: 0 !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
       [data-card="grok"], [data-card="muse"] { cursor: grab; }
     `;
@@ -383,7 +400,7 @@
       if (!staleEl || !ageEl || !tooltipEl) return;
       if (agy && agy.stale && agy.stale.ageText) {
         ageEl.textContent = agy.stale.ageText;
-        tooltipEl.textContent = agy.stale.tooltip || t("agy_stale_tooltip");
+        tooltipEl.textContent = `${agy.stale.ageText} · ${agy.stale.tooltip || t("agy_stale_tooltip")}`;
         staleEl.hidden = false;
         return;
       }
@@ -400,7 +417,7 @@
       if (!staleEl || !ageEl || !tooltipEl) return;
       if (grok && grok.stale && grok.stale.ageText) {
         ageEl.textContent = grok.stale.ageText;
-        tooltipEl.textContent = t("grok_stale_tooltip");
+        tooltipEl.textContent = `${grok.stale.ageText} · ${t("grok_stale_tooltip")}`;
         staleEl.hidden = false;
         return;
       }
@@ -417,7 +434,7 @@
       if (!staleEl || !ageEl || !tooltipEl) return;
       if (muse && muse.stale && muse.stale.ageText) {
         ageEl.textContent = muse.stale.ageText;
-        tooltipEl.textContent = t("muse_stale_tooltip");
+        tooltipEl.textContent = `${muse.stale.ageText} · ${t("muse_stale_tooltip")}`;
         staleEl.hidden = false;
         return;
       }
@@ -497,7 +514,9 @@
       window.PanelHooks.switchButtonStrategy(state);
       const button = document.querySelector('[data-action="switch"]');
       const host = button && button.parentElement;
-      if (host && host.closest('[data-card="codex"]')) {
+      // When a card with a stale notice hosts the button, the notice shrinks instead
+      // of pushing the button out of the header.
+      if (host && host.closest('[data-card="codex"], [data-card="agy"], [data-card="grok"], [data-card="muse"]')) {
         host.classList.add("usage-switch-host");
       }
     }

@@ -190,7 +190,7 @@ assert.equal(cards[0][0], 'muse');
 assert.equal(cards[0][1], context.muse);
 assert.equal(stale.hidden, false);
 assert.equal(age.textContent, 'about 10 minutes ago');
-assert.equal(tooltip.textContent, 'muse_stale_tooltip');
+assert.equal(tooltip.textContent, 'about 10 minutes ago · muse_stale_tooltip');
 for (const data of [{session: {}, weekly: {}}, null, {stale: {}}]) {
   context.muse = data;
   vm.runInContext('renderMuse(muse)', context);

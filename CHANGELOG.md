@@ -9,6 +9,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Fixed
 - **New Antigravity models are now noticed by quota-aware mode.** usage recorded Antigravity only by quota group, and those groups list broad families such as Gemini Flash and Gemini Pro, so a new model added to an existing group, like Gemini 4 Hydrogen, was never announced. Models from your Antigravity conversations are now recorded too, with effort and tier suffixes removed so each model is announced once. Antigravity models you have already used are recorded as known, so updating does not announce them as new.
+- **A stale-data warning no longer pushes the Settings button out of the panel.** When Claude and Codex are hidden, the Settings button moves to the Antigravity, Grok, or Muse card, and that card's "about N minutes ago" warning pushed it past the card's edge. On the card that holds the button, the warning now shows only its icons and the age moves into the ⓘ tooltip; the Antigravity title shortens if needed. The tooltip now starts with the age on every card. Reported in #341.
 
 ## [0.34.19] - 2026-11-14
 
