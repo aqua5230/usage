@@ -447,7 +447,7 @@ def load_rate_limits(
         jsonl_candidates=jsonl_candidates
     )
     if sqlite_limits is None:
-        return jsonl_limits
+        return _with_limit_reached_at(jsonl_limits, latest_rejection)
     if jsonl_limits is None:
         return _with_limit_reached_at(sqlite_limits, latest_rejection)
     merged = _merge_rate_limits(sqlite_limits, jsonl_limits)
@@ -469,17 +469,48 @@ def _with_limit_reached_at(
         return rate_limits
     rejection_dt, rejection_str = latest_rejection
     updated_dt = _parse_timestamp(rate_limits.updated_at)
-    if updated_dt is not None and rejection_dt > updated_dt:
+    if updated_dt is None or rejection_dt <= updated_dt:
+        return rate_limits
+    rejection_ts = rejection_dt.timestamp()
+    five_candidate = (
+        rate_limits.five_hour_resets_at is not None
+        and rate_limits.five_hour_resets_at > rejection_ts
+    )
+    seven_candidate = (
+        rate_limits.seven_day_resets_at is not None
+        and rate_limits.seven_day_resets_at > rejection_ts
+    )
+    if not five_candidate and not seven_candidate:
         return replace(rate_limits, limit_reached_at=rejection_str)
-    return rate_limits
+    if five_candidate and seven_candidate:
+        five_pct = rate_limits.five_hour_pct if rate_limits.five_hour_pct is not None else -1.0
+        seven_pct = rate_limits.seven_day_pct if rate_limits.seven_day_pct is not None else -1.0
+        use_five = five_pct > seven_pct
+    else:
+        use_five = five_candidate
+    if use_five:
+        return replace(
+            rate_limits,
+            five_hour_pct=100.0,
+            updated_at=rejection_str,
+            limit_reached_at=rejection_str,
+        )
+    return replace(
+        rate_limits,
+        seven_day_pct=100.0,
+        updated_at=rejection_str,
+        limit_reached_at=rejection_str,
+    )
 
 
 def _load_jsonl_rate_limits(
     *,
     jsonl_candidates: Iterable[tuple[Path, float]] | None = None,
 ) -> CodexRateLimits | None:
-    rate_limits, _ = _load_jsonl_rate_limits_with_rejection(jsonl_candidates=jsonl_candidates)
-    return rate_limits
+    rate_limits, latest_rejection = _load_jsonl_rate_limits_with_rejection(
+        jsonl_candidates=jsonl_candidates
+    )
+    return _with_limit_reached_at(rate_limits, latest_rejection)
 
 
 def _load_jsonl_rate_limits_with_rejection(
@@ -501,10 +532,10 @@ def _load_jsonl_rate_limits_with_rejection(
         if rate_limits is None:
             continue
         if rate_limits.limit_id == "codex":
-            return _with_limit_reached_at(rate_limits, latest_rejection), latest_rejection
+            return rate_limits, latest_rejection
         if fallback is None:
             fallback = rate_limits
-    return _with_limit_reached_at(fallback, latest_rejection), latest_rejection
+    return fallback, latest_rejection
 
 
 def _rate_limits_timestamp(rate_limits: CodexRateLimits) -> datetime:

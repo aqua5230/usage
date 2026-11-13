@@ -32,7 +32,7 @@ from quota.usage_rate import GROUP_NAMES
 from usage_common.i18n import _t
 from usage_common.pricing import calculate_cost
 from usage_common.service_status import ServiceStatus
-from usage_common.time_utils import parse_iso8601_utc_or_raise, parse_optional_iso8601_utc
+from usage_common.time_utils import parse_iso8601_utc_or_raise
 
 if TYPE_CHECKING:
     from panels.base import Panel as UsagePanel
@@ -653,28 +653,10 @@ def format_human_time(seconds: float, language: str = "en") -> str:
     return _t(language, "duration_minutes", minutes=minutes)
 
 
-def codex_stale_state(
-    updated_at: str,
-    now: float,
-    language: str,
-    *,
-    limit_reached_at: str = "",
-    five_hour_resets_at: float | None = None,
-    seven_day_resets_at: float | None = None,
-) -> CodexStaleState | None:
+def codex_stale_state(updated_at: str, now: float, language: str) -> CodexStaleState | None:
     if not updated_at:
         return None
     timestamp = parse_iso8601_utc_or_raise(updated_at)
-    if limit_reached_at:
-        limit_dt = parse_optional_iso8601_utc(limit_reached_at)
-        if limit_dt is not None and limit_dt > timestamp:
-            limit_ts = limit_dt.timestamp()
-            if any(
-                reset_at is not None and reset_at > limit_ts and reset_at > now
-                for reset_at in (five_hour_resets_at, seven_day_resets_at)
-            ):
-                local_time = datetime.fromtimestamp(limit_ts, tz=UTC).astimezone().strftime("%H:%M")
-                return {"ageText": _t(language, "codex_limit_reached_at", time=local_time)}
     age_seconds = now - timestamp.timestamp()
     if age_seconds <= 900:
         return None
@@ -786,9 +768,6 @@ def codex_rows(
             rate_limits.updated_at,
             now,
             language,
-            limit_reached_at=rate_limits.limit_reached_at,
-            five_hour_resets_at=rate_limits.five_hour_resets_at,
-            seven_day_resets_at=rate_limits.seven_day_resets_at,
         )
     except Exception:
         codex_stale = None
