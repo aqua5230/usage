@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional, cast
 
-__version__ = "1.13"
+__version__ = "1.14"
 CLAUDE_STATUS = Path.home() / ".claude/usage-status.json"
 QUOTA_SNAPSHOT = Path.home() / ".usage/quota_snapshot.json"
 SERVICE_SNAPSHOT = Path.home() / ".usage/service_status_snapshot.json"
@@ -127,6 +127,34 @@ def _account_uuid() -> Optional[str]:
     return uuid if isinstance(uuid, str) and uuid else None
 
 
+def _recorded_account_uuid(records: Any, session_id: Any) -> Optional[str]:
+    if not isinstance(records, dict) or not isinstance(session_id, str) or not session_id:
+        return None
+    record = records.get(session_id)
+    uuid = record.get("uuid") if isinstance(record, dict) else None
+    return uuid if isinstance(uuid, str) and uuid else None
+
+
+def _can_use_status(session_id: str, status: dict[str, Any], state: dict[str, Any]) -> bool:
+    if "_rate_limits_session_id" not in status:
+        return True
+    owner = status.get("_rate_limits_session_id")
+    if not isinstance(owner, str) or not owner:
+        return False
+    if owner == session_id:
+        return True
+    accounts = state.get("accounts")
+    owner_uuid = _recorded_account_uuid(accounts, owner)
+    my_uuid = _recorded_account_uuid(accounts, session_id)
+    current_uuid = _account_uuid()
+    return (
+        owner_uuid is not None
+        and my_uuid is not None
+        and current_uuid is not None
+        and owner_uuid == current_uuid == my_uuid
+    )
+
+
 def _account_reminder(session_id: str, now: float, state: dict[str, Any]) -> tuple[str, bool, bool]:
     previous = state.get("accounts", {})
     records = {
@@ -142,6 +170,8 @@ def _account_reminder(session_id: str, now: float, state: dict[str, Any]) -> tup
     uuid = _account_uuid()
     seen = records.get(session_id)
     if uuid is not None and (seen is None or seen["uuid"] != uuid):
+        status = _read(CLAUDE_STATUS) if seen is not None else {}
+        owner_uuid = _recorded_account_uuid(records, status.get("_rate_limits_session_id"))
         records[session_id] = {"uuid": uuid, "at": now}
         if seen is not None:
             message = (
@@ -151,12 +181,13 @@ def _account_reminder(session_id: str, now: float, state: dict[str, Any]) -> tup
             )
             for window in ("five_hour", "seven_day"):
                 state.pop(json.dumps([session_id, "Claude Code", window]), None)
-            limits = _read(CLAUDE_STATUS).get("rate_limits")
-            records[session_id]["old_limits"] = {
-                name: limits[name]
-                for name in ("five_hour", "seven_day")
-                if isinstance(limits, dict) and isinstance(limits.get(name), dict)
-            }
+            if owner_uuid != uuid:
+                limits = status.get("rate_limits")
+                records[session_id]["old_limits"] = {
+                    name: limits[name]
+                    for name in ("five_hour", "seven_day")
+                    if isinstance(limits, dict) and isinstance(limits.get(name), dict)
+                }
         seen = records[session_id]
         changed = True
     pending = False
@@ -190,7 +221,9 @@ def _generated_at(value: Any) -> float:
     return parsed.timestamp()
 
 
-def _windows(session_id: str, now: float) -> list[tuple[str, str, float, float, str]]:
+def _windows(
+    session_id: str, now: float, state: dict[str, Any]
+) -> list[tuple[str, str, float, float, str]]:
     windows: list[tuple[str, str, float, float, str]] = []
 
     def add(
@@ -223,9 +256,9 @@ def _windows(session_id: str, now: float) -> list[tuple[str, str, float, float, 
                 windows.append((tool, name, used, reset, suffix))
 
     status = _read(CLAUDE_STATUS)
-    # A session that has not replied yet carries the previous session's windows, which can
-    # be another account's after a /login switch. Older status line hooks omit the field.
-    if status.get("_rate_limits_session_id", session_id) == session_id:
+    # A session that has not replied yet carries another session's windows, which are only safe
+    # to reuse when both sessions belong to the current account. Older hooks omit the field.
+    if _can_use_status(session_id, status, state):
         add("Claude Code", status.get("rate_limits"), claude=True)
     snapshot = _read(QUOTA_SNAPSHOT)
     try:
@@ -364,14 +397,15 @@ def _usage(used: float, reset: float, now: float) -> str:
     return f"{used:g}% used, resets in {duration} (at {clock} local time)"
 
 
-def _claude_pending(session_id: str) -> bool:
-    # Claude Code's quota is tied to this session only after its first reply (see _windows),
-    # so an overview sent before that would leave out the quota this session runs on.
+def _claude_pending(session_id: str, state: dict[str, Any]) -> bool:
+    # Claude Code's quota is tied to this session only after its own reply or another session's
+    # reply on the same account (see _windows), so an overview sent before that would leave out
+    # the quota this session runs on.
     status = _read(CLAUDE_STATUS)
+    if _can_use_status(session_id, status, state):
+        return False
     owner = status.get("_rate_limits_session_id")
-    return (isinstance(owner, str) and owner != session_id) or (
-        "_rate_limits_session_id" in status and owner is None and _account_uuid() is not None
-    )
+    return isinstance(owner, str) or (owner is None and _account_uuid() is not None)
 
 
 def _overview_reminder(
@@ -388,7 +422,7 @@ def _overview_reminder(
     }
     changed = records != previous
     tools: dict[str, list[str]] = {}
-    if session_id not in records and not _claude_pending(session_id):
+    if session_id not in records and not _claude_pending(session_id, state):
         for tool, window, used, reset, suffix in windows:
             if suffix:
                 continue
@@ -447,7 +481,7 @@ def _reminder(session_id: str, now: float) -> str:
     limited = set()
     announced_agy = False
     account_line, accounts_changed, account_pending = _account_reminder(session_id, now, state)
-    windows = _windows(session_id, now)
+    windows = _windows(session_id, now, state)
     old_limits = state["accounts"][session_id]["old_limits"] if account_pending else {}
     windows = [
         entry for entry in windows if entry[0] != "Claude Code" or entry[1] not in old_limits
