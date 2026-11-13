@@ -935,7 +935,7 @@ def test_service_normal_without_record_is_silent(paths: Path) -> None:
 
 
 def test_service_hook_versions_match() -> None:
-    assert hook.__version__ == session_hooks.QUOTA_AWARE_HOOK_VERSION == "1.12"
+    assert hook.__version__ == session_hooks.QUOTA_AWARE_HOOK_VERSION == "1.13"
 
 
 @pytest.mark.parametrize("window,label", [("five_hour", "5-hour"), ("seven_day", "weekly")])
@@ -1770,3 +1770,105 @@ def test_legacy_quota_record_anchor_is_saved_on_first_load(paths: Path) -> None:
     record = hook._read(hook.STATE_PATH)[key]
     assert record["anchor_resets_at"] == RESET
     assert record["resets_at"] == RESET + 540
+
+
+def test_main_reads_utf8_stdin_under_cp1252_stream(
+    paths: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    claude(82)
+    raw = json.dumps(
+        {"session_id": "one", "prompt": "額度測試 日本語 한국어"}, ensure_ascii=False
+    ).encode("utf-8")
+    monkeypatch.setattr(sys, "stdin", io.TextIOWrapper(io.BytesIO(raw), encoding="cp1252"))
+    hook.main()
+    assert "Claude Code 5-hour quota: 82% used" in capsys.readouterr().out
+
+    invalid = b'{"session_id": "two", "prompt": "' + b"\xff" + b'"}'
+    monkeypatch.setattr(sys, "stdin", io.TextIOWrapper(io.BytesIO(invalid), encoding="cp1252"))
+    hook.main()
+    assert "Claude Code 5-hour quota: 82% used" in capsys.readouterr().out
+
+
+def test_main_reconfigures_cp1252_stdout_to_utf8(
+    paths: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    snapshot()
+    data = json.loads(hook.QUOTA_SNAPSHOT.read_text())
+    data["agents"] = {
+        "antigravity": {
+            "available": True,
+            "groups": [
+                {
+                    "name": "中文模型組",
+                    "seven_day": {"used_percent": 96, "resets_in_seconds": 3600},
+                }
+            ],
+        }
+    }
+    hook.QUOTA_SNAPSHOT.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    buf = io.BytesIO()
+    stdout = io.TextIOWrapper(buf, encoding="cp1252")
+    monkeypatch.setattr(sys, "stdin", io.StringIO('{"session_id": "one"}'))
+    monkeypatch.setattr(sys, "stdout", stdout)
+    hook.main()
+    stdout.flush()
+    printed = buf.getvalue().decode("utf-8")
+    assert 'Antigravity CLI (agy) model group "中文模型組": weekly quota: 96% used' in printed
+    assert json.dumps(["one", "Antigravity (中文模型組)", "seven_day"]) in hook._read(
+        hook.STATE_PATH
+    )
+
+
+@pytest.mark.parametrize("target", ["dump", "replace"])
+def test_save_cleans_up_temp_file_on_failure(
+    paths: Path, monkeypatch: pytest.MonkeyPatch, target: str
+) -> None:
+    def fail(*_args: Any, **_kwargs: Any) -> None:
+        raise OSError("disk full")
+
+    if target == "dump":
+        monkeypatch.setattr(json, "dump", fail)
+    else:
+        monkeypatch.setattr(os, "replace", fail)
+
+    with pytest.raises(OSError, match="disk full"):
+        hook._save({"session": 1})
+    assert not list(paths.glob("*.tmp"))
+    assert not hook.STATE_PATH.exists()
+
+
+def test_open_agy_groups_omitted_when_turn_has_no_agy_message(paths: Path) -> None:
+    agy_weekly()
+    data = json.loads(hook.QUOTA_SNAPSHOT.read_text())
+    data["agents"]["antigravity"]["groups"].extend(
+        [
+            {
+                "name": "GEMINI MODELS",
+                "seven_day": {"used_percent": 7.6, "resets_in_seconds": 500000},
+            },
+            {
+                "name": "THIRD MODELS",
+                "five_hour": {"used_percent": 82, "resets_in_seconds": 9000},
+            },
+        ]
+    )
+    hook.QUOTA_SNAPSHOT.write_text(json.dumps(data))
+    first = hook.reminder("one", NOW)
+    assert 'Other agy model groups still have quota: "GEMINI MODELS" 7.6% used.' in first
+
+    data["agents"]["codex"] = {
+        "available": True,
+        "five_hour": {"used_percent": 91, "resets_at": RESET},
+    }
+    hook.QUOTA_SNAPSHOT.write_text(json.dumps(data))
+    second = hook.reminder("one", NOW + 1)
+    assert "Codex 5-hour quota: 91% used" in second
+    assert "Antigravity" not in second
+    assert "Other agy model groups" not in second
+
+    data["agents"]["antigravity"]["groups"][2]["five_hour"]["used_percent"] = 91
+    hook.QUOTA_SNAPSHOT.write_text(json.dumps(data))
+    third = hook.reminder("one", NOW + 2)
+    assert 'Antigravity CLI (agy) model group "THIRD MODELS": 5-hour quota: 91% used' in third
+    assert 'Other agy model groups still have quota: "GEMINI MODELS" 7.6% used.' in third
+    assert "CLAUDE AND GPT MODELS" not in third
