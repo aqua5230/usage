@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import threading
 import time
@@ -11,6 +12,7 @@ from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from types import SimpleNamespace
+from typing import Any
 
 import pytest
 
@@ -534,3 +536,218 @@ def test_f2_transient_keychain_reads_reopen_unchanged_credential(
         assert probe._cli_retry_after_monotonic == (at // 1800 + 1) * 1800
     assert launches == [0, 1800, 3600]
     assert probe._cli_retry_after_monotonic == 5400
+
+
+def _write_fallback_api_mocks(monkeypatch: pytest.MonkeyPatch, *, succeed: bool = True) -> None:
+    monkeypatch.setattr(probe, "_resolve_access_token", lambda timeout: "valid-token")
+    summary = {"groups": [{"displayName": "Claude and GPT models", "buckets": []}]}
+    models = {
+        "models": {
+            "gemini-flash": {
+                "quotaInfo": {
+                    "remainingFraction": 0.8,
+                    "resetTime": (datetime.now(UTC) + timedelta(hours=3)).isoformat(),
+                }
+            }
+        }
+    }
+    monkeypatch.setattr(
+        probe,
+        "_post_json",
+        (lambda url, *args: summary if url == probe._QUOTA_URL else models)
+        if succeed
+        else (lambda *args: None),
+    )
+
+
+def test_fallback_api_success_clears_stale_signed_out_marker_after_recheck_window(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    clock = [10_000.0]
+    monkeypatch.setattr(time, "time", lambda: clock[0])
+    probe._TOKEN_PATH.write_text(
+        json.dumps({"token": {"access_token": "tok", "expiry": "2099-01-01T00:00:00Z"}})
+    )
+    probe.mark_cli_signed_out(probe._credential_fingerprint())
+    monkeypatch.setattr(probe, "_cli_retry_after_monotonic", 12_345.0)
+    _write_fallback_api_mocks(monkeypatch, succeed=True)
+
+    clock[0] = 10_000.0 + probe.CLI_SIGNED_OUT_RECHECK_SECONDS - 1
+    assert probe.probe_quota() is not None
+    assert probe.CLI_SIGNED_OUT_PATH.exists()
+    assert probe._cli_retry_after_monotonic == 12_345.0
+
+    clock[0] = 10_000.0 + probe.CLI_SIGNED_OUT_RECHECK_SECONDS
+    assert probe.probe_quota() is not None
+    assert not probe.CLI_SIGNED_OUT_PATH.exists()
+    assert probe._cli_retry_after_monotonic == 12_345.0
+
+
+@pytest.mark.parametrize("failure", ["no_token", "post_failed"])
+def test_fallback_api_failure_keeps_stale_signed_out_marker(
+    monkeypatch: pytest.MonkeyPatch, failure: str
+) -> None:
+    clock = [10_000.0]
+    monkeypatch.setattr(time, "time", lambda: clock[0])
+    probe._TOKEN_PATH.write_text(
+        json.dumps({"token": {"access_token": "tok", "expiry": "2099-01-01T00:00:00Z"}})
+    )
+    probe.mark_cli_signed_out(probe._credential_fingerprint())
+    if failure == "no_token":
+        monkeypatch.setattr(probe, "_resolve_access_token", lambda timeout: None)
+    else:
+        _write_fallback_api_mocks(monkeypatch, succeed=False)
+
+    clock[0] = 10_000.0 + probe.CLI_SIGNED_OUT_RECHECK_SECONDS + 3600
+    assert probe.probe_quota() is None
+    assert probe.CLI_SIGNED_OUT_PATH.exists()
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        b'{"fingerprint": "abc"}',
+        b'{"fingerprint": "abc", "marked_at": null}',
+        b'{"fingerprint": "abc", "marked_at": "1000"}',
+        b'{"fingerprint": "abc", "marked_at": true}',
+        b"{not-json",
+    ],
+)
+def test_fallback_api_success_keeps_marker_without_numeric_marked_at(
+    monkeypatch: pytest.MonkeyPatch, payload: bytes
+) -> None:
+    monkeypatch.setattr(time, "time", lambda: 100_000.0)
+    probe.CLI_SIGNED_OUT_PATH.write_bytes(payload)
+    _write_fallback_api_mocks(monkeypatch, succeed=True)
+
+    assert probe.probe_quota() is not None
+    assert probe.CLI_SIGNED_OUT_PATH.exists()
+
+
+@pytest.mark.parametrize("stream", ["stdout", "stderr"])
+@pytest.mark.parametrize(
+    "message",
+    [b"Authentication required", b"triggering interactive OAuth", "Authentication required"],
+)
+def test_keeper_timeout_with_signout_output_marks_signed_out(
+    monkeypatch: pytest.MonkeyPatch, stream: str, message: bytes | str
+) -> None:
+    probe._TOKEN_PATH.write_text(
+        json.dumps({"token": {"access_token": "tok", "expiry": "2099-01-01T00:00:00Z"}})
+    )
+    error = subprocess.TimeoutExpired(["/fake/agy", "-p", "ok"], keeper.PING_TIMEOUT_SECONDS)
+    setattr(error, stream, message)
+
+    def run(*args: object, **kwargs: object) -> None:
+        raise error
+
+    monkeypatch.setattr(subprocess, "run", run)
+    keeper._ping_worker(1.0)
+    state = keeper_outcome.read_state(keeper.AGY_WINDOW_KEEPER_STATE_PATH)
+    assert state["last_error_kind"] == "timeout"
+    assert probe.CLI_SIGNED_OUT_PATH.exists()
+    assert probe.agy_cli_signed_in(keeper.PING_TIMEOUT_SECONDS) is False
+
+
+def test_keeper_timeout_without_signout_output_keeps_gate_open(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    probe._TOKEN_PATH.write_text(
+        json.dumps({"token": {"access_token": "tok", "expiry": "2099-01-01T00:00:00Z"}})
+    )
+
+    def run(command: list[str], **kwargs: object) -> None:
+        raise subprocess.TimeoutExpired(command, keeper.PING_TIMEOUT_SECONDS)
+
+    monkeypatch.setattr(subprocess, "run", run)
+    keeper._ping_worker(1.0)
+    state = keeper_outcome.read_state(keeper.AGY_WINDOW_KEEPER_STATE_PATH)
+    assert state["last_error_kind"] == "timeout"
+    assert not probe.CLI_SIGNED_OUT_PATH.exists()
+    assert probe.agy_cli_signed_in(keeper.PING_TIMEOUT_SECONDS) is True
+
+
+class _JsonSpy:
+    """Record JSON texts parsed by agy_cli_signed_in while delegating other json attributes."""
+
+    def __init__(self) -> None:
+        self.seen: list[str] = []
+
+    def loads(self, text: str, *args: Any, **kwargs: Any) -> Any:
+        self.seen.append(text)
+        return json.loads(text, *args, **kwargs)
+
+    def __getattr__(self, name: str) -> object:
+        return getattr(json, name)
+
+
+def test_mark_cli_signed_out_atomic_concurrent_read_never_opens_gate(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fingerprint = "f" * 64
+    monkeypatch.setattr(probe, "_credential_fingerprint", lambda: fingerprint)
+    spy = _JsonSpy()
+    monkeypatch.setattr(probe, "json", spy)
+    probe.mark_cli_signed_out(fingerprint)
+    assert probe.agy_cli_signed_in(180) is False
+
+    stop = threading.Event()
+    errors: list[BaseException] = []
+
+    def writer() -> None:
+        try:
+            while not stop.is_set():
+                probe.mark_cli_signed_out(fingerprint)
+        except BaseException as exc:  # pragma: no cover - surfaced below
+            errors.append(exc)
+
+    thread = threading.Thread(target=writer)
+    thread.start()
+    reads = 0
+    try:
+        deadline = time.monotonic() + 0.3
+        while time.monotonic() < deadline or reads < 50:
+            spy.seen.clear()
+            reads += 1
+            assert probe.agy_cli_signed_in(180) is False
+            # Windows may refuse the read mid-replace, so the parser can see nothing.
+            assert all(text.endswith("}") for text in spy.seen)
+    finally:
+        stop.set()
+        thread.join(timeout=5)
+    assert not errors
+    assert probe.CLI_SIGNED_OUT_PATH.exists()
+
+
+def test_mark_cli_signed_out_cleans_temp_file_on_replace_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fingerprint = "f" * 64
+    monkeypatch.setattr(probe, "_credential_fingerprint", lambda: fingerprint)
+
+    def fail_replace(src: str, dst: object) -> None:
+        raise OSError("disk full")
+
+    monkeypatch.setattr(os, "replace", fail_replace)
+    probe.mark_cli_signed_out(fingerprint)
+    assert not probe.CLI_SIGNED_OUT_PATH.exists()
+    leftovers = list(probe.CLI_SIGNED_OUT_PATH.parent.glob("*.tmp"))
+    assert leftovers == []
+
+
+def test_unreadable_signed_out_marker_keeps_gate_closed(monkeypatch: pytest.MonkeyPatch) -> None:
+    fingerprint = "f" * 64
+    monkeypatch.setattr(probe, "_credential_fingerprint", lambda: "e" * 64)
+    probe.mark_cli_signed_out("e" * 64)
+    assert probe.CLI_SIGNED_OUT_PATH.exists()
+    original = Path.read_text
+
+    def refuse(self: Path, *args: object, **kwargs: object) -> str:
+        if self == probe.CLI_SIGNED_OUT_PATH:
+            raise PermissionError(13, "in use")
+        return original(self, *args, **kwargs)  # type: ignore[arg-type]
+
+    monkeypatch.setattr(Path, "read_text", refuse)
+    monkeypatch.setattr(probe, "_credential_fingerprint", lambda: fingerprint)
+    assert probe.agy_cli_signed_in(180) is False
+    assert probe.CLI_SIGNED_OUT_PATH.exists()

@@ -1449,3 +1449,167 @@ def test_missing_group_preserves_absolute_weekly_reset(monkeypatch: pytest.Monke
     fresh = agy_quota_probe._carry_missing_weekly(original, carried).groups[0]
     assert fresh.weekly_fetched_at is None
     assert fresh.weekly_resets_at is None
+
+
+@pytest.mark.parametrize("drift_minutes", [0, 9])
+def test_fallback_files_weekly_bucket_not_as_five_hour_after_cli_success(
+    monkeypatch: pytest.MonkeyPatch, drift_minutes: int
+) -> None:
+    from menubar.agy import project_quota
+
+    now = datetime.now(UTC)
+    weekly_reset = now + timedelta(hours=2, minutes=1)
+    session_reset = now + timedelta(hours=3)
+    cli_payload = {
+        "command": {
+            "data": {
+                "groups": [
+                    {
+                        "name": "Gemini Models",
+                        "buckets": [
+                            {
+                                "bucketId": "weekly",
+                                "remainingFraction": 0.30,
+                                "resetTime": weekly_reset.isoformat(),
+                            },
+                            {
+                                "bucketId": "session",
+                                "remainingFraction": 0.90,
+                                "resetTime": session_reset.isoformat(),
+                            },
+                        ],
+                    }
+                ]
+            }
+        }
+    }
+    monkeypatch.setattr(agy_quota_probe, "_probe_via_cli", _real_probe_via_cli)
+    monkeypatch.setattr(agy_quota_probe, "find_agy", lambda: "/bin/agy")
+    monkeypatch.setattr(
+        "loaders.agy_quota_probe.subprocess.run",
+        lambda command, **kwargs: subprocess.CompletedProcess(
+            command, 0, json.dumps(cli_payload).encode(), b""
+        ),
+    )
+    first = agy_quota_probe.load_quota(max_age_minutes=0)
+    assert first is not None
+    assert first.groups[0].five_hour is not None
+    assert first.groups[0].five_hour.remaining_percent == 90.0
+    assert first.groups[0].weekly is not None
+    assert first.groups[0].weekly.remaining_percent == 30.0
+
+    monkeypatch.setattr(
+        "loaders.agy_quota_probe.subprocess.run",
+        lambda *args, **kwargs: pytest.fail("CLI must not run"),
+    )
+    monkeypatch.setattr(agy_quota_probe, "_cli_retry_after_monotonic", time.monotonic() + 1800)
+    monkeypatch.setattr(agy_quota_probe, "_resolve_access_token", lambda timeout: "fake-token")
+    fallback_reset = (weekly_reset + timedelta(minutes=drift_minutes)).isoformat()
+
+    def post(url: str, *args: object) -> object:
+        if url == _QUOTA_URL:
+            return {"groups": [{"name": "Claude and GPT models", "buckets": []}]}
+        return {
+            "models": {
+                "gemini-flash": {
+                    "quotaInfo": {"remainingFraction": 0.25, "resetTime": fallback_reset}
+                }
+            }
+        }
+
+    monkeypatch.setattr(agy_quota_probe, "_post_json", post)
+    second = agy_quota_probe.load_quota(max_age_minutes=0)
+    assert second is not None
+    gemini = second.groups[0]
+    assert gemini.name == "GEMINI MODELS"
+    assert gemini.five_hour is None
+    assert gemini.weekly is not None and gemini.weekly.remaining_percent == 25.0
+    assert gemini.weekly_fetched_at is None
+    card_view = project_quota(second, "en")
+    assert card_view is not None
+    assert card_view.weekly.percent == 75.0
+    assert card_view.session.percent is None
+    assert card_view.session.percent_text == "--"
+
+
+def test_fallback_keeps_five_hour_when_reset_outside_weekly_tolerance(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    now = datetime.now(UTC)
+    cached_weekly_reset = now + timedelta(hours=2)
+    cached = AgyQuotaResult(
+        [
+            AgyQuotaGroup(
+                "GEMINI MODELS",
+                ["Gemini Flash"],
+                AgyQuotaWindow(30.0, "2h 0m", 120),
+                AgyQuotaWindow(90.0, "3h 0m", 180),
+            )
+        ],
+        now.isoformat(),
+    )
+    agy_quota_probe._write_cache(cached)
+    monkeypatch.setattr(agy_quota_probe, "_resolve_access_token", lambda timeout: "fake-token")
+
+    def post(url: str, *args: object) -> object:
+        if url == _QUOTA_URL:
+            return {"groups": [{"name": "Claude and GPT models", "buckets": []}]}
+        return {
+            "models": {
+                "gemini-flash": {
+                    "quotaInfo": {
+                        "remainingFraction": 0.60,
+                        "resetTime": (cached_weekly_reset + timedelta(minutes=15)).isoformat(),
+                    }
+                }
+            }
+        }
+
+    monkeypatch.setattr(agy_quota_probe, "_post_json", post)
+    result = agy_quota_probe.load_quota(max_age_minutes=-1)
+    assert result is not None
+    gemini = result.groups[0]
+    assert gemini.five_hour is not None and gemini.five_hour.remaining_percent == 60.0
+    assert gemini.weekly is not None and gemini.weekly.remaining_percent == 30.0
+    assert gemini.weekly_fetched_at == now.isoformat()
+
+
+def test_fallback_100_percent_sliding_reset_does_not_override_spent_weekly(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    now = datetime.now(UTC)
+    cached = AgyQuotaResult(
+        [
+            AgyQuotaGroup(
+                "GEMINI MODELS",
+                ["Gemini Flash"],
+                AgyQuotaWindow(30.0, "4h 58m", 298),
+                AgyQuotaWindow(100.0, None, None),
+            )
+        ],
+        now.isoformat(),
+    )
+    agy_quota_probe._write_cache(cached)
+    monkeypatch.setattr(agy_quota_probe, "_resolve_access_token", lambda timeout: "fake-token")
+
+    def post(url: str, *args: object) -> object:
+        if url == _QUOTA_URL:
+            return {"groups": [{"name": "Claude and GPT models", "buckets": []}]}
+        return {
+            "models": {
+                "gemini-flash": {
+                    "quotaInfo": {
+                        "remainingFraction": 1.0,
+                        "resetTime": (now + timedelta(hours=5)).isoformat(),
+                    }
+                }
+            }
+        }
+
+    monkeypatch.setattr(agy_quota_probe, "_post_json", post)
+    result = agy_quota_probe.load_quota(max_age_minutes=-1)
+    assert result is not None
+    gemini = result.groups[0]
+    assert gemini.five_hour is not None and gemini.five_hour.remaining_percent == 100.0
+    assert gemini.weekly is not None and gemini.weekly.remaining_percent == 30.0
+    assert gemini.weekly_fetched_at == now.isoformat()

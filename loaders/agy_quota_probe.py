@@ -45,6 +45,7 @@ from usage_common.subprocess_utils import hidden_console_kwargs
 CACHE_PATH = Path(os.path.expanduser("~/.usage/agy_quota_cache.json"))
 AUTH_EXPIRED_PATH = CACHE_PATH.parent / "agy_auth_expired"
 CLI_SIGNED_OUT_PATH = CACHE_PATH.parent / "agy_cli_signed_out"
+CLI_SIGNED_OUT_RECHECK_SECONDS = 6 * 3600
 _CLI_LOG_PATH = CACHE_PATH.parent / "agy_usage_cli.log"
 BACKGROUND_AGY_LOCK = threading.Lock()
 
@@ -63,12 +64,46 @@ def mark_cli_signed_out(before: str | None) -> None:
     after = _credential_fingerprint()
     if after != before:
         return
-    with suppress(OSError):
+    temporary: str | None = None
+    try:
         CLI_SIGNED_OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-        CLI_SIGNED_OUT_PATH.write_text(
-            json.dumps({"fingerprint": after, "marked_at": time.time()}),
+        with tempfile.NamedTemporaryFile(
+            mode="w",
             encoding="utf-8",
-        )
+            dir=CLI_SIGNED_OUT_PATH.parent,
+            suffix=".tmp",
+            delete=False,
+        ) as handle:
+            temporary = handle.name
+            handle.write(json.dumps({"fingerprint": after, "marked_at": time.time()}))
+        os.replace(temporary, CLI_SIGNED_OUT_PATH)
+        temporary = None
+    except OSError:
+        return
+    finally:
+        if temporary is not None and os.path.exists(temporary):
+            with suppress(OSError):
+                os.unlink(temporary)
+
+
+def _clear_stale_cli_signed_out() -> None:
+    """Clear the signed-out marker once fallback quota proves the credential works."""
+    if not CLI_SIGNED_OUT_PATH.exists():
+        return
+    try:
+        marker = json.loads(CLI_SIGNED_OUT_PATH.read_text(encoding="utf-8"))
+    except (OSError, ValueError, UnicodeError):
+        return
+    marked_at = marker.get("marked_at") if isinstance(marker, dict) else None
+    if (
+        isinstance(marked_at, bool)
+        or not isinstance(marked_at, (int, float))
+        or not math.isfinite(float(marked_at))
+    ):
+        return
+    if time.time() - float(marked_at) >= CLI_SIGNED_OUT_RECHECK_SECONDS:
+        with suppress(OSError):
+            CLI_SIGNED_OUT_PATH.unlink(missing_ok=True)
 
 
 def agy_cli_signed_in(timeout: float) -> bool:
@@ -78,7 +113,12 @@ def agy_cli_signed_in(timeout: float) -> bool:
         return True
     try:
         marker = json.loads(CLI_SIGNED_OUT_PATH.read_text(encoding="utf-8"))
-    except (OSError, ValueError, UnicodeError):
+    except FileNotFoundError:
+        return True
+    except OSError:
+        # Windows refuses the read while the marker is being replaced; keep the gate shut.
+        return False
+    except (ValueError, UnicodeError):
         marker = {}
     stored = marker.get("fingerprint") if isinstance(marker, dict) else None
     current = _credential_fingerprint()
@@ -124,6 +164,8 @@ _cli_retry_after_monotonic = 0.0
 # When each group last appeared in a real API response; in memory only, reset on restart.
 _group_seen_at: dict[str, datetime] = {}
 _MISSING_GROUP_GRACE_MINUTES = 30
+# CLI and fetchAvailableModels reset estimates can differ by ~9 minutes.
+_WEEKLY_RESET_MATCH_TOLERANCE_SECONDS = 10 * 60
 # Models omit the period; keep known weekly resets weekly near expiry.
 # In memory only: after restart, unseen resets use the time heuristic again.
 _weekly_reset_times: set[str] = set()
@@ -195,6 +237,7 @@ def probe_quota(timeout_seconds: float = 15) -> AgyQuotaResult | None:
     if result is not None:
         with suppress(OSError):
             AUTH_EXPIRED_PATH.unlink(missing_ok=True)
+        _clear_stale_cli_signed_out()
     return result
 
 
@@ -303,6 +346,27 @@ def load_quota(max_age_minutes: float = 5) -> AgyQuotaResult | None:
     return probed
 
 
+def _matches_cached_weekly_reset(
+    five_hour: AgyQuotaWindow | None,
+    probed_at: datetime,
+    cached_resets_at: datetime | None,
+) -> bool:
+    if (
+        five_hour is None
+        or five_hour.resets_in_minutes is None
+        or five_hour.remaining_percent >= 100.0
+        or cached_resets_at is None
+    ):
+        return False
+    if cached_resets_at <= probed_at and five_hour.resets_in_minutes <= 0:
+        return False
+    five_hour_resets_at = probed_at + timedelta(minutes=five_hour.resets_in_minutes)
+    return (
+        abs((five_hour_resets_at - cached_resets_at).total_seconds())
+        <= _WEEKLY_RESET_MATCH_TOLERANCE_SECONDS
+    )
+
+
 def _carry_missing_weekly(probed: AgyQuotaResult, cached: AgyQuotaResult | None) -> AgyQuotaResult:
     """Retain a missing weekly window until its cached reset, without refreshing its age."""
     if cached is None:
@@ -327,7 +391,15 @@ def _carry_missing_weekly(probed: AgyQuotaResult, cached: AgyQuotaResult | None)
                 if old.weekly_resets_at is not None
                 else cached_at + timedelta(minutes=window.resets_in_minutes)
             )
-            if resets_at is not None and resets_at > probed_at:
+            if _matches_cached_weekly_reset(group.five_hour, probed_at, resets_at):
+                group = replace(
+                    group,
+                    weekly=group.five_hour,
+                    five_hour=None,
+                    weekly_fetched_at=None,
+                    weekly_resets_at=None,
+                )
+            elif resets_at is not None and resets_at > probed_at:
                 minutes = max(0, math.ceil((resets_at - probed_at).total_seconds() / 60))
                 group = replace(
                     group,
