@@ -2,15 +2,29 @@ from __future__ import annotations
 
 import json
 import threading
-from datetime import UTC, datetime, timedelta
-from typing import Any
+from datetime import UTC, date, datetime, timedelta, tzinfo
+from typing import Any, Self
 
 import pytest
 
 from adapters.types import AgentInfo, UsageEntry
 from analyzer import history_persist, reporter, usage_snapshot
 
-NOW = datetime(2026, 8, 12, 12, tzinfo=UTC)
+
+class _UtcLocalDateTime(datetime):
+    # Pin no-arg astimezone() to UTC so tests remain deterministic across timezones and on Windows.
+    def astimezone(self, tz: tzinfo | None = None) -> Self:
+        return super().astimezone(tz if tz is not None else UTC)
+
+
+def _entry_date_utc(entry: UsageEntry) -> date:
+    ts = entry.timestamp
+    if ts.tzinfo:
+        ts = ts.astimezone(UTC)
+    return ts.date()
+
+
+NOW = _UtcLocalDateTime(2026, 8, 12, 12, tzinfo=UTC)
 _REAL_SCHEDULE_NEXT = history_persist._schedule_next_locked
 
 
@@ -35,6 +49,8 @@ def _entry(when: datetime = NOW, session: str = "real") -> UsageEntry:
 def _isolate_worker(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(history_persist, "_refresh_in_flight", False)
     monkeypatch.setattr(history_persist, "_timer", None)
+    monkeypatch.setattr(reporter, "_entry_date", _entry_date_utc)
+    monkeypatch.setattr(usage_snapshot, "_entry_date", _entry_date_utc)
     monkeypatch.setattr(
         history_persist,
         "detect_agents",

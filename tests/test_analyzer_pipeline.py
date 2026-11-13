@@ -8,9 +8,9 @@ from __future__ import annotations
 
 import json
 import time
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta, tzinfo
 from pathlib import Path
-from typing import Any
+from typing import Any, Self
 
 import pytest
 
@@ -66,6 +66,29 @@ def _empty_year_payload() -> dict[str, Any]:
             "beast": None,
         },
     }
+
+
+def _fixed_datetime(fixed: datetime) -> type:
+    # Pin no-arg astimezone() to UTC so tests remain deterministic across timezones and on Windows.
+    class _FixedLocalDateTime(datetime):
+        def astimezone(self, tz: tzinfo | None = None) -> Self:
+            return super().astimezone(tz if tz is not None else UTC)
+
+    class _FixedDateTime:
+        @staticmethod
+        def now(tz: tzinfo | None = None) -> datetime:
+            if tz:
+                return fixed.astimezone(tz)
+            return _FixedLocalDateTime.fromtimestamp(fixed.timestamp(), tz=UTC)
+
+    return _FixedDateTime
+
+
+def _entry_date_utc(entry: UsageEntry) -> date:
+    ts = entry.timestamp
+    if ts.tzinfo:
+        ts = ts.astimezone(UTC)
+    return ts.date()
 
 
 def test_all_languages_have_analyze_label() -> None:
@@ -467,11 +490,6 @@ def test_report_today_uses_expected_codex_hours_back(monkeypatch: Any) -> None:
 
 
 def test_report_week_includes_previous_period_comparison(monkeypatch: Any) -> None:
-    class FixedDateTime:
-        @staticmethod
-        def now() -> datetime:
-            return datetime(2026, 5, 21, 12, tzinfo=UTC)
-
     agent = AgentInfo("codex", "Codex", "~/.codex", True)
     entries = [
         UsageEntry(
@@ -527,7 +545,10 @@ def test_report_week_includes_previous_period_comparison(monkeypatch: Any) -> No
         calls["hours_back"] = hours_back
         return entries
 
-    monkeypatch.setattr(reporter, "datetime", FixedDateTime)
+    monkeypatch.setattr(
+        reporter, "datetime", _fixed_datetime(datetime(2026, 5, 21, 12, tzinfo=UTC))
+    )
+    monkeypatch.setattr(reporter, "_entry_date", _entry_date_utc)
     monkeypatch.setattr(reporter, "_load_agent_entries", fake_load_agent_entries)
     monkeypatch.setattr("analyzer.reporter.subscription.load_subscriptions", lambda: [])
     monkeypatch.setattr(reporter, "build_year_data", lambda _agents: _empty_year_payload())
@@ -547,11 +568,6 @@ def test_report_week_includes_previous_period_comparison(monkeypatch: Any) -> No
 
 
 def test_report_last7_includes_previous_period_comparison(monkeypatch: Any) -> None:
-    class FixedDateTime:
-        @staticmethod
-        def now() -> datetime:
-            return datetime(2026, 5, 21, 12, tzinfo=UTC)
-
     agent = AgentInfo("codex", "Codex", "~/.codex", True)
     entries = [
         UsageEntry(
@@ -607,7 +623,10 @@ def test_report_last7_includes_previous_period_comparison(monkeypatch: Any) -> N
         calls["hours_back"] = hours_back
         return entries
 
-    monkeypatch.setattr(reporter, "datetime", FixedDateTime)
+    monkeypatch.setattr(
+        reporter, "datetime", _fixed_datetime(datetime(2026, 5, 21, 12, tzinfo=UTC))
+    )
+    monkeypatch.setattr(reporter, "_entry_date", _entry_date_utc)
     monkeypatch.setattr(reporter, "_load_agent_entries", fake_load_agent_entries)
     monkeypatch.setattr("analyzer.reporter.subscription.load_subscriptions", lambda: [])
     monkeypatch.setattr(reporter, "build_year_data", lambda _agents: _empty_year_payload())
@@ -717,11 +736,6 @@ def test_report_today_uses_codex_token_count_deltas(
 
 
 def test_build_year_data_computes_streaks_across_month_boundary(monkeypatch: Any) -> None:
-    class FixedDateTime:
-        @staticmethod
-        def now() -> datetime:
-            return datetime(2026, 6, 3, 9, tzinfo=UTC)
-
     agent = AgentInfo("codex", "Codex", "~/.codex", True)
     entries = [
         UsageEntry(
@@ -796,7 +810,8 @@ def test_build_year_data_computes_streaks_across_month_boundary(monkeypatch: Any
         ),
     ]
 
-    monkeypatch.setattr(reporter, "datetime", FixedDateTime)
+    monkeypatch.setattr(reporter, "datetime", _fixed_datetime(datetime(2026, 6, 3, 9, tzinfo=UTC)))
+    monkeypatch.setattr(reporter, "_entry_date", _entry_date_utc)
     monkeypatch.setattr(reporter, "_load_agent_entries", lambda _agent, _hours_back=0: entries)
     monkeypatch.setattr(reporter, "calculate_cost", lambda entry: float(entry.input_tokens) / 10)
 
@@ -813,11 +828,6 @@ def test_build_year_data_keeps_ledger_days_missing_from_current_entries(
     monkeypatch: Any,
     tmp_path: Path,
 ) -> None:
-    class FixedDateTime:
-        @staticmethod
-        def now() -> datetime:
-            return datetime(2026, 6, 21, 12, tzinfo=UTC)
-
     agent = AgentInfo("codex", "Codex", "~/.codex", True)
     first_day = UsageEntry(
         timestamp=datetime(2026, 6, 17, 10, tzinfo=UTC),
@@ -859,7 +869,9 @@ def test_build_year_data_keeps_ledger_days_missing_from_current_entries(
 
     ledger_path = tmp_path / ".usage" / "year_ledger.json"
     monkeypatch.setattr(reporter, "YEAR_LEDGER_PATH", ledger_path)
-    monkeypatch.setattr(reporter, "datetime", FixedDateTime)
+    fixed_now = _fixed_datetime(datetime(2026, 6, 21, 12, tzinfo=UTC))
+    monkeypatch.setattr(reporter, "datetime", fixed_now)
+    monkeypatch.setattr(reporter, "_entry_date", _entry_date_utc)
     monkeypatch.setattr(reporter, "_load_agent_entries", fake_load_agent_entries)
     monkeypatch.setattr(reporter, "calculate_cost", lambda entry: float(entry.cost_usd or 0.0))
 
@@ -1124,11 +1136,6 @@ def test_contribution_level_uses_quantile_thresholds_for_edges() -> None:
 
 
 def test_build_year_data_uses_quantile_levels_and_selects_dragon(monkeypatch: Any) -> None:
-    class FixedDateTime:
-        @staticmethod
-        def now() -> datetime:
-            return datetime(2026, 6, 21, 12, tzinfo=UTC)
-
     agent = AgentInfo("codex", "Codex", "~/.codex", True)
     entries = [
         UsageEntry(
@@ -1203,7 +1210,9 @@ def test_build_year_data_uses_quantile_levels_and_selects_dragon(monkeypatch: An
         ),
     ]
 
-    monkeypatch.setattr(reporter, "datetime", FixedDateTime)
+    fixed_now = _fixed_datetime(datetime(2026, 6, 21, 12, tzinfo=UTC))
+    monkeypatch.setattr(reporter, "datetime", fixed_now)
+    monkeypatch.setattr(reporter, "_entry_date", _entry_date_utc)
     monkeypatch.setattr(reporter, "_load_agent_entries", lambda _agent, _hours_back=0: entries)
     monkeypatch.setattr(reporter, "calculate_cost", lambda _entry: 0.25)
 
@@ -1346,15 +1355,8 @@ def test_build_report_data_by_model_includes_cost_known(monkeypatch: Any) -> Non
         "analyzer.reporter.is_model_priced",
         lambda model: model == "claude-opus-4-8",
     )
-    # Pin datetime.now() to fixed_date
-    from datetime import tzinfo
-
-    class _FixedDateTime:
-        @staticmethod
-        def now(tz: tzinfo | None = None) -> datetime:
-            return fixed_date.astimezone(tz) if tz else fixed_date.replace(tzinfo=None)
-
-    monkeypatch.setattr("analyzer.reporter.datetime", _FixedDateTime)
+    monkeypatch.setattr("analyzer.reporter.datetime", _fixed_datetime(fixed_date))
+    monkeypatch.setattr(reporter, "_entry_date", _entry_date_utc)
 
     agent = AgentInfo("claude-code", "Claude Code", "~/.claude", True)
     data = reporter.build_report_data([agent], "today")
