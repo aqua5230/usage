@@ -26,7 +26,7 @@
 </p>
 
 - **各项配额一览：** Claude Code、Codex、Antigravity、Muse Code 的会话与每周限额及重置倒计时，加上 Grok CLI 的每周配额。
-- **读取你电脑上已有数据：** Claude Code、Codex、Grok CLI、Muse Code 的 token 与费用来自本地日志。Antigravity 配额先问它自己的 CLI（不调用模型），不行再用该 CLI 本就保存在本机的登录身份向 Google 官方接口查询。Muse 额度则通过已登录的 Muse 命令行工具，在后台发送一次很小的请求获取。
+- **读取你电脑上已有数据：** Claude Code、Codex、Grok CLI、Muse Code 的 token 与费用来自本地日志。Antigravity 配额先问它自己的 CLI（不调用模型），不行再用该 CLI 本就保存在本机的登录身份向 Google 官方接口查询。Muse 额度则先运行不调用模型的 `muse usage --json`（Muse 1.4.13 起支持），读不到才退回在空文件夹用 `muse exec` 在后台发送一次小模型调用。
 - **在 token 浪费前提醒：** Claude Code 状态栏会在上下文窗口膨胀和 prompt 缓存变冷前发出提醒。横幅会显示 Claude 或 Codex 故障。
 - **Claude Code 内置辅助：** 侧边面板、更短的回复、新会话的进度交接，以及额度感知规划。全部可选。
 - **报告与 16 款主题：** 展示 token 趋势和费用的 HTML 报告，以及 16 款可供选择的面板主题。
@@ -70,7 +70,7 @@ uvx usage-cli
 
 ## 首次启动：设置状态栏
 
-如果你用过 Codex，`usage` 会自动读取其历史记录。对于 Claude Code，请在应用弹出面板中点击 **“Set Up Status Line”** 按钮以安装同步 hook。
+如果你用过 Codex，`usage` 会自动读取其历史记录。对于 Claude Code，请在应用弹出面板中点击 **“设置状态栏”** 按钮以安装同步 hook。
 之后重启相应工具（macOS 请将 Claude Code 用 Cmd+Q 完全退出后重新打开；Windows 请重启终端或重新开启会话）。
 
 同一颗按钮在你装了 Antigravity CLI 与 Grok CLI 时，也会一并帮它们设置状态栏；没装的话什么都不会写入。你自己在那边设置过的状态栏会先备份起来，关掉开关时还原。开关在“⚙ 设置 → Claude Code → 状态栏同步额度”；关掉后 Claude 额度就不再更新。
@@ -97,7 +97,7 @@ uvx usage-cli
 
 | 功能 | 用途 | 默认 · 配额用量 |
 |---------|--------------|---------------------|
-| **进度管家** | 打开新会话时，上次请求、未提交的变更和未完成的待办事项已直接交给 AI。无需 `/resume`，无需回顾。 | 默认关闭 · 不额外调用模型 |
+| **进度管家**（菜单名称：**接着上次做**） | 打开新会话时，上次请求、未提交的变更和未完成的待办事项已直接交给 AI。无需 `/resume`，无需回顾。 | 默认关闭 · 不额外调用模型 |
 | **Token 节省器** | 要求 Claude Code 和 Codex 给出更简洁、更白话的回复，同时保持代码和错误信息逐字节不变。在真实会话的 A/B 测试中，对话后期回复维持**缩短约 40%**，而不是漂移变长 84%。 | 默认关闭 · 不额外调用模型 |
 | **侧边面板** | 在工作旁随时查看额度、其他对话和后台任务。[查看侧边面板介绍](#claude-code-侧边面板)。 | 默认关闭 · 不额外调用模型 |
 | **新手模式** | 用一行白话解释每次回答中最多三个专业术语，稍后带回进行复习。 | 默认关闭 · 少量 Claude 额度 |
@@ -137,7 +137,7 @@ uvx usage-cli
 
 不用离开 Claude Code，就能查看额度、其他对话和后台任务。支持 macOS 和 Windows。
 
-<p align="center"><img src="side-pane.png" alt="Claude Code 侧边面板显示额度、对话和后台任务" width="637"></p>
+<p align="center"><img src="side-pane.en.png" alt="Claude Code 侧边面板显示额度、对话和后台任务" width="637"></p>
 
 **你会看到**
 
@@ -186,7 +186,7 @@ uvx usage-cli
   <img src="black_hole.en.png" width="24%" alt="Black Hole 主题" />
   <img src="world_cup.en.png" width="24%" alt="World Cup 2026 主题" />
   <img src="lepidoptera.en.png" width="24%" alt="Lepidoptera 主题" />
-  <img src="migration.png" width="24%" alt="候鸟迁徙主题" />
+  <img src="migration.en.png" width="24%" alt="候鸟迁徙主题" />
   <img src="catppuccin.en.png" width="24%" alt="Catppuccin 主题" />
   <img src="sketchbook.en.png" width="24%" alt="手绘笔记主题" />
   <img src="heart_monitor.en.png" width="24%" alt="心电图主题" />
@@ -222,7 +222,7 @@ Windows 原生支持完整核心功能：提供与 macOS 相同的 16 款主题�
 <details>
 <summary>托盘图标、任务栏标签及其他差异</summary>
 
-系统托盘图标显示 Claude 或 Codex 当前会话配额的剩余百分比。在右键菜单或面板菜单中选择 **托盘显示来源 → Claude Code / Codex**，立即生效并在重启后保留（默认 Claude）；Codex 没有会话窗口时改用周配额，并在悬停提示中注明；没有配额数据时显示 `--`。悬停提示会汇总两个工具的各个窗口，并优先显示所选来源。左键通过 WebView2 打开配额主题。右键还提供「重设面板位置」和「结束」；面板切换、刷新、开机自启和检查更新都在面板菜单中。
+系统托盘图标显示 Claude 或 Codex 当前会话配额的剩余百分比。在右键菜单或面板菜单中选择 **托盘显示来源 → Claude Code / Codex**，立即生效并在重启后保留（默认 Claude）；Codex 没有会话窗口时改用周配额，并在悬停提示中注明；没有配额数据时显示 `--`。悬停提示先列出 Claude 与 Codex（所选来源排在最前），再列出卡片有显示的 Antigravity、Grok、Muse；Windows 的悬停提示上限是 127 个字符，过长时末尾会被截断。左键通过 WebView2 打开配额主题。右键还提供「重设面板位置」和「结束」；面板切换、刷新、开机自启和检查更新都在面板菜单中。
 
 在右键菜单或面板菜单中开启 **显示任务栏额度**，即可在任务栏内部、通知区域左侧透明显示 `Codex: 92%`。标签自动跟随任务栏位置、屏幕缩放和明暗主题，全屏或任务栏自动隐藏时隐藏；点击文字打开面板。空间不足时自动移到任务栏外侧，避免遮挡按钮。托盘保留普通程序图标作为菜单入口；文字使用所选来源和额度窗口。 右键点击标签会打开与系统托盘图标相同的菜单。
 
@@ -238,7 +238,7 @@ Windows 原生支持完整核心功能：提供与 macOS 相同的 16 款主题�
 |---------|--------------|-----|
 | 菜单栏显示 `--` | 尚无数据，或 Claude Code hook 未刷新 | 进行一次 Codex 对话。对于 Claude Code，点击“设置状态栏”（源码安装则运行 `python3 main.py --setup`） |
 | 运行 `usage.app` 里的 `main.py` 报 `ImportError` | 打包版的 `main.py` 需要 app 自带的解释器，无法手动运行 | 别运行那一份。改点 app 里的“设置状态栏”，或 clone 源码从源码运行 |
-| 误点“Quit” | 进程已终止 | 从 Spotlight 或 Applications 重新启动 `usage.app`。（`launchctl start com.lollapalooza.usage` 仅在你开启过“开机自启”时有效。） |
+| 误点“结束” | 进程已终止 | 从 Spotlight 或 Applications 重新启动 `usage.app`。（`launchctl start com.lollapalooza.usage` 仅在你开启过“开机自启”时有效。） |
 | 状态显示“N minutes stale” | Claude Code 未运行 | 打开 Claude Code 并让它运行 |
 | Codex 区块为空 | 未找到 Codex 历史记录 | 进行一次 Codex 对话以生成日志 |
 | 今日费用显示 $0.00 | 缺少模型价格 | 删除 `~/.usage/pricing_cache.json`，或检查 `USAGE_DEBUG=1` |
@@ -249,7 +249,7 @@ Windows 原生支持完整核心功能：提供与 macOS 相同的 16 款主题�
 - **本地日志：** Claude Code、Codex、Grok CLI 和 Muse Code 的 token 与费用数值从你电脑上的日志文件读取。其内容绝不会被上传。
 - **Claude 桌面版：** 无需 Claude Code CLI 或状态栏，保持 Claude 桌面版打开，`usage` 即可读取其本地 plan-usage 历史记录。不需要 Cookie、登录令牌或 API 调用。重置时间仅在其本地缓存确认时才会显示；绝不推测时间。
 - **Antigravity** 仅在你使用时才需要联网：配额先用 `agy -p /usage` 询问 Antigravity CLI（不调用模型）；失败时才通过 Antigravity CLI 登录后保存的 OAuth 凭据向 Google 官方配额接口查询——依 CLI 版本不同，该凭据读自 macOS 钥匙串、Windows 凭据管理器或本地 token 文件。`usage` 绝不写回该凭据，任何刷新后的 access token 也仅保留在内存中；该调用本身仅读取配额元数据。
-- **Muse 额度：** Muse 本地没有额度文件。`usage` 使用 Muse 自己的登录执行 `muse exec --json`，将返回额度存到 `~/.usage/muse_quota.json`。这会连接 Muse，实际调用一次模型，消耗少量 Muse 额度。探测在空文件夹运行，带有 `--no-session-log`。安装 Muse 且有对话时会获取第一份快照；之后只在快照超过 30 分钟且有更新的 Muse 对话时探测。失败后至少等 30 分钟，还要有新的 Muse 用量才重试。可在“隐藏区块”关闭 Muse 额度卡。
+- **Muse 额度：** Muse 本地没有额度文件。`usage` 会先执行不调用模型的 `muse usage --json`（Muse 1.4.13 起支持），将返回额度存到 `~/.usage/muse_quota.json`；读不到才退回在空文件夹使用 Muse 自己的登录执行 `muse exec`（带 `--no-session-log`），这会连接 Muse 发送一次小模型调用，消耗少量 Muse 额度。安装 Muse 且有对话时会获取第一份快照；之后只在快照超过 30 分钟且有更新的 Muse 对话时探测。失败后至少等 30 分钟，还要有新的 Muse 用量才重试。可在“隐藏区块”关闭 Muse 额度卡。
 - **其他后台网络活动：** 用于标记故障的 Claude 与 Codex 公开状态页、用于估算费用的公开模型价格表（离线时使用内置价格），以及偶尔在 GitHub 检查新版本。
 - **新手模式**仅在你开启时才会联网：通过你自己的 Claude Code 登录将 Claude Code 最新一条回答发送给 Claude Haiku 挑术语。你的术语列表保存在 `~/.usage/glossary.json`。
 - **长期记录**：Claude Code 默认会删除 30 天前的对话记录。app 运行时，`usage` 每 6 小时把每日总量存入 `~/.usage/usage_snapshot.json` 和 `~/.usage/year_ledger.json`，报表才能看到更早的日子。这些文件只存在本机。换电脑时，记得把整个 `~/.usage/` 文件夹一起搬过去。
