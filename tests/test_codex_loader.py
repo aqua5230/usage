@@ -2541,6 +2541,254 @@ def test_load_rate_limits_uses_turn_context_model_when_state_db_missing(
     )
 
 
+def _write_rejected_session(path: Path, rejected_ts: str, mtime: float) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    lines = [
+        {
+            "timestamp": rejected_ts,
+            "type": "session_meta",
+            "payload": {"id": path.stem},
+        },
+        {
+            "timestamp": rejected_ts,
+            "type": "event_msg",
+            "payload": {
+                "type": "token_count",
+                "rate_limits": {"primary": None, "secondary": None},
+            },
+        },
+        {
+            "timestamp": rejected_ts,
+            "type": "event_msg",
+            "payload": {
+                "type": "task_complete",
+                "error": {
+                    "message": "You've hit your usage limit. Try again at 3:10 AM.",
+                    "codex_error_info": "usage_limit_exceeded",
+                },
+            },
+        },
+    ]
+    path.write_text("\n".join(json.dumps(line) for line in lines), encoding="utf-8")
+    os.utime(path, (mtime, mtime))
+
+
+def test_load_rate_limits_sets_only_seven_day_to_100_when_only_seven_day_resets_after_rejection(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    sessions_dir = tmp_path / "sessions"
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    monkeypatch.setattr(codex_loader, "_load_thread_models", lambda: {})
+    now = datetime.now(UTC)
+    valid_ts = (now - timedelta(hours=2)).isoformat()
+    rejected_ts = (now - timedelta(minutes=10)).isoformat()
+
+    _write_rate_limit_session(
+        sessions_dir / "valid.jsonl",
+        valid_ts,
+        {
+            "limit_id": "codex",
+            "primary": {"used_percent": 40.0, "resets_at": now.timestamp() - 1800},
+            "secondary": {"used_percent": 99.0, "resets_at": now.timestamp() + 86400},
+        },
+        now.timestamp() - 7200,
+    )
+    _write_rejected_session(sessions_dir / "rejected.jsonl", rejected_ts, now.timestamp())
+
+    result = codex_loader.load_rate_limits()
+
+    assert result is not None
+    assert result.five_hour_pct == 0.0
+    assert result.seven_day_pct == 100.0
+    assert result.updated_at == rejected_ts
+    assert result.limit_reached_at == rejected_ts
+
+
+@pytest.mark.parametrize(
+    ("five_pct", "seven_pct", "expected_five", "expected_seven"),
+    [
+        (40.0, 99.0, 40.0, 100.0),
+        (85.0, 30.0, 100.0, 30.0),
+        (50.0, 50.0, 50.0, 100.0),
+    ],
+)
+def test_load_rate_limits_sets_higher_pct_window_to_100_when_both_resets_after_rejection(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    five_pct: float,
+    seven_pct: float,
+    expected_five: float,
+    expected_seven: float,
+) -> None:
+    sessions_dir = tmp_path / "sessions"
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    monkeypatch.setattr(codex_loader, "_load_thread_models", lambda: {})
+    now = datetime.now(UTC)
+    valid_ts = (now - timedelta(hours=2)).isoformat()
+    rejected_ts = (now - timedelta(minutes=10)).isoformat()
+
+    _write_rate_limit_session(
+        sessions_dir / "valid.jsonl",
+        valid_ts,
+        {
+            "limit_id": "codex",
+            "primary": {"used_percent": five_pct, "resets_at": now.timestamp() + 3600},
+            "secondary": {"used_percent": seven_pct, "resets_at": now.timestamp() + 86400},
+        },
+        now.timestamp() - 7200,
+    )
+    _write_rejected_session(sessions_dir / "rejected.jsonl", rejected_ts, now.timestamp())
+
+    result = codex_loader.load_rate_limits()
+
+    assert result is not None
+    assert result.five_hour_pct == expected_five
+    assert result.seven_day_pct == expected_seven
+    assert result.updated_at == rejected_ts
+    assert result.limit_reached_at == rejected_ts
+
+
+def test_load_rate_limits_ignores_older_usage_limit_exceeded_rejection(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    sessions_dir = tmp_path / "sessions"
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    monkeypatch.setattr(codex_loader, "_load_thread_models", lambda: {})
+    now = datetime.now(UTC)
+    older_rejection_ts = (now - timedelta(hours=3)).isoformat()
+    valid_ts = (now - timedelta(minutes=5)).isoformat()
+
+    session_path = sessions_dir / "recovered.jsonl"
+    session_path.parent.mkdir(parents=True, exist_ok=True)
+    lines = [
+        {
+            "timestamp": older_rejection_ts,
+            "type": "session_meta",
+            "payload": {"id": "recovered-session"},
+        },
+        {
+            "timestamp": older_rejection_ts,
+            "type": "event_msg",
+            "payload": {
+                "type": "task_complete",
+                "error": {
+                    "message": "You've hit your usage limit.",
+                    "codex_error_info": "usage_limit_exceeded",
+                },
+            },
+        },
+        {
+            "timestamp": valid_ts,
+            "type": "event_msg",
+            "payload": {
+                "type": "token_count",
+                "rate_limits": {
+                    "limit_id": "codex",
+                    "primary": {"used_percent": 15.0, "resets_at": now.timestamp() + 3600},
+                    "secondary": {"used_percent": 20.0, "resets_at": now.timestamp() + 86400},
+                },
+            },
+        },
+    ]
+    session_path.write_text("\n".join(json.dumps(line) for line in lines), encoding="utf-8")
+    os.utime(session_path, (now.timestamp(), now.timestamp()))
+
+    result = codex_loader.load_rate_limits()
+
+    assert result is not None
+    assert result.limit_reached_at == ""
+    assert result.five_hour_pct == 15.0
+    assert result.seven_day_pct == 20.0
+    assert result.updated_at == valid_ts
+
+
+def test_load_rate_limits_keeps_pct_and_updated_at_when_both_resets_before_rejection(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    sessions_dir = tmp_path / "sessions"
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    monkeypatch.setattr(codex_loader, "_load_thread_models", lambda: {})
+    now = datetime.now(UTC)
+    valid_ts = (now - timedelta(hours=3)).isoformat()
+    rejected_ts = (now - timedelta(minutes=10)).isoformat()
+
+    _write_rate_limit_session(
+        sessions_dir / "valid.jsonl",
+        valid_ts,
+        {
+            "limit_id": "codex",
+            "primary": {"used_percent": 40.0, "resets_at": now.timestamp() - 3600},
+            "secondary": {"used_percent": 90.0, "resets_at": now.timestamp() - 1800},
+        },
+        now.timestamp() - 10800,
+    )
+    _write_rejected_session(sessions_dir / "rejected.jsonl", rejected_ts, now.timestamp())
+
+    result = codex_loader.load_rate_limits()
+
+    assert result is not None
+    assert result.five_hour_pct == 0.0
+    assert result.seven_day_pct == 0.0
+    assert result.updated_at == valid_ts
+    assert result.limit_reached_at == rejected_ts
+
+
+def test_with_limit_reached_at_candidate_selection_edge_cases() -> None:
+    now = datetime.now(UTC)
+    valid_ts = (now - timedelta(hours=2)).isoformat()
+    rejection_dt = now - timedelta(minutes=10)
+    rejection_ts = rejection_dt.timestamp()
+    rejection_str = rejection_dt.isoformat()
+
+    only_seven = codex_loader._with_limit_reached_at(
+        codex_loader.CodexRateLimits(
+            five_hour_pct=40.0,
+            five_hour_resets_at=rejection_ts - 60,
+            seven_day_pct=99.0,
+            seven_day_resets_at=rejection_ts + 3600,
+            updated_at=valid_ts,
+        ),
+        (rejection_dt, rejection_str),
+    )
+    assert only_seven is not None
+    assert only_seven.five_hour_pct == 40.0
+    assert only_seven.seven_day_pct == 100.0
+    assert only_seven.updated_at == rejection_str
+    assert only_seven.limit_reached_at == rejection_str
+
+    only_five = codex_loader._with_limit_reached_at(
+        codex_loader.CodexRateLimits(
+            five_hour_pct=40.0,
+            five_hour_resets_at=rejection_ts + 3600,
+            seven_day_pct=99.0,
+            seven_day_resets_at=rejection_ts - 60,
+            updated_at=valid_ts,
+        ),
+        (rejection_dt, rejection_str),
+    )
+    assert only_five is not None
+    assert only_five.five_hour_pct == 100.0
+    assert only_five.seven_day_pct == 99.0
+    assert only_five.updated_at == rejection_str
+    assert only_five.limit_reached_at == rejection_str
+
+    neither = codex_loader._with_limit_reached_at(
+        codex_loader.CodexRateLimits(
+            five_hour_pct=40.0,
+            five_hour_resets_at=rejection_ts - 120,
+            seven_day_pct=60.0,
+            seven_day_resets_at=rejection_ts - 60,
+            updated_at=valid_ts,
+        ),
+        (rejection_dt, rejection_str),
+    )
+    assert neither is not None
+    assert neither.five_hour_pct == 40.0
+    assert neither.seven_day_pct == 60.0
+    assert neither.updated_at == valid_ts
+    assert neither.limit_reached_at == rejection_str
+
+
 # ===== Disk cache tests =====
 
 
