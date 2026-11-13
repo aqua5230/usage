@@ -57,7 +57,7 @@ from panels.catalog import PANEL_SPECS
 from panels.dynamic_height import clamp_content_height, inject_content_height_script
 from panels.panel_scale import MIN_PANEL_SCALE, fit_panel_size, fit_scale
 from panels.payload import _load_panel_html, _state_payload, resolve_resource
-from quota import quota_snapshot
+from quota import model_registry, quota_snapshot
 from quota.burn_rate import BurnRateTracker
 from quota.notifications import NotificationEvent, QuotaNotifier
 from quota.usage_rate import UsageRateTracker
@@ -1557,6 +1557,7 @@ class _WindowsTrayController:
                     )
                 if not self.mock:
                     quota_snapshot.write_snapshot()
+                    model_registry.update(entries=None)
                 self._process_quota_notifications(self.latest_state)
                 started_at = time.monotonic() if debug_timing else 0.0
                 self._update_tray()

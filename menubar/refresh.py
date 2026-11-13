@@ -33,7 +33,7 @@ from menubar.prefs import (
     _hide_muse_enabled,
     _quota_card_order,
 )
-from quota import quota_snapshot
+from quota import model_registry, quota_snapshot
 from quota.burn_rate import BurnRateTracker
 from quota.usage_rate import UsageRateTracker
 from usage_common import service_status
@@ -148,6 +148,7 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
     hide_agy = agy_result.hide_agy or _hide_agy_enabled()
     hide_grok = grok_result.hide_grok or _hide_grok_enabled()
     card_order = _quota_card_order()
+    all_entries: list[UsageEntry] | None = None
     try:
         started_at = time.monotonic() if sources.debug_timing else 0.0
         if sources.history_scan is not None:
@@ -293,6 +294,7 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
 
     if not app.mock:
         quota_snapshot.write_snapshot()
+        model_registry.update(entries=all_entries)
     return {
         "state": state,
         "codex_5h_pct": codex_5h_pct,

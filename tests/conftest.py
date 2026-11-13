@@ -86,7 +86,7 @@ def _isolate_user_state_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -
     from analyzer import diagnosis_snapshot, history_persist, reporter, subscription, usage_snapshot
     from installer import claude_pane, session_hooks, setup_hook
     from loaders import cache_quarantine, history_loader
-    from quota import quota_snapshot
+    from quota import model_registry, quota_snapshot
     from usage_common import prefs, pricing, service_status
     from usage_hooks import usage_quota_aware, usage_session_resume
 
@@ -106,6 +106,10 @@ def _isolate_user_state_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -
     monkeypatch.setattr(reporter, "YEAR_CACHE_PATH", state_dir / "year_cache.json")
     monkeypatch.setattr(cache_quarantine, "QUARANTINE_DIR", state_dir / "quarantine")
     monkeypatch.setattr(quota_snapshot, "SNAPSHOT_PATH", state_dir / "quota_snapshot.json")
+    monkeypatch.setattr(model_registry, "REGISTRY_PATH", state_dir / "model_registry.json")
+    monkeypatch.setattr(
+        model_registry, "CODEX_MODELS_CACHE_PATH", state_dir / "codex" / "models_cache.json"
+    )
     monkeypatch.setattr(service_status, "SNAPSHOT_PATH", state_dir / "service_status_snapshot.json")
     monkeypatch.setattr(
         usage_quota_aware, "SERVICE_SNAPSHOT", state_dir / "service_status_snapshot.json"
