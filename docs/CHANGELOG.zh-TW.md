@@ -7,6 +7,11 @@
 ## [Unreleased]
 
 ### 修正
+- **年度檢視裡的 Antigravity 舊日子會更新為修正後的數字。** 已存的每日歷史以前只在新總量不小於舊紀錄時才會替換，因此 Antigravity token 與計價修正前記錄的日子，會一直卡在原本偏高的總量。更新後，只要當天的對話紀錄與工作階段都還在本機，這些舊日子就會改成正確數值；紀錄已有缺漏的日子則保留原本存下的總量。
+- **HTML 報表的 Antigravity 總量與花費納入思考 token。** output 與 thinking 欄位分開讀取後，報表的 output 統計與費用計算原本漏掉了 Antigravity 的思考 token。現在比照 Codex，將思考 token 計入輸出並以輸出單價計費。報表裡的 Antigravity 花費會明顯變高，這是補上原本漏算的部分，不是漲價。
+- **價目表下載失敗後會等 10 分鐘再重試。** 離線或連不上網、且沒有未過期的價目快取時，以前每次計算費用都會重新開連線嘗試下載。現在下載失敗後會等待 10 分鐘才再試一次。
+- **換新價目表後不再把舊表留在記憶體裡。** 選單列程式長時間執行並多次更新價目表時，舊的價目表原本會一直留在快取裡不釋放。現在啟用新價目表時會一併清掉舊表的查詢快取。
+- **HTML 報表算得出 Muse Wonder 與 Muse Ember 的花費。** 離線價目表原本只有 Muse Spark，下載的價目表又沒有 Meta 的條目時，`muse-wonder-1.0` 和 `muse-ember-1.0` 的 token 都被列成「沒有價格」。現在兩個都用 Meta 公布的標準價；Ember 單次輸入超過 200K token 的長文價位分不出來（對話紀錄沒記），一律用標準價。
 - **額度感知模式在 Windows 上能正常處理非 ASCII 文字、會清掉寫入失敗的暫存檔，也不再在不相關的回合附上 Antigravity 模型組提示。** 它現在固定以 UTF-8 讀取 stdin 與輸出 stdout，不再因系統字碼頁遇上中日韓文失敗而靜默或讓狀態與輸出不同步，寫入狀態失敗時也會刪掉暫存檔。「Other agy model groups still have quota」現在只會在本回合真的提醒某個 Antigravity 模型組跨過門檻時才附上。
 - **HTML 報表重新算得出 Antigravity 的花費。** Antigravity 現在記下的模型名稱（例如 `gemini-4-argon-s`、`gemini-3.8-flash-n`、`claude-sonnet-5-5-medium`）對不到價目表，所有 Antigravity 的 token 都被列成「沒有價格」。現在會先去掉 Antigravity 自己加的尾巴（`-n`、`-s`、`-trial`、`-tiered`、`-low`、`-medium`、`-high`、`-xhigh`），也會找 `gemini/` 開頭的價格。Gemini 4 Hydrogen 也算得出來。
 - **Antigravity 狀態列認得 `xhigh` 思考強度。** Gemini 4 Hydrogen 選 `xhigh` 時原本直接印英文，現在跟其他強度一樣用當地語言標示，例如中文「深思熟慮」。

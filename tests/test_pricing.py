@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import gc
 import json
 import logging
 import os
@@ -13,7 +14,9 @@ import re
 import runpy
 import threading
 import time
+import urllib.error
 import urllib.request
+import weakref
 from collections.abc import Iterator
 from datetime import UTC, datetime
 from pathlib import Path
@@ -1126,3 +1129,169 @@ def test_missing_model_resolution_rechecks_after_pricing_object_replaced(
     assert pricing.is_model_priced("glm-5.2") is True
     assert pricing.calculate_cost(_entry(model="glm-5.2", input_tokens=2)) == 2.0
     assert resolve_calls == 2
+
+
+def _wait_warm_up_idle(timeout: float = 2.0) -> None:
+    deadline = time.monotonic() + timeout
+    while pricing._pricing_warm_up_in_progress and time.monotonic() < deadline:
+        time.sleep(0.001)
+    assert not pricing._pricing_warm_up_in_progress
+
+
+def test_model_key_cache_clears_replaced_pricing_tables(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    cache_path = tmp_path / "pricing_cache.json"
+    legacy_path = tmp_path / "legacy_pricing_cache.json"
+    monkeypatch.setattr(pricing, "CACHE_PATH", cache_path)
+    monkeypatch.setattr(pricing, "DEFAULT_CACHE_PATH", cache_path)
+    monkeypatch.setattr(pricing, "LEGACY_CACHE_PATH", legacy_path)
+    monkeypatch.setattr(pricing, "DEFAULT_LEGACY_CACHE_PATH", legacy_path)
+
+    class _TrackableTable(dict[str, dict[str, float]]):
+        pass
+
+    def make_table() -> pricing.PricingTable:
+        return _TrackableTable(
+            {
+                "claude-sonnet-5-5": {"input_cost_per_token": 3e-6, "output_cost_per_token": 15e-6},
+            }
+        )
+
+    now = 1_000.0
+    fetches = 0
+
+    def fake_fetch() -> pricing.PricingTable:
+        nonlocal fetches
+        fetches += 1
+        return make_table()
+
+    monkeypatch.setattr("usage_common.pricing.time.monotonic", lambda: now)
+    monkeypatch.setattr(pricing, "_fetch_pricing", fake_fetch)
+    monkeypatch.setattr(pricing, "_write_cache", lambda table: None)
+
+    initial_table = make_table()
+    initial_id = id(initial_table)
+    initial_ref = weakref.ref(initial_table)
+    pricing._set_pricing_cache_for_test((initial_table, "cache", now))
+    assert pricing.calculate_cost(_entry(model="claude-sonnet-5-5", input_tokens=1)) > 0.0
+    del initial_table
+
+    try:
+        for _ in range(12):
+            now += pricing.MISSING_MODEL_REFRESH_SECONDS + 1
+            pricing.calculate_cost(_entry(model="gemini-pro-orchestrator-g1-pro", input_tokens=1))
+            _wait_warm_up_idle()
+            pricing.calculate_cost(_entry(model="claude-sonnet-5-5", input_tokens=1))
+
+        gc.collect()
+        assert fetches == 12
+        assert len(pricing._model_key_cache) == 1
+        assert initial_id not in pricing._model_key_cache
+        assert initial_ref() is None
+    finally:
+        _wait_warm_up_idle()
+
+
+@pytest.mark.parametrize("source", ["fallback", "stale"])
+def test_offline_calculate_cost_throttles_warm_up_retries(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    source: pricing.PricingSource,
+) -> None:
+    cache_path = tmp_path / "pricing_cache.json"
+    legacy_path = tmp_path / "legacy_pricing_cache.json"
+    monkeypatch.setattr(pricing, "CACHE_PATH", cache_path)
+    monkeypatch.setattr(pricing, "DEFAULT_CACHE_PATH", cache_path)
+    monkeypatch.setattr(pricing, "LEGACY_CACHE_PATH", legacy_path)
+    monkeypatch.setattr(pricing, "DEFAULT_LEGACY_CACHE_PATH", legacy_path)
+
+    now = 1_000.0
+    attempts = 0
+    lock = threading.Lock()
+
+    def offline_urlopen(request: object, timeout: object = None) -> object:
+        nonlocal attempts
+        _ = request, timeout
+        with lock:
+            attempts += 1
+        raise urllib.error.URLError("offline")
+
+    monkeypatch.setattr("usage_common.pricing.time.monotonic", lambda: now)
+    monkeypatch.setattr(urllib.request, "urlopen", offline_urlopen)
+
+    table = pricing._fallback_pricing()
+    original_cached_at = now - pricing.FALLBACK_RETRY_SECONDS - 60
+    pricing._set_pricing_cache_for_test((table, source, original_cached_at))
+
+    try:
+        entry = _entry(model="claude-sonnet-5-5", input_tokens=1, output_tokens=1)
+        pricing.calculate_cost(entry)
+        _wait_warm_up_idle()
+        for _ in range(150):
+            pricing.calculate_cost(entry)
+        _wait_warm_up_idle()
+        assert attempts == 1
+
+        now += pricing.FALLBACK_RETRY_SECONDS - 1
+        for _ in range(150):
+            pricing.calculate_cost(entry)
+        _wait_warm_up_idle()
+        assert attempts == 1
+        assert pricing._get_pricing_cache_for_test() == (table, source, original_cached_at)
+
+        now += 1
+        pricing.calculate_cost(entry)
+        _wait_warm_up_idle()
+        for _ in range(150):
+            pricing.calculate_cost(entry)
+        _wait_warm_up_idle()
+        assert attempts == 2
+    finally:
+        _wait_warm_up_idle()
+
+
+def test_warm_up_pricing_force_bypasses_offline_throttle(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    cache_path = tmp_path / "pricing_cache.json"
+    legacy_path = tmp_path / "legacy_pricing_cache.json"
+    monkeypatch.setattr(pricing, "CACHE_PATH", cache_path)
+    monkeypatch.setattr(pricing, "DEFAULT_CACHE_PATH", cache_path)
+    monkeypatch.setattr(pricing, "LEGACY_CACHE_PATH", legacy_path)
+    monkeypatch.setattr(pricing, "DEFAULT_LEGACY_CACHE_PATH", legacy_path)
+
+    now = 1_000.0
+    fetch_calls = 0
+    lock = threading.Lock()
+
+    def failing_fetch() -> pricing.PricingTable | None:
+        nonlocal fetch_calls
+        with lock:
+            fetch_calls += 1
+        return None
+
+    monkeypatch.setattr("usage_common.pricing.time.monotonic", lambda: now)
+    monkeypatch.setattr(pricing, "_fetch_pricing", failing_fetch)
+    monkeypatch.setattr(pricing, "_read_cache", lambda *, allow_stale=False: None)
+
+    try:
+        # First call loads fallback and runs a non-forced warm-up that fails.
+        pricing.calculate_cost(_entry(model="claude-sonnet-5-5", input_tokens=1))
+        _wait_warm_up_idle()
+        assert fetch_calls == 1
+
+        # A missing model triggers force=True via _request_pricing_refresh_for_missing_model.
+        now += 1.0
+        assert pricing.calculate_cost(_entry(model="unpriced-model", input_tokens=1)) == 0.0
+        _wait_warm_up_idle()
+        assert fetch_calls == 2
+
+        # Subsequent missing-model calls remain debounced by MISSING_MODEL_REFRESH_SECONDS.
+        assert pricing.calculate_cost(_entry(model="unpriced-model", input_tokens=1)) == 0.0
+        _wait_warm_up_idle()
+        assert fetch_calls == 2
+    finally:
+        _wait_warm_up_idle()

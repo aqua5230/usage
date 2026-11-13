@@ -53,10 +53,9 @@ def _to_usage_entry(entry: shared_agy_loader.AgyUsageEntry) -> UsageEntry:
         request_id="",
         model=_normalize_model(entry.model),
         input_tokens=entry.input_tokens,
-        # Match Codex's existing convention: only its reported output tokens
-        # are attributed to UsageEntry.output_tokens; separate reasoning data
-        # is not added here.
-        output_tokens=entry.output_tokens,
+        # Thinking tokens are billed at the output rate; Codex's reported
+        # output_tokens already includes reasoning tokens.
+        output_tokens=entry.output_tokens + entry.thinking_tokens,
         cache_creation_tokens=0,
         cache_read_tokens=entry.cache_read_tokens,
         cost_usd=None,
