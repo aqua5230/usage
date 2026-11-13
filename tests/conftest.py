@@ -277,3 +277,22 @@ def _isolate_muse_quota(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None
     monkeypatch.setattr(muse_quota_probe, "_last_attempt_session", None)
     monkeypatch.setattr(muse_quota_probe, "_probe_process", None)
     monkeypatch.setattr(muse_quota_probe, "_probe_shutdown", False)
+
+
+@pytest.fixture(autouse=True)
+def _offline_pricing_fetch(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
+    """No test may download the price table. A warm-up thread that outlives its
+    test would write the real ~/.usage/pricing_cache.json once the path patch is
+    undone, so the fetch is stubbed and a running warm-up is waited for first.
+    Tests of the fetch itself restore ``_REAL_FETCH_PRICING`` in test_pricing.py."""
+    import time
+
+    from usage_common import pricing
+
+    # Bound to the real clock now: tests may patch time.monotonic with a finite fake.
+    monotonic, sleep = time.monotonic, time.sleep
+    monkeypatch.setattr(pricing, "_fetch_pricing", lambda: None)
+    yield
+    deadline = monotonic() + 2.0
+    while pricing._pricing_warm_up_in_progress and monotonic() < deadline:
+        sleep(0.001)

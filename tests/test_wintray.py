@@ -4125,6 +4125,7 @@ def test_hidden_poll_interval_with_quota_countdown(
     monkeypatch.setattr(controller.stopping, "wait", wait)
     monkeypatch.setattr(controller, "refresh", refresh)
     monkeypatch.setattr(controller, "_clear_stale_update_cache", lambda: None)
+    monkeypatch.setattr(controller._auto_check_schedule, "try_begin", lambda _now: False)
     monkeypatch.setattr("wintray.app.time.time", lambda: 1000.0)
     controller._poll_loop()
 
@@ -4159,6 +4160,7 @@ def test_hidden_poll_refreshes_once_after_countdown_ends(
     monkeypatch.setattr(controller.stopping, "wait", wait)
     monkeypatch.setattr(controller, "refresh", refresh)
     monkeypatch.setattr(controller, "_clear_stale_update_cache", lambda: None)
+    monkeypatch.setattr(controller._auto_check_schedule, "try_begin", lambda _now: False)
     monkeypatch.setattr("wintray.app.time.time", lambda: 1000.0)
     controller._poll_loop()
 
@@ -4192,6 +4194,7 @@ def test_hidden_poll_refreshes_soon_after_countdown_starts(
     monkeypatch.setattr(controller.stopping, "wait", wait)
     monkeypatch.setattr(controller, "refresh", refresh)
     monkeypatch.setattr(controller, "_clear_stale_update_cache", lambda: None)
+    monkeypatch.setattr(controller._auto_check_schedule, "try_begin", lambda _now: False)
     monkeypatch.setattr("wintray.app.time.time", lambda: 1000.0)
     controller._poll_loop()
 
