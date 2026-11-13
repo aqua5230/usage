@@ -45,8 +45,9 @@ _YEAR_WEEKS = 53
 YEAR_CACHE_PATH = Path(os.path.expanduser("~/.usage/year_cache.json"))
 YEAR_LEDGER_PATH = YEAR_CACHE_PATH.with_name("year_ledger.json")
 YEAR_CACHE_TTL_SECONDS = 6 * 3600
-_YEAR_CACHE_SCHEMA = 8
+_YEAR_CACHE_SCHEMA = 9
 _YEAR_LEDGER_SCHEMA = 1
+_LEDGER_AGENT_VERSIONS: dict[str, int] = {"antigravity": 2}
 _year_ledger_lock = threading.RLock()
 _YEAR_LEDGER_TRIM_BUFFER_DAYS = 60
 
@@ -58,6 +59,7 @@ class _YearDay(TypedDict):
     project_tokens: dict[str, int]
     agent_tokens: dict[str, int]
     sessions: int
+    agent_versions: NotRequired[dict[str, int]]
 
 
 class _YearLedger(TypedDict):
@@ -561,7 +563,7 @@ def _year_day_from_json(value: object) -> _YearDay | None:
         or isinstance(sessions, bool)
     ):
         return None
-    return {
+    day: _YearDay = {
         "total_tokens": total_tokens,
         "cost": float(cost),
         "model_tokens": _token_map(value.get("model_tokens")),
@@ -569,6 +571,9 @@ def _year_day_from_json(value: object) -> _YearDay | None:
         "agent_tokens": _token_map(value.get("agent_tokens")),
         "sessions": sessions,
     }
+    if "agent_versions" in value:
+        day["agent_versions"] = _token_map(value.get("agent_versions"))
+    return day
 
 
 def _read_year_ledger() -> _YearLedger:
@@ -654,6 +659,7 @@ def _new_year_day() -> _YearDay:
         "project_tokens": {},
         "agent_tokens": {},
         "sessions": 0,
+        "agent_versions": dict(_LEDGER_AGENT_VERSIONS),
     }
 
 
@@ -682,6 +688,44 @@ def _aggregate_year_days(entries: list[UsageEntry]) -> dict[str, _YearDay]:
     return days
 
 
+def _should_replace_ledger_day(ledger_day: _YearDay, current_day: _YearDay) -> bool:
+    if current_day["total_tokens"] >= ledger_day["total_tokens"]:
+        return True
+    ledger_versions = ledger_day.get("agent_versions", {})
+    upgraded_agents = [
+        agent
+        for agent, version in _LEDGER_AGENT_VERSIONS.items()
+        if ledger_versions.get(agent, 0) < version
+    ]
+    if not upgraded_agents:
+        return False
+    if current_day["sessions"] < ledger_day["sessions"]:
+        return False
+    ledger_agents = ledger_day["agent_tokens"]
+    current_agents = current_day["agent_tokens"]
+    return any(
+        current_agents.get(agent, 0) > 0
+        and all(
+            current_agents.get(other, 0) >= tokens
+            for other, tokens in ledger_agents.items()
+            if other != agent
+        )
+        for agent in upgraded_agents
+    )
+
+
+def _with_current_agent_versions(day: _YearDay) -> _YearDay:
+    return {
+        "total_tokens": day["total_tokens"],
+        "cost": day["cost"],
+        "model_tokens": day["model_tokens"],
+        "project_tokens": day["project_tokens"],
+        "agent_tokens": day["agent_tokens"],
+        "sessions": day["sessions"],
+        "agent_versions": dict(_LEDGER_AGENT_VERSIONS),
+    }
+
+
 def _merge_year_ledger(
     current_days: dict[str, _YearDay],
     *,
@@ -692,8 +736,8 @@ def _merge_year_ledger(
         days = ledger["days"]
         for day_key, current_day in current_days.items():
             ledger_day = days.get(day_key)
-            if ledger_day is None or current_day["total_tokens"] >= ledger_day["total_tokens"]:
-                days[day_key] = current_day
+            if ledger_day is None or _should_replace_ledger_day(ledger_day, current_day):
+                days[day_key] = _with_current_agent_versions(current_day)
 
         ledger["days"] = {
             day_key: day

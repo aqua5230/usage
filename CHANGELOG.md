@@ -8,6 +8,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Fixed
+- **Earlier Antigravity days in the year view update to the corrected numbers.** The saved daily history used to replace a day only when the recalculated total was at least as large, so days recorded before the Antigravity token and pricing fixes stayed stuck at the old inflated totals. After updating, those earlier days switch to the corrected numbers as long as all of that day's conversation logs and sessions are still on disk; days with missing history keep their saved totals.
 - **Antigravity thinking tokens are included in report totals and cost.** After output and thinking tokens were separated, Antigravity thinking tokens were left out of the report's output count and cost calculation. Thinking tokens are now billed at the output rate, matching Codex. Antigravity cost in the report will be noticeably higher: that is the share that was missing before, not a price change.
 - **Failed price table downloads wait 10 minutes before retrying.** When offline or behind a blocked network with an expired or missing price cache, each cost calculation started a new download attempt. usage now waits 10 minutes after a failed download before trying again.
 - **Replaced price tables are no longer kept in memory.** When the price table was refreshed repeatedly in a long-running menu bar session, earlier tables stayed cached in memory. usage now clears old lookup entries whenever a new price table takes effect.

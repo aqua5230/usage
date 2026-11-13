@@ -1070,3 +1070,296 @@ def test_report_cube_uses_generation_date(monkeypatch: pytest.MonkeyPatch, perio
         assert data["date_from"] == ("2026-11-04" if period == "today" else "2026-11-01")
         assert data["summary"]["total_tokens"] == 0
         assert all(point["tokens"] == 0 for point in data["daily_trend"])
+
+
+def _write_year_ledger_days(days: dict[str, dict[str, Any]]) -> None:
+    import json
+
+    reporter.YEAR_LEDGER_PATH.parent.mkdir(parents=True, exist_ok=True)
+    reporter.YEAR_LEDGER_PATH.write_text(
+        json.dumps({"schema_version": 1, "days": days}),
+        encoding="utf-8",
+    )
+
+
+def _ledger_day_payload(
+    *,
+    total_tokens: int,
+    cost: float,
+    agent_tokens: dict[str, int],
+    model_tokens: dict[str, int],
+    project_tokens: dict[str, int],
+    sessions: int,
+    agent_versions: dict[str, int] | None = None,
+) -> dict[str, Any]:
+    day: dict[str, Any] = {
+        "total_tokens": total_tokens,
+        "cost": cost,
+        "agent_tokens": agent_tokens,
+        "model_tokens": model_tokens,
+        "project_tokens": project_tokens,
+        "sessions": sessions,
+    }
+    if agent_versions is not None:
+        day["agent_versions"] = agent_versions
+    return day
+
+
+@pytest.mark.parametrize("old_versions", [None, {"antigravity": 1}])
+def test_merge_year_ledger_replaces_old_agy_day_when_all_sources_present(
+    old_versions: dict[str, int] | None,
+) -> None:
+    import json
+
+    day_key = "2026-11-01"
+    _write_year_ledger_days(
+        {
+            day_key: _ledger_day_payload(
+                total_tokens=6000,
+                cost=9.0,
+                agent_tokens={"antigravity": 5000, "codex": 1000},
+                model_tokens={"gemini-3-pro": 5000, "gpt-5-codex": 1000},
+                project_tokens={"old-proj": 6000},
+                sessions=3,
+                agent_versions=old_versions,
+            )
+        }
+    )
+
+    current_day: reporter._YearDay = {
+        "total_tokens": 4000,
+        "cost": 4.5,
+        "agent_tokens": {"antigravity": 3000, "codex": 1000},
+        "model_tokens": {"gemini-3-pro": 3000, "gpt-5-codex": 1000},
+        "project_tokens": {"new-proj": 4000},
+        "sessions": 3,
+    }
+    merged = reporter._merge_year_ledger({day_key: current_day}, trim_before=date(2026, 1, 1))
+
+    assert "agent_versions" not in current_day
+    saved = json.loads(reporter.YEAR_LEDGER_PATH.read_text(encoding="utf-8"))
+    for result in (merged, saved):
+        day = result["days"][day_key]
+        assert day["total_tokens"] == 4000
+        assert day["cost"] == 4.5
+        assert day["agent_tokens"] == {"antigravity": 3000, "codex": 1000}
+        assert day["project_tokens"] == {"new-proj": 4000}
+        assert day["sessions"] == 3
+        assert day["agent_versions"] == {"antigravity": 2}
+    assert merged["days"][day_key]["agent_versions"] is not reporter._LEDGER_AGENT_VERSIONS
+
+
+def test_merge_year_ledger_keeps_old_agy_day_when_other_agent_missing() -> None:
+    day_key = "2026-11-01"
+    _write_year_ledger_days(
+        {
+            day_key: _ledger_day_payload(
+                total_tokens=6000,
+                cost=9.0,
+                agent_tokens={"antigravity": 5000, "codex": 1000},
+                model_tokens={"gemini-3-pro": 5000, "gpt-5-codex": 1000},
+                project_tokens={"proj": 6000},
+                sessions=3,
+            )
+        }
+    )
+
+    current_day = reporter._aggregate_year_days(
+        [
+            _entry(
+                when=datetime(2026, 11, 1, 10, tzinfo=UTC),
+                session_id="agy-1",
+                model="gemini-3-pro",
+                project="proj",
+                agent_id="antigravity",
+                input_tokens=3000,
+                cost_usd=3.0,
+            )
+        ]
+    )
+    current_day[day_key]["sessions"] = 3
+
+    merged = reporter._merge_year_ledger(current_day, trim_before=date(2026, 1, 1))
+    day = merged["days"][day_key]
+    assert day["total_tokens"] == 6000
+    assert day["agent_tokens"] == {"antigravity": 5000, "codex": 1000}
+    assert "agent_versions" not in day
+
+
+def test_merge_year_ledger_keeps_old_agy_day_when_current_agy_is_zero() -> None:
+    day_key = "2026-11-01"
+    _write_year_ledger_days(
+        {
+            day_key: _ledger_day_payload(
+                total_tokens=6000,
+                cost=9.0,
+                agent_tokens={"antigravity": 5000, "codex": 1000},
+                model_tokens={"gemini-3-pro": 5000, "gpt-5-codex": 1000},
+                project_tokens={"proj": 6000},
+                sessions=3,
+            )
+        }
+    )
+
+    current_day: reporter._YearDay = {
+        "total_tokens": 1000,
+        "cost": 1.0,
+        "agent_tokens": {"codex": 1000},
+        "model_tokens": {"gpt-5-codex": 1000},
+        "project_tokens": {"proj": 1000},
+        "sessions": 3,
+    }
+    merged = reporter._merge_year_ledger({day_key: current_day}, trim_before=date(2026, 1, 1))
+    day = merged["days"][day_key]
+    assert day["total_tokens"] == 6000
+    assert day["agent_tokens"] == {"antigravity": 5000, "codex": 1000}
+    assert "agent_versions" not in day
+
+
+def test_merge_year_ledger_keeps_current_version_day_when_total_shrinks() -> None:
+    day_key = "2026-11-01"
+    _write_year_ledger_days(
+        {
+            day_key: _ledger_day_payload(
+                total_tokens=4000,
+                cost=5.0,
+                agent_tokens={"antigravity": 3000, "codex": 1000},
+                model_tokens={"gemini-3-pro": 3000, "gpt-5-codex": 1000},
+                project_tokens={"proj": 4000},
+                sessions=3,
+                agent_versions={"antigravity": 2},
+            )
+        }
+    )
+
+    current_day: reporter._YearDay = {
+        "total_tokens": 3500,
+        "cost": 4.0,
+        "agent_tokens": {"antigravity": 2500, "codex": 1000},
+        "model_tokens": {"gemini-3-pro": 2500, "gpt-5-codex": 1000},
+        "project_tokens": {"proj": 3500},
+        "sessions": 3,
+    }
+    merged = reporter._merge_year_ledger({day_key: current_day}, trim_before=date(2026, 1, 1))
+    day = merged["days"][day_key]
+    assert day["total_tokens"] == 4000
+    assert day["agent_tokens"] == {"antigravity": 3000, "codex": 1000}
+    assert day["agent_versions"] == {"antigravity": 2}
+
+
+def test_merge_year_ledger_keeps_old_agy_day_when_sessions_decrease() -> None:
+    day_key = "2026-11-01"
+    _write_year_ledger_days(
+        {
+            day_key: _ledger_day_payload(
+                total_tokens=6000,
+                cost=9.0,
+                agent_tokens={"antigravity": 5000, "codex": 1000},
+                model_tokens={"gemini-3-pro": 5000, "gpt-5-codex": 1000},
+                project_tokens={"proj": 6000},
+                sessions=3,
+            )
+        }
+    )
+
+    current_day: reporter._YearDay = {
+        "total_tokens": 4000,
+        "cost": 4.5,
+        "agent_tokens": {"antigravity": 3000, "codex": 1000},
+        "model_tokens": {"gemini-3-pro": 3000, "gpt-5-codex": 1000},
+        "project_tokens": {"proj": 4000},
+        "sessions": 2,
+    }
+    merged = reporter._merge_year_ledger({day_key: current_day}, trim_before=date(2026, 1, 1))
+    day = merged["days"][day_key]
+    assert day["total_tokens"] == 6000
+    assert day["sessions"] == 3
+    assert "agent_versions" not in day
+
+
+def test_read_year_ledger_accepts_days_without_agent_versions_and_persists_new_days(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import json
+
+    _write_year_ledger_days(
+        {
+            "2026-10-30": _ledger_day_payload(
+                total_tokens=200,
+                cost=0.5,
+                agent_tokens={"codex": 200},
+                model_tokens={"gpt-5-codex": 200},
+                project_tokens={"proj": 200},
+                sessions=1,
+            ),
+            "2026-11-01": _ledger_day_payload(
+                total_tokens=6000,
+                cost=9.0,
+                agent_tokens={"antigravity": 5000, "codex": 1000},
+                model_tokens={"gemini-3-pro": 5000, "gpt-5-codex": 1000},
+                project_tokens={"proj": 6000},
+                sessions=2,
+            ),
+        }
+    )
+
+    loaded = reporter._read_year_ledger()
+    assert loaded["schema_version"] == 1
+    assert set(loaded["days"]) == {"2026-10-30", "2026-11-01"}
+    assert "agent_versions" not in loaded["days"]["2026-10-30"]
+
+    monkeypatch.setattr(
+        reporter, "datetime", _fixed_datetime(datetime(2026, 11, 2, 12, tzinfo=UTC))
+    )
+    entries = [
+        _entry(
+            when=datetime(2026, 11, 1, 9, tzinfo=UTC),
+            session_id="agy-1",
+            model="gemini-3-pro",
+            project="proj",
+            agent_id="antigravity",
+            input_tokens=3000,
+            cost_usd=3.0,
+        ),
+        _entry(
+            when=datetime(2026, 11, 1, 10, tzinfo=UTC),
+            session_id="codex-1",
+            model="gpt-5-codex",
+            project="proj",
+            agent_id="codex",
+            input_tokens=1000,
+            cost_usd=1.0,
+        ),
+        _entry(
+            when=datetime(2026, 11, 2, 11, tzinfo=UTC),
+            session_id="agy-2",
+            model="gemini-3-pro",
+            project="proj",
+            agent_id="antigravity",
+            input_tokens=500,
+            cost_usd=0.5,
+        ),
+    ]
+    monkeypatch.setattr(
+        reporter,
+        "_load_agent_entries",
+        lambda agent, _hours_back=0: [entry for entry in entries if entry.agent_id == agent.id],
+    )
+    monkeypatch.setattr(reporter, "calculate_cost", lambda entry: float(entry.cost_usd or 0.0))
+
+    year_data = reporter.build_year_data(
+        [
+            AgentInfo("antigravity", "Antigravity", "~/.gemini", True),
+            AgentInfo("codex", "Codex", "~/.codex", True),
+        ]
+    )
+    assert year_data["wrapped"]["total_tokens"] == 4700
+    assert reporter._YEAR_LEDGER_SCHEMA == 1
+    assert reporter._YEAR_CACHE_SCHEMA == 9
+
+    persisted = json.loads(reporter.YEAR_LEDGER_PATH.read_text(encoding="utf-8"))
+    assert persisted["days"]["2026-11-01"]["agent_versions"] == {"antigravity": 2}
+    assert persisted["days"]["2026-11-02"]["agent_versions"] == {"antigravity": 2}
+    assert reporter._read_year_ledger()["days"]["2026-11-01"]["agent_versions"] == {
+        "antigravity": 2
+    }
