@@ -7,6 +7,10 @@
 ## [Unreleased]
 
 ### 修正
+- **Antigravity CLI 偶發登出錯誤後會自動恢復。** 背景執行 CLI 檢查若因暫時性驗證錯誤而鎖住閘門，六小時後只要備援管道用同一份憑證仍能成功抓到額度，usage 就會清除標記並恢復使用 CLI。
+- **Antigravity 自動開窗逾時卡在登入提示時，也不會再於背景開出登入頁。** 自動開窗送訊號若因等待驗證而逾時，usage 現在會跟額度檢查一樣記下未登入狀態，不再重複啟動 CLI。
+- **Antigravity 的未登入標記改為原子寫入。** 自動開窗同時讀檔時，不再因為讀到寫到一半的檔案而誤開閘門。
+- **快重置的 Gemini 週額度不再於備援查詢時被當成 5 小時額度。** 先前透過 CLI 記下週額度重置時間後，改走備援管道若看到重置時間相差在十分鐘內，會直接更新週額度，不再把同一個數字填進 5 小時那一列。
 - **HTML 報表重新算得出 Antigravity 的花費。** Antigravity 現在記下的模型名稱（例如 `gemini-4-argon-s`、`gemini-3.8-flash-n`、`claude-sonnet-5-5-medium`）對不到價目表，所有 Antigravity 的 token 都被列成「沒有價格」。現在會先去掉 Antigravity 自己加的尾巴（`-n`、`-s`、`-trial`、`-tiered`、`-low`、`-medium`、`-high`、`-xhigh`），也會找 `gemini/` 開頭的價格。Gemini 4 Hydrogen 也算得出來。
 - **Antigravity 狀態列認得 `xhigh` 思考強度。** Gemini 4 Hydrogen 選 `xhigh` 時原本直接印英文，現在跟其他強度一樣用當地語言標示，例如中文「深思熟慮」。
 - **Antigravity 的 token 改讀正確的欄位。** usage 原本把 Antigravity 內部的模型編號（約 1,300–1,500）當成 input token，每次回應都加一次，所以 Antigravity 的 input 算多了；output 和 thinking 也讀反了。現在 input 只讀 input 欄位，output 和 thinking 不再對調，只帶模型編號的回應也不再計入。更新後會重算一次 Antigravity 的快取。

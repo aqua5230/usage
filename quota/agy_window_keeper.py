@@ -87,6 +87,23 @@ def _release() -> None:
         _ping_in_flight = False
 
 
+def _decode_stream(value: str | bytes | None) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, bytes):
+        return value.decode("utf-8", errors="replace")
+    return value
+
+
+def _has_signout_output(stdout: str | bytes | None, stderr: str | bytes | None) -> bool:
+    output = f"{_decode_stream(stdout)}\n{_decode_stream(stderr)}".lower()
+    return (
+        "authentication required" in output
+        or "authentication failed" in output
+        or "triggering interactive oauth" in output
+    )
+
+
 def _run_agy_ping(agy_bin: str) -> subprocess.CompletedProcess[str]:
     if not agy_quota_probe.BACKGROUND_AGY_LOCK.acquire(blocking=False):
         raise _PingSkipped("background agy is busy")
@@ -94,22 +111,24 @@ def _run_agy_ping(agy_bin: str) -> subprocess.CompletedProcess[str]:
         before = agy_quota_probe._credential_fingerprint()
         if not agy_quota_probe.agy_cli_signed_in(PING_TIMEOUT_SECONDS):
             raise _PingSkipped("CLI is signed out")
-        result = subprocess.run(  # noqa: S603 - resolved local Antigravity CLI
-            [agy_bin, "-p", "ok", "--model", AGY_MODEL],
-            stdin=subprocess.DEVNULL,
-            capture_output=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=PING_TIMEOUT_SECONDS,
-            cwd=os.path.expanduser("~"),
-            check=False,
-            env=cli_env(agy_bin),
-            **hidden_console_kwargs(),
-        )
-        output = f"{result.stdout or ''}\n{result.stderr or ''}".lower()
-        if result.returncode != 0 and (
-            "authentication required" in output or "authentication failed" in output
-        ):
+        try:
+            result = subprocess.run(  # noqa: S603 - resolved local Antigravity CLI
+                [agy_bin, "-p", "ok", "--model", AGY_MODEL],
+                stdin=subprocess.DEVNULL,
+                capture_output=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=PING_TIMEOUT_SECONDS,
+                cwd=os.path.expanduser("~"),
+                check=False,
+                env=cli_env(agy_bin),
+                **hidden_console_kwargs(),
+            )
+        except subprocess.TimeoutExpired as exc:
+            if _has_signout_output(exc.stdout, exc.stderr):
+                agy_quota_probe.mark_cli_signed_out(before)
+            raise
+        if result.returncode != 0 and _has_signout_output(result.stdout, result.stderr):
             agy_quota_probe.mark_cli_signed_out(before)
         return result
     finally:
