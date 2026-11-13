@@ -27,6 +27,9 @@ from adapters.types import UsageEntry as AnalyzerUsageEntry
 from loaders.history_loader import UsageEntry
 from usage_common import pricing
 
+# Captured at import time, before conftest's _offline_pricing_fetch stubs it out.
+_REAL_FETCH_PRICING = pricing._fetch_pricing
+
 CHECK_FALLBACK_PRICING = runpy.run_path(
     str(Path(__file__).parents[1] / "scripts" / "check_fallback_pricing.py"),
     run_name="check_fallback_pricing_test",
@@ -675,6 +678,7 @@ def test_fetch_pricing_returns_none_for_bad_utf8_payload(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(urllib.request, "urlopen", lambda request, timeout: FakeResponse(b"\xff"))
+    monkeypatch.setattr(pricing, "_fetch_pricing", _REAL_FETCH_PRICING)
 
     assert pricing._fetch_pricing() is None
 
@@ -1220,6 +1224,7 @@ def test_offline_calculate_cost_throttles_warm_up_retries(
 
     monkeypatch.setattr("usage_common.pricing.time.monotonic", lambda: now)
     monkeypatch.setattr(urllib.request, "urlopen", offline_urlopen)
+    monkeypatch.setattr(pricing, "_fetch_pricing", _REAL_FETCH_PRICING)
 
     table = pricing._fallback_pricing()
     original_cached_at = now - pricing.FALLBACK_RETRY_SECONDS - 60
