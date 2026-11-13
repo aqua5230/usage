@@ -7,6 +7,7 @@
 ## [Unreleased]
 
 ### 修正
+- **HTML 報表算得出 Muse Wonder 與 Muse Ember 的花費。** 離線價目表原本只有 Muse Spark，下載的價目表又沒有 Meta 的條目時，`muse-wonder-1.0` 和 `muse-ember-1.0` 的 token 都被列成「沒有價格」。現在兩個都用 Meta 公布的標準價；Ember 單次輸入超過 200K token 的長文價位分不出來（對話紀錄沒記），一律用標準價。
 - **HTML 報表重新算得出 Antigravity 的花費。** Antigravity 現在記下的模型名稱（例如 `gemini-4-argon-s`、`gemini-3.8-flash-n`、`claude-sonnet-5-5-medium`）對不到價目表，所有 Antigravity 的 token 都被列成「沒有價格」。現在會先去掉 Antigravity 自己加的尾巴（`-n`、`-s`、`-trial`、`-tiered`、`-low`、`-medium`、`-high`、`-xhigh`），也會找 `gemini/` 開頭的價格。Gemini 4 Hydrogen 也算得出來。
 - **Antigravity 狀態列認得 `xhigh` 思考強度。** Gemini 4 Hydrogen 選 `xhigh` 時原本直接印英文，現在跟其他強度一樣用當地語言標示，例如中文「深思熟慮」。
 - **Antigravity 的 token 改讀正確的欄位。** usage 原本把 Antigravity 內部的模型編號（約 1,300–1,500）當成 input token，每次回應都加一次，所以 Antigravity 的 input 算多了；output 和 thinking 也讀反了。現在 input 只讀 input 欄位，output 和 thinking 不再對調，只帶模型編號的回應也不再計入。更新後會重算一次 Antigravity 的快取。

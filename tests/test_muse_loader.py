@@ -179,6 +179,24 @@ def test_muse_models_resolve_to_distinct_meta_prices() -> None:
     assert prices[normal]["input_cost_per_token"] > prices[contributor]["input_cost_per_token"]
 
 
+def test_muse_wonder_and_ember_resolve_to_meta_prices() -> None:
+    prices = _fallback_pricing()
+    wonder = _resolve_model_key("muse-wonder-1.0", prices)
+    ember = _resolve_model_key("muse-ember-1.0", prices)
+    spark = _resolve_model_key("muse-spark-1.3", prices)
+
+    assert wonder == "meta/muse-wonder-1.0"
+    assert ember == "meta/muse-ember-1.0"
+    assert spark == "meta/muse-spark-1.3"
+    assert prices[wonder]["output_cost_per_token"] == 20e-6
+    assert prices[ember]["output_cost_per_token"] == 0.5e-6
+    assert (
+        prices[wonder]["input_cost_per_token"]
+        > prices[spark]["input_cost_per_token"]
+        > prices[ember]["input_cost_per_token"]
+    )
+
+
 def test_cache_reuses_only_unchanged_files_and_isolates_returned_entries(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

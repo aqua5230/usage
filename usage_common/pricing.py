@@ -33,7 +33,7 @@ FALLBACK_RETRY_SECONDS = 600
 MISSING_MODEL_REFRESH_SECONDS = FALLBACK_RETRY_SECONDS
 USER_AGENT = "usage/0.9"
 # The date when the hard-coded fallback table was last manually checked upstream.
-FALLBACK_PRICING_AS_OF: str = "2026-11-04"
+FALLBACK_PRICING_AS_OF: str = "2026-11-13"
 # Anthropic's official cache write/read prices relative to input pricing. These
 # are only fallbacks for missing upstream fields and may be wrong for other providers.
 CACHE_WRITE_COST_MULTIPLIER = 1.25
@@ -594,6 +594,19 @@ def _fallback_pricing() -> PricingTable:
             "input_cost_per_token": 0.1e-6,
             "output_cost_per_token": 0.2e-6,
             "cache_read_input_token_cost": 0.002e-6,
+        },
+        "meta/muse-wonder-1.0": {
+            "input_cost_per_token": 4e-6,
+            "output_cost_per_token": 20e-6,
+            "cache_read_input_token_cost": 0.2e-6,
+        },
+        # Ember bills a request with over 200K input tokens at three times these
+        # rates; the session logs do not say which tier a request fell in, so the
+        # standard tier is used throughout.
+        "meta/muse-ember-1.0": {
+            "input_cost_per_token": 0.1e-6,
+            "output_cost_per_token": 0.5e-6,
+            "cache_read_input_token_cost": 0.004e-6,
         },
         "gpt-5.5": {
             "input_cost_per_token": 5e-6,
