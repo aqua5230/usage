@@ -178,6 +178,7 @@ def _isolate_dispatch_ledger_sources(monkeypatch: pytest.MonkeyPatch, tmp_path: 
         monkeypatch.setattr(rate_limits, name, str(tmp_path / name))
     monkeypatch.setattr(grok_quota_probe, "GROK_LOG_PATH", tmp_path / "grok-unified.jsonl")
     monkeypatch.setattr(agy_loader, "AGY_SESSIONS_DIR", tmp_path / "agy-conversations")
+    monkeypatch.setattr(agy_loader, "AGY_CACHE_PATH", tmp_path / "agy_db_cache.json")
     monkeypatch.setattr(agy_quota_probe, "CACHE_PATH", tmp_path / "agy_quota_cache.json")
     monkeypatch.setattr(agy_quota_probe, "AUTH_EXPIRED_PATH", tmp_path / "agy_auth_expired")
     monkeypatch.setattr(agy_quota_probe, "CLI_SIGNED_OUT_PATH", tmp_path / "agy_cli_signed_out")

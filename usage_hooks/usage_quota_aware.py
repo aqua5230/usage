@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional, cast
 
-__version__ = "1.15"
+__version__ = "1.16"
 CLAUDE_STATUS = Path.home() / ".claude/usage-status.json"
 QUOTA_SNAPSHOT = Path.home() / ".usage/quota_snapshot.json"
 SERVICE_SNAPSHOT = Path.home() / ".usage/service_status_snapshot.json"
@@ -417,6 +417,8 @@ def _new_models(now: float) -> list[tuple[str, float, str]]:
             text = f'Antigravity quota group "{name}"{models_part}'
         elif source == "usage_log":
             text = f'model "{name}" first seen in local usage logs'
+        elif source == "agy_log":
+            text = f'Antigravity model "{name}" first seen in local Antigravity conversations'
         else:
             continue
         if entry.get("priced") is False:
