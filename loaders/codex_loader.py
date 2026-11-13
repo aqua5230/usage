@@ -75,6 +75,9 @@ logger = logging.getLogger(__name__)
 # share the same real-world file count.
 _JSONL_CACHE_MAXSIZE = 4096
 _RECENT_JSONL_SCAN_LIMIT = 30
+_RateLimitWindows = tuple[
+    float | None, float | None, float | None, float | None, float | None, float | None
+]
 
 
 @dataclass(slots=True)
@@ -192,6 +195,8 @@ class CodexRateLimits:
     credits_unlimited: bool = False
     limit_id: str = ""
     limit_reached_at: str = ""
+    # Preserve reported windows for refusal attribution after expiry and merging.
+    _original_windows: _RateLimitWindows | None = field(default=None, repr=False, compare=False)
 
 
 def _seed_caches_from_disk() -> None:
@@ -472,22 +477,20 @@ def _with_limit_reached_at(
     if updated_dt is None or rejection_dt <= updated_dt:
         return rate_limits
     rejection_ts = rejection_dt.timestamp()
-    five_candidate = (
-        rate_limits.five_hour_resets_at is not None
-        and rate_limits.five_hour_resets_at > rejection_ts
-    )
-    seven_candidate = (
-        rate_limits.seven_day_resets_at is not None
-        and rate_limits.seven_day_resets_at > rejection_ts
-    )
+    five_pct, five_reset, _, seven_pct, seven_reset, _ = _original_rate_limit_windows(rate_limits)
+    five_candidate = five_reset is not None and five_reset > rejection_ts
+    seven_candidate = seven_reset is not None and seven_reset > rejection_ts
     if not five_candidate and not seven_candidate:
         return replace(rate_limits, limit_reached_at=rejection_str)
     if five_candidate and seven_candidate:
-        five_pct = rate_limits.five_hour_pct if rate_limits.five_hour_pct is not None else -1.0
-        seven_pct = rate_limits.seven_day_pct if rate_limits.seven_day_pct is not None else -1.0
+        five_pct = five_pct if five_pct is not None else -1.0
+        seven_pct = seven_pct if seven_pct is not None else -1.0
         use_five = five_pct > seven_pct
     else:
         use_five = five_candidate
+    selected_reset = five_reset if use_five else seven_reset
+    if selected_reset is not None and selected_reset < datetime.now(UTC).timestamp():
+        return replace(rate_limits, limit_reached_at=rejection_str)
     if use_five:
         return replace(
             rate_limits,
@@ -522,9 +525,27 @@ def _load_jsonl_rate_limits_with_rejection(
     models = _load_thread_models()
     # scan 30 recent sessions because short/interrupted Codex sessions write null rate_limits
     fallback: CodexRateLimits | None = None
+    selected: CodexRateLimits | None = None
+    selected_dt: datetime | None = None
     latest_rejection: tuple[datetime, str] | None = None
+    candidate_mtimes: dict[Path, float] | None = None
+    if jsonl_candidates is not None:
+        jsonl_candidates = tuple(jsonl_candidates)
+        candidate_mtimes = dict(jsonl_candidates)
     for path in _recent_jsonl_files(jsonl_candidates=jsonl_candidates):
-        rate_limits, file_rejection = _extract_rate_limits_and_rejection(path, models)
+        if selected_dt is not None:
+            try:
+                mtime = (
+                    candidate_mtimes[path] if candidate_mtimes is not None else path.stat().st_mtime
+                )
+            except OSError as exc:
+                logger.warning("failed to stat codex session %s: %s", path, exc)
+                continue
+            if mtime < selected_dt.timestamp():
+                break
+        rate_limits, file_rejection = _extract_rate_limits_and_rejection(
+            path, models, rejection_only=selected is not None
+        )
         if file_rejection is not None and (
             latest_rejection is None or file_rejection[0] > latest_rejection[0]
         ):
@@ -532,15 +553,27 @@ def _load_jsonl_rate_limits_with_rejection(
         if rate_limits is None:
             continue
         if rate_limits.limit_id == "codex":
-            return rate_limits, latest_rejection
+            selected = rate_limits
+            selected_dt = _parse_timestamp(rate_limits.updated_at)
         if fallback is None:
             fallback = rate_limits
-    return fallback, latest_rejection
+    return selected or fallback, latest_rejection
 
 
 def _rate_limits_timestamp(rate_limits: CodexRateLimits) -> datetime:
     parsed = _parse_timestamp(rate_limits.updated_at)
     return parsed if parsed is not None else datetime.min.replace(tzinfo=UTC)
+
+
+def _original_rate_limit_windows(rate_limits: CodexRateLimits) -> _RateLimitWindows:
+    return rate_limits._original_windows or (
+        rate_limits.five_hour_pct,
+        rate_limits.five_hour_resets_at,
+        rate_limits.five_hour_window_minutes,
+        rate_limits.seven_day_pct,
+        rate_limits.seven_day_resets_at,
+        rate_limits.seven_day_window_minutes,
+    )
 
 
 def _merge_rate_limits(
@@ -571,6 +604,14 @@ def _merge_rate_limits(
     )
     if five_pct is None and seven_pct is None:
         return None
+    sqlite_original = _original_rate_limit_windows(sqlite_limits)
+    jsonl_original = _original_rate_limit_windows(jsonl_limits)
+    original_five = _pick_rate_limit_window(
+        *sqlite_original[:3], sqlite_ts, *jsonl_original[:3], jsonl_ts
+    )
+    original_seven = _pick_rate_limit_window(
+        *sqlite_original[3:], sqlite_ts, *jsonl_original[3:], jsonl_ts
+    )
     newer = jsonl_limits if jsonl_ts > sqlite_ts else sqlite_limits
     return CodexRateLimits(
         five_hour_pct=five_pct,
@@ -585,6 +626,7 @@ def _merge_rate_limits(
         credit_balance=newer.credit_balance,
         credits_unlimited=newer.credits_unlimited,
         limit_id=jsonl_limits.limit_id or sqlite_limits.limit_id,
+        _original_windows=(*original_five, *original_seven),
     )
 
 
@@ -759,6 +801,14 @@ def _build_rate_limits(
     credit_balance: str | None = None,
     credits_unlimited: bool = False,
 ) -> CodexRateLimits | None:
+    original_windows = _assign_rate_limit_slots(
+        primary_pct,
+        primary_reset,
+        primary_window_minutes,
+        secondary_pct,
+        secondary_reset,
+        secondary_window_minutes,
+    )
     now_ts = datetime.now(UTC).timestamp()
     if primary_reset is not None and primary_reset < now_ts:
         primary_pct = None
@@ -795,6 +845,7 @@ def _build_rate_limits(
         has_credits=has_credits,
         credit_balance=credit_balance,
         credits_unlimited=credits_unlimited,
+        _original_windows=original_windows,
     )
 
 
@@ -1051,7 +1102,7 @@ def _extract_rate_limits(path: Path, models: dict[str, str]) -> CodexRateLimits 
 
 
 def _extract_rate_limits_and_rejection(
-    path: Path, models: dict[str, str]
+    path: Path, models: dict[str, str], *, rejection_only: bool = False
 ) -> tuple[CodexRateLimits | None, tuple[datetime, str] | None]:
     session_id = ""
     session_model = "unknown"
@@ -1091,7 +1142,7 @@ def _extract_rate_limits_and_rejection(
                         ):
                             latest_rejection = (ts_dt, ts_str)
                     continue
-                if payload_type != "token_count":
+                if payload_type != "token_count" or rejection_only:
                     continue
                 rate_limits = _as_dict(payload.get("rate_limits"))
                 if rate_limits:
@@ -1114,6 +1165,9 @@ def _extract_rate_limits_and_rejection(
     seven_pct = _as_optional_float(secondary.get("used_percent"))
     seven_reset = _as_optional_float(secondary.get("resets_at"))
     seven_window = _as_optional_float(secondary.get("window_minutes"))
+    original_windows = _assign_rate_limit_slots(
+        five_pct, five_reset, five_window, seven_pct, seven_reset, seven_window
+    )
     now_ts = datetime.now(UTC).timestamp()
     if five_reset is not None and five_reset < now_ts:
         five_pct = 0.0
@@ -1147,6 +1201,7 @@ def _extract_rate_limits_and_rejection(
             credit_balance=_as_str(credits.get("balance")) or None,
             credits_unlimited=credits.get("unlimited") is True,
             limit_id=_as_str(rate_limits.get("limit_id")),
+            _original_windows=original_windows,
         ),
         latest_rejection,
     )
