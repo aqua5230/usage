@@ -7,6 +7,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.34.19] - 2026-11-14
+
 ### Fixed
 - **New models from Claude Code and other tools are now noticed on Windows too.** The Windows tray left out the models found in your usage logs when it recorded seen models, so quota-aware mode on Windows only announced new Codex models and Antigravity quota groups. Models you have already used are recorded as known, so updating does not announce them as new.
 
