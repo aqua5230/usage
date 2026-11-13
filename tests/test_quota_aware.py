@@ -935,7 +935,7 @@ def test_service_normal_without_record_is_silent(paths: Path) -> None:
 
 
 def test_service_hook_versions_match() -> None:
-    assert hook.__version__ == session_hooks.QUOTA_AWARE_HOOK_VERSION == "1.13"
+    assert hook.__version__ == session_hooks.QUOTA_AWARE_HOOK_VERSION == "1.14"
 
 
 @pytest.mark.parametrize("window,label", [("five_hour", "5-hour"), ("seven_day", "weekly")])
@@ -1872,3 +1872,165 @@ def test_open_agy_groups_omitted_when_turn_has_no_agy_message(paths: Path) -> No
     assert 'Antigravity CLI (agy) model group "THIRD MODELS": 5-hour quota: 91% used' in third
     assert 'Other agy model groups still have quota: "GEMINI MODELS" 7.6% used.' in third
     assert "CLAUDE AND GPT MODELS" not in third
+
+
+def test_same_account_quota_notice_shared_when_other_session_redrew_last(
+    accounts: Path, status_writer: Any
+) -> None:
+    account_config(accounts, "X")
+    status_writer(
+        {
+            "session_id": "A",
+            "rate_limits": {
+                "five_hour": {"used_percentage": 20, "resets_at": RESET},
+                "seven_day": {"used_percentage": 10, "resets_at": RESET + 100000},
+            },
+        },
+        datetime.fromtimestamp(NOW - 60, UTC),
+    )
+    assert hook.reminder("A", NOW - 30) == ""
+    assert hook.reminder("B", NOW - 20) == ""
+    status_writer(
+        {
+            "session_id": "B",
+            "rate_limits": {
+                "five_hour": {"used_percentage": 96, "resets_at": RESET},
+                "seven_day": {"used_percentage": 10, "resets_at": RESET + 100000},
+            },
+        },
+        datetime.fromtimestamp(NOW - 5, UTC),
+    )
+    assert hook._read(hook.CLAUDE_STATUS)["_rate_limits_session_id"] == "B"
+    out = hook.reminder("A", NOW)
+    assert "Claude Code 5-hour quota: 96% used" in out
+
+
+def test_same_account_new_session_overview_not_delayed_by_other_session_redraw(
+    accounts: Path, overview: None, status_writer: Any
+) -> None:
+    account_config(accounts, "X")
+    overview_snapshot()
+    assert "Codex:" in hook.reminder("B", NOW - 20)
+    status_writer(
+        {
+            "session_id": "B",
+            "rate_limits": {
+                "five_hour": {"used_percentage": 20, "resets_at": RESET},
+                "seven_day": {"used_percentage": 10, "resets_at": RESET + 100000},
+            },
+        },
+        datetime.fromtimestamp(NOW - 5, UTC),
+    )
+    out = hook.reminder("C", NOW)
+    assert out.startswith("[usage quota overview]")
+    assert "Claude Code: 5-hour 20% used" in out
+    assert "Codex: 5-hour 5% used" in out
+
+
+@pytest.mark.parametrize("a_used", [50, 96])
+def test_account_switch_in_other_session_does_not_record_old_limits(
+    accounts: Path, status_writer: Any, a_used: float
+) -> None:
+    account_config(accounts, "X")
+    assert hook.reminder("A", NOW - 3600) == ""
+    assert hook.reminder("B", NOW - 3600) == ""
+
+    account_config(accounts, "Y")
+    assert ACCOUNT_LINE in hook.reminder("A", NOW - 400)
+    status_writer(
+        {
+            "session_id": "A",
+            "rate_limits": {
+                "five_hour": {"used_percentage": a_used, "resets_at": RESET},
+                "seven_day": {"used_percentage": 10, "resets_at": RESET + 100000},
+            },
+        },
+        datetime.fromtimestamp(NOW - 300, UTC),
+    )
+
+    out_b1 = hook.reminder("B", NOW - 200)
+    assert ACCOUNT_LINE in out_b1
+    assert "old_limits" not in hook._read(hook.STATE_PATH)["accounts"]["B"]
+    if a_used == 96:
+        assert "Claude Code 5-hour quota: 96% used" in out_b1
+
+    status_writer(
+        {
+            "session_id": "B",
+            "rate_limits": {
+                "five_hour": {"used_percentage": 96, "resets_at": RESET},
+                "seven_day": {"used_percentage": 10, "resets_at": RESET + 100000},
+            },
+        },
+        datetime.fromtimestamp(NOW - 100, UTC),
+    )
+    out_b2 = hook.reminder("B", NOW)
+    assert "old_limits" not in hook._read(hook.STATE_PATH)["accounts"]["B"]
+    if a_used == 50:
+        assert "Claude Code 5-hour quota: 96% used" in out_b2
+    else:
+        assert out_b2 == ""
+
+
+def test_different_account_or_missing_current_account_does_not_share_status(
+    accounts: Path, overview: None, status_writer: Any
+) -> None:
+    account_config(accounts, "X")
+    overview_snapshot()
+    assert "[usage quota overview]" in hook.reminder("A", NOW - 100)
+    assert "[usage quota overview]" in hook.reminder("D", NOW - 90)
+    status_writer(
+        {
+            "session_id": "A",
+            "rate_limits": {
+                "five_hour": {"used_percentage": 96, "resets_at": RESET},
+                "seven_day": {"used_percentage": 10, "resets_at": RESET + 100000},
+            },
+        },
+        datetime.fromtimestamp(NOW - 50, UTC),
+    )
+
+    account_config(accounts, "Y")
+    assert hook.reminder("B", NOW) == ""
+    assert hook.reminder("B", NOW + 1) == ""
+    state = hook._read(hook.STATE_PATH)
+    assert state["accounts"]["A"]["uuid"] == "X"
+    assert state["accounts"]["B"]["uuid"] == "Y"
+    assert "B" not in state.get("overview", {})
+
+    # Even when D's stored uuid matches A's, missing current oauthAccount disables sharing.
+    accounts.unlink()
+    assert hook.reminder("D", NOW + 2) == ""
+    account_config(accounts, "X")
+    assert "Claude Code 5-hour quota: 96% used" in hook.reminder("D", NOW + 3)
+
+
+def test_unrecorded_owner_falls_back_to_owner_only(
+    accounts: Path, overview: None, status_writer: Any
+) -> None:
+    account_config(accounts, "X")
+    overview_snapshot()
+    status_writer(
+        {
+            "session_id": "unseen",
+            "rate_limits": {
+                "five_hour": {"used_percentage": 96, "resets_at": RESET},
+                "seven_day": {"used_percentage": 10, "resets_at": RESET + 100000},
+            },
+        },
+        datetime.fromtimestamp(NOW - 10, UTC),
+    )
+    assert hook.reminder("B", NOW) == ""
+    out = hook.reminder("unseen", NOW + 1)
+    assert "[usage quota overview]" in out
+    assert "Claude Code 5-hour quota: 96% used" in out
+
+
+def test_missing_owner_field_keeps_legacy_behavior(accounts: Path, overview: None) -> None:
+    account_config(accounts, "X")
+    overview_snapshot()
+    claude(96, 10)
+    out = hook.reminder("B", NOW)
+    assert "[usage quota overview]" in out
+    assert "Claude Code: 5-hour 96% used" in out
+    assert "Claude Code 5-hour quota: 96% used" in out
