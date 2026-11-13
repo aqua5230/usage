@@ -1176,7 +1176,6 @@ def test_model_key_cache_clears_replaced_pricing_tables(
     monkeypatch.setattr(pricing, "_write_cache", lambda table: None)
 
     initial_table = make_table()
-    initial_id = id(initial_table)
     initial_ref = weakref.ref(initial_table)
     pricing._set_pricing_cache_for_test((initial_table, "cache", now))
     assert pricing.calculate_cost(_entry(model="claude-sonnet-5-5", input_tokens=1)) > 0.0
@@ -1192,7 +1191,10 @@ def test_model_key_cache_clears_replaced_pricing_tables(
         gc.collect()
         assert fetches == 12
         assert len(pricing._model_key_cache) == 1
-        assert initial_id not in pricing._model_key_cache
+        current = pricing._get_pricing_cache_for_test()
+        assert current is not None
+        # A freed table's id() can be reused by the next one, so compare identity.
+        assert next(iter(pricing._model_key_cache.values()))[0] is current[0]
         assert initial_ref() is None
     finally:
         _wait_warm_up_idle()
