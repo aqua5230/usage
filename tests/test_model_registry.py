@@ -20,7 +20,7 @@ from typing import Any, cast
 import pytest
 
 from adapters.types import UsageEntry as AdapterUsageEntry
-from loaders import agy_quota_probe, cache_quarantine
+from loaders import agy_loader, agy_quota_probe, cache_quarantine
 from loaders.history_loader import UsageEntry as HistoryUsageEntry
 from quota import model_registry, quota_snapshot
 from usage_common import pricing, service_status
@@ -376,6 +376,47 @@ def test_new_items_and_agy_group_normalization_and_priced_recalculation(
     data_r3 = _read_registry()
     assert data_r3["items"]["usage_log:claude-baseline"]["priced"] is False
     assert data_r3["items"]["usage_log:claude-new-model"]["priced"] is True
+
+
+def test_agy_log_models_baseline_then_new_with_suffixes_collapsed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(agy_quota_probe, "_read_cache", lambda: None)
+    monkeypatch.setattr(pricing, "is_model_priced", lambda model: model == "gemini-4-hydrogen")
+    agy_models: list[str] = []
+    monkeypatch.setattr(
+        agy_loader,
+        "load_entries",
+        lambda hours_back=0: [SimpleNamespace(model=model) for model in agy_models],
+    )
+
+    model_registry.update(entries=[_history_entry("claude-sonnet-5-5")])
+    assert not any(key.startswith("agy_log:") for key in _read_registry()["items"])
+
+    # First Antigravity sighting is a baseline even though the registry already exists.
+    agy_models[:] = ["gemini-4-hydrogen", "gemini-3.8-flash-n", "gemini-3.8-flash-tiered"]
+    model_registry.update(entries=[])
+    items = _read_registry()["items"]
+    assert items["agy_log:gemini-4-hydrogen"]["baseline"] is True
+    assert items["agy_log:gemini-4-hydrogen"]["agent"] == "antigravity"
+    assert items["agy_log:gemini-3.8-flash"]["baseline"] is True
+    assert "agy_log:gemini-3.8-flash-n" not in items
+
+    agy_models[:] = [
+        "gemini-5-neon-high",
+        "gemini-5-neon-xhigh",
+        "claude-sonnet-5-5-medium",
+        "gemini-pro-orchestrator-g1-pro",
+        "unknown",
+    ]
+    model_registry.update(entries=[])
+    items = _read_registry()["items"]
+    new_agy = [key for key, item in items.items() if item["baseline"] is False]
+    assert new_agy == ["agy_log:gemini-5-neon"]
+    assert items["agy_log:gemini-5-neon"]["name"] == "gemini-5-neon"
+    assert items["agy_log:gemini-5-neon"]["priced"] is False
+    # Already known from Claude Code's own logs, so Antigravity does not announce it again.
+    assert "agy_log:claude-sonnet-5-5" not in items
 
 
 def test_no_write_when_unchanged_and_atomic_write_cleans_tmp_on_failure(

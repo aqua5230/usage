@@ -18,7 +18,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from loaders import agy_quota_probe, cache_quarantine
+from adapters import agy as agy_adapter
+from loaders import agy_loader, agy_quota_probe, cache_quarantine
 from loaders.codex_paths import codex_home
 from usage_common import pricing
 
@@ -154,6 +155,29 @@ def _collect_usage_models(entries: Sequence[Any] | None) -> list[tuple[str, str,
     return [(normalized, agent, model) for normalized, (agent, model) in by_key.items()]
 
 
+def _collect_agy_models() -> list[tuple[str, str]]:
+    """Collect unique ``(normalized_model, model)`` pairs from Antigravity conversations.
+
+    Antigravity records effort and tier suffixes (``-n``, ``-s``, ``-high``...); they are
+    stripped so each model is announced once rather than once per variant.
+    """
+    try:
+        entries = agy_loader.load_entries(hours_back=0)
+    except Exception:
+        logger.warning("Antigravity usage unavailable for model registry", exc_info=True)
+        return []
+    by_key: dict[str, str] = {}
+    for entry in entries:
+        model = agy_adapter._normalize_model(entry.model).strip()
+        normalized = model.casefold()
+        if not model or model.startswith("<") or normalized == "unknown":
+            continue
+        if "orchestrator" in normalized:
+            continue
+        by_key.setdefault(normalized, model)
+    return list(by_key.items())
+
+
 def _write_registry(payload: dict[str, Any]) -> None:
     temporary: str | None = None
     try:
@@ -246,7 +270,7 @@ def update(entries: Sequence[Any] | None = None) -> None:
 
         for normalized, agent, model_name in _collect_usage_models(entries):
             key = f"usage_log:{normalized}"
-            if key in items:
+            if key in items or f"agy_log:{normalized}" in items:
                 continue
             items[key] = {
                 "source": "usage_log",
@@ -254,6 +278,19 @@ def update(entries: Sequence[Any] | None = None) -> None:
                 "name": model_name,
                 "first_seen": now_iso,
                 "baseline": is_baseline_run or "usage_log" not in known_sources,
+                "priced": pricing.is_model_priced(model_name),
+            }
+
+        for normalized, model_name in _collect_agy_models():
+            key = f"agy_log:{normalized}"
+            if key in items or f"usage_log:{normalized}" in items:
+                continue
+            items[key] = {
+                "source": "agy_log",
+                "agent": "antigravity",
+                "name": model_name,
+                "first_seen": now_iso,
+                "baseline": is_baseline_run or "agy_log" not in known_sources,
                 "priced": pricing.is_model_priced(model_name),
             }
 

@@ -935,7 +935,7 @@ def test_service_normal_without_record_is_silent(paths: Path) -> None:
 
 
 def test_service_hook_versions_match() -> None:
-    assert hook.__version__ == session_hooks.QUOTA_AWARE_HOOK_VERSION == "1.15"
+    assert hook.__version__ == session_hooks.QUOTA_AWARE_HOOK_VERSION == "1.16"
 
 
 @pytest.mark.parametrize("window,label", [("five_hour", "5-hour"), ("seven_day", "weekly")])
@@ -2182,6 +2182,25 @@ def test_model_sources_and_pricing_note_formats(paths: Path) -> None:
         "Background only: bring it up when it affects the current task, "
         "such as choosing a model or agent, or when the user asks."
     )
+
+
+def test_models_reminder_names_antigravity_log_models(paths: Path) -> None:
+    model_registry(
+        {
+            "agy_log:gemini-5-neon": {
+                "source": "agy_log",
+                "agent": "antigravity",
+                "name": "gemini-5-neon",
+                "first_seen": _ts(-10),
+                "baseline": False,
+                "priced": False,
+            }
+        }
+    )
+    assert (
+        'Antigravity model "gemini-5-neon" first seen in local Antigravity conversations '
+        "(usage's price table does not know it yet)"
+    ) in hook.reminder("one", NOW)
 
 
 def test_models_announced_once_per_session_and_incremental_updates(paths: Path) -> None:
