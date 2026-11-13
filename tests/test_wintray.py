@@ -267,6 +267,24 @@ def test_draw_tray_icon_and_tooltip(monkeypatch: pytest.MonkeyPatch) -> None:
     ]
 
 
+def test_build_tooltip_omits_hidden_sections_except_the_tray_source() -> None:
+    state = replace(_state(), hide_claude=True, hide_codex=True)
+
+    assert wintray.build_tooltip(state, "claude").splitlines() == [
+        "Claude Session: 25% · Weekly: 60%",
+    ]
+    assert wintray.build_tooltip(state, "codex").splitlines() == [
+        "Codex Session: 25% · Weekly: 60%",
+    ]
+    assert wintray.build_tooltip(replace(state, hide_codex=False), "claude").splitlines() == [
+        "Claude Session: 25% · Weekly: 60%",
+        "Codex Session: 25% · Weekly: 60%",
+    ]
+    assert wintray.build_tooltip(replace(state, hide_claude=False), "claude").splitlines() == [
+        "Claude Session: 25% · Weekly: 60%",
+    ]
+
+
 def test_build_tooltip_includes_antigravity_when_visible() -> None:
     base_state = _state()
     state = replace(

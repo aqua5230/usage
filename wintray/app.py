@@ -621,14 +621,22 @@ def build_tooltip(state: menubar_state.PopoverState, provider: TrayProvider = "c
         )
         return f"{name} {row.title}: {used}%"
 
-    lines = [
+    claude_line = (
         f"{line('Claude', state.claude_session)} · "
-        f"{line('Claude', state.claude_weekly).removeprefix('Claude ')}",
+        f"{line('Claude', state.claude_weekly).removeprefix('Claude ')}"
+    )
+    codex_line = (
         f"{line('Codex', state.codex_session)} · "
-        f"{line('Codex', state.codex_weekly).removeprefix('Codex ')}",
-    ]
+        f"{line('Codex', state.codex_weekly).removeprefix('Codex ')}"
+    )
     if not state.codex_session.title and state.codex_session.percent is None:
-        lines[1] = line("Codex", state.codex_weekly)
+        codex_line = line("Codex", state.codex_weekly)
+    # A hidden section drops its line, except the tray source: the icon shows that number.
+    lines = []
+    if not state.hide_claude or provider == "claude":
+        lines.append(claude_line)
+    if not state.hide_codex or provider == "codex":
+        lines.append(codex_line)
     if provider == "codex":
         lines.reverse()
     if not state.hide_agy:
