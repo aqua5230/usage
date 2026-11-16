@@ -110,6 +110,8 @@ def test_usage_cache_argon_group_does_not_overwrite_gemini() -> None:
     quota = usage_statusline_agy._usage_cached_quota()
 
     assert quota["gemini-weekly"]["remaining_fraction"] == pytest.approx(0.85)
+    assert quota["argon-weekly"]["remaining_fraction"] == 0.0
+    assert "argon-5h" not in quota
 
 
 def test_render_fixture_contains_expected_status(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -133,6 +135,8 @@ def test_render_fixture_contains_expected_status(monkeypatch: pytest.MonkeyPatch
     [
         ("Gemini 3.6 Flash", "10%", "20%"),
         ("Claude Opus 4.5", "70%", "80%"),
+        ("Orchestrator (Argon)", "40%", "50%"),
+        ("Gemini 4 Argon", "40%", "50%"),
     ],
 )
 def test_render_selects_quota_bucket_for_model(
@@ -150,6 +154,8 @@ def test_render_selects_quota_bucket_for_model(
         "gemini-weekly": {"remaining_fraction": 0.8},
         "3p-5h": {"remaining_fraction": 0.3},
         "3p-weekly": {"remaining_fraction": 0.2},
+        "argon-5h": {"remaining_fraction": 0.6},
+        "argon-weekly": {"remaining_fraction": 0.5},
     }
 
     output = usage_statusline_agy.render(data)
