@@ -7,6 +7,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.34.22] - 2026-11-16
+
 ### Fixed
 - **The Windows tray tooltip no longer lists a tool you hid under Hide Sections.** Claude and Codex were always listed, even when hidden, and their lines could push the last tools past Windows' 127-character tooltip limit. A hidden tool's line is now left out; the tool chosen as Tray Display Source stays, because the icon shows its number.
 - **Menu bar icons are visible again on a dark menu bar.** The Claude, Codex, Antigravity, Grok, and Muse icons were drawn black even when the menu bar was dark, so on macOS Tahoe they disappeared against it. They now follow the menu bar's text color in light and dark. Reported in #352.
@@ -25,6 +27,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 - **A refusal from a separate Codex limit no longer shows your regular Codex quota as 100% used.** When a dedicated limit such as Codex Spark or a premium model refused a request, the card marked the regular weekly window as full. Only a refusal of the regular Codex limit does that now.
 - **Reopening an old Codex session no longer hides newer quota from your other sessions.** After a refusal in a resumed old session, the card kept that session's old reading and skipped newer readings from other sessions. It now takes the newest reading, then applies the refusal.
 - **The Codex disk cache is no longer rewritten on every refresh when you have forked or subagent sessions.** Those sessions were dropped each time the cache was saved, so the cache was rewritten and they were read again.
+- **Opening the report no longer leaves the menu bar or tray app about 150 MB larger.** The report was built inside the app, which loaded your full history a second time and kept that memory until restart. It is now built in a separate process that frees the memory when it exits.
+- **The report is built faster.** It reads Claude Code logs once instead of twice and no longer runs git for project folders that were deleted. On one large history it went from 47 to 32 seconds, with identical numbers.
+- **Days you used Claude Code count as active in the report even when their conversation files are gone.** Claude Code deletes conversation files after 30 days by default, so those days counted as idle and broke your streak. Active days and streaks now count them, and the heatmap shows them in its lightest shade. The appendix, now titled "How the numbers are calculated", lists those dates under "Usage not included".
+- **Older Antigravity history no longer lists one model twice or leaves it unpriced in the report.** History saved before model IDs were cleaned up kept raw IDs such as `gemini-3.8-flash-n`, which left billions of tokens priced at $0. They are now merged with the clean name and priced.
+- **Usage saved only as daily totals no longer ranks as your top project or tool.** Usage from before August 2026 has no project or tool, and the report listed it as the top "unknown" project and tool at $0.00. It now shows as a grey "Old records (totals only)" row at the bottom with an unknown cost, and the trend legend uses the same name. Percentages are unchanged.
+- **Dispatch conversations started with a slash command get a real title in the report** instead of text like "<local-command-caveat>The command below".
+- **The Antigravity status line shows the Argon quota for Gemini 4 Argon and Orchestrator (Argon).** It showed the Claude and GPT group or the Gemini group instead.
+- **Auto-start 5-hour Session is renamed Auto-start 5-hour timer.** It sat under Launch at login and read like a second launch option; it starts the 5-hour timer right after a reset. Behavior and settings are unchanged.
 
 ## [0.34.21] - 2026-11-14
 
