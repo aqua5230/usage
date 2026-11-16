@@ -2554,7 +2554,7 @@ def _write_rejected_session(path: Path, rejected_ts: str, mtime: float) -> None:
             "type": "event_msg",
             "payload": {
                 "type": "token_count",
-                "rate_limits": {"primary": None, "secondary": None},
+                "rate_limits": {"limit_id": "codex", "primary": None, "secondary": None},
             },
         },
         {
@@ -2742,13 +2742,14 @@ def test_with_limit_reached_at_candidate_selection_edge_cases() -> None:
 
     only_seven = codex_loader._with_limit_reached_at(
         codex_loader.CodexRateLimits(
+            limit_id="codex",
             five_hour_pct=40.0,
             five_hour_resets_at=rejection_ts - 60,
             seven_day_pct=99.0,
             seven_day_resets_at=rejection_ts + 3600,
             updated_at=valid_ts,
         ),
-        (rejection_dt, rejection_str),
+        (rejection_dt, rejection_str, "codex"),
     )
     assert only_seven is not None
     assert only_seven.five_hour_pct == 40.0
@@ -2758,13 +2759,14 @@ def test_with_limit_reached_at_candidate_selection_edge_cases() -> None:
 
     only_five = codex_loader._with_limit_reached_at(
         codex_loader.CodexRateLimits(
+            limit_id="codex",
             five_hour_pct=40.0,
             five_hour_resets_at=rejection_ts + 3600,
             seven_day_pct=99.0,
             seven_day_resets_at=rejection_ts - 60,
             updated_at=valid_ts,
         ),
-        (rejection_dt, rejection_str),
+        (rejection_dt, rejection_str, "codex"),
     )
     assert only_five is not None
     assert only_five.five_hour_pct == 100.0
@@ -2774,13 +2776,14 @@ def test_with_limit_reached_at_candidate_selection_edge_cases() -> None:
 
     neither = codex_loader._with_limit_reached_at(
         codex_loader.CodexRateLimits(
+            limit_id="codex",
             five_hour_pct=40.0,
             five_hour_resets_at=rejection_ts - 120,
             seven_day_pct=60.0,
             seven_day_resets_at=rejection_ts - 60,
             updated_at=valid_ts,
         ),
-        (rejection_dt, rejection_str),
+        (rejection_dt, rejection_str, "codex"),
     )
     assert neither is not None
     assert neither.five_hour_pct == 40.0
@@ -2875,6 +2878,7 @@ def test_load_rate_limits_keeps_sqlite_refused_window_after_reset(
         {
             "type": "codex.rate_limits",
             "rate_limits": {
+                "limit_id": "codex",
                 "primary": {
                     "used_percent": 99,
                     "reset_at": five_reset.timestamp(),
@@ -2967,10 +2971,10 @@ def test_load_rate_limits_finds_rejection_behind_newer_session_mtime(
     os.utime(path, (current.timestamp(), current.timestamp()))
     refused = sessions / "refused.jsonl"
     _write_rejected_session(refused, rejected.isoformat(), rejected.timestamp())
-    # A later-scanned snapshot must not replace the first codex snapshot.
+    # An older snapshot must not replace the selected codex snapshot.
     _write_rate_limit_session(
         sessions / "other.jsonl",
-        rejected.isoformat(),
+        (snapshot - timedelta(seconds=1)).isoformat(),
         {
             "limit_id": "codex",
             "primary": {"used_percent": 5, "resets_at": current.timestamp() + 60},
@@ -2991,7 +2995,7 @@ def test_load_rate_limits_finds_rejection_behind_newer_session_mtime(
         refused,
         sessions / "other.jsonl",
     ]
-    assert all(call.kwargs["rejection_only"] for call in extract.call_args_list[1:])
+    assert all(not call.kwargs for call in extract.call_args_list)
 
 
 def test_load_rate_limits_stops_before_files_older_than_selected_snapshot(
@@ -3053,6 +3057,107 @@ def test_load_rate_limits_stop_check_uses_candidate_mtimes(
 
     assert result is not None
     assert result.limit_reached_at == rejected_at.isoformat()
+
+
+@pytest.mark.parametrize(
+    ("limit_id", "has_windows"),
+    [("codex_spark", True), ("codex_spark", False), ("premium", False), ("", False)],
+)
+def test_load_rate_limits_does_not_apply_dedicated_or_unknown_refusal_to_codex(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, limit_id: str, has_windows: bool
+) -> None:
+    now = datetime.now(UTC)
+    snapshot = now - timedelta(minutes=2)
+    sessions = tmp_path / "sessions"
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions)
+    path = sessions / "mixed.jsonl"
+    _write_rate_limit_session(
+        path,
+        snapshot.isoformat(),
+        {
+            "limit_id": "codex",
+            "primary": {"used_percent": 10, "resets_at": now.timestamp() + 3600},
+            "secondary": {"used_percent": 20, "resets_at": now.timestamp() + 86400},
+        },
+        now.timestamp(),
+    )
+    limited: dict[str, Any] = {"limit_id": limit_id, "primary": None, "secondary": None}
+    if has_windows:
+        limited["primary"] = {"used_percent": 100, "resets_at": now.timestamp() + 60}
+    events = [
+        {
+            "timestamp": (now - timedelta(minutes=1)).isoformat(),
+            "type": "event_msg",
+            "payload": {"type": "token_count", "rate_limits": limited},
+        },
+        {
+            "timestamp": now.isoformat(),
+            "type": "event_msg",
+            "payload": {"type": "token_count", "rate_limits": None},
+        },
+        {
+            "timestamp": now.isoformat(),
+            "type": "event_msg",
+            "payload": {
+                "type": "task_complete",
+                "error": {"codex_error_info": "usage_limit_exceeded"},
+            },
+        },
+    ]
+    with path.open("a", encoding="utf-8") as file:
+        file.write("\n" + "\n".join(json.dumps(event) for event in events) + "\n")
+
+    for result in (codex_loader.load_rate_limits(), codex_loader._extract_rate_limits(path, {})):
+        assert result is not None
+        assert (result.limit_id, result.five_hour_pct, result.seven_day_pct) == ("codex", 10, 20)
+        assert result.updated_at == snapshot.isoformat()
+        assert result.limit_reached_at == now.isoformat()
+
+
+def test_load_rate_limits_uses_newer_snapshot_after_resumed_session_refusal(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    now = datetime.now(UTC)
+    sessions = tmp_path / "sessions"
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions)
+    resumed = sessions / "sess_a.jsonl"
+    for path, timestamp, five, seven in (
+        (resumed, now - timedelta(hours=2), 20, 50),
+        (sessions / "sess_b.jsonl", now - timedelta(minutes=5), 99, 55),
+    ):
+        _write_rate_limit_session(
+            path,
+            timestamp.isoformat(),
+            {
+                "limit_id": "codex",
+                "primary": {"used_percent": five, "resets_at": now.timestamp() + 10800},
+                "secondary": {"used_percent": seven, "resets_at": now.timestamp() + 432000},
+            },
+            timestamp.timestamp(),
+        )
+    with resumed.open("a", encoding="utf-8") as file:
+        file.write(
+            "\n"
+            + json.dumps(
+                {
+                    "timestamp": now.isoformat(),
+                    "type": "event_msg",
+                    "payload": {
+                        "type": "task_complete",
+                        "error": {"codex_error_info": "usage_limit_exceeded"},
+                    },
+                }
+            )
+            + "\n"
+        )
+    os.utime(resumed, (now.timestamp(), now.timestamp()))
+
+    result = codex_loader.load_rate_limits()
+
+    assert result is not None
+    assert (result.five_hour_pct, result.seven_day_pct) == (100, 55)
+    assert result.updated_at == now.isoformat()
+    assert result.limit_reached_at == now.isoformat()
 
 
 # ===== Disk cache tests =====

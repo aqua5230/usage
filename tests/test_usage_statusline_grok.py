@@ -340,6 +340,25 @@ def test_setup_grok_refuses_missing_config(
     assert not previous.exists()
 
 
+@pytest.mark.parametrize("platform", ["darwin", "win32"])
+def test_grok_only_with_external_claude_statusline_can_be_disabled(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, platform: str
+) -> None:
+    settings, _target, _previous = _patch_grok_paths(monkeypatch, tmp_path)
+    settings.write_text('[ui]\ntheme = "dark"\n', encoding="utf-8")
+    monkeypatch.setattr("installer.statusline_settings.sys.platform", platform)
+    monkeypatch.setattr(setup_hook, "is_agy_setup", lambda: False)
+    external = {"statusLine": {"type": "command", "command": "printf my-statusline"}}
+    monkeypatch.setattr(statusline_settings, "_load_claude_settings", lambda: external.copy())
+    monkeypatch.setattr(statusline_settings, "_save_claude_settings", lambda _: None)
+    assert setup_hook._setup_grok()
+
+    assert statusline_settings._statusline_enabled() is True
+    assert statusline_settings._toggle_statusline_settings() == ("uninstall", 0)
+    assert not setup_hook.is_grok_setup()
+    assert external["statusLine"]["command"] == "printf my-statusline"
+
+
 def test_self_heal_installs_grok_statusline(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

@@ -594,8 +594,7 @@ REPORT_FILTER_JS = r"""(() => {
         project,
         summary.tokens,
         index === 0 ? 'var(--chart-accent)' : null,
-        // _render_project_section() 無條件顯示花費，這裡跟著一致
-        {projectIndex: project.projectIndex, costKnown: true, showShare: true}
+        {projectIndex: project.projectIndex, showShare: true}
       );
       list.append(row);
       bindProjectRow(row);

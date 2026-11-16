@@ -26,13 +26,19 @@ from usage_hooks import usage_statusline
 def test_save_expired_window_reaches_readers_and_restored_notification(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, window: str
 ) -> None:
+    monkeypatch.setattr(usage_statusline, "_account_uuid", lambda: "same-account")
     now = datetime(2026, 11, 1, 12, tzinfo=UTC)
     now_ts = now.timestamp()
     reset_at = now_ts - 3600
     other = "seven_day" if window == "five_hour" else "five_hour"
     status_file = tmp_path / "usage-status.json"
     status_file.write_text(
-        json.dumps({"rate_limits": {window: {"used_percentage": 100, "resets_at": reset_at}}}),
+        json.dumps(
+            {
+                "rate_limits": {window: {"used_percentage": 100, "resets_at": reset_at}},
+                "_rate_limits_account_uuid": "same-account",
+            }
+        ),
         encoding="utf-8",
     )
     monkeypatch.setattr(usage_statusline, "STATUS_FILE", str(status_file))
@@ -89,6 +95,7 @@ def test_weekly_cache_retention_uses_a_week(offset: int, retained: bool) -> None
 def test_save_records_which_session_observed_the_quota(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
+    monkeypatch.setattr(usage_statusline, "_account_uuid", lambda: "same-account")
     now = datetime(2026, 11, 1, 12, tzinfo=UTC)
     window = {"used_percentage": 91, "resets_at": now.timestamp() + 7200}
     status_file = tmp_path / "usage-status.json"

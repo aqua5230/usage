@@ -13,6 +13,7 @@ from typing import Any
 import objc
 
 from menubar.state import PopoverState, QuotaRowState
+from quota.notifications import quota_reading
 from usage_common.i18n import _t
 
 
@@ -144,21 +145,12 @@ def notification_row(state: PopoverState, channel: str) -> QuotaRowState:
 
 def notification_channels(state: PopoverState) -> dict[str, tuple[float | None, bool]]:
     return {
-        "claude_session": (
-            state.claude_session.percent,
-            state.claude_session.available,
-        ),
-        "claude_weekly": (state.claude_weekly.percent, state.claude_weekly.available),
-        "codex_session": (state.codex_session.percent, state.codex_session.available),
-        "codex_weekly": (state.codex_weekly.percent, state.codex_weekly.available),
-        "agy_session": (
-            state.agy_session.percent,
-            state.agy_session.available and state.agy_stale is None,
-        ),
-        "agy_weekly": (
-            state.agy_weekly.percent,
-            state.agy_weekly.available and state.agy_stale is None,
-        ),
+        "claude_session": quota_reading(state.claude_session),
+        "claude_weekly": quota_reading(state.claude_weekly),
+        "codex_session": quota_reading(state.codex_session),
+        "codex_weekly": quota_reading(state.codex_weekly),
+        "agy_session": quota_reading(state.agy_session, state.agy_stale is None),
+        "agy_weekly": quota_reading(state.agy_weekly, state.agy_stale is None),
         "muse_session": (
             state.muse_session.display_percent,
             state.muse_session.available and state.muse_stale is None,

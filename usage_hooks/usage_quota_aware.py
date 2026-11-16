@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional, cast
 
-__version__ = "1.16"
+__version__ = "1.17"
 CLAUDE_STATUS = Path.home() / ".claude/usage-status.json"
 QUOTA_SNAPSHOT = Path.home() / ".usage/quota_snapshot.json"
 SERVICE_SNAPSHOT = Path.home() / ".usage/service_status_snapshot.json"
@@ -138,6 +138,9 @@ def _recorded_account_uuid(records: Any, session_id: Any) -> Optional[str]:
 
 
 def _can_use_status(session_id: str, status: dict[str, Any], state: dict[str, Any]) -> bool:
+    observed_uuid = status.get("_rate_limits_account_uuid")
+    if isinstance(observed_uuid, str) and observed_uuid and observed_uuid != _account_uuid():
+        return False
     if "_rate_limits_session_id" not in status:
         return True
     owner = status.get("_rate_limits_session_id")

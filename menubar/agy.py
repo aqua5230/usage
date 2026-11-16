@@ -48,6 +48,11 @@ AGY_WEEKLY_WARNING_MAX_SECONDS = 24 * 3600
 _last_quota: AgyQuotaResult | None = None
 
 
+@dataclass(slots=True)
+class _AgyQuotaRow(QuotaRowState):
+    carried: bool = False
+
+
 @dataclass(frozen=True, slots=True)
 class AgyQuotaProjection:
     """Panel-ready data for Antigravity's Gemini group by default."""
@@ -90,7 +95,8 @@ def project_quota(
     )
     current_time = time.time() if now is None else now
     age_minutes = _cache_age_minutes(quota.fetched_at, current_time)
-    stale = _stale_state(
+    stale = _stale_state(quota.fetched_at, current_time, language)
+    weekly_stale = _stale_state(
         selected.weekly_fetched_at or quota.fetched_at,
         current_time,
         language,
@@ -110,8 +116,13 @@ def project_quota(
                 session_tracker.last_timestamp is None or sample_ts > session_tracker.last_timestamp
             ):
                 session_tracker.record(sample_ts, 100.0 - _remaining_percent(selected.five_hour))
-            if selected.weekly is not None and (
-                weekly_tracker.last_timestamp is None or sample_ts > weekly_tracker.last_timestamp
+            if (
+                weekly_stale is None
+                and selected.weekly is not None
+                and (
+                    weekly_tracker.last_timestamp is None
+                    or sample_ts > weekly_tracker.last_timestamp
+                )
             ):
                 weekly_tracker.record(sample_ts, 100.0 - _remaining_percent(selected.weekly))
             # agy samples arrive every 5 minutes, so the default 10-minute window
@@ -120,10 +131,11 @@ def project_quota(
                 window_seconds=burn_rate.ROLLING_WINDOW_SECONDS,
                 min_span_seconds=AGY_SESSION_FORECAST_MIN_SPAN_SECONDS,
             )
-            weekly_forecast = weekly_tracker.forecast_seconds(
-                window_seconds=burn_rate.ROLLING_WINDOW_SECONDS,
-                min_span_seconds=AGY_WEEKLY_FORECAST_MIN_SPAN_SECONDS,
-            )
+            if weekly_stale is None:
+                weekly_forecast = weekly_tracker.forecast_seconds(
+                    window_seconds=burn_rate.ROLLING_WINDOW_SECONDS,
+                    min_span_seconds=AGY_WEEKLY_FORECAST_MIN_SPAN_SECONDS,
+                )
     session = _window_row(
         _t(language, "session_label"),
         selected.five_hour,
@@ -142,6 +154,12 @@ def project_quota(
         window_seconds=WEEKLY_WINDOW_SECONDS,
         now=current_time,
     )
+    if selected.weekly_fetched_at is not None and weekly_stale is not None:
+        weekly = replace(
+            weekly,
+            carried=True,
+            reset_text=f"{weekly.reset_text} · {weekly_stale['ageText']}",
+        )
     # Google pauses the 5-hour bucket once the weekly one is spent; showing it
     # as "full" reads as usable, so say it is paused instead.
     if (
@@ -291,9 +309,9 @@ def _window_row(
     *,
     window_seconds: float | None = None,
     now: float | None = None,
-) -> QuotaRowState:
+) -> _AgyQuotaRow:
     if window is None:
-        return QuotaRowState(
+        return _AgyQuotaRow(
             title=title,
             available=False,
             percent=None,
@@ -350,7 +368,7 @@ def _window_row(
                 "reset_in",
                 time=format_human_time(time_to_reset, language),
             )
-    return QuotaRowState(
+    return _AgyQuotaRow(
         title=title,
         percent=100.0 - remaining,
         percent_text=_t(language, "percent_used", value=_format_percent(used)),

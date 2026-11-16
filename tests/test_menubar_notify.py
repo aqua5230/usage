@@ -22,6 +22,33 @@ from usage_common.i18n import _t
 ROOT = Path(__file__).resolve().parents[1]
 
 
+@pytest.mark.parametrize(
+    "channel",
+    [
+        "claude_session",
+        "claude_weekly",
+        "codex_session",
+        "codex_weekly",
+        "agy_session",
+        "agy_weekly",
+    ],
+)
+def test_expired_notification_window_ends_silently(channel: str) -> None:
+    from menubar import state
+
+    s = state._empty_state()
+    notifier = QuotaNotifier()
+
+    def observe(percent: float, reset: float, now: float) -> list[str]:
+        setattr(s, channel, state._quota_row("", percent, reset, now, state.CLAUDE_COLOR, "en"))
+        return [event.kind for event in notifier.update(notify.notification_channels(s))]
+
+    assert observe(100.0, 999.0, 1000.0) == []
+    assert observe(100.0, 1600.0, 1000.0) == ["depleted"]
+    assert observe(100.0, 1600.0, 1700.0) == []
+    assert observe(96.0, 20000.0, 2200.0) == ["warn"]
+
+
 @pytest.fixture
 def quota_state() -> PopoverState:
     row = QuotaRowState("Session", 89.0, "89%", "", (0.0, 0.0, 0.0))
@@ -75,7 +102,8 @@ def test_notification_channels_preserves_old_values(
                 "", percent, "", "", (0.0, 0.0, 0.0), available=available, reset_done=True
             ),
         )
-        expected[name] = (percent, available and (not stale or not name.startswith("agy_")))
+        active = available and (not stale or not name.startswith("agy_"))
+        expected[name] = (None if active else percent, active)
 
     channels = notify.notification_channels(state)
     assert {name: channels[name] for name in names} == expected

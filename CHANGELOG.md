@@ -10,6 +10,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ### Fixed
 - **The Windows tray tooltip no longer lists a tool you hid under Hide Sections.** Claude and Codex were always listed, even when hidden, and their lines could push the last tools past Windows' 127-character tooltip limit. A hidden tool's line is now left out; the tool chosen as Tray Display Source stays, because the icon shows its number.
 - **Menu bar icons are visible again on a dark menu bar.** The Claude, Codex, Antigravity, Grok, and Muse icons were drawn black even when the menu bar was dark, so on macOS Tahoe they disappeared against it. They now follow the menu bar's text color in light and dark. Reported in #352.
+- **The Antigravity card no longer goes stale when only its weekly reading is carried over.** When the weekly reading could not be refreshed, the whole card was marked stale, which stopped the 5-hour burn rate, notifications, and the window keeper. Now only the weekly row shows its age, and the 5-hour row keeps working.
+- **Quota notifications no longer use a reading from before the window reset.** After the reset time passed, the old percentage could still send a "used up" notification or block the next window's notifications. On macOS and Windows, a window past its reset time now ends quietly.
+- **Projects that use only unpriced models show "—" instead of $0.00 in the report,** including after date filtering.
+- **The Windows tray now reports a failed status line toggle or hook install** instead of failing silently.
+- **GPT-OSS, which Antigravity retires on 2026-11-18, was removed from the Claude and GPT model group,** and Antigravity group models with hyphenated names now match your usage logs.
+- **Gemini 4 Carbon now shows as "Carbon 4".**
+- **Switching to an account without a 5-hour limit no longer keeps the previous account's 5-hour usage.** The status line and quota-aware mode filled the missing window from the old account, so they could show 99% used on an account that has no 5-hour limit. A missing window is now filled only from the same account. The status-line hook updates to 1.19 and the quota-aware hook to 1.17.
+- **The status line switch shows as on when only Grok uses it beside your own Claude Code status line.** It showed as off, and turning it on installed the status line again instead of turning Grok's off.
+- **Quota-aware mode no longer announces a Codex model a second time when you first use it.** A model already recorded from the Codex catalog was announced again from your usage logs.
+- **New Antigravity models are announced even when every model in the first scan was already known from other tools.** usage did not record that Antigravity had been scanned, so later new models were treated as part of the first scan and not announced.
+- **The offline check works when NO_PROXY excludes Google.** With a proxy set, usage assumed it was online even when Google's sign-in host bypassed the proxy, so it could run the Antigravity CLI while offline and mark you as signed out.
+- **Offline prices for Claude Mythos 5 and Mythos 5.2 were added,** and the price-table check now covers Mythos models.
+- **A refusal from a separate Codex limit no longer shows your regular Codex quota as 100% used.** When a dedicated limit such as Codex Spark or a premium model refused a request, the card marked the regular weekly window as full. Only a refusal of the regular Codex limit does that now.
+- **Reopening an old Codex session no longer hides newer quota from your other sessions.** After a refusal in a resumed old session, the card kept that session's old reading and skipped newer readings from other sessions. It now takes the newest reading, then applies the refusal.
+- **The Codex disk cache is no longer rewritten on every refresh when you have forked or subagent sessions.** Those sessions were dropped each time the cache was saved, so the cache was rewritten and they were read again.
 
 ## [0.34.21] - 2026-11-14
 
