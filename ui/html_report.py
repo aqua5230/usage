@@ -166,7 +166,9 @@ def _report_heading(data: Mapping[str, Any], lang: str, kind: str) -> tuple[str,
     if kind == "tools" and agents:
         title = _t(
             lang,
-            "title_tools_single" if len(agents) == 1 else "title_tools_top",
+            "title_tools_single"
+            if len(agents) == 1 and agents[0]["tokens"] >= total
+            else "title_tools_top",
             tool=_display_name(agents[0]["name"], lang),
             pct=pct(agents[0]["tokens"], total),
         )

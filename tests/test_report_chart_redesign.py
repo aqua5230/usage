@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import subprocess
 from datetime import date, timedelta
 from html.parser import HTMLParser
@@ -56,7 +57,7 @@ def test_unattributed_rankings_match_python_after_date_changes(
         ],
         "models": [{"name": "test", "cost_known": True}],
         "projects": [unknown_name, *[f"private-{i}" for i in range(12)]],
-        "rows": [[0, 0, 0, 0, unknown_tokens, 0, 0, 0, 5, 0, 1]]
+        "rows": [[0, 0, 0, 0, unknown_tokens, 0, 0, 0, 5, 0, 1], [0, 1, 0, 1, 1, 0, 0, 0, 1, 1]]
         + [[1, 1 + i % 2, 0, i + 1, 200 - max(0, i - 1) * 10, 0, 0, 0, 1, 1] for i in range(12)],
     }
     config = json.loads(html_report._share_config_json(lang, interactive=True))
@@ -125,6 +126,16 @@ def test_unattributed_rankings_match_python_after_date_changes(
                 "background:var(--chart-neutral)"
                 in ChartTree(projects).nodes("hbar")[-1]["attrs"]["style"]
             )
+            if end == "2026-08-01":
+                # One attributed tool beside legacy totals must not claim all usage.
+                assert Texts(tools, "prompt-title").values == [
+                    html_report._t(
+                        lang,
+                        "title_tools_top",
+                        tool="Codex",
+                        pct=math.floor(100 / (unknown_tokens + 1) + 0.5),
+                    )
+                ]
             if end == "2026-08-03":
                 assert names == [
                     *[f"private-{i}" for i in range(10)],

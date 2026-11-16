@@ -109,11 +109,7 @@ def test_unattributed_tools_do_not_lead_title_or_source(known_count: int) -> Non
         {"summary": {"total_tokens": 1000}, "by_agent": agents}, "zh-TW", "tools"
     )
     assert title == (
-        html_report._t("zh-TW", "tools_section")
-        if not known_count
-        else "全部用量來自 Codex"
-        if known_count == 1
-        else "Codex 用得最多，佔 13%"
+        html_report._t("zh-TW", "tools_section") if not known_count else "Codex 用得最多，佔 13%"
     )
     assert "unknown" not in source and "未知" not in source
     for kind in ("projects", "trend", "composition"):

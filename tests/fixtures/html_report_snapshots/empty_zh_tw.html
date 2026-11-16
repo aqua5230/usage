@@ -2449,7 +2449,7 @@ document.addEventListener('click', async (e) => {
       trend: text('trend_section'), composition: text('composition_section'),
       sessions: text('session_section'),
     };
-    if (agents.length) titles.tools = text(agents.length === 1 ? 'title_tools_single' : 'title_tools_top', {
+    if (agents.length) titles.tools = text(agents.length === 1 && agents[0].tokens >= summary.tokens ? 'title_tools_single' : 'title_tools_top', {
       tool: displayName(cube.agents[agents[0].index].name), pct: pct(agents[0].tokens, summary.tokens),
     });
     const projects = Object.entries(aggregateRows(summary.rows, 3))
