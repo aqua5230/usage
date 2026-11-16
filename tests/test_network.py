@@ -4,12 +4,14 @@
 from __future__ import annotations
 
 import socket
+import subprocess
 import threading
 import time
 import urllib.request
 
 import pytest
 
+from loaders.agy_quota_probe import _probe_via_cli
 from usage_common import network
 
 
@@ -57,6 +59,37 @@ def test_configured_proxy_counts_as_reachable(monkeypatch: pytest.MonkeyPatch) -
     monkeypatch.setattr(socket, "create_connection", connect)
 
     assert network.google_auth_reachable() is True
+
+
+@pytest.mark.parametrize("no_proxy", ["oauth2.googleapis.com", ".googleapis.com", "*"])
+def test_proxy_bypass_keeps_offline_probe_and_does_not_launch_cli(
+    monkeypatch: pytest.MonkeyPatch, no_proxy: str
+) -> None:
+    from loaders import agy_quota_probe
+
+    monkeypatch.setattr(
+        urllib.request, "getproxies", lambda: {"https": "http://proxy:8080", "no": no_proxy}
+    )
+    monkeypatch.setenv("no_proxy", no_proxy)
+    probes = []
+
+    def connect(address: tuple[str, int], timeout: float) -> _Connection:
+        probes.append(address)
+        raise OSError("offline")
+
+    def launch(*args: object, **kwargs: object) -> None:
+        raise AssertionError("offline checks must not launch the CLI")
+
+    monkeypatch.setattr(socket, "create_connection", connect)
+    monkeypatch.setattr(agy_quota_probe, "google_auth_reachable", network.google_auth_reachable)
+    monkeypatch.setattr(agy_quota_probe, "find_agy", lambda: "/fake/agy")
+    monkeypatch.setattr(agy_quota_probe, "_credential_fingerprint", lambda: "fake")
+    monkeypatch.setattr(subprocess, "run", launch)
+
+    assert network.google_auth_reachable() is False
+    assert _probe_via_cli(15) is None
+    assert probes == [("oauth2.googleapis.com", 443)] * 2
+    assert not agy_quota_probe.CLI_SIGNED_OUT_PATH.exists()
 
 
 def test_hung_dns_returns_within_timeout(monkeypatch: pytest.MonkeyPatch) -> None:

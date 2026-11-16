@@ -181,5 +181,5 @@ def _statusline_enabled() -> bool:
     with contextlib.suppress(Exception):
         from installer import setup_hook
 
-        return setup_hook.is_agy_setup()
+        return setup_hook.is_agy_setup() or setup_hook.is_grok_setup()
     return False

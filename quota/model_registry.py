@@ -221,6 +221,10 @@ def update(entries: Sequence[Any] | None = None) -> None:
         # A source seen for the first time (agy probed later, Codex installed later)
         # is a baseline too; otherwise its whole catalog would read as new.
         known_sources = {item.get("source") for item in items.values()}
+        raw_scanned = loaded_payload.get("scanned_sources") if loaded_payload is not None else None
+        if isinstance(raw_scanned, list):
+            known_sources.update(source for source in raw_scanned if isinstance(source, str))
+        scanned_sources = {source for source in known_sources if isinstance(source, str)}
 
         for item in items.values():
             if item.get("source") == "agy_group":
@@ -238,6 +242,7 @@ def update(entries: Sequence[Any] | None = None) -> None:
             if catalog_identity:
                 codex_identity = catalog_identity
             for model_name in codex_models:
+                scanned_sources.add("codex_catalog")
                 key = f"codex_catalog:{_normalize_model_key(model_name)}"
                 if key in items:
                     continue
@@ -253,6 +258,7 @@ def update(entries: Sequence[Any] | None = None) -> None:
                 }
 
         for group_name, group_models in _read_agy_groups():
+            scanned_sources.add("agy_group")
             key = f"agy_group:{_normalize_group_key(group_name)}"
             existing_item = items.get(key)
             if existing_item is not None:
@@ -269,8 +275,13 @@ def update(entries: Sequence[Any] | None = None) -> None:
             }
 
         for normalized, agent, model_name in _collect_usage_models(entries):
+            scanned_sources.add("usage_log")
             key = f"usage_log:{normalized}"
-            if key in items or f"agy_log:{normalized}" in items:
+            if (
+                key in items
+                or f"agy_log:{normalized}" in items
+                or f"codex_catalog:{normalized}" in items
+            ):
                 continue
             items[key] = {
                 "source": "usage_log",
@@ -282,6 +293,7 @@ def update(entries: Sequence[Any] | None = None) -> None:
             }
 
         for normalized, model_name in _collect_agy_models():
+            scanned_sources.add("agy_log")
             key = f"agy_log:{normalized}"
             if key in items or f"usage_log:{normalized}" in items:
                 continue
@@ -297,6 +309,7 @@ def update(entries: Sequence[Any] | None = None) -> None:
         new_payload: dict[str, Any] = {
             "schema_version": SCHEMA_VERSION,
             "codex_identity": codex_identity,
+            "scanned_sources": sorted(scanned_sources),
             "items": items,
         }
         if loaded_payload is None:

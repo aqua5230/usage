@@ -9,6 +9,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Fixed
 - **The Windows tray tooltip no longer lists a tool you hid under Hide Sections.** Claude and Codex were always listed, even when hidden, and their lines could push the last tools past Windows' 127-character tooltip limit. A hidden tool's line is now left out; the tool chosen as Tray Display Source stays, because the icon shows its number.
+- **Switching to an account without a 5-hour limit no longer keeps the previous account's 5-hour usage.** The status line and quota-aware mode filled the missing window from the old account, so they could show 99% used on an account that has no 5-hour limit. A missing window is now filled only from the same account. The status-line hook updates to 1.19 and the quota-aware hook to 1.17.
+- **The status line switch shows as on when only Grok uses it beside your own Claude Code status line.** It showed as off, and turning it on installed the status line again instead of turning Grok's off.
+- **Quota-aware mode no longer announces a Codex model a second time when you first use it.** A model already recorded from the Codex catalog was announced again from your usage logs.
+- **New Antigravity models are announced even when every model in the first scan was already known from other tools.** usage did not record that Antigravity had been scanned, so later new models were treated as part of the first scan and not announced.
+- **The offline check works when NO_PROXY excludes Google.** With a proxy set, usage assumed it was online even when Google's sign-in host bypassed the proxy, so it could run the Antigravity CLI while offline and mark you as signed out.
+- **Offline prices for Claude Mythos 5 and Mythos 5.2 were added,** and the price-table check now covers Mythos models.
 
 ## [0.34.21] - 2026-11-14
 
