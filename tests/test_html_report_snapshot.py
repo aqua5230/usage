@@ -702,7 +702,7 @@ def test_generate_html_adds_date_filter_cards_and_fixed_group_note_for_cube() ->
         assert section, class_name
         assert "fixed-range-tag" in section.group(0)
     assert (
-        "<summary><span>[usage]&gt;</span> How API equivalent is calculated"
+        "<summary><span>[usage]&gt;</span> How the numbers are calculated"
         '<span class="appendix-desc">Public API price conversion · '
         "API pricing coverage (by token count)</span>" in html
     )
@@ -1025,20 +1025,79 @@ def test_date_inputs_allow_generation_date_after_last_usage() -> None:
 
 
 @pytest.mark.parametrize("lang", ["zh-TW", "zh-CN", "en", "ja", "ko"])
-@pytest.mark.parametrize("missing_days", [0, 2])
-def test_token_card_explains_missing_claude_usage(lang: str, missing_days: int) -> None:
+@pytest.mark.parametrize("has_missing", [False, True])
+def test_missing_usage_moves_from_token_card_to_appendix(lang: str, has_missing: bool) -> None:
     import html as html_module
     import json
 
+    dates = (
+        [
+            "2026-04-21",
+            "2026-04-22",
+            "2026-04-23",
+            "2026-04-24",
+            "2026-05-05",
+            "2026-08-01",
+            "2026-08-02",
+            "2026-08-03",
+            "2026-08-04",
+            "2026-08-05",
+        ]
+        if has_missing
+        else []
+    )
     data = _full_report_data()
-    data["claude_missing_days"] = missing_days
+    data["claude_missing_dates"] = list(reversed(dates))
+    data["claude_missing_days"] = len(dates)
     rendered = html_report.generate_html(data, language=lang)
     cards = re.search(r'<section class="cards">(.*?)</section>', rendered, re.S)
     assert cards
     token_card = cards.group(1).split("</div>", 1)[0]
-    message = html_report._t(lang, "kpi_claude_missing", days=2)
-    assert (html_module.escape(message) in token_card) is bool(missing_days)
-    if missing_days:
-        assert token_card.index("2,345,678") < token_card.index(html_module.escape(message))
+    assert "2,345,678" in token_card
+    assert "Claude Code" not in token_card
+    titles = {
+        "zh-TW": "數字怎麼算的",
+        "zh-CN": "数字怎么算的",
+        "en": "How the numbers are calculated",
+        "ja": "数字の計算方法",
+        "ko": "숫자가 계산되는 방식",
+    }
+    assert titles[lang] in rendered
     config = json.loads(html_report._share_config_json(lang, interactive=True))
-    assert config["claudeMissing"].replace("{days}", "2") == message
+    assert "claudeMissing" not in config
+    assert config["missingUsageTitle"] == html_report._t(lang, "missing_usage_title")
+    separator = "、" if lang in {"zh-TW", "zh-CN", "ja"} else ", "
+    ranges = separator.join(["2026-04-21–2026-04-24", "2026-05-05", "2026-08-01–2026-08-05"])
+    body = html_report._t(lang, "missing_usage_body", days=len(dates), ranges=ranges)
+    assert (
+        config["missingUsageBody"].replace("{days}", str(len(dates))).replace("{ranges}", ranges)
+        == body
+    )
+    assert "30" in body
+    appendix = re.search(r'<details class="report-appendix">(.*?)</details>', rendered, re.S)
+    assert appendix
+    assert ('class="section missing-usage-section"' in appendix.group(1)) is has_missing
+    if has_missing:
+        assert html_module.escape(body) in appendix.group(1)
+        assert appendix.group(1).index('class="section pricing-section"') < appendix.group(1).index(
+            'class="section missing-usage-section"'
+        )
+    else:
+        assert 'class="section missing-usage-section"' not in rendered
+
+
+@pytest.mark.parametrize("lang", ["zh-TW", "zh-CN", "en", "ja", "ko"])
+def test_activity_only_report_still_shows_missing_usage_appendix(lang: str) -> None:
+    import html
+
+    data = _empty_report_data()
+    data["claude_missing_dates"] = ["2026-05-20"]
+    data["claude_missing_days"] = 1
+    rendered = html_report.generate_html(data, language=lang)
+    assert '<details class="report-appendix">' in rendered
+    assert 'class="section missing-usage-section"' in rendered
+    assert (
+        html.escape(html_report._t(lang, "missing_usage_body", days=1, ranges="2026-05-20"))
+        in rendered
+    )
+    assert 'class="section trend-section"' not in rendered

@@ -262,7 +262,9 @@ function makeEnvironment(
     chartOther: 'Other',
     cost: 'Cost',
     costUnpriced: '{tokens} tokens have no public pricing',
-    claudeMissing: 'Claude Code used on {days} days; records deleted; usage excluded.',
+    missingUsageTitle: 'Missing usage',
+    missingUsageBody: '{days} days missing: {ranges}',
+    sourceSeparator: ', ',
     kpiActiveValue: '{active} / {total} days',
     kpiActiveHint: 'A day counts if any tool records usage',
     emptyModels: 'No models',
@@ -316,6 +318,7 @@ function makeEnvironment(
       if (selector === '.trend-section') return trendSection;
       if (selector === '.composition-section') return compositionSection;
       if (selector === '.pricing-section') return pricingSection;
+      if (selector === '.report-appendix') return appendix;
       if (selector === '.session-section') return sessionSection;
       if (selector === '[data-date-filter]') return withDateFilter ? dateFilter : null;
       const cardMatch = /^\.card\[data-card="([^"]+)"\]$/.exec(selector);
@@ -1032,23 +1035,37 @@ assert.equal(all.claudeMissingDays, 2);
 assert.equal(all.tokens, 1000);
 assert.equal(all.cost, 10);
 assert.equal(env.cards.active.querySelector('b').textContent, '6 / 6 days');
-assert.match(env.cards.tokens.querySelector('i').textContent, /used on 2 days/);
+assert.equal(env.cards.tokens.querySelector('i').textContent.includes('Claude Code'), false);
+assert.deepEqual(all.claudeMissingDates, ['2026-05-02', '2026-05-06']);
+assert.equal(
+  env.appendix.querySelector('.missing-usage-section').querySelector('p').textContent,
+  '2 days missing: 2026-05-02, 2026-05-06'
+);
 const onlyActivity = api.applyBounds({from: '2026-05-02', to: '2026-05-02'});
 assert.equal(onlyActivity.activeDays, 1);
 assert.equal(onlyActivity.claudeMissingDays, 1);
 assert.equal(onlyActivity.tokens, 0);
 assert.equal(onlyActivity.cost, 0);
-assert.match(env.cards.tokens.querySelector('i').textContent, /used on 1 days/);
+assert.equal(env.cards.tokens.querySelector('i').textContent.includes('Claude Code'), false);
+assert.equal(
+  env.appendix.querySelector('.missing-usage-section').querySelector('p').textContent,
+  '1 days missing: 2026-05-02'
+);
 for (const day of ['2026-05-01', '2026-05-03', '2026-05-04', '2026-05-05']) {
   const covered = api.applyBounds({from: day, to: day});
   assert.equal(covered.activeDays, 1);
   assert.equal(covered.claudeMissingDays, 0);
+  assert.equal(env.appendix.querySelector('.missing-usage-section'), null);
   assert.equal(env.cards.tokens.querySelector('i').textContent.includes('records deleted'), false);
 }
 const zeroClaude = api.applyBounds({from: '2026-05-06', to: '2026-05-06'});
 assert.equal(zeroClaude.activeDays, 1);
 assert.equal(zeroClaude.claudeMissingDays, 1);
 assert.equal(zeroClaude.tokens, 0);
+assert.equal(
+  env.appendix.querySelector('.missing-usage-section').querySelector('p').textContent,
+  '1 days missing: 2026-05-06'
+);
 assert.equal(JSON.stringify(cube.rows), originalRows);
 """
     path = tmp_path / "claude-activity.cjs"
@@ -1097,5 +1114,75 @@ assert.equal(env.pricingSection.querySelector('.pricing-models').textContent, '�
 assert.equal(shareConfig.unknown, '未知');
 """
     path = tmp_path / "unattributed-legend.cjs"
+    path.write_text(script, encoding="utf-8")
+    subprocess.run([NODE or "node", str(path)], check=True, capture_output=True, text=True)
+
+
+@pytest.mark.skipif(NODE is None, reason="Node.js is unavailable")
+@pytest.mark.parametrize("lang", ["zh-TW", "zh-CN", "en", "ja", "ko"])
+def test_missing_usage_filter_ranges_match_python_in_all_languages(
+    tmp_path: Path, lang: str
+) -> None:
+    import html
+    import re
+
+    from ui import html_report
+
+    dates = ["2026-12-30", "2026-12-31", "2027-01-01", "2027-01-05", "2027-02-01", "2027-02-02"]
+    config = json.loads(html_report._share_config_json(lang, interactive=True))
+    separator = "、" if lang in {"zh-TW", "zh-CN", "ja"} else ", "
+    ranges = separator.join(["2026-12-30–2027-01-01", "2027-01-05", "2027-02-01–2027-02-02"])
+    expected = html_report._t(lang, "missing_usage_body", days=6, ranges=ranges)
+    python_section = html_report._render_appendix(
+        {"claude_missing_dates": dates, "claude_missing_days": 6}, lang
+    )
+    assert html.escape(expected) in python_section
+    title = html_report._t(lang, "missing_usage_title")
+    assert html.escape(title) in python_section
+    assert re.search(r"<p[^>]*>" + re.escape(html.escape(expected)) + r"</p>", python_section)
+    prefix = NODE_HARNESS.split("const cube = {", 1)[0]
+    script = prefix.replace("__REPORT_DAILY_CHART_JS__", json.dumps(REPORT_DAILY_CHART_JS)).replace(
+        "__REPORT_FILTER_JS__", json.dumps(REPORT_FILTER_JS)
+    )
+    script += "const dates = " + json.dumps(dates) + ";\n"
+    script += "const config = " + json.dumps(config) + ";\n"
+    script += "const expected = " + json.dumps(expected) + ";\n"
+    script += r"""
+const cube = {
+  today: '2027-02-03', dates: ['2026-12-29', ...dates, '2027-02-03'],
+  claude_activity_dates: [...dates].reverse().concat(dates[0]),
+  agents: [], models: [], projects: [], rows: [],
+};
+const env = makeEnvironment(cube, {}, false, [], true);
+Object.assign(shareConfig, config);
+run(env);
+const api = window.usageReportFilter;
+const allBounds = {from: '2026-12-29', to: '2027-02-03'};
+for (let attempt = 0; attempt < 2; attempt++) {
+  const all = api.applyBounds(allBounds);
+  assert.deepEqual(all.claudeMissingDates, dates);
+  assert.equal(all.claudeMissingDays, 6);
+  const section = env.appendix.querySelector('.missing-usage-section');
+  assert.equal(section.querySelector('p').textContent, expected);
+  assert.equal(
+    section.querySelector('.prompt').textContent, '[usage]> ' + config.missingUsageTitle
+  );
+  assert.equal(
+    env.appendix.children.indexOf(section), env.appendix.children.indexOf(env.pricingSection) + 1
+  );
+  assert.equal(env.appendix.querySelectorAll('.missing-usage-section').length, 1);
+  assert.equal(env.cards.tokens.querySelector('i').textContent.includes('Claude Code'), false);
+  assert.equal(all.tokens, 0);
+  assert.equal(all.cost, 0);
+  assert.equal(api.applyBounds({from: '2027-02-03', to: '2027-02-03'}).claudeMissingDays, 0);
+  assert.equal(env.appendix.querySelector('.missing-usage-section'), null);
+}
+const noMissing = makeEnvironment({...cube, claude_activity_dates: []}, {}, false, [], true);
+Object.assign(shareConfig, config);
+run(noMissing);
+window.usageReportFilter.applyBounds(allBounds);
+assert.equal(noMissing.appendix.querySelector('.missing-usage-section'), null);
+"""
+    path = tmp_path / "missing-ranges.cjs"
     path.write_text(script, encoding="utf-8")
     subprocess.run([NODE or "node", str(path)], check=True, capture_output=True, text=True)
