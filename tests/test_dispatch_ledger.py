@@ -310,6 +310,23 @@ def test_session_title_falls_back_to_first_user_text(tmp_path: Path) -> None:
     assert ledger._session_title(tmp_path / "missing.jsonl") == ""
 
 
+def test_session_title_skips_command_wrappers(tmp_path: Path) -> None:
+    path = tmp_path / "session.jsonl"
+    caveat = (
+        "<local-command-caveat>Caveat: The messages below were generated</local-command-caveat>"
+    )
+    lines = [
+        {"type": "user", "isMeta": True, "message": {"content": caveat}},
+        {"type": "user", "message": {"content": "<command-name>/clear</command-name>"}},
+        {"type": "user", "message": {"content": "<local-command-stdout></local-command-stdout>"}},
+        {"type": "user", "message": {"content": [{"type": "text", "text": "<Task> 修報表"}]}},
+    ]
+    path.write_text("".join(json.dumps(line) + "\n" for line in lines))
+    assert ledger._session_title(path) == "<Task> 修報表"
+    path.write_text("".join(json.dumps(line) + "\n" for line in lines[:3]))
+    assert ledger._session_title(path) == ""
+
+
 def test_muse_weekly_session_estimate_reads_only_snapshot(monkeypatch: pytest.MonkeyPatch) -> None:
     from loaders import muse_quota_probe
 
@@ -565,3 +582,28 @@ def test_only_displayed_titles_are_read_from_all_owned_conversations(
     assert set(calls) == {"owner-0", "owner-1", "owner-2", "owner-3", "owner-4", "owner-19"}
     assert len(calls) == 6
     assert "owner-19" in render_ledger({"dispatch_ledger": data}, "en")
+
+
+def test_untitled_conversation_renders_without_leading_separator() -> None:
+    row: ledger.LedgerRow = {
+        "date": "2026-09-26",
+        "project": "work",
+        "title": "",
+        "dispatch_count": 1,
+        "claude_pct": None,
+        "codex_pct": 30.0,
+        "agy_groups": {},
+        "claude_reset": False,
+        "codex_reset": False,
+        "agy_reset": False,
+        "total_pct": 30.0,
+    }
+    data: ledger.LedgerData = {
+        "rows": [row],
+        "unowned_codex": 0,
+        "unowned_agy": 0,
+        "used_pct": {"codex": 50.0},
+    }
+    rendered = render_ledger({"dispatch_ledger": data}, "zh-TW")
+    assert '<span class="ledger-meta"><span data-mask>work</span> · 派工 1 次</span>' in rendered
+    assert "<span data-mask></span>" not in rendered

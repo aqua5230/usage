@@ -26,6 +26,19 @@ _DISPATCH = {
 }
 _UUID = re.compile(r"\b[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}\b")
 _CWD = re.compile(rb'"Cwd":"((?:[^"\\]|\\.)*)"')
+# Turns Claude Code writes as user messages that are not the user's request; mirrors the
+# prefixes `usage_hooks/usage_session_resume.py` skips (hooks cannot be imported here).
+_NON_REQUEST_PREFIXES = (
+    "<task-notification>",
+    "<bash-input>",
+    "<bash-stdout>",
+    "<bash-stderr>",
+    "<local-command-stdout>",
+    "<local-command-stderr>",
+    "<local-command-caveat>",
+    "<command-name>",
+    "<command-message>",
+)
 _file_cache: dict[tuple[Path, int, float], list[Dispatch]] = {}
 _codex_cache: dict[Path, tuple[tuple[int, float], Candidate | None]] = {}
 
@@ -436,12 +449,18 @@ def _session_title(path: Path) -> str:
                     continue
                 if item.get("type") == "ai-title" and isinstance(item.get("aiTitle"), str):
                     title = item["aiTitle"].strip()
-                elif item.get("type") == "user" and not first_text:
+                elif (
+                    item.get("type") == "user" and not first_text and item.get("isMeta") is not True
+                ):
                     content = _dict(item.get("message")).get("content")
                     blocks = [{"text": content}] if isinstance(content, str) else content
                     for block in blocks if isinstance(blocks, list) else []:
                         text = _dict(block).get("text")
-                        if isinstance(text, str) and text.strip():
+                        if (
+                            isinstance(text, str)
+                            and text.strip()
+                            and not text.strip().startswith(_NON_REQUEST_PREFIXES)
+                        ):
                             first_text = text.strip()[:40]
                             break
     except OSError:
