@@ -1054,3 +1054,48 @@ assert.equal(JSON.stringify(cube.rows), originalRows);
     path = tmp_path / "claude-activity.cjs"
     path.write_text(script, encoding="utf-8")
     subprocess.run([NODE or "node", str(path)], check=True, capture_output=True, text=True)
+
+
+@pytest.mark.skipif(NODE is None, reason="Node.js is unavailable")
+@pytest.mark.parametrize("agent_id", ["unknown", ""])
+def test_daily_chart_unattributed_legend_after_date_filter(tmp_path: Path, agent_id: str) -> None:
+    from ui import html_report
+
+    prefix = NODE_HARNESS.split("const cube = {", 1)[0]
+    script = prefix.replace("__REPORT_DAILY_CHART_JS__", json.dumps(REPORT_DAILY_CHART_JS)).replace(
+        "__REPORT_FILTER_JS__", json.dumps(REPORT_FILTER_JS)
+    )
+    script += "const agentId = " + json.dumps(agent_id) + ";\n"
+    script += (
+        "const translatedConfig = "
+        + html_report._share_config_json("zh-TW", interactive=True)
+        + ";\n"
+    )
+    script += r"""
+const cube = {
+  dates: ['2026-05-09', '2026-05-10'],
+  agents: [{id: agentId, name: agentId}, {id: 'codex', name: 'Codex'}],
+  models: [{name: 'unknown', cost_known: false}], projects: ['proj'],
+  rows: [[0, 0, 0, 0, 5, 0, 0, 0, 0, 1], [1, 0, 0, 0, 7, 0, 0, 0, 0, 1],
+         [1, 1, 0, 0, 3, 0, 0, 0, 0, 1]],
+};
+const env = run(makeEnvironment(cube, {}, false, [], true));
+Object.assign(shareConfig, translatedConfig);
+window.usageReportFilter.applyBounds({from: '2026-05-09', to: '2026-05-10'});
+let chart = env.trendSection.querySelector('.daily-chart-wrap');
+assert.deepEqual(
+  chart.querySelector('.daily-chart-legend').children.map((item) => item.textContent),
+  ['舊紀錄（只剩總數）12', 'Codex3']);
+env.fromInput.value = '2026-05-10';
+env.toInput.value = '2026-05-10';
+env.fromInput.fire('change');
+chart = env.trendSection.querySelector('.daily-chart-wrap');
+assert.deepEqual(
+  chart.querySelector('.daily-chart-legend').children.map((item) => item.textContent),
+  ['舊紀錄（只剩總數）7', 'Codex3']);
+assert.equal(env.pricingSection.querySelector('.pricing-models').textContent, '未知');
+assert.equal(shareConfig.unknown, '未知');
+"""
+    path = tmp_path / "unattributed-legend.cjs"
+    path.write_text(script, encoding="utf-8")
+    subprocess.run([NODE or "node", str(path)], check=True, capture_output=True, text=True)

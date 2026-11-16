@@ -1276,7 +1276,8 @@ document.addEventListener('click', async (e) => {
       const item = textNode('span', 'daily-legend-item', '');
       const dot = textNode('i', '', ''); dot.style.background = agent.color;
       const total = agent[mode === 'cost' ? 'cost' : 'tokens'].reduce((sum, value) => sum + value, 0);
-      item.append(dot, textNode('span', '', agent.name), textNode('b', '', mode === 'cost' ? formatCost(total) : formatTokens(total)));
+      const name = !agent.id || agent.id === 'unknown' ? shareConfig.unattributedTools : agent.name;
+      item.append(dot, textNode('span', '', name), textNode('b', '', mode === 'cost' ? formatCost(total) : formatTokens(total)));
       legend.append(item);
     });
     wrap.append(legend);
