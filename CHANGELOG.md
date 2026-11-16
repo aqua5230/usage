@@ -9,6 +9,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Fixed
 - **The Windows tray tooltip no longer lists a tool you hid under Hide Sections.** Claude and Codex were always listed, even when hidden, and their lines could push the last tools past Windows' 127-character tooltip limit. A hidden tool's line is now left out; the tool chosen as Tray Display Source stays, because the icon shows its number.
+- **Menu bar icons are visible again on a dark menu bar.** The Claude, Codex, Antigravity, Grok, and Muse icons were drawn black even when the menu bar was dark, so on macOS Tahoe they disappeared against it. They now follow the menu bar's text color in light and dark. Reported in #352.
 
 ## [0.34.21] - 2026-11-14
 
