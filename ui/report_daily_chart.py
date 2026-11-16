@@ -10,6 +10,8 @@ from html import escape
 import math
 from typing import Any, Callable, Mapping
 
+from .report_charts import is_unattributed
+
 
 AGENT_COLORS = {
     "claude-code": "#5abfa0",
@@ -195,7 +197,7 @@ def render_daily_chart(
     svg.append("</svg>")
     legend = "".join(
         f'<span class="daily-legend-item"><i style="background:{escape(agent["color"], quote=True)}"></i>'
-        f"{escape(t('unknown') if agent['name'] == 'unknown' else agent['name'])} <b>{escape(fmt_tokens(sum(agent['tokens'])))}</b></span>"
+        f"{escape(t('unattributed_tools') if is_unattributed(agent['id']) else agent['name'])} <b>{escape(fmt_tokens(sum(agent['tokens'])))}</b></span>"
         for agent in agents
         if sum(agent["tokens"]) > 0
     )
@@ -421,7 +423,8 @@ REPORT_DAILY_CHART_JS = r"""(() => {
       const item = textNode('span', 'daily-legend-item', '');
       const dot = textNode('i', '', ''); dot.style.background = agent.color;
       const total = agent[mode === 'cost' ? 'cost' : 'tokens'].reduce((sum, value) => sum + value, 0);
-      item.append(dot, textNode('span', '', agent.name), textNode('b', '', mode === 'cost' ? formatCost(total) : formatTokens(total)));
+      const name = !agent.id || agent.id === 'unknown' ? shareConfig.unattributedTools : agent.name;
+      item.append(dot, textNode('span', '', name), textNode('b', '', mode === 'cost' ? formatCost(total) : formatTokens(total)));
       legend.append(item);
     });
     wrap.append(legend);

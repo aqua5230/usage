@@ -555,6 +555,10 @@ def _tools_body(
     models_by_agent = {
         str(group.get("agent_id", "")): group.get("models", []) for group in grouped_models
     }
+    cost_known_by_agent = {
+        str(group.get("agent_id", "")): bool(group.get("cost_known", True))
+        for group in grouped_models
+    }
 
     def _plan_html(sub: dict[str, str | None] | None) -> str:
         if not sub:
@@ -592,7 +596,7 @@ def _tools_body(
         highlighted = highlighted or (not unattributed and color is not None)
         detail = (
             f'<small><span class="tokens" data-label="{_escape(_t(lang, "tokens"))}">{_fmt_tokens(int(agent["tokens"]))}</span>'
-            f'<span class=""> · </span><span class="cost" data-label="{_escape(_t(lang, "cost"))}">{_fmt_cost(float(agent["cost"]))}</span></small>'
+            f'<span class=""> · </span><span class="cost" data-label="{_escape(_t(lang, "cost"))}">{_fmt_cost(float(agent["cost"]) if cost_known_by_agent.get(str(agent["id"]), True) else None)}</span></small>'
         )
         arrow = '<span class="arrow">▸</span>' if models else ""
         target_rows.append(

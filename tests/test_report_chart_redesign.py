@@ -55,9 +55,9 @@ def test_unattributed_rankings_match_python_after_date_changes(
             {"id": "codex", "name": "Codex"},
             {"id": "claude-code", "name": "Claude Code"},
         ],
-        "models": [{"name": "test", "cost_known": True}],
+        "models": [{"name": "test", "cost_known": True}, {"name": "unknown", "cost_known": False}],
         "projects": [unknown_name, *[f"private-{i}" for i in range(12)]],
-        "rows": [[0, 0, 0, 0, unknown_tokens, 0, 0, 0, 5, 0, 1], [0, 1, 0, 1, 1, 0, 0, 0, 1, 1]]
+        "rows": [[0, 0, 1, 0, unknown_tokens, 0, 0, 0, 5, 0, 1], [0, 1, 0, 1, 1, 0, 0, 0, 1, 1]]
         + [[1, 1 + i % 2, 0, i + 1, 200 - max(0, i - 1) * 10, 0, 0, 0, 1, 1] for i in range(12)],
     }
     config = json.loads(html_report._share_config_json(lang, interactive=True))
@@ -95,9 +95,18 @@ def test_unattributed_rankings_match_python_after_date_changes(
                 for i, a in enumerate(cube["agents"])
             ],
         }
+
+        def priced(rows: list[list[Any]]) -> bool:
+            return any(cube["models"][r[2]]["cost_known"] for r in rows)
+
         for project in data["by_project"]:
             index = cube["projects"].index(project["project"])
             project["cost"] = sum(r[8] for r in matching if r[3] == index)
+            project["cost_known"] = priced([r for r in matching if r[3] == index])
+        data["by_agent_model"] = [
+            {"agent_id": a["id"], "cost_known": priced([r for r in matching if r[1] == i])}
+            for i, a in enumerate(cube["agents"])
+        ]
         # Deliberately reverse ties: the cube dimension order must win in both renderers.
         data["by_project"] = sorted(reversed(data["by_project"]), key=lambda p: -p["tokens"])[:10]
         for i, agent in enumerate(data["by_agent"]):
@@ -122,6 +131,9 @@ def test_unattributed_rankings_match_python_after_date_changes(
             assert Texts(tools, "sub-agent").values[-1] == html_report._t(
                 lang, "unattributed_tools"
             )
+            # Legacy totals have no price data: show unknown cost, not $0.00 or $5.00.
+            assert Texts(tools, "cost").values[-1] == "—"
+            assert Texts(projects, "cost").values[-1] == "—"
             assert (
                 "background:var(--chart-neutral)"
                 in ChartTree(projects).nodes("hbar")[-1]["attrs"]["style"]

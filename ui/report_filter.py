@@ -519,7 +519,7 @@ REPORT_FILTER_JS = r"""(() => {
     appendToolPlan(head, metadata);
     row.append(head);
     const share = total ? item.tokens / total * 100 : 0;
-    appendLane(row, share, `${share.toFixed(1)}%`, item, null, true);
+    appendLane(row, share, `${share.toFixed(1)}%`, item, null, item.costKnown);
     return row;
   }
 

@@ -45,7 +45,7 @@ _YEAR_WEEKS = 53
 YEAR_CACHE_PATH = Path(os.path.expanduser("~/.usage/year_cache.json"))
 YEAR_LEDGER_PATH = YEAR_CACHE_PATH.with_name("year_ledger.json")
 YEAR_CACHE_TTL_SECONDS = 6 * 3600
-_YEAR_CACHE_SCHEMA = 10
+_YEAR_CACHE_SCHEMA = 11
 _YEAR_LEDGER_SCHEMA = 1
 _LEDGER_AGENT_VERSIONS: dict[str, int] = {"antigravity": 2}
 _year_ledger_lock = threading.RLock()
@@ -479,13 +479,13 @@ def _top_name(bucket: dict[str, int]) -> str | None:
 
 
 def _streaks(
-    daily_tokens: dict[date, int],
+    active_dates: set[date],
     start: date,
     end: date,
 ) -> tuple[int, int]:
     current_streak = 0
     cursor = end
-    while cursor >= start and daily_tokens.get(cursor, 0) > 0:
+    while cursor >= start and cursor in active_dates:
         current_streak += 1
         cursor -= timedelta(days=1)
 
@@ -493,7 +493,7 @@ def _streaks(
     streak = 0
     cursor = start
     while cursor <= end:
-        if daily_tokens.get(cursor, 0) > 0:
+        if cursor in active_dates:
             streak += 1
             longest_streak = max(longest_streak, streak)
         else:
@@ -792,10 +792,10 @@ def _build_year_output_from_ledger(
         for agent_id, tokens in day["agent_tokens"].items():
             agent_tokens[agent_id] += tokens
 
-    active_days = len(
-        {day for day, tokens in daily_tokens.items() if tokens > 0}
-        | {day for day in claude_activity.activity_dates() if grid_start <= day <= today}
-    )
+    active_dates = {day for day, tokens in daily_tokens.items() if tokens > 0} | {
+        day for day in claude_activity.activity_dates() if grid_start <= day <= today
+    }
+    active_days = len(active_dates)
     contribution_thresholds = _contribution_thresholds(list(daily_tokens.values()))
     max_tokens = max(daily_tokens.values(), default=0)
     busiest_day: BusiestDay | None = None
@@ -806,7 +806,7 @@ def _build_year_output_from_ledger(
             "tokens": max_tokens,
         }
 
-    current_streak, longest_streak = _streaks(daily_tokens, grid_start, today)
+    current_streak, longest_streak = _streaks(active_dates, grid_start, today)
 
     weeks: list[list[ContributionDay]] = []
     cursor = grid_start
@@ -818,7 +818,8 @@ def _build_year_output_from_ledger(
                 {
                     "date": cursor.isoformat(),
                     "tokens": tokens,
-                    "level": _contribution_level(tokens, contribution_thresholds),
+                    "level": _contribution_level(tokens, contribution_thresholds)
+                    or int(cursor in active_dates),
                 }
             )
             cursor += timedelta(days=1)
@@ -919,15 +920,40 @@ def _year_with_activity(data: YearReportData, dates: frozenset[date]) -> YearRep
     contribution = data["contribution"]
     start, end = contribution["start"], contribution["end"]
     active = {
-        day["date"]
+        date.fromisoformat(day["date"])
         for week in contribution["weeks"]
         for day in week
         if start <= day["date"] <= end and day["tokens"] > 0
     }
-    active.update(day.isoformat() for day in dates if start <= day.isoformat() <= end)
+    active.update(day for day in dates if start <= day.isoformat() <= end)
+    current_streak, longest_streak = _streaks(
+        active, date.fromisoformat(start), date.fromisoformat(end)
+    )
+    weeks: list[list[ContributionDay]] = [
+        [
+            {
+                **day,
+                "level": day["level"]
+                if day["tokens"] > 0
+                else int(date.fromisoformat(day["date"]) in active),
+            }
+            for day in week
+        ]
+        for week in contribution["weeks"]
+    ]
     return {
-        "contribution": {**contribution, "active_days": len(active)},
-        "wrapped": {**data["wrapped"], "active_days": len(active)},
+        "contribution": {
+            **contribution,
+            "weeks": weeks,
+            "active_days": len(active),
+            "current_streak": current_streak,
+            "longest_streak": longest_streak,
+        },
+        "wrapped": {
+            **data["wrapped"],
+            "active_days": len(active),
+            "longest_streak": longest_streak,
+        },
     }
 
 
@@ -963,7 +989,7 @@ def _write_year_cache(data: YearReportData) -> None:
         payload = {
             "schema_version": _YEAR_CACHE_SCHEMA,
             "cached_at": time.time(),
-            # Activity is read afresh per report, so disk retains token-only active counts.
+            # Activity is read afresh per report, so disk retains token-only counts, streaks and levels.
             "data": _year_with_activity(data, frozenset()),
         }
         with os.fdopen(fd, "w", encoding="utf-8") as file:

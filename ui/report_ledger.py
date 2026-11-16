@@ -70,10 +70,13 @@ def render_ledger(data: Mapping[str, Any], lang: str) -> str:
                         lang, "ledger_row_meta", project="{project}", count=row["dispatch_count"]
                     )
                 ).replace("{project}", f"<span data-mask>{html.escape(row['project'])}</span>")
-                title = f"<span data-mask>{html.escape(row['title'])}</span>"
-                lines.append(
-                    _rank_line(f'{title} <span class="ledger-meta">· {meta}</span>', share, lang)
+                label = (
+                    f"<span data-mask>{html.escape(row['title'])}</span> "
+                    f'<span class="ledger-meta">· {meta}</span>'
+                    if row["title"]
+                    else f'<span class="ledger-meta">{meta}</span>'
                 )
+                lines.append(_rank_line(label, share, lang))
             if block["more_count"]:
                 lines.append(
                     _rank_line(

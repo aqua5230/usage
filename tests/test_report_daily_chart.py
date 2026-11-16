@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import pytest
+
+from ui import html_report
 from ui.report_daily_chart import (
     daily_usage,
     date_label_indices,
@@ -126,13 +129,15 @@ def test_daily_date_labels_keep_endpoints_and_skip_nearby_month_starts() -> None
     assert rendered.count("daily-x-label") == 1
 
 
-def test_daily_chart_legend_translates_unknown_agent() -> None:
+@pytest.mark.parametrize("agent_id", ["unknown", ""])
+def test_daily_chart_legend_translates_unknown_agent(agent_id: str) -> None:
     cube = _cube([[0, 0, 0, 0, 5, 0, 0, 0, 0, 1]])
-    cube["agents"] = [{"id": "unknown", "name": "unknown"}]
+    cube["agents"] = [{"id": agent_id, "name": agent_id}]
 
-    html = render_daily_chart(cube, _display_name, _tokens, str)
+    html = render_daily_chart(cube, lambda key: html_report._t("zh-TW", key), _tokens, str)
 
-    assert "未知 <b>5</b>" in html
+    assert "舊紀錄（只剩總數） <b>5</b>" in html
+    assert "未知 <b>5</b>" not in html
 
 
 def test_pricing_usage_counts_zero_cost_ledger_rows_as_unpriced() -> None:

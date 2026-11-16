@@ -1446,7 +1446,7 @@ def test_year_activity_is_fresh_and_kept_out_of_disk_cache(
     assert cached["data"]["contribution"]["active_days"] == 0
     assert cached["data"]["wrapped"]["active_days"] == 0
     assert set(cached["data"]) == {"contribution", "wrapped"}
-    assert cached["schema_version"] == 10
+    assert cached["schema_version"] == 11
     assert all(day["tokens"] == 0 for week in data["contribution"]["weeks"] for day in week)
     assert data["wrapped"]["total_tokens"] == data["wrapped"]["total_cost"] == 0
     activity_file.write_text(
@@ -1468,5 +1468,63 @@ def test_year_activity_is_fresh_and_kept_out_of_disk_cache(
     unchanged = deepcopy(data)
     unchanged["contribution"]["active_days"] = 0
     unchanged["wrapped"]["active_days"] = 0
+    unchanged["contribution"]["current_streak"] = 0
+    unchanged["contribution"]["longest_streak"] = 0
+    unchanged["wrapped"]["longest_streak"] = 0
+    for week in unchanged["contribution"]["weeks"]:
+        for cell in week:
+            cell["level"] = 0
     assert empty == unchanged
     assert reporter.YEAR_CACHE_PATH.read_bytes() == cached_bytes
+
+
+def test_year_cache_hit_refreshes_activity_streaks_and_colors(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import json
+    from copy import deepcopy
+
+    from analyzer import claude_activity
+
+    monkeypatch.setattr(
+        reporter, "datetime", _fixed_datetime(datetime(2026, 5, 11, 12, tzinfo=UTC))
+    )
+    entries = [
+        UsageEntry(
+            timestamp=datetime(2026, 5, day, 12, tzinfo=UTC),
+            session_id=str(day),
+            message_id=str(day),
+            request_id="",
+            model="priced",
+            project="proj",
+            agent_id="codex",
+            input_tokens=100,
+            output_tokens=0,
+            cache_creation_tokens=0,
+            cache_read_tokens=0,
+            cost_usd=0.0,
+        )
+        for day in [8, 10]
+    ]
+    monkeypatch.setattr(reporter, "_load_agent_entries", lambda *_: entries)
+    monkeypatch.setattr(claude_activity, "activity_dates", lambda: frozenset())
+    agents = [AgentInfo("codex", "Codex", "", True)]
+    baseline = reporter._load_year_data_cached(agents)
+    cache_bytes = reporter.YEAR_CACHE_PATH.read_bytes()
+    monkeypatch.setattr(
+        claude_activity, "activity_dates", lambda: frozenset({date(2026, 5, 9), date(2026, 5, 11)})
+    )
+    fresh = reporter.build_year_data(agents)
+    monkeypatch.setattr(reporter, "build_year_data", lambda _: pytest.fail("must use year cache"))
+    cached = reporter._load_year_data_cached(agents)
+    assert cached["contribution"]["current_streak"] == 4
+    assert cached["contribution"]["longest_streak"] == cached["wrapped"]["longest_streak"] == 4
+    assert cached == fresh
+    assert reporter.YEAR_CACHE_PATH.read_bytes() == cache_bytes
+    original = deepcopy(fresh)
+    reporter._write_year_cache(fresh)
+    assert fresh == original
+    assert json.loads(reporter.YEAR_CACHE_PATH.read_text())["data"] == baseline
+    monkeypatch.setattr(claude_activity, "activity_dates", lambda: frozenset())
+    assert reporter._load_year_data_cached(agents) == baseline
+    assert reporter._year_with_activity(fresh, frozenset()) == baseline

@@ -9,7 +9,7 @@ from __future__ import annotations
 import os
 import time
 from collections.abc import Iterator
-from datetime import UTC, date, datetime, tzinfo
+from datetime import UTC, date, datetime, timedelta, tzinfo
 from pathlib import Path
 from typing import Any, Self
 
@@ -1395,7 +1395,7 @@ def test_read_year_ledger_accepts_days_without_agent_versions_and_persists_new_d
     )
     assert year_data["wrapped"]["total_tokens"] == 4700
     assert reporter._YEAR_LEDGER_SCHEMA == 1
-    assert reporter._YEAR_CACHE_SCHEMA == 10
+    assert reporter._YEAR_CACHE_SCHEMA == 11
 
     persisted = json.loads(reporter.YEAR_LEDGER_PATH.read_text(encoding="utf-8"))
     assert persisted["days"]["2026-11-01"]["agent_versions"] == {"antigravity": 2}
@@ -1565,3 +1565,98 @@ def test_report_unknown_ledger_excludes_missing_even_without_synthetic_rows(
     assert data["claude_missing_days"] == 0
     assert data["cube"]["unknown_ledger_dates"] == ["2026-04-27"]
     assert all(len(row) == 10 for row in data["cube"]["rows"])
+
+
+@pytest.mark.parametrize("inactive_gap", [False, True])
+def test_year_streaks_include_activity_only_days(
+    monkeypatch: pytest.MonkeyPatch, inactive_gap: bool
+) -> None:
+    from analyzer import claude_activity
+
+    monkeypatch.setattr(
+        reporter, "datetime", _fixed_datetime(datetime(2026, 5, 11, 12, tzinfo=UTC))
+    )
+    dates = [date(2026, 4, 26) + timedelta(days=index) for index in range(16)]
+    holes = {date(2026, 4, 27), date(2026, 5, 9), date(2026, 5, 11)}
+    entries = [
+        _entry(
+            when=datetime.combine(day, datetime.min.time(), tzinfo=UTC),
+            session_id=day.isoformat(),
+            model="priced",
+            project="proj",
+            agent_id="codex",
+            input_tokens=100,
+            cost_usd=0.5,
+        )
+        for day in dates
+        if day not in holes and (not inactive_gap or day != date(2026, 5, 1))
+    ]
+    monkeypatch.setattr(reporter, "_load_agent_entries", lambda *_: entries)
+    monkeypatch.setattr(reporter, "calculate_cost", lambda entry: entry.cost_usd)
+    monkeypatch.setattr(claude_activity, "activity_dates", lambda: frozenset())
+    agents = [AgentInfo("codex", "Codex", "", True)]
+    baseline = reporter.build_year_data(agents)
+    monkeypatch.setattr(claude_activity, "activity_dates", lambda: frozenset(holes))
+    data = reporter.build_year_data(agents)
+    expected = 10 if inactive_gap else 16
+    from ui import html_report
+
+    heatmap = html_report._render_contribution_section(data, "en")
+    assert html_report._t("en", "title_streak", days=expected) in heatmap
+    days = html_report._t("en", "contribution_days_unit")
+    assert heatmap.count(f"<b>{expected} {days}</b>") == 2
+    assert f"<b>{expected} {days}</b>" in html_report._render_wrapped_section(data, "en")
+    assert data["contribution"]["current_streak"] == expected
+    assert data["contribution"]["longest_streak"] == expected
+    assert data["wrapped"]["longest_streak"] == expected
+    assert (
+        data["contribution"]["active_days"]
+        == data["wrapped"]["active_days"]
+        == len(dates) - inactive_gap
+    )
+    for actual, original, allowed in [
+        (
+            dict(data["contribution"]),
+            dict(baseline["contribution"]),
+            {"active_days", "current_streak", "longest_streak", "weeks"},
+        ),
+        (dict(data["wrapped"]), dict(baseline["wrapped"]), {"active_days", "longest_streak"}),
+    ]:
+        assert {k: v for k, v in actual.items() if k not in allowed} == {
+            k: v for k, v in original.items() if k not in allowed
+        }
+    assert [cell["tokens"] for week in data["contribution"]["weeks"] for cell in week] == [
+        cell["tokens"] for week in baseline["contribution"]["weeks"] for cell in week
+    ]
+
+
+def test_year_activity_colors_preserve_tokens_and_tooltips(monkeypatch: pytest.MonkeyPatch) -> None:
+    from analyzer import claude_activity
+    from ui import html_report
+
+    monkeypatch.setattr(
+        reporter, "datetime", _fixed_datetime(datetime(2026, 5, 11, 12, tzinfo=UTC))
+    )
+    monkeypatch.setattr(
+        claude_activity,
+        "activity_dates",
+        lambda: frozenset(
+            {
+                date(2020, 1, 1),
+                date(2026, 5, 9),
+                date(2026, 5, 11),
+                date(2026, 5, 12),
+            }
+        ),
+    )
+    data = reporter.build_year_data([])
+    cells = {cell["date"]: cell for week in data["contribution"]["weeks"] for cell in week}
+    assert cells["2026-05-09"] == {"date": "2026-05-09", "tokens": 0, "level": 1}
+    assert cells["2026-05-11"] == {"date": "2026-05-11", "tokens": 0, "level": 1}
+    assert cells["2026-05-08"]["level"] == cells["2026-05-12"]["level"] == 0
+    assert data["contribution"]["active_days"] == 2
+    assert data["contribution"]["current_streak"] == 1
+    assert data["wrapped"]["total_tokens"] == data["wrapped"]["total_cost"] == 0
+    rendered = html_report._render_contribution_section(data, "en")
+    title = html_report._t("en", "contribution_cell_title", date="2026-05-09", tokens="0")
+    assert f'class="contribution-cell level-1" title="{title}"' in rendered
