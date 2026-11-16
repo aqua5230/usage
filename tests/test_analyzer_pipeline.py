@@ -1373,3 +1373,60 @@ def test_build_report_data_by_model_includes_cost_known(monkeypatch: Any) -> Non
     unpriced_model = next((m for m in by_model if m["model"] == "glm-5.2"), None)
     assert unpriced_model is not None
     assert unpriced_model.get("cost_known") is False
+
+
+def test_year_activity_is_fresh_and_kept_out_of_disk_cache(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    from copy import deepcopy
+
+    from loaders import claude_paths
+
+    monkeypatch.setattr(
+        reporter, "datetime", _fixed_datetime(datetime(2026, 4, 28, 12, tzinfo=UTC))
+    )
+    monkeypatch.setattr(reporter, "_load_agent_entries", lambda *_args: [])
+    monkeypatch.setattr(claude_paths, "claude_config_dirs", lambda: [tmp_path])
+    activity_file = tmp_path / "stats-cache.json"
+    activity_file.write_text(
+        json.dumps(
+            {
+                "dailyActivity": [
+                    {"date": day, "messageCount": 290}
+                    for day in ["2020-01-01", "2026-04-27", "2026-04-29"]
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    data = reporter._load_year_data_cached([])
+    assert data["contribution"]["active_days"] == data["wrapped"]["active_days"] == 1
+    cached_bytes = reporter.YEAR_CACHE_PATH.read_bytes()
+    cached = json.loads(cached_bytes)
+    assert cached["data"]["contribution"]["active_days"] == 0
+    assert cached["data"]["wrapped"]["active_days"] == 0
+    assert set(cached["data"]) == {"contribution", "wrapped"}
+    assert cached["schema_version"] == 9
+    assert all(day["tokens"] == 0 for week in data["contribution"]["weeks"] for day in week)
+    assert data["wrapped"]["total_tokens"] == data["wrapped"]["total_cost"] == 0
+    activity_file.write_text(
+        json.dumps(
+            {
+                "dailyActivity": [
+                    {"date": day, "messageCount": 1} for day in ["2026-04-27", "2026-04-28"]
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(reporter, "build_year_data", lambda _: pytest.fail("must use year cache"))
+    warm = reporter._load_year_data_cached([])
+    assert warm["contribution"]["active_days"] == warm["wrapped"]["active_days"] == 2
+    activity_file.write_text("{}", encoding="utf-8")
+    empty = reporter._load_year_data_cached([])
+    assert empty["contribution"]["active_days"] == empty["wrapped"]["active_days"] == 0
+    unchanged = deepcopy(data)
+    unchanged["contribution"]["active_days"] = 0
+    unchanged["wrapped"]["active_days"] = 0
+    assert empty == unchanged
+    assert reporter.YEAR_CACHE_PATH.read_bytes() == cached_bytes

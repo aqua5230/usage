@@ -910,6 +910,8 @@ def test_cube_boundary_values_do_not_create_empty_indexes(
     empty = reporter.build_report_data([agent], "today")
     expected_cube: reporter.CubeReportData = {
         "today": "2026-05-21",
+        "claude_activity_dates": [],
+        "unknown_ledger_dates": [],
         "dates": [],
         "agents": [],
         "models": [],
@@ -1401,3 +1403,165 @@ def test_read_year_ledger_accepts_days_without_agent_versions_and_persists_new_d
     assert reporter._read_year_ledger()["days"]["2026-11-01"]["agent_versions"] == {
         "antigravity": 2
     }
+
+
+@pytest.mark.parametrize("coverage", ["none", "claude-code", "unknown", "codex"])
+def test_report_claude_activity_preserves_usage_and_bounds(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, coverage: str
+) -> None:
+    import json
+
+    from loaders import claude_paths
+
+    config = tmp_path / "activity"
+    config.mkdir()
+    monkeypatch.setattr(claude_paths, "claude_config_dirs", lambda: [config])
+    activity_file = config / "stats-cache.json"
+    activity_file.write_text(
+        json.dumps(
+            {
+                "dailyActivity": [
+                    {"date": day, "messageCount": 290}
+                    for day in ["2026-04-01", "2026-04-27", "2026-04-28", "2026-05-01"]
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(
+        reporter, "datetime", _fixed_datetime(datetime(2026, 4, 28, 12, tzinfo=UTC))
+    )
+    entries = [
+        _entry(
+            when=datetime(2026, 4, 26, 12, tzinfo=UTC),
+            session_id="codex",
+            model="priced",
+            project="proj",
+            agent_id="codex",
+            input_tokens=100,
+            cost_usd=1.0,
+        )
+    ]
+    if coverage in {"claude-code", "codex"}:
+        entries.append(
+            _entry(
+                when=datetime(2026, 4, 27, 12, tzinfo=UTC),
+                session_id="covered",
+                model="priced",
+                project="proj",
+                agent_id=coverage,
+                input_tokens=50,
+                cost_usd=0.5,
+            )
+        )
+    if coverage == "unknown":
+        _write_year_ledger_days(
+            {
+                "2026-04-27": _ledger_day_payload(
+                    total_tokens=50,
+                    cost=0.5,
+                    agent_tokens={"unknown": 50},
+                    model_tokens={"unknown": 50},
+                    project_tokens={"unknown": 50},
+                    sessions=0,
+                )
+            }
+        )
+    monkeypatch.setattr(reporter, "_load_agent_entries", lambda *_args: entries)
+    monkeypatch.setattr(reporter, "calculate_cost", lambda entry: float(entry.cost_usd or 0.0))
+    agents = [AgentInfo("codex", "Codex", "", True)]
+    data = reporter.build_report_data(agents, "all")
+    assert data["summary"]["active_days"] == 3
+    assert data["claude_missing_days"] == (1 if coverage in {"claude-code", "unknown"} else 2)
+    assert data["date_from"] == "2026-04-26"
+    assert data["date_to"] == "2026-04-28"
+    assert data["cube"]["claude_activity_dates"] == ["2026-04-27", "2026-04-28"]
+    # Removing the activity source changes only activity metadata and active-day counts.
+    activity_file.write_text("{}", encoding="utf-8")
+    baseline = reporter.build_report_data(agents, "all")
+    for key in ["by_agent", "by_model", "by_project", "daily_trend", "comparison", "sessions"]:
+        assert dict(data)[key] == dict(baseline)[key]
+    for key in data["summary"]:
+        if key != "active_days":
+            assert dict(data["summary"])[key] == dict(baseline["summary"])[key]
+    assert data["cube"]["rows"] == baseline["cube"]["rows"]
+
+
+def test_report_zero_token_messages_do_not_count_as_active(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        reporter, "datetime", _fixed_datetime(datetime(2026, 4, 28, 12, tzinfo=UTC))
+    )
+    monkeypatch.setattr(
+        reporter,
+        "_load_agent_entries",
+        lambda *_args: [
+            _entry(
+                when=datetime(2026, 4, 28, 12, tzinfo=UTC),
+                session_id="empty",
+                model="priced",
+                project="proj",
+                agent_id="codex",
+                input_tokens=0,
+            )
+        ],
+    )
+    data = reporter.build_report_data([AgentInfo("codex", "Codex", "", True)], "today")
+    assert data["summary"]["active_days"] == 0
+
+
+def test_report_activity_only_day_has_no_usage(monkeypatch: pytest.MonkeyPatch) -> None:
+    from analyzer import claude_activity
+
+    monkeypatch.setattr(
+        reporter, "datetime", _fixed_datetime(datetime(2026, 4, 27, 12, tzinfo=UTC))
+    )
+    monkeypatch.setattr(reporter, "_load_agent_entries", lambda *_args: [])
+    monkeypatch.setattr(claude_activity, "activity_dates", lambda: frozenset({date(2026, 4, 27)}))
+    data = reporter.build_report_data([], "today")
+    assert data["summary"]["active_days"] == 1
+    assert data["claude_missing_days"] == 1
+    assert data["summary"]["total_tokens"] == 0
+    assert data["summary"]["cost_usd"] == 0
+    assert data["daily_trend"] == [{"date": "2026-04-27", "tokens": 0, "cost": 0.0}]
+    assert data["cube"]["rows"] == []
+
+
+def test_report_unknown_ledger_excludes_missing_even_without_synthetic_rows(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from analyzer import claude_activity
+
+    monkeypatch.setattr(
+        reporter, "datetime", _fixed_datetime(datetime(2026, 4, 27, 12, tzinfo=UTC))
+    )
+    monkeypatch.setattr(claude_activity, "activity_dates", lambda: frozenset({date(2026, 4, 27)}))
+    _write_year_ledger_days(
+        {
+            "2026-04-27": _ledger_day_payload(
+                total_tokens=50,
+                cost=0.5,
+                agent_tokens={"unknown": 50},
+                model_tokens={"unknown": 50},
+                project_tokens={"unknown": 50},
+                sessions=0,
+            )
+        }
+    )
+    monkeypatch.setattr(
+        reporter,
+        "_load_agent_entries",
+        lambda *_args: [
+            _entry(
+                when=datetime(2026, 4, 27, 12, tzinfo=UTC),
+                session_id="codex",
+                model="priced",
+                project="proj",
+                agent_id="codex",
+                input_tokens=100,
+            )
+        ],
+    )
+    data = reporter.build_report_data([AgentInfo("codex", "Codex", "", True)], "today")
+    assert data["claude_missing_days"] == 0
+    assert data["cube"]["unknown_ledger_dates"] == ["2026-04-27"]
+    assert all(len(row) == 10 for row in data["cube"]["rows"])

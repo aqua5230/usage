@@ -1499,11 +1499,14 @@ document.addEventListener('click', async (e) => {
     const previousBounds = {from: formatDate(previousFrom), to: formatDate(previousTo)};
     const previousRows = cube.rows.filter(rowMatches(previousBounds));
     const byDay = {};
+    const claudeTokenDates = new Set();
     let unpricedTokens = 0;
     rows.forEach((row) => {
       const tokens = rowTokens(row);
       const day = cube.dates[Number(row[0])];
       byDay[day] = (byDay[day] || 0) + tokens;
+      const agent = cube.agents[Number(row[1])];
+      if (tokens > 0 && agent && agent.id === 'claude-code') claudeTokenDates.add(day);
       const model = cube.models[Number(row[2])];
       if (!model || !model.cost_known || (row[10] === 1 && !Number(row[8]))) unpricedTokens += tokens;
     });
@@ -1528,6 +1531,14 @@ document.addEventListener('click', async (e) => {
       const model = cube.models[Number(modelIndex)];
       topModel = model ? String(model.name) : '';
     });
+    const activeDates = new Set(Object.keys(byDay).filter((day) => byDay[day] > 0));
+    const claudeDates = new Set((cube.claude_activity_dates || [])
+      .filter((day) => day >= bounds.from && day <= bounds.to));
+    const unknownLedgerDates = new Set(cube.unknown_ledger_dates || []);
+    claudeDates.forEach((day) => activeDates.add(day));
+    const claudeMissingDays = Array.from(claudeDates).filter((day) =>
+      !claudeTokenDates.has(day) && !unknownLedgerDates.has(day)
+    ).length;
     return {
       topModel,
       bounds,
@@ -1539,7 +1550,8 @@ document.addEventListener('click', async (e) => {
         const day = cube.dates[Number(session.date_idx)];
         return Boolean(day && day >= bounds.from && day <= bounds.to);
       }).length,
-      activeDays: Object.values(byDay).filter((tokens) => tokens > 0).length,
+      activeDays: activeDates.size,
+      claudeMissingDays,
       totalDays,
       peakDate,
       peakTokens: Math.max(0, peakTokens),
@@ -1970,7 +1982,10 @@ document.addEventListener('click', async (e) => {
 
   function updateSummary(summary) {
     const tokenDelta = deltaText(summary.tokens, summary.previousTokens, summary.hasPrevious);
-    const tokenSub = [formatInteger(summary.tokens), tokenDelta].filter(Boolean).join('\n');
+    const missing = summary.claudeMissingDays
+      ? shareConfig.claudeMissing.replace('{days}', summary.claudeMissingDays)
+      : '';
+    const tokenSub = [formatInteger(summary.tokens), tokenDelta, missing].filter(Boolean).join('\n');
     const costDelta = deltaText(summary.cost, summary.previousCost, summary.hasPrevious);
     const unpriced = summary.unpricedTokens
       ? shareConfig.costUnpriced.replace('{tokens}', formatTokens(summary.unpricedTokens))

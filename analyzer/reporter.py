@@ -22,7 +22,7 @@ import time
 from typing import Any, NotRequired, TypedDict, cast
 
 from loaders import cache_quarantine, codex_loader
-from analyzer import persona_loader
+from analyzer import claude_activity, persona_loader
 from analyzer import subscription
 from adapters import agy, claude, codex, grok, muse
 from adapters.types import AgentInfo, UsageEntry
@@ -151,6 +151,8 @@ class CubeModelData(TypedDict):
 
 class CubeReportData(TypedDict):
     today: NotRequired[str]
+    claude_activity_dates: NotRequired[list[str]]
+    unknown_ledger_dates: NotRequired[list[str]]
     dates: list[str]
     agents: list[CubeAgentData]
     models: list[CubeModelData]
@@ -247,6 +249,7 @@ class _ReportDataRequired(TypedDict):
 
 
 class ReportData(_ReportDataRequired, total=False):
+    claude_missing_days: int
     by_agent_model: list[AgentModelReportRow]
     cube: CubeReportData
     sessions: list[SessionRowData]
@@ -779,7 +782,10 @@ def _build_year_output_from_ledger(
         for agent_id, tokens in day["agent_tokens"].items():
             agent_tokens[agent_id] += tokens
 
-    active_days = sum(1 for tokens in daily_tokens.values() if tokens > 0)
+    active_days = len(
+        {day for day, tokens in daily_tokens.items() if tokens > 0}
+        | {day for day in claude_activity.activity_dates() if grid_start <= day <= today}
+    )
     contribution_thresholds = _contribution_thresholds(list(daily_tokens.values()))
     max_tokens = max(daily_tokens.values(), default=0)
     busiest_day: BusiestDay | None = None
@@ -891,11 +897,28 @@ def persist_year_entries(entries: list[UsageEntry], today: date) -> _YearLedger:
 def _load_year_data_cached(agents: list[AgentInfo]) -> YearReportData:
     cached = _read_year_cache()
     if cached is not None:
-        return cast(YearReportData, cached)
+        return _year_with_activity(cast(YearReportData, cached), claude_activity.activity_dates())
 
     data = build_year_data(agents)
     _write_year_cache(data)
     return data
+
+
+def _year_with_activity(data: YearReportData, dates: frozenset[date]) -> YearReportData:
+    """Recount activity from the fixed grid without changing its token values."""
+    contribution = data["contribution"]
+    start, end = contribution["start"], contribution["end"]
+    active = {
+        day["date"]
+        for week in contribution["weeks"]
+        for day in week
+        if start <= day["date"] <= end and day["tokens"] > 0
+    }
+    active.update(day.isoformat() for day in dates if start <= day.isoformat() <= end)
+    return {
+        "contribution": {**contribution, "active_days": len(active)},
+        "wrapped": {**data["wrapped"], "active_days": len(active)},
+    }
 
 
 def _read_year_cache() -> dict[str, Any] | None:
@@ -930,7 +953,8 @@ def _write_year_cache(data: YearReportData) -> None:
         payload = {
             "schema_version": _YEAR_CACHE_SCHEMA,
             "cached_at": time.time(),
-            "data": data,
+            # Activity is read afresh per report, so disk retains token-only active counts.
+            "data": _year_with_activity(data, frozenset()),
         }
         with os.fdopen(fd, "w", encoding="utf-8") as file:
             json.dump(payload, file, ensure_ascii=False, indent=2, sort_keys=True)
@@ -1051,7 +1075,27 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
     total_tokens = sum(entry.total_tokens for entry in entries)
     total_cost = 0.0
     session_ids = {entry.session_id for entry in real_entries}
-    active_dates = {entry_dates[id(entry)] for entry in entries}
+    claude_dates = frozenset(
+        day for day in claude_activity.activity_dates() if date_from <= day <= date_to
+    )
+    active_dates = {
+        entry_dates[id(entry)] for entry in entries if entry.total_tokens > 0
+    } | claude_dates
+    claude_token_dates = {
+        entry_dates[id(entry)]
+        for entry in entries
+        if entry.agent_id == "claude-code" and entry.total_tokens > 0
+    }
+    unknown_ledger_dates = {
+        day
+        for day, value in ledger_days.items()
+        if date_from.isoformat() <= day <= date_to.isoformat()
+        and value["agent_tokens"].get("unknown", 0) > 0
+    }
+    claude_missing_days = sum(
+        day not in claude_token_dates and day.isoformat() not in unknown_ledger_dates
+        for day in claude_dates
+    )
     total_days = (date_to - date_from).days + 1
     comparison = _build_comparison(raw_entries, entry_dates, period, date_from, date_to)
 
@@ -1294,6 +1338,8 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
     cube_rows.sort(key=lambda row: (row[0], row[1], row[2], row[3]))
     cube: CubeReportData = {
         "today": today.isoformat(),
+        "claude_activity_dates": sorted(day.isoformat() for day in claude_dates),
+        "unknown_ledger_dates": sorted(unknown_ledger_dates),
         "dates": cube_dates,
         "agents": cube_agents,
         "models": cube_models,
@@ -1369,6 +1415,7 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
         "period_label": f"{date_from.isoformat()} -> {date_to.isoformat()}",
         "date_from": date_from.isoformat(),
         "date_to": date_to.isoformat(),
+        "claude_missing_days": claude_missing_days,
         "summary": {
             "total_tokens": total_tokens,
             "input_tokens": sum(entry.input_tokens for entry in real_entries),

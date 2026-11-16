@@ -928,7 +928,7 @@ reportThemeMedia.addEventListener('change', () => {
   updateThemeToggle();
 });
 
-const shareConfig = {"collapse": "Collapse", "copied": "Copied to clipboard ✓", "expand": "Expand", "pathCopied": "Path copied ✓", "projectShare": "Share of project", "projectOthers": "Other projects", "title_tools_top": "{tool} leads with {pct}% of tokens", "title_tools_single": "All usage came from {tool}", "sub_tools": "Token share by tool · {total} tokens in total", "title_projects_top3": "The top 3 projects account for {pct}% of tokens", "sub_projects": "Token share by project", "title_trend_peak_week": "The week of {date} was the busiest", "sub_trend": "Daily and weekly token usage", "title_composition_top": "{kind} makes up {pct}% of tokens", "sub_composition": "Token share by type", "title_sessions_top": "The largest session used {tokens} tokens", "source_note": "Source: local {tools} usage logs · {from} – {to}", "source_pricing": "API-equivalent cost is based on public API prices", "weekly_chart_title": "Weekly usage", "tools_section": "Your tools", "project_section": "Project hot zones", "trend_section": "Usage trend", "composition_section": "Token composition", "session_section": "Top 5 sessions by token usage", "sourceSeparator": ", ", "chartOther": "Other", "cost": "API equivalent", "costUnpriced": "Includes {tokens} tokens without pricing data, excluded from the API equivalent", "emptyProjects": "No project usage in this period", "kpiActiveHint": "A day counts if any tool records usage", "kpiActiveValue": "{active} / {total} days", "narrative": "You used {tokens} tokens over this period. {peak_date} was the peak ({peak_tokens}/day), and the model with the most token usage was {top_model}.", "projectSection": "Project hot zones", "share": "Token share", "tokens": "Tokens", "unknown": "unknown", "vsPrevious": "vs previous period", "compositionCacheRead": "Cache read", "compositionCacheWrite": "Cache write", "compositionHitRate": "Cache hit rate", "compositionInput": "Input", "compositionMissing": "Another {tokens} tokens have no input/output breakdown.", "trendPartialWeek": "only {days} days", "trendIncompleteWeek": "Incomplete week", "compositionOutput": "Output", "duration": "Duration", "dailyChartTitle": "Daily usage", "dailyChartModeTokens": "Tokens", "dailyChartModeCost": "API equivalent", "dailyChartTotal": "Total", "emptyDaily": "No daily usage in this period", "emptySessions": "No sessions to list in this period", "model": "Model", "project": "Project", "pricingAllPriced": "All usage has a public price.", "pricingHint": "API equivalent is the API-equivalent value from public price lists, not your subscription bill. Usage without pricing data is left out of API equivalent: models with no public price, and older records that kept only totals. Missing pricing data does not mean free; the API equivalent cannot be calculated.", "pricingModelSeparator": ", ", "pricingPriced": "Convertible to API equivalent", "pricingUnpriced": "No pricing data", "rank": "Rank", "startTime": "Start time", "trendCompareDown": "Last complete week (W{week}) dropped {pct}% vs the preceding week.", "trendCompareFirst": "Fewer than two complete weeks to compare.", "trendCompareFlat": "Last complete week (W{week}) was roughly flat vs the preceding week.", "trendCompareNew": "Last complete week (W{week}) has new usage vs the preceding week.", "trendCompareUp": "Last complete week (W{week}) is {ratio}× the preceding week.", "trendMarkerNew": "new", "trendWeekInProgress": "in progress"};
+const shareConfig = {"collapse": "Collapse", "copied": "Copied to clipboard ✓", "expand": "Expand", "pathCopied": "Path copied ✓", "projectShare": "Share of project", "projectOthers": "Other projects", "title_tools_top": "{tool} leads with {pct}% of tokens", "title_tools_single": "All usage came from {tool}", "sub_tools": "Token share by tool · {total} tokens in total", "title_projects_top3": "The top 3 projects account for {pct}% of tokens", "sub_projects": "Token share by project", "title_trend_peak_week": "The week of {date} was the busiest", "sub_trend": "Daily and weekly token usage", "title_composition_top": "{kind} makes up {pct}% of tokens", "sub_composition": "Token share by type", "title_sessions_top": "The largest session used {tokens} tokens", "source_note": "Source: local {tools} usage logs · {from} – {to}", "source_pricing": "API-equivalent cost is based on public API prices", "weekly_chart_title": "Weekly usage", "tools_section": "Your tools", "project_section": "Project hot zones", "trend_section": "Usage trend", "composition_section": "Token composition", "session_section": "Top 5 sessions by token usage", "sourceSeparator": ", ", "chartOther": "Other", "cost": "API equivalent", "costUnpriced": "Includes {tokens} tokens without pricing data, excluded from the API equivalent", "claudeMissing": "Days with Claude Code use whose conversation records were deleted: {days}. That usage is excluded from the total.", "emptyProjects": "No project usage in this period", "kpiActiveHint": "A day counts if any tool records usage", "kpiActiveValue": "{active} / {total} days", "narrative": "You used {tokens} tokens over this period. {peak_date} was the peak ({peak_tokens}/day), and the model with the most token usage was {top_model}.", "projectSection": "Project hot zones", "share": "Token share", "tokens": "Tokens", "unknown": "unknown", "vsPrevious": "vs previous period", "compositionCacheRead": "Cache read", "compositionCacheWrite": "Cache write", "compositionHitRate": "Cache hit rate", "compositionInput": "Input", "compositionMissing": "Another {tokens} tokens have no input/output breakdown.", "trendPartialWeek": "only {days} days", "trendIncompleteWeek": "Incomplete week", "compositionOutput": "Output", "duration": "Duration", "dailyChartTitle": "Daily usage", "dailyChartModeTokens": "Tokens", "dailyChartModeCost": "API equivalent", "dailyChartTotal": "Total", "emptyDaily": "No daily usage in this period", "emptySessions": "No sessions to list in this period", "model": "Model", "project": "Project", "pricingAllPriced": "All usage has a public price.", "pricingHint": "API equivalent is the API-equivalent value from public price lists, not your subscription bill. Usage without pricing data is left out of API equivalent: models with no public price, and older records that kept only totals. Missing pricing data does not mean free; the API equivalent cannot be calculated.", "pricingModelSeparator": ", ", "pricingPriced": "Convertible to API equivalent", "pricingUnpriced": "No pricing data", "rank": "Rank", "startTime": "Start time", "trendCompareDown": "Last complete week (W{week}) dropped {pct}% vs the preceding week.", "trendCompareFirst": "Fewer than two complete weeks to compare.", "trendCompareFlat": "Last complete week (W{week}) was roughly flat vs the preceding week.", "trendCompareNew": "Last complete week (W{week}) has new usage vs the preceding week.", "trendCompareUp": "Last complete week (W{week}) is {ratio}× the preceding week.", "trendMarkerNew": "new", "trendWeekInProgress": "in progress"};
 const maskedCsvData = JSON.parse(document.querySelector('#usage-masked-csv-data').textContent);
 const csvDataNode = document.querySelector('#usage-csv-data');
 const csvData = csvDataNode ? JSON.parse(csvDataNode.textContent) : maskedCsvData;
@@ -1595,11 +1595,14 @@ document.addEventListener('click', async (e) => {
     const previousBounds = {from: formatDate(previousFrom), to: formatDate(previousTo)};
     const previousRows = cube.rows.filter(rowMatches(previousBounds));
     const byDay = {};
+    const claudeTokenDates = new Set();
     let unpricedTokens = 0;
     rows.forEach((row) => {
       const tokens = rowTokens(row);
       const day = cube.dates[Number(row[0])];
       byDay[day] = (byDay[day] || 0) + tokens;
+      const agent = cube.agents[Number(row[1])];
+      if (tokens > 0 && agent && agent.id === 'claude-code') claudeTokenDates.add(day);
       const model = cube.models[Number(row[2])];
       if (!model || !model.cost_known || (row[10] === 1 && !Number(row[8]))) unpricedTokens += tokens;
     });
@@ -1624,6 +1627,14 @@ document.addEventListener('click', async (e) => {
       const model = cube.models[Number(modelIndex)];
       topModel = model ? String(model.name) : '';
     });
+    const activeDates = new Set(Object.keys(byDay).filter((day) => byDay[day] > 0));
+    const claudeDates = new Set((cube.claude_activity_dates || [])
+      .filter((day) => day >= bounds.from && day <= bounds.to));
+    const unknownLedgerDates = new Set(cube.unknown_ledger_dates || []);
+    claudeDates.forEach((day) => activeDates.add(day));
+    const claudeMissingDays = Array.from(claudeDates).filter((day) =>
+      !claudeTokenDates.has(day) && !unknownLedgerDates.has(day)
+    ).length;
     return {
       topModel,
       bounds,
@@ -1635,7 +1646,8 @@ document.addEventListener('click', async (e) => {
         const day = cube.dates[Number(session.date_idx)];
         return Boolean(day && day >= bounds.from && day <= bounds.to);
       }).length,
-      activeDays: Object.values(byDay).filter((tokens) => tokens > 0).length,
+      activeDays: activeDates.size,
+      claudeMissingDays,
       totalDays,
       peakDate,
       peakTokens: Math.max(0, peakTokens),
@@ -2066,7 +2078,10 @@ document.addEventListener('click', async (e) => {
 
   function updateSummary(summary) {
     const tokenDelta = deltaText(summary.tokens, summary.previousTokens, summary.hasPrevious);
-    const tokenSub = [formatInteger(summary.tokens), tokenDelta].filter(Boolean).join('\n');
+    const missing = summary.claudeMissingDays
+      ? shareConfig.claudeMissing.replace('{days}', summary.claudeMissingDays)
+      : '';
+    const tokenSub = [formatInteger(summary.tokens), tokenDelta, missing].filter(Boolean).join('\n');
     const costDelta = deltaText(summary.cost, summary.previousCost, summary.hasPrevious);
     const unpriced = summary.unpricedTokens
       ? shareConfig.costUnpriced.replace('{tokens}', formatTokens(summary.unpricedTokens))
