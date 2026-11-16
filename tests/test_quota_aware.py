@@ -935,7 +935,7 @@ def test_service_normal_without_record_is_silent(paths: Path) -> None:
 
 
 def test_service_hook_versions_match() -> None:
-    assert hook.__version__ == session_hooks.QUOTA_AWARE_HOOK_VERSION == "1.16"
+    assert hook.__version__ == session_hooks.QUOTA_AWARE_HOOK_VERSION == "1.17"
 
 
 @pytest.mark.parametrize("window,label", [("five_hour", "5-hour"), ("seven_day", "weekly")])
@@ -1495,6 +1495,45 @@ def status_writer(paths: Path, monkeypatch: pytest.MonkeyPatch) -> Any:
     return usage_statusline.save
 
 
+@pytest.mark.parametrize("new_session", ["one", "two"])
+def test_weekly_only_account_does_not_inherit_previous_accounts_five_hour(
+    accounts: Path, status_writer: Any, new_session: str
+) -> None:
+    from usage_hooks import usage_statusline
+
+    account_config(accounts, "A")
+    status_writer(
+        {
+            "session_id": "one",
+            "rate_limits": {
+                "five_hour": {"used_percentage": 99, "resets_at": RESET},
+                "seven_day": {"used_percentage": 50, "resets_at": RESET + 86400},
+            },
+        },
+        datetime.fromtimestamp(NOW, UTC),
+    )
+    hook.reminder("one", NOW)
+    account_config(accounts, "B")
+    hook.reminder(new_session, NOW + 1)
+    weekly = {"used_percentage": 3, "resets_at": RESET + 100000}
+    data = {"session_id": new_session, "rate_limits": {"seven_day": weekly}}
+    status_writer(data, datetime.fromtimestamp(NOW + 2, UTC))
+
+    assert hook._read(hook.CLAUDE_STATUS)["rate_limits"] == {"seven_day": weekly}
+    assert "99%" not in usage_statusline.render(data, datetime.fromtimestamp(NOW + 2, UTC))
+    assert "5-hour quota: 99%" not in hook.reminder(new_session, NOW + 3)
+
+
+def test_own_session_status_from_previous_account_is_not_reused(accounts: Path) -> None:
+    account_config(accounts, "B")
+    claude(99)
+    status = hook._read(hook.CLAUDE_STATUS)
+    status.update({"_rate_limits_session_id": "one", "_rate_limits_account_uuid": "A"})
+    hook.CLAUDE_STATUS.write_text(json.dumps(status))
+
+    assert hook.reminder("one", NOW) == ""
+
+
 @pytest.mark.parametrize("fresh", ["five_hour", "seven_day"])
 def test_account_switch_filters_each_cached_window(
     accounts: Path, overview: None, status_writer: Any, fresh: str
@@ -1513,7 +1552,7 @@ def test_account_switch_filters_each_cached_window(
         datetime.fromtimestamp(NOW + 2, UTC),
     )
     cached = "seven_day" if fresh == "five_hour" else "five_hour"
-    assert hook._read(hook.CLAUDE_STATUS)["rate_limits"][cached] == old[cached]
+    assert cached not in hook._read(hook.CLAUDE_STATUS)["rate_limits"]
     # Force a new overview and a quota warning to check both descriptions.
     state = hook._read(hook.STATE_PATH)
     state.pop("overview")
@@ -1526,7 +1565,7 @@ def test_account_switch_filters_each_cached_window(
     assert f"{stale_label} unknown" in output
     assert "95% used" not in output and "96% used" not in output
     assert "Claude Code " + stale_label + " quota has reset" not in output
-    assert hook._read(hook.STATE_PATH)["accounts"]["one"]["old_limits"] == {cached: old[cached]}
+    assert "old_limits" not in hook._read(hook.STATE_PATH)["accounts"]["one"]
     status_writer(
         {"session_id": "one", "rate_limits": {cached: {**old[cached], "used_percentage": 97}}},
         datetime.fromtimestamp(NOW + 4, UTC),

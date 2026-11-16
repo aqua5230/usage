@@ -189,14 +189,25 @@ def flush_caches(
     try:
         _remove_legacy_cache(cache_path)
         shards: list[dict[str, Any]] = [{} for _ in range(_SHARD_COUNT)]
-        for path, entry in jsonl_cache.items():
+        for path in dict.fromkeys((*jsonl_cache, *file_info_cache)):
+            entry = jsonl_cache.get(path)
             info = file_info_cache.get(path)
-            if entry.replay_cache_key is not None or (info is not None and info[2].forked_from_id):
-                if info is None:
+            if (
+                entry is None
+                or entry.replay_cache_key is not None
+                or (info is not None and info[2].forked_from_id)
+            ):
+                if info is None or (entry is None and not info[2].forked_from_id):
                     continue
-                entries_data = None
-                session_id = info[2].session_id
-                forked_from_id = info[2].forked_from_id
+                shards[_shard_index(path)][str(path)] = {
+                    "mtime": info[0],
+                    "size": info[1],
+                    "session_id": info[2].session_id,
+                    "forked_from_id": info[2].forked_from_id,
+                    "is_thread_spawn": info[2].is_thread_spawn,
+                    "entries": None,
+                }
+                continue
             else:
                 entries_data = [_serialize_usage_entry(item) for item in entry.entries]
                 if entry.entries:

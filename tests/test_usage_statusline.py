@@ -331,6 +331,7 @@ def test_save_preserves_existing_complete_rate_limits_when_new_data_is_incomplet
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
+    monkeypatch.setattr(usage_statusline, "_account_uuid", lambda: "same-account")
     status_file = tmp_path / "usage-status.json"
     status_file.write_text(
         json.dumps(
@@ -339,6 +340,7 @@ def test_save_preserves_existing_complete_rate_limits_when_new_data_is_incomplet
                     "five_hour": {"used_percentage": 11},
                     "seven_day": {"used_percentage": 22},
                 },
+                "_rate_limits_account_uuid": "same-account",
                 "_received_at": "old",
                 "_received_at_ts": 1,
                 "model": {"display_name": "old"},
@@ -423,6 +425,7 @@ def test_save_merges_rate_limit_windows_one_by_one(
     reset_offset: int,
     keep_five: bool,
 ) -> None:
+    monkeypatch.setattr(usage_statusline, "_account_uuid", lambda: "same-account")
     now = datetime(2026, 11, 1, 12, 0, tzinfo=UTC)
     cached_five_reset = int(now.timestamp()) + reset_offset
     status_file = tmp_path / "usage-status.json"
@@ -432,7 +435,8 @@ def test_save_merges_rate_limit_windows_one_by_one(
                 "rate_limits": {
                     "five_hour": {"used_percentage": 11, "resets_at": cached_five_reset},
                     "seven_day": {"used_percentage": 34, "resets_at": 9_999_999_999},
-                }
+                },
+                "_rate_limits_account_uuid": "same-account",
             }
         ),
         encoding="utf-8",
@@ -455,17 +459,58 @@ def test_save_keeps_expired_cached_windows_when_payload_has_no_quota(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
+    monkeypatch.setattr(usage_statusline, "_account_uuid", lambda: "same-account")
     cached = {
         "five_hour": {"used_percentage": 11, "resets_at": 1_000},
         "seven_day": {"used_percentage": 34, "resets_at": 1_000},
     }
     status_file = tmp_path / "usage-status.json"
-    status_file.write_text(json.dumps({"rate_limits": cached}), encoding="utf-8")
+    status_file.write_text(
+        json.dumps({"rate_limits": cached, "_rate_limits_account_uuid": "same-account"}),
+        encoding="utf-8",
+    )
     monkeypatch.setattr(usage_statusline, "STATUS_FILE", str(status_file))
 
     usage_statusline.save({"model": {"display_name": "new"}}, datetime(2026, 11, 1, tzinfo=UTC))
 
     assert json.loads(status_file.read_text(encoding="utf-8"))["rate_limits"] == cached
+
+
+@pytest.mark.parametrize("cached_account", [None, "A"])
+@pytest.mark.parametrize("current_account", [None, "B"])
+@pytest.mark.parametrize("incoming", [None, {"seven_day": {"used_percentage": 3}}])
+def test_save_does_not_merge_windows_without_a_matching_account(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    cached_account: str | None,
+    current_account: str | None,
+    incoming: dict[str, Any] | None,
+) -> None:
+    config_dir = tmp_path / "config"
+    config_dir.mkdir()
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(config_dir))
+    if current_account:
+        (config_dir / ".claude.json").write_text(
+            json.dumps({"oauthAccount": {"accountUuid": current_account}})
+        )
+    status_file = tmp_path / "usage-status.json"
+    status_file.write_text(
+        json.dumps(
+            {
+                "_rate_limits_account_uuid": cached_account,
+                "_rate_limits_session_id": "old-session",
+                "rate_limits": {"five_hour": {"used_percentage": 99, "resets_at": 9e9}},
+            }
+        )
+    )
+    monkeypatch.setattr(usage_statusline, "STATUS_FILE", str(status_file))
+    data = {"session_id": "new-session", "rate_limits": incoming}
+
+    usage_statusline.save(data, datetime(2026, 11, 1, tzinfo=UTC))
+
+    saved = json.loads(status_file.read_text())
+    assert saved["rate_limits"] == incoming
+    assert saved["_rate_limits_session_id"] == ("new-session" if incoming else None)
 
 
 def _write_prefs(path: Path, prefs: dict[str, Any]) -> None:

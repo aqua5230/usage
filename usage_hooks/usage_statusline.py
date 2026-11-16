@@ -69,7 +69,7 @@ else:
 fcntl = _fcntl
 msvcrt = _msvcrt
 
-__version__ = "1.18"
+__version__ = "1.19"
 
 STATUS_FILE = os.path.expanduser("~/.claude/usage-status.json")
 LOCK_FILE = os.path.expanduser("~/.claude/usage-status.lock")
@@ -522,6 +522,20 @@ def _exclusive_lock(lock_fd: int) -> Any:
                 pass
 
 
+def _account_uuid() -> Optional[str]:
+    configured = [part.strip() for part in os.environ.get("CLAUDE_CONFIG_DIR", "").split(",")]
+    config_dir = next((part for part in configured if part), "~")
+    path = os.path.join(os.path.expanduser(config_dir), ".claude.json")
+    try:
+        with open(path, encoding="utf-8") as handle:
+            payload = json.load(handle)
+    except (OSError, ValueError, UnicodeError):
+        return None
+    account = payload.get("oauthAccount") if isinstance(payload, dict) else None
+    uuid = account.get("accountUuid") if isinstance(account, dict) else None
+    return uuid if isinstance(uuid, str) and uuid else None
+
+
 def save(data: Dict[str, Any], now: datetime) -> None:
     data["_received_at"] = now.isoformat()
     data["_received_at_ts"] = now.timestamp()
@@ -536,6 +550,7 @@ def save(data: Dict[str, Any], now: datetime) -> None:
     # account used before a /login switch; record which session actually observed them.
     fresh = isinstance(incoming, dict) and any(_window_used(incoming.get(k)) for k in _RATE_WINDOWS)
     observed_by = data.get("session_id") if fresh else None
+    account_uuid = _account_uuid()
     try:
         with _exclusive_lock(lock_fd):
             if not _rate_limits_complete(incoming):
@@ -544,7 +559,11 @@ def save(data: Dict[str, Any], now: datetime) -> None:
                         existing = json.load(f)
                 except (OSError, UnicodeDecodeError, json.JSONDecodeError):
                     existing = None
-                if isinstance(existing, dict):
+                if (
+                    isinstance(existing, dict)
+                    and account_uuid is not None
+                    and existing.get("_rate_limits_account_uuid") == account_uuid
+                ):
                     merged = _merge_rate_limits(
                         data.get("rate_limits"), existing.get("rate_limits"), now.timestamp()
                     )
@@ -555,6 +574,7 @@ def save(data: Dict[str, Any], now: datetime) -> None:
                             "_rate_limits_session_id", existing.get("session_id")
                         )
             data["_rate_limits_session_id"] = observed_by
+            data["_rate_limits_account_uuid"] = account_uuid
             fd, tmp_path = tempfile.mkstemp(dir=target_dir, suffix=".tmp")
             with os.fdopen(fd, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False)
