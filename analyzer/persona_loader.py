@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 # Habits move slowly, while a rescan reads every session file (~20s on heavy users).
 _CACHE_TTL_SECONDS = 3600.0
 _cache: dict[int, tuple[float, PersonaProfile]] = {}
+_report_cache: dict[int, tuple[float, ReportProfile]] = {}
 
 
 def _claude_projects_dirs() -> list[Path]:
@@ -64,6 +65,12 @@ class PersonaProfile:
 
 
 @dataclass(slots=True)
+class ReportProfile:
+    hour_histogram: list[int]
+    recent_titles: list[str]
+
+
+@dataclass(slots=True)
 class _MetadataLine:
     type: str
     timestamp: datetime | None
@@ -96,6 +103,72 @@ def load_profile(days_back: int = 30) -> PersonaProfile:
 
 def _reset_cache() -> None:
     _cache.clear()
+    _report_cache.clear()
+
+
+def load_report_profile(days_back: int = 30) -> ReportProfile:
+    """Load only report habits, reading each recent Claude log once."""
+    now = time.time()
+    cached = _report_cache.get(days_back)
+    if cached is not None:
+        cached_at, cached_profile = cached
+        if now - cached_at < _CACHE_TTL_SECONDS:
+            return cached_profile
+
+    profile = _load_report_profile_uncached(days_back)
+    _report_cache[days_back] = (now, profile)
+    return profile
+
+
+def _load_report_profile_uncached(days_back: int) -> ReportProfile:
+    histogram = [0] * 24
+    titles_by_session: dict[str, str] = {}
+    session_last_message_at: dict[str, datetime] = {}
+    cutoff = datetime.now(UTC) - timedelta(days=max(0, days_back))
+
+    if any(path.is_dir() for path in _claude_projects_dirs()):
+        for jsonl_path in _recent_jsonl_paths(cutoff.timestamp()):
+            try:
+                for data in iter_jsonl_dicts(jsonl_path, errors="replace"):
+                    parsed = _parse_metadata_line(data)
+                    if parsed is None:
+                        continue
+                    _record_session_title(parsed, titles_by_session)
+                    if _record_message_hour(parsed, cutoff, histogram):
+                        _record_session_message_time(parsed, session_last_message_at)
+            except OSError as exc:
+                logger.warning("failed to read Claude project log %s: %s", jsonl_path, exc)
+
+    return ReportProfile(
+        hour_histogram=histogram,
+        recent_titles=_recent_unique_titles(titles_by_session, session_last_message_at),
+    )
+
+
+def _record_session_title(parsed: _MetadataLine, titles_by_session: dict[str, str]) -> None:
+    if parsed.session_id:
+        title = parsed.title.strip()
+        if parsed.type == "ai-title" and title:
+            titles_by_session[parsed.session_id] = title
+
+
+def _record_message_hour(parsed: _MetadataLine, cutoff: datetime, histogram: list[int]) -> bool:
+    timestamp = parsed.timestamp
+    if timestamp is None or timestamp < cutoff or parsed.type not in {"user", "assistant"}:
+        return False
+    histogram[timestamp.astimezone().hour] += 1
+    return True
+
+
+def _record_session_message_time(
+    parsed: _MetadataLine, session_last_message_at: dict[str, datetime]
+) -> None:
+    session_id = parsed.session_id
+    timestamp = parsed.timestamp
+    if session_id and timestamp is not None:
+        current_last = session_last_message_at.get(session_id)
+        if current_last is None or timestamp > current_last:
+            session_last_message_at[session_id] = timestamp
 
 
 def _load_profile_uncached(days_back: int) -> PersonaProfile:
@@ -134,11 +207,7 @@ def _load_profile_uncached(days_back: int) -> PersonaProfile:
                     continue
 
                 session_id = parsed.session_id
-                if session_id:
-                    title = parsed.title.strip()
-                    if parsed.type == "ai-title" and title:
-                        titles_by_session[session_id] = title
-
+                _record_session_title(parsed, titles_by_session)
                 timestamp = parsed.timestamp
                 is_recent = timestamp is not None and timestamp >= cutoff
                 if parsed.type == "assistant":
@@ -179,18 +248,15 @@ def _load_profile_uncached(days_back: int) -> PersonaProfile:
                 if not is_recent or timestamp is None:
                     continue
 
-                is_message = parsed.type in {"user", "assistant"}
+                is_message = _record_message_hour(parsed, cutoff, histogram)
                 if is_message:
-                    histogram[timestamp.astimezone().hour] += 1
                     total_messages += 1
 
                 if session_id and is_message:
                     project = _project_from_cwd(parsed.cwd) or fallback_project
                     sessions_by_project.setdefault(project, set()).add(session_id)
                     message_sessions.add(session_id)
-                    current_last = session_last_message_at.get(session_id)
-                    if current_last is None or timestamp > current_last:
-                        session_last_message_at[session_id] = timestamp
+                    _record_session_message_time(parsed, session_last_message_at)
         except OSError as exc:
             logger.warning("failed to read Claude project log %s: %s", jsonl_path, exc)
         _finish_turn(

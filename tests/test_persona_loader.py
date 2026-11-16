@@ -9,14 +9,15 @@ from __future__ import annotations
 import json
 import os
 from collections.abc import Sequence
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime, timedelta, timezone, tzinfo
 from pathlib import Path
-from typing import Any
+from typing import Any, Self
 from unittest.mock import Mock
 
 import pytest
 
-from analyzer import persona_loader
+from analyzer import persona_loader, reporter
+from loaders.jsonl_utils import iter_jsonl_dicts
 from usage_common import project_resolver
 
 
@@ -139,6 +140,199 @@ def test_profile_cache_keeps_each_period_within_ttl(
     assert persona_loader.load_profile(7) is profile
 
     assert load.call_args_list == [((1,), {}), ((7,), {})]
+
+
+@pytest.mark.parametrize("days_back", [-1, 0, 1, 7, 30])
+def test_report_profile_matches_full_profile(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, days_back: int
+) -> None:
+    now = datetime(2026, 11, 16, 12, tzinfo=UTC)
+
+    class FixedDateTime(datetime):
+        @classmethod
+        def now(cls, tz: tzinfo | None = None) -> Self:
+            return cls.fromtimestamp(now.timestamp(), tz)
+
+    monkeypatch.setattr(persona_loader, "datetime", FixedDateTime)
+    roots = [tmp_path / "claude-a" / "projects", tmp_path / "claude-b" / "projects"]
+    monkeypatch.setattr(persona_loader, "_claude_projects_dirs", lambda: roots)
+    rows: list[dict[str, Any]] = []
+    for index in range(12):
+        session = f"session-{index}"
+        rows.extend(
+            [
+                _title_row(session, " Duplicate " if index < 2 else f"Title {index}"),
+                _row(
+                    timestamp=(now - timedelta(minutes=index + 1)).astimezone(
+                        timezone(timedelta(hours=8 if index % 2 else -5))
+                    ),
+                    session_id=session,
+                    cwd=str(tmp_path / "project-a"),
+                    type_="user" if index % 2 else "assistant",
+                ),
+            ]
+        )
+    for days in (1, 7, 30):
+        for offset in (-1, 0, 1):
+            session = f"boundary-{days}-{offset}"
+            rows.extend(
+                [
+                    _title_row(session, session),
+                    _row(
+                        timestamp=now - timedelta(days=days) + timedelta(microseconds=offset),
+                        session_id=session,
+                    ),
+                ]
+            )
+    rows.extend(
+        [
+            _title_row("session-0", " Replaced title "),
+            _title_row("session-0", "   "),
+            _title_row("title-only", "Ignore no message"),
+            _title_row("bad-time", "Ignore invalid timestamp"),
+            {"type": "user", "sessionId": "bad-time", "timestamp": "bad"},
+            {"type": "assistant", "sessionId": "bad-time"},
+            _row(timestamp=now, session_id="noise", type_="system"),
+            _title_row("noise", "Ignore system message"),
+            _row(timestamp=now, session_id=""),
+            _row(timestamp=now, session_id="zero", type_="user"),
+            _title_row("zero", "At cutoff"),
+            _row(timestamp=now + timedelta(seconds=1), session_id="future"),
+            _title_row("future", "Future message"),
+        ]
+    )
+    path_a = roots[0] / "project-a" / "a.jsonl"
+    _write_jsonl(path_a, rows)
+    with path_a.open("a", encoding="utf-8") as file:
+        file.write('not json\n{"broken":\n[]\nnull\n\n')
+    path_b = roots[1] / "project-b" / "b.jsonl"
+    _write_jsonl(
+        path_b,
+        [
+            {"type": "ai-title", "session_id": "alias", "aiTitle": "Alias session"},
+            {"type": "user", "session_id": "alias", "timestamp": now.isoformat()},
+            _row(timestamp=now - timedelta(days=40), session_id="session-0"),
+            _row(timestamp=now - timedelta(minutes=20), session_id="session-2"),
+        ],
+    )
+    stale = roots[0] / "project-old" / "old.jsonl"
+    _write_jsonl(stale, [_row(timestamp=now), _title_row("session-1", "Ignore stale file")])
+    stale_ts = (now - timedelta(days=40)).timestamp()
+    os.utime(stale, (stale_ts, stale_ts))
+    for path in (path_a, path_b):
+        os.utime(path, (now.timestamp(), now.timestamp()))
+
+    full = persona_loader.load_profile(days_back)
+    report = persona_loader.load_report_profile(days_back)
+
+    assert report.hour_histogram == full.hour_histogram
+    assert report.recent_titles == full.recent_titles
+    if days_back <= 0:
+        assert sum(report.hour_histogram) == 4
+        assert report.recent_titles == ["Future message", "At cutoff", "Alias session"]
+    else:
+        assert len(report.recent_titles) == 8
+        assert report.recent_titles[:5] == [
+            "Future message",
+            "At cutoff",
+            "Alias session",
+            "Replaced title",
+            "Duplicate",
+        ]
+        assert (
+            sum(report.hour_histogram)
+            == 16
+            + sum(3 if days < days_back else 2 if days == days_back else 0 for days in (1, 7, 30))
+            + 1
+        )  # The older message in b.jsonl still counts separately.
+
+
+def test_report_profile_reads_each_jsonl_once_and_caches_until_reset_or_ttl(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    projects = tmp_path / "projects"
+    monkeypatch.setattr(persona_loader, "_claude_projects_dirs", lambda: [projects])
+    paths = [projects / "a" / "a.jsonl", projects / "b" / "b.jsonl"]
+    for path in paths:
+        _write_jsonl(path, [_row(timestamp=datetime.now(UTC))])
+    read = Mock(wraps=iter_jsonl_dicts)
+    monkeypatch.setattr(persona_loader, "iter_jsonl_dicts", read)
+    indexes = Mock(side_effect=AssertionError("report must not build assistant indexes"))
+    monkeypatch.setattr(persona_loader, "_build_assistant_indexes", indexes)
+    clock = Mock(return_value=1000.0)
+    monkeypatch.setattr("analyzer.persona_loader.time.time", clock)
+
+    first = persona_loader.load_report_profile(7)
+    assert sorted(call.args[0] for call in read.call_args_list) == sorted(paths)
+    assert all(call.kwargs == {"errors": "replace"} for call in read.call_args_list)
+    clock.return_value = 1000.0 + persona_loader._CACHE_TTL_SECONDS - 1
+    assert persona_loader.load_report_profile(7) is first
+    assert read.call_count == 2
+    persona_loader._reset_cache()
+    assert persona_loader.load_report_profile(7) == first
+    assert read.call_count == 4
+    clock.return_value += persona_loader._CACHE_TTL_SECONDS
+    assert persona_loader.load_report_profile(7) == first
+    assert read.call_count == 6
+    indexes.assert_not_called()
+
+
+def test_report_profile_cache_is_independent_and_keeps_each_period(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    report = persona_loader.ReportProfile([0] * 24, [])
+    full = persona_loader.PersonaProfile([0] * 24, [], [], 0, 0)
+    report_load = Mock(return_value=report)
+    full_load = Mock(return_value=full)
+    monkeypatch.setattr(persona_loader, "_load_report_profile_uncached", report_load)
+    monkeypatch.setattr(persona_loader, "_load_profile_uncached", full_load)
+
+    for days in (1, 7, 1, 7):
+        assert persona_loader.load_report_profile(days) is report
+        assert persona_loader.load_profile(days) is full
+    assert report_load.call_args_list == [((1,), {}), ((7,), {})]
+    assert full_load.call_args_list == [((1,), {}), ((7,), {})]
+    persona_loader._reset_cache()
+    assert persona_loader.load_report_profile(1) is report
+    assert persona_loader.load_profile(1) is full
+    assert report_load.call_count == full_load.call_count == 3
+
+
+@pytest.mark.parametrize("missing", [False, True])
+def test_report_profile_is_empty_without_logs(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, missing: bool
+) -> None:
+    projects = tmp_path / "projects"
+    if not missing:
+        projects.mkdir()
+    monkeypatch.setattr(persona_loader, "_claude_projects_dirs", lambda: [projects])
+
+    assert persona_loader.load_report_profile() == persona_loader.ReportProfile([0] * 24, [])
+
+
+@pytest.mark.parametrize("period,days", [("today", 1), ("last7", 7), ("all", 3650)])
+def test_reporter_uses_report_profile_and_copies_fields(
+    monkeypatch: pytest.MonkeyPatch, period: str, days: int
+) -> None:
+    profile = persona_loader.ReportProfile(list(range(24)), ["Title"])
+    load = Mock(return_value=profile)
+    monkeypatch.setattr(persona_loader, "load_report_profile", load)
+    full_load = Mock(side_effect=AssertionError("report must not load full profile"))
+    monkeypatch.setattr(persona_loader, "load_profile", full_load)
+
+    result = reporter._load_persona_for_period(period)
+
+    assert result == {"hour_histogram": profile.hour_histogram, "recent_titles": ["Title"]}
+    assert result["hour_histogram"] is not profile.hour_histogram
+    assert result["recent_titles"] is not profile.recent_titles
+    load.assert_called_once_with(days)
+    full_load.assert_not_called()
+
+
+def test_reporter_returns_none_when_report_profile_fails(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(persona_loader, "load_report_profile", Mock(side_effect=OSError("log")))
+
+    assert reporter._load_persona_for_period("last7") is None
 
 
 def test_empty_directory_returns_empty_profile(

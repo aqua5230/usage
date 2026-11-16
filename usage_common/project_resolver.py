@@ -31,6 +31,8 @@ def resolve_project_name(cwd: str | Path) -> str:
 @lru_cache(maxsize=2048)
 def _resolve_project_name(normalized_cwd: str) -> str:
     fallback = Path(normalized_cwd).name or "unknown"
+    if not Path(normalized_cwd).is_dir():
+        return fallback
     try:
         result = subprocess.run(
             ["git", "-C", normalized_cwd, "worktree", "list", "--porcelain"],

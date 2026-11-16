@@ -25,6 +25,13 @@ def _clear_project_resolver_cache() -> None:
     project_resolver._project_from_encoded_directory.cache_clear()
 
 
+@pytest.fixture
+def feature_dir(tmp_path: Path) -> Path:
+    path = tmp_path / "feature"
+    path.mkdir()
+    return path
+
+
 def _completed(
     returncode: int,
     stdout: str = "",
@@ -40,6 +47,7 @@ def _completed(
 
 def test_resolve_project_name_uses_first_worktree_basename(
     monkeypatch: pytest.MonkeyPatch,
+    feature_dir: Path,
 ) -> None:
     run = Mock(
         return_value=_completed(
@@ -51,63 +59,92 @@ def test_resolve_project_name_uses_first_worktree_basename(
     )
     monkeypatch.setattr("usage_common.project_resolver.subprocess.run", run)
 
-    assert project_resolver.resolve_project_name("/work/feature") == "main-project"
+    assert project_resolver.resolve_project_name(feature_dir) == "main-project"
+    run.assert_called_once()
+    assert run.call_args.args[0] == [
+        "git",
+        "-C",
+        str(feature_dir.resolve()),
+        "worktree",
+        "list",
+        "--porcelain",
+    ]
+
+
+@pytest.mark.parametrize("is_file", [False, True])
+def test_resolve_project_name_skips_git_without_directory(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, is_file: bool
+) -> None:
+    path = tmp_path / "missing-project"
+    if is_file:
+        path.write_text("not a directory", encoding="utf-8")
+    run = Mock()
+    monkeypatch.setattr("usage_common.project_resolver.subprocess.run", run)
+
+    assert project_resolver.resolve_project_name(path) == "missing-project"
+    run.assert_not_called()
 
 
 def test_resolve_project_name_removes_bare_repo_suffix(
     monkeypatch: pytest.MonkeyPatch,
+    feature_dir: Path,
 ) -> None:
     run = Mock(return_value=_completed(0, stdout="worktree /Users/me/git/obsidian00.git\n"))
     monkeypatch.setattr("usage_common.project_resolver.subprocess.run", run)
 
-    assert project_resolver.resolve_project_name("/work/feature") == "obsidian00"
+    assert project_resolver.resolve_project_name(feature_dir) == "obsidian00"
 
 
 def test_resolve_project_name_falls_back_for_bare_repo_named_git(
     monkeypatch: pytest.MonkeyPatch,
+    feature_dir: Path,
 ) -> None:
     run = Mock(return_value=_completed(0, stdout="worktree /Users/me/src/.git\n"))
     monkeypatch.setattr("usage_common.project_resolver.subprocess.run", run)
 
-    assert project_resolver.resolve_project_name("/work/feature") == "feature"
+    assert project_resolver.resolve_project_name(feature_dir) == "feature"
 
 
 def test_resolve_project_name_falls_back_for_non_git_repo(
     monkeypatch: pytest.MonkeyPatch,
+    feature_dir: Path,
 ) -> None:
     run = Mock(return_value=_completed(128, stderr="fatal: not a git repository\n"))
     monkeypatch.setattr("usage_common.project_resolver.subprocess.run", run)
 
-    assert project_resolver.resolve_project_name("/work/feature") == "feature"
+    assert project_resolver.resolve_project_name(feature_dir) == "feature"
 
 
 def test_resolve_project_name_falls_back_when_git_is_missing(
     monkeypatch: pytest.MonkeyPatch,
+    feature_dir: Path,
 ) -> None:
     run = Mock(side_effect=FileNotFoundError)
     monkeypatch.setattr("usage_common.project_resolver.subprocess.run", run)
 
-    assert project_resolver.resolve_project_name("/work/feature") == "feature"
+    assert project_resolver.resolve_project_name(feature_dir) == "feature"
 
 
 def test_resolve_project_name_falls_back_on_timeout(
     monkeypatch: pytest.MonkeyPatch,
+    feature_dir: Path,
 ) -> None:
     run = Mock(side_effect=subprocess.TimeoutExpired(cmd=["git"], timeout=3))
     monkeypatch.setattr("usage_common.project_resolver.subprocess.run", run)
 
-    assert project_resolver.resolve_project_name("/work/feature") == "feature"
+    assert project_resolver.resolve_project_name(feature_dir) == "feature"
 
 
 @pytest.mark.parametrize("stdout", ["", "bare /work/feature\n"])
 def test_resolve_project_name_falls_back_for_unexpected_output(
     monkeypatch: pytest.MonkeyPatch,
+    feature_dir: Path,
     stdout: str,
 ) -> None:
     run = Mock(return_value=_completed(0, stdout=stdout))
     monkeypatch.setattr("usage_common.project_resolver.subprocess.run", run)
 
-    assert project_resolver.resolve_project_name("/work/feature") == "feature"
+    assert project_resolver.resolve_project_name(feature_dir) == "feature"
 
 
 def test_resolve_project_name_falls_back_for_empty_cwd(
@@ -122,9 +159,9 @@ def test_resolve_project_name_falls_back_for_empty_cwd(
 
 def test_resolve_project_name_reuses_cached_subprocess_result(
     monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
+    feature_dir: Path,
 ) -> None:
-    path = tmp_path / "feature"
+    path = feature_dir
     run = Mock(return_value=_completed(0, stdout="worktree /work/main-project\n"))
     monkeypatch.setattr("usage_common.project_resolver.subprocess.run", run)
 
@@ -135,14 +172,15 @@ def test_resolve_project_name_reuses_cached_subprocess_result(
 
 def test_resolve_project_name_caches_path_resolution(
     monkeypatch: pytest.MonkeyPatch,
+    feature_dir: Path,
 ) -> None:
-    resolve = Mock(return_value=Path("/work/feature"))
+    resolve = Mock(return_value=feature_dir)
     run = Mock(return_value=_completed(0, stdout="worktree /work/main-project\n"))
     monkeypatch.setattr(Path, "resolve", resolve)
     monkeypatch.setattr("usage_common.project_resolver.subprocess.run", run)
 
-    assert project_resolver.resolve_project_name("/work/feature") == "main-project"
-    assert project_resolver.resolve_project_name("/work/feature") == "main-project"
+    assert project_resolver.resolve_project_name(feature_dir) == "main-project"
+    assert project_resolver.resolve_project_name(feature_dir) == "main-project"
 
     assert resolve.call_count == 1
     assert run.call_count == 1
@@ -250,13 +288,14 @@ def test_project_from_encoded_path_outside_dir_is_unknown(tmp_path: Path) -> Non
 
 def test_resolve_project_name_forces_utf8_git_decoding(
     monkeypatch: pytest.MonkeyPatch,
+    feature_dir: Path,
 ) -> None:
     # A .app launched via LaunchServices has no LANG, so text=True would decode
     # git output as ASCII and crash on non-ASCII repo paths. Lock in utf-8.
     run = Mock(return_value=_completed(0, stdout="worktree /work/main-project\n"))
     monkeypatch.setattr("usage_common.project_resolver.subprocess.run", run)
 
-    project_resolver.resolve_project_name("/work/feature")
+    project_resolver.resolve_project_name(feature_dir)
 
     _, kwargs = run.call_args
     assert kwargs.get("encoding") == "utf-8"

@@ -339,7 +339,10 @@ def test_parse_line_accepts_numeric_string_cost_usd() -> None:
 
 def test_parse_line_uses_main_worktree_project_for_cwd(
     monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
 ) -> None:
+    cwd = tmp_path / "my-project-feature"
+    cwd.mkdir()
     run = Mock(
         return_value=subprocess.CompletedProcess(
             args=["git", "-C", "/tmp/work/my-project-feature", "worktree", "list", "--porcelain"],
@@ -350,7 +353,7 @@ def test_parse_line_uses_main_worktree_project_for_cwd(
     )
     monkeypatch.setattr("usage_common.project_resolver.subprocess.run", run)
 
-    entries = history_loader._parse_line(_line(cwd="/tmp/work/my-project-feature"), "fallback")
+    entries = history_loader._parse_line(_line(cwd=str(cwd)), "fallback")
 
     assert entries is not None
     assert entries[0].project == "my-project"
