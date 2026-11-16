@@ -143,8 +143,8 @@ def test_report_main_reports_failure(
 @pytest.mark.parametrize("fail", [False, True])
 def test_report_windows_streams_use_utf8(monkeypatch: pytest.MonkeyPatch, fail: bool) -> None:
     output, errors = io.BytesIO(), io.BytesIO()
-    stdout = io.TextIOWrapper(output, encoding="ascii")
-    stderr = io.TextIOWrapper(errors, encoding="ascii")
+    stdout = io.TextIOWrapper(output, encoding="ascii", newline="\n")
+    stderr = io.TextIOWrapper(errors, encoding="ascii", newline="\n")
     monkeypatch.setattr(sys, "platform", "win32")
     monkeypatch.setattr(sys, "stdout", stdout)
     monkeypatch.setattr(sys, "stderr", stderr)
