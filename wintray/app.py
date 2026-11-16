@@ -2511,13 +2511,26 @@ class _WindowsTrayController:
         self.refresh()
 
     def _analyze_usage(self, project_range: str) -> None:
-        from adapters.registry import detect_agents
-        from analyzer.reporter import build_report_data
-        from ui.html_report import save_and_open
+        import subprocess
+        import sys
+
+        from usage_app.self_command import self_command_argv
+        from usage_common.subprocess_utils import hidden_console_kwargs
 
         periods = {"1d": "today", "7d": "last7", "30d": "last30", "all": "all"}
         period = periods.get(project_range, "month")
-        save_and_open(build_report_data(detect_agents(), period), language=self.language)
+        completed = subprocess.run(
+            self_command_argv("report", ["--period", period, "--language", self.language]),
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=600,
+            **(hidden_console_kwargs() if getattr(sys, "frozen", False) else {}),
+        )
+        if completed.returncode:
+            if completed.stderr.strip():
+                raise RuntimeError(completed.stderr.strip().splitlines()[-1])
+            completed.check_returncode()
 
     def quit(self, _icon: Any = None, _item: Any = None) -> None:
         self.stopping.set()

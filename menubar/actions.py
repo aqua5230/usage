@@ -12,6 +12,7 @@ import contextlib
 import io
 import logging
 import os
+import subprocess
 from typing import Any, Protocol
 
 from Foundation import NSObject
@@ -25,6 +26,7 @@ from installer.statusline_settings import (
 )
 from menubar.chrome import _make_alert
 from menubar.new_badge import dismiss_badge
+from usage_app.self_command import self_command_argv
 from usage_common.i18n import _t
 from usage_common.usage_lang import detect_lang
 
@@ -153,16 +155,27 @@ def statusline_action_in_background(app: _ActionApp, action: str) -> None:
 
 
 def analyze_usage_in_background(app: _ActionApp, period: str) -> None:
-    from menubar.app import _generate_analysis_report
-
     result: dict[str, str | bool]
     try:
-        saved = _generate_analysis_report(period=period, language=app.language)
-        result = {"success": True, "message": saved}
+        completed = subprocess.run(
+            self_command_argv(
+                "report",
+                ["--period", "all", "--default-range", period, "--language", app.language],
+            ),
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=600,
+        )
+        completed.check_returncode()
+        result = {"success": True, "message": (completed.stdout.strip().splitlines() or [""])[-1]}
     except Exception as exc:
         if os.environ.get("USAGE_DEBUG") == "1":
             logger.warning("analysis report failed", exc_info=True)
-        result = {"success": False, "message": f"{type(exc).__name__}: {exc}"}
+        message = f"{type(exc).__name__}: {exc}"
+        if isinstance(exc, subprocess.CalledProcessError) and exc.stderr:
+            message = exc.stderr.strip().splitlines()[-1] if exc.stderr.strip() else message
+        result = {"success": False, "message": message}
     app.performSelectorOnMainThread_withObject_waitUntilDone_(
         "_finishAnalyzeUsage:",
         result,

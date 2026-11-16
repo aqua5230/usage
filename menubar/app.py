@@ -986,16 +986,6 @@ def run_app(
     app.run()
 
 
-def _generate_analysis_report(period: str = "month", language: str | None = None) -> str:
-    from adapters.registry import detect_agents
-    from analyzer.reporter import build_report_data
-    from ui.html_report import save_and_open
-
-    agents = detect_agents()
-    data = build_report_data(agents, "all")
-    return save_and_open(data, language=language, default_range=period)
-
-
 def _analysis_period_from_project_range(project_range: str) -> str:
     if project_range == "1d":
         return "today"

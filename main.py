@@ -208,6 +208,10 @@ async def run_tui(mock: bool, interval: int, force_group: int | None = None) -> 
 
 
 def main() -> None:
+    if sys.argv[1:2] == ["report"]:
+        from usage_app import report as usage_report
+
+        raise SystemExit(usage_report.main(sys.argv[2:]))
     if sys.argv[1:2] == ["status"]:
         from usage_app import cli as usage_cli
 

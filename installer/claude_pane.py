@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 
 from installer import setup_hook
+from usage_app.self_command import self_command_argv
 from usage_common.i18n import t as _t
 from usage_common.usage_lang import detect_lang
 
@@ -53,32 +54,7 @@ def _resolve_source(mod: str = "usage-dash") -> Path:
 
 
 def _status_argv() -> list[str]:
-    if getattr(sys, "frozen", False) and sys.platform == "win32":
-        return [sys.executable, "status", "--json"]
-    if getattr(sys, "frozen", False):
-        resources = str(Path(sys.executable).resolve().parent.parent / "Resources")
-        major, minor = sys.version_info[:2]
-        bootstrap = (
-            f"import sys;sys.path[:0]=[{resources!r}+'/lib/python{major}{minor}.zip',"
-            f"{resources!r}+'/lib/python{major}.{minor}',"
-            f"{resources!r}+'/lib/python{major}.{minor}/lib-dynload',{resources!r}];"
-            "from usage_app import cli;sys.argv=['usage','status','--json'];cli.main()"
-        )
-        return [
-            "/usr/bin/env",
-            f"PYTHONHOME={resources}",
-            f"RESOURCEPATH={resources}",
-            sys.executable,
-            "-c",
-            bootstrap,
-        ]
-    root = str(Path(__file__).resolve().parent.parent)
-    return [
-        sys.executable,
-        "-c",
-        f"import sys;sys.path.insert(0,{root!r});from usage_app import cli;"
-        "sys.argv=['usage','status','--json'];cli.main()",
-    ]
+    return self_command_argv("status", ["--json"])
 
 
 def _sidecar_text(mod: str = "usage-dash") -> str:
