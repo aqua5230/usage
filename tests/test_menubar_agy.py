@@ -15,6 +15,58 @@ from quota.burn_rate import BurnRateTracker
 from usage_common import prefs
 
 
+@pytest.mark.parametrize("remaining", [0.0, 100.0])
+def test_carried_weekly_keeps_session_fresh(
+    monkeypatch: pytest.MonkeyPatch, remaining: float
+) -> None:
+    from menubar import state
+    from quota import agy_window_keeper
+    from quota.notifications import QuotaNotifier, quota_reading
+
+    now = datetime(2026, 11, 16, 12, tzinfo=UTC)
+    monkeypatch.setattr(menubar_agy, "auth_expired", lambda: False)
+    group = AgyQuotaGroup(
+        "GEMINI MODELS",
+        ["Gemini Flash"],
+        AgyQuotaWindow(0.0, "6d", 8640),
+        AgyQuotaWindow(remaining, "4h", 240),
+        weekly_fetched_at=(now - timedelta(minutes=6)).isoformat(),
+    )
+    trackers = {"agy_session": BurnRateTracker(), "agy_weekly": BurnRateTracker()}
+    projection = menubar_agy.project_quota(
+        AgyQuotaResult([group], now.isoformat()),
+        "en",
+        now=now.timestamp(),
+        burn_rate_trackers=trackers,
+    )
+    assert projection is not None
+    assert projection.stale is None
+    assert trackers["agy_session"].last_timestamp == now.timestamp()
+    assert trackers["agy_weekly"].last_timestamp is None
+    assert "about 6 minutes ago" in projection.weekly.reset_text
+    s = state._empty_state()
+    s.agy_session, s.agy_weekly, s.agy_stale = (
+        projection.session,
+        projection.weekly,
+        projection.stale,
+    )
+    events = QuotaNotifier().update(
+        {"agy_session": quota_reading(s.agy_session), "agy_weekly": quota_reading(s.agy_weekly)}
+    )
+    expected = [("agy_session", "depleted")] if remaining == 0.0 else []
+    assert [(event.channel, event.kind) for event in events] == expected
+    assert projection.gemini_five_hour is not None
+    assert agy_window_keeper.should_ping(
+        now.timestamp(),
+        True,
+        None,
+        projection.gemini_five_hour.remaining_percent,
+        projection.stale,
+        False,
+        False,
+    ) is (remaining == 100.0)
+
+
 def _group(
     name: str,
     *,

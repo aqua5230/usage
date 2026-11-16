@@ -211,6 +211,24 @@ def test_agy_models_share_group_denominator() -> None:
     assert estimates[("antigravity", "pro", "antigravity:GEMINI MODELS")] == pytest.approx(40)
 
 
+def test_agy_hyphenated_group_model_matches(
+    paths: tuple[Path, Path, Path], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(rate_limits, "load_rate_limits", lambda: None)
+    monkeypatch.setattr(codex_loader, "load_rate_limits", lambda: None)
+    window = agy_quota_probe.AgyQuotaWindow(40, None, 120)
+    group = agy_quota_probe.AgyQuotaGroup("CLAUDE AND GPT MODELS", ["GPT-OSS"], window, window)
+    monkeypatch.setattr(
+        agy_quota_probe,
+        "_read_cache",
+        lambda: agy_quota_probe.AgyQuotaResult([group], NOW.isoformat()),
+    )
+    entry = replace(_entry(NOW, "oss", 100), agent_id="antigravity", model="gpt-oss-120b")
+    estimates, resets = ledger.estimate_sessions([entry], ledger.load_windows(), NOW)
+    assert estimates == {("antigravity", "oss", "antigravity:CLAUDE AND GPT MODELS"): 60}
+    assert resets == set()
+
+
 def test_agy_quota_uses_cache_only(
     paths: tuple[Path, Path, Path], monkeypatch: pytest.MonkeyPatch
 ) -> None:

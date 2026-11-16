@@ -7,9 +7,21 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from quota.burn_rate import RESET_DROP_PERCENT
+
+if TYPE_CHECKING:
+    from menubar.state import QuotaRowState
+
+
+def quota_reading(row: QuotaRowState, available: bool = True) -> tuple[float | None, bool]:
+    """An available empty reading silently closes an expired quota window."""
+    if available and row.available and row.reset_done:
+        return None, True
+    available = available and row.available and not getattr(row, "carried", False)
+    return row.percent, available
+
 
 NotificationKind = Literal["warn", "depleted", "restored"]
 
@@ -77,6 +89,9 @@ class QuotaNotifier:
         state = self._channels.setdefault((channel, scope), _ChannelState())
         events: list[NotificationEvent] = []
         if not available:
+            return events
+        if percent is None:
+            self._channels[(channel, scope)] = _ChannelState()
             return events
         current = float(percent) if percent is not None else None
 

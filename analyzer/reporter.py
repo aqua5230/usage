@@ -99,6 +99,7 @@ class ProjectReportRow(TypedDict):
     project: str
     tokens: int
     cost: float
+    cost_known: bool
     sessions: int
     pct: float
 
@@ -1067,7 +1068,7 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
         }
     )
     by_project_totals: dict[str, dict[str, Any]] = defaultdict(
-        lambda: {"tokens": 0, "cost": 0.0, "sessions": set()}
+        lambda: {"tokens": 0, "cost": 0.0, "cost_known": False, "sessions": set()}
     )
     by_model_totals: dict[str, dict[str, Any]] = defaultdict(lambda: {"tokens": 0, "cost": 0.0})
     by_model_project: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
@@ -1106,6 +1107,7 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
         project = by_project_totals[entry.project or "unknown"]
         project["tokens"] += entry.total_tokens
         project["cost"] += cost
+        project["cost_known"] = project["cost_known"] or is_model_priced(entry.model)
         if not ledger_backfill.is_ledger_entry(entry):
             project["sessions"].add(entry.session_id)
 
@@ -1166,6 +1168,7 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
             "project": project,
             "tokens": data["tokens"],
             "cost": _round_cost(data["cost"]),
+            "cost_known": data["cost_known"],
             "sessions": len(data["sessions"]),
             "pct": _pct(data["tokens"], total_tokens),
         }

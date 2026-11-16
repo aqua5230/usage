@@ -124,6 +124,7 @@ MODEL_SHORT = {
     "gemini-3.8-flash": "Flash 3.8",
     "gemini-4-argon": "Argon 4",
     "gemini-4-hydrogen": "Hydrogen 4",
+    "gemini-4-carbon": "Carbon 4",
 }
 
 

@@ -9,6 +9,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Fixed
 - **The Windows tray tooltip no longer lists a tool you hid under Hide Sections.** Claude and Codex were always listed, even when hidden, and their lines could push the last tools past Windows' 127-character tooltip limit. A hidden tool's line is now left out; the tool chosen as Tray Display Source stays, because the icon shows its number.
+- **The Antigravity card no longer goes stale when only its weekly reading is carried over.** When the weekly reading could not be refreshed, the whole card was marked stale, which stopped the 5-hour burn rate, notifications, and the window keeper. Now only the weekly row shows its age, and the 5-hour row keeps working.
+- **Quota notifications no longer use a reading from before the window reset.** After the reset time passed, the old percentage could still send a "used up" notification or block the next window's notifications. On macOS and Windows, a window past its reset time now ends quietly.
+- **Projects that use only unpriced models show "—" instead of $0.00 in the report,** including after date filtering.
+- **The Windows tray now reports a failed status line toggle or hook install** instead of failing silently.
+- **GPT-OSS, which Antigravity retires on 2026-11-18, was removed from the Claude and GPT model group,** and Antigravity group models with hyphenated names now match your usage logs.
+- **Gemini 4 Carbon now shows as "Carbon 4".**
 - **Switching to an account without a 5-hour limit no longer keeps the previous account's 5-hour usage.** The status line and quota-aware mode filled the missing window from the old account, so they could show 99% used on an account that has no 5-hour limit. A missing window is now filled only from the same account. The status-line hook updates to 1.19 and the quota-aware hook to 1.17.
 - **The status line switch shows as on when only Grok uses it beside your own Claude Code status line.** It showed as off, and turning it on installed the status line again instead of turning Grok's off.
 - **Quota-aware mode no longer announces a Codex model a second time when you first use it.** A model already recorded from the Codex catalog was announced again from your usage logs.

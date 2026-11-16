@@ -59,7 +59,7 @@ from panels.panel_scale import MIN_PANEL_SCALE, fit_panel_size, fit_scale
 from panels.payload import _load_panel_html, _state_payload, resolve_resource
 from quota import model_registry, quota_snapshot
 from quota.burn_rate import BurnRateTracker
-from quota.notifications import NotificationEvent, QuotaNotifier
+from quota.notifications import NotificationEvent, QuotaNotifier, quota_reading
 from quota.usage_rate import UsageRateTracker
 from updates import checker as update_checker
 from updates import gate as update_gate
@@ -2151,24 +2151,12 @@ class _WindowsTrayController:
         try:
             events = self._quota_notifier.update(
                 {
-                    "claude_session": (
-                        state.claude_session.percent,
-                        state.claude_session.available,
-                    ),
-                    "claude_weekly": (
-                        state.claude_weekly.percent,
-                        state.claude_weekly.available,
-                    ),
-                    "codex_session": (state.codex_session.percent, state.codex_session.available),
-                    "codex_weekly": (state.codex_weekly.percent, state.codex_weekly.available),
-                    "agy_session": (
-                        state.agy_session.percent,
-                        state.agy_session.available and state.agy_stale is None,
-                    ),
-                    "agy_weekly": (
-                        state.agy_weekly.percent,
-                        state.agy_weekly.available and state.agy_stale is None,
-                    ),
+                    "claude_session": quota_reading(state.claude_session),
+                    "claude_weekly": quota_reading(state.claude_weekly),
+                    "codex_session": quota_reading(state.codex_session),
+                    "codex_weekly": quota_reading(state.codex_weekly),
+                    "agy_session": quota_reading(state.agy_session, state.agy_stale is None),
+                    "agy_weekly": quota_reading(state.agy_weekly, state.agy_stale is None),
                     "muse_session": (
                         state.muse_session.display_percent,
                         state.muse_session.available and state.muse_stale is None,
@@ -2501,8 +2489,9 @@ class _WindowsTrayController:
     def _toggle_statusline(self) -> None:
         try:
             _, exit_code = _toggle_statusline_settings()
-        except Exception as exc:
-            self._message_box(f"{_t(self.language, 'statusline_action_failed')}\n\n{exc}")
+        except (SystemExit, Exception) as exc:
+            if not isinstance(exc, SystemExit) or exc.code:
+                self._message_box(f"{_t(self.language, 'statusline_action_failed')}\n\n{exc}")
         else:
             if exit_code != 0:
                 self._message_box(_t(self.language, "statusline_action_failed"))
@@ -2511,10 +2500,14 @@ class _WindowsTrayController:
     def _install_hook(self) -> None:
         from installer import session_hooks, setup_hook, statusline_settings
 
-        if setup_hook.setup() == 0:
-            session_hooks._migrate_bundled_python_commands_if_needed()
-            statusline_settings._sync_agy_statusline(True)
-            statusline_settings._sync_grok_statusline(True)
+        try:
+            if setup_hook.setup() == 0:
+                session_hooks._migrate_bundled_python_commands_if_needed()
+                statusline_settings._sync_agy_statusline(True)
+                statusline_settings._sync_grok_statusline(True)
+        except (SystemExit, Exception) as exc:
+            if not isinstance(exc, SystemExit) or exc.code:
+                self._message_box(f"{_t(self.language, 'statusline_action_failed')}\n\n{exc}")
         self.refresh()
 
     def _analyze_usage(self, project_range: str) -> None:

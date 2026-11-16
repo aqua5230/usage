@@ -858,7 +858,7 @@ def _render_project_section(data: Mapping[str, Any], lang: str) -> str:
             _display_name(project["project"], lang),
             int(project["tokens"]) / total * 100 if total else 0.0,
             int(project["tokens"]),
-            float(project["cost"]),
+            None if not project.get("cost_known", True) else float(project["cost"]),
             lang,
             (
                 "var(--chart-neutral)"

@@ -4101,6 +4101,71 @@ def test_statusline_toggle_failure_shows_message(
     assert refreshed == [True]
 
 
+@pytest.mark.parametrize("action", ["_toggle_statusline", "_install_hook"])
+@pytest.mark.parametrize("code", [0, "Windows Python missing"])
+def test_hook_action_handles_system_exit(
+    monkeypatch: pytest.MonkeyPatch, action: str, code: int | str
+) -> None:
+    from installer import setup_hook
+
+    def fail() -> None:
+        raise SystemExit(code)
+
+    monkeypatch.setattr(wintray, "_toggle_statusline_settings", fail)
+    monkeypatch.setattr(setup_hook, "setup", fail)
+    messages: list[str] = []
+    refreshed: list[bool] = []
+    controller = SimpleNamespace(
+        language="en", _message_box=messages.append, refresh=lambda: refreshed.append(True)
+    )
+    getattr(wintray._WindowsTrayController, action)(controller)
+    assert refreshed == [True]
+    assert len(messages) == (0 if code == 0 else 1)
+    if code:
+        assert str(code) in messages[0]
+
+
+@pytest.mark.parametrize(
+    "channel",
+    [
+        "claude_session",
+        "claude_weekly",
+        "codex_session",
+        "codex_weekly",
+        "agy_session",
+        "agy_weekly",
+    ],
+)
+def test_expired_quota_notification_window_ends_silently(
+    monkeypatch: pytest.MonkeyPatch, channel: str
+) -> None:
+    from quota.notifications import QuotaNotifier
+
+    monkeypatch.setattr(wintray, "_quota_notifications_enabled", lambda: True)
+    state = menubar_state._empty_state()
+    events: list[str] = []
+    controller = SimpleNamespace(
+        _quota_notifier=QuotaNotifier(),
+        mock=False,
+        _send_quota_notification=lambda event, _state: events.append(event.kind),
+    )
+
+    def observe(percent: float, reset: float, now: float) -> list[str]:
+        events.clear()
+        setattr(
+            state,
+            channel,
+            menubar_state._quota_row("", percent, reset, now, menubar_state.CLAUDE_COLOR, "en"),
+        )
+        wintray._WindowsTrayController._process_quota_notifications(cast(Any, controller), state)
+        return events
+
+    assert observe(100.0, 999.0, 1000.0) == []
+    assert observe(100.0, 1600.0, 1000.0) == ["depleted"]
+    assert observe(100.0, 1600.0, 1700.0) == []
+    assert observe(96.0, 20000.0, 2200.0) == ["warn"]
+
+
 @pytest.mark.parametrize("provider", ["claude", "codex"])
 @pytest.mark.parametrize(
     "reset,expected_text,expected_percent",
