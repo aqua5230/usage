@@ -356,6 +356,10 @@ REPORT_FILTER_JS = r"""(() => {
     return (!text || text === 'unknown') ? (shareConfig.unknown || 'unknown') : text;
   }
 
+  function isUnattributed(value) {
+    return value == null || value === '' || value === 'unknown';
+  }
+
   function modelColor(name) {
     const normalized = name.toLowerCase();
     if (normalized.startsWith('claude')) return '#5abfa0';
@@ -492,6 +496,7 @@ REPORT_FILTER_JS = r"""(() => {
 
   const toolMetadata = new Map();
   document.querySelectorAll('.tools-section .tool-row').forEach((row) => {
+    if (row.dataset.agentId !== undefined && isUnattributed(row.dataset.agentId)) return;
     const name = rowName(row, '.sub-agent');
     const plan = row.querySelector('.sub-plan');
     const since = row.querySelector('.sub-since');
@@ -509,7 +514,7 @@ REPORT_FILTER_JS = r"""(() => {
     const head = document.createElement('div');
     head.className = 'tool-head hlabel';
     appendTextSpan(head, 'arrow', '▸');
-    appendTextSpan(head, 'sub-agent', displayName(agent.name));
+    appendTextSpan(head, 'sub-agent', isUnattributed(agent.id) ? shareConfig.unattributedTools : displayName(agent.name));
     const metadata = toolMetadata.get(String(agent.id)) || toolMetadata.get(`name:${agent.name}`);
     appendToolPlan(head, metadata);
     row.append(head);
@@ -548,14 +553,15 @@ REPORT_FILTER_JS = r"""(() => {
     const byAgent = aggregateRows(summary.rows, 1);
     const entries = Object.entries(byAgent)
       .map(([agentIndex, item]) => ({agentIndex: Number(agentIndex), ...item}))
-      .sort((left, right) => right.tokens - left.tokens || left.agentIndex - right.agentIndex);
+      .sort((left, right) => Number(isUnattributed(cube.agents[left.agentIndex]?.id)) - Number(isUnattributed(cube.agents[right.agentIndex]?.id)) || right.tokens - left.tokens || left.agentIndex - right.agentIndex);
     const usedIds = new Set();
     entries.forEach((item, index) => {
       const agent = cube.agents[item.agentIndex];
       if (!agent) return;
       usedIds.add(String(agent.id));
       const groupRow = createToolRow(agent, item, summary.tokens);
-      if (index === 0) groupRow.querySelector('.hbar').style.background = 'var(--chart-accent)';
+      if (isUnattributed(agent.id)) groupRow.querySelector('.hbar').style.background = 'var(--chart-neutral)';
+      else if (index === 0) groupRow.querySelector('.hbar').style.background = 'var(--chart-accent)';
       tools.append(groupRow);
       const byModel = aggregateRows(
         summary.rows,
@@ -580,7 +586,8 @@ REPORT_FILTER_JS = r"""(() => {
         String(agent.id) === key || `name:${agent.name}` === key
       ));
       if (!matchedAgent || !usedIds.has(String(matchedAgent.id))) {
-        tools.append(createSubscriptionOnlyRow(metadata));
+        const unattributed = Array.from(tools.querySelectorAll('.tool-row')).find((row) => row.dataset.agentId !== undefined && isUnattributed(row.dataset.agentId));
+        tools.insertBefore(createSubscriptionOnlyRow(metadata), unattributed || null);
       }
     });
   }
@@ -599,7 +606,8 @@ REPORT_FILTER_JS = r"""(() => {
       }))
       .filter((item) => item.tokens > 0 || item.cost > 0)
       .sort((left, right) => right.tokens - left.tokens || left.projectIndex - right.projectIndex);
-    const displayed = projects.slice(0, 10);
+    const unattributed = projects.filter((project) => isUnattributed(project.name));
+    const displayed = projects.filter((project) => !isUnattributed(project.name)).slice(0, 10);
     displayed.forEach((project, index) => {
       const row = createRankRow(
         project.name,
@@ -611,12 +619,20 @@ REPORT_FILTER_JS = r"""(() => {
       list.append(row);
       bindProjectRow(row);
     });
-    const remaining = summary.tokens - displayed.reduce((sum, project) => sum + project.tokens, 0);
+    const remaining = summary.tokens - [...displayed, ...unattributed].reduce((sum, project) => sum + project.tokens, 0);
     if (remaining > 0) {
-      const cost = Math.max(0, summary.cost - displayed.reduce((sum, project) => sum + project.cost, 0));
+      const cost = Math.max(0, summary.cost - [...displayed, ...unattributed].reduce((sum, project) => sum + project.cost, 0));
       const other = createRankRow(shareConfig.projectOthers, {tokens: remaining, cost}, summary.tokens, 'var(--chart-neutral)', {costKnown: true, showShare: true});
       other.dataset.projectOther = 'true';
       list.append(other);
+    }
+    if (unattributed.length) {
+      const item = {
+        tokens: unattributed.reduce((sum, project) => sum + project.tokens, 0),
+        cost: unattributed.reduce((sum, project) => sum + project.cost, 0),
+        costKnown: unattributed.some((project) => project.costKnown),
+      };
+      list.append(createRankRow(shareConfig.unattributedProjects, item, summary.tokens, 'var(--chart-neutral)', {costKnown: item.costKnown, showShare: true}));
     }
     if (!projects.length && remaining <= 0) {
       const empty = document.createElement('div');
@@ -1095,17 +1111,19 @@ REPORT_FILTER_JS = r"""(() => {
     const pct = (value, total) => total ? Math.floor(value / total * 100 + 0.5) : 0;
     const agents = Object.entries(aggregateRows(summary.rows, 1))
       .map(([index, item]) => ({index: Number(index), ...item}))
-      .filter((item) => item.tokens > 0)
+      .filter((item) => item.tokens > 0 && !isUnattributed(cube.agents[item.index]?.id))
       .sort((a, b) => b.tokens - a.tokens || a.index - b.index);
     const titles = {
       tools: text('tools_section'), projects: text('project_section'),
       trend: text('trend_section'), composition: text('composition_section'),
       sessions: text('session_section'),
     };
-    if (agents.length) titles.tools = text(agents.length === 1 ? 'title_tools_single' : 'title_tools_top', {
+    if (agents.length) titles.tools = text(agents.length === 1 && agents[0].tokens >= summary.tokens ? 'title_tools_single' : 'title_tools_top', {
       tool: displayName(cube.agents[agents[0].index].name), pct: pct(agents[0].tokens, summary.tokens),
     });
-    const projects = Object.values(aggregateRows(summary.rows, 3))
+    const projects = Object.entries(aggregateRows(summary.rows, 3))
+      .filter(([index]) => !isUnattributed(cube.projects[Number(index)]))
+      .map(([, item]) => item)
       .filter((item) => item.tokens > 0).sort((a, b) => b.tokens - a.tokens);
     if (projects.length >= 3) titles.projects = text('title_projects_top3', {
       pct: pct(projects.slice(0, 3).reduce((sum, p) => sum + p.tokens, 0), summary.tokens),

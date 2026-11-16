@@ -79,6 +79,43 @@ def test_project_title_threshold_and_other_denominator(count: int) -> None:
     assert actual == expected
 
 
+@pytest.mark.parametrize("unknown", ["unknown", ""])
+def test_unattributed_project_title_excludes_unknown_from_top_three(unknown: str) -> None:
+    projects = [
+        {"project": unknown, "tokens": 500},
+        *(
+            {"project": f"private-{i}", "tokens": tokens}
+            for i, tokens in enumerate([200, 150, 70, 80])
+        ),
+    ]
+    assert heading("projects", summary={"total_tokens": 1000}, by_project=projects) == (
+        "前 3 個專案佔了 43% 的用量"
+    )
+    assert heading("projects", summary={"total_tokens": 1000}, by_project=projects[:3]) == (
+        html_report._t("zh-TW", "project_section")
+    )
+
+
+@pytest.mark.parametrize("known_count", [0, 1, 2])
+def test_unattributed_tools_do_not_lead_title_or_source(known_count: int) -> None:
+    agents = [
+        {"id": "unknown", "name": "unknown", "tokens": 800},
+        *[
+            {"id": name.lower(), "name": name, "tokens": 129 if i == 0 else 71}
+            for i, name in enumerate(["Codex", "Claude Code"][:known_count])
+        ],
+    ]
+    title, _, source = html_report._report_heading(
+        {"summary": {"total_tokens": 1000}, "by_agent": agents}, "zh-TW", "tools"
+    )
+    assert title == (
+        html_report._t("zh-TW", "tools_section") if not known_count else "Codex 用得最多，佔 13%"
+    )
+    assert "unknown" not in source and "未知" not in source
+    for kind in ("projects", "trend", "composition"):
+        assert "未知" not in html_report._report_heading({"by_agent": agents}, "zh-TW", kind)[2]
+
+
 @pytest.mark.parametrize("days", [0, 7, 14])
 def test_trend_title_complete_week_threshold(days: int) -> None:
     start = date(2026, 8, 3)

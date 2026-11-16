@@ -578,7 +578,9 @@
     "report_ledger_row_meta": "{project} · 派工 {count} 次",
     "report_ledger_more": "另外 {count} 段派工對話",
     "report_ledger_other": "其他（你直接用的，或沒對到派工紀錄）",
-    "report_ledger_all_reset": "最近 7 天的派工都在額度重置前，算在上週。"
+    "report_ledger_all_reset": "最近 7 天的派工都在額度重置前，算在上週。",
+    "report_unattributed_projects": "舊紀錄（只剩總數）",
+    "report_unattributed_tools": "舊紀錄（只剩總數）"
   },
   "en": {
     "report_title_tools_top": "{tool} leads with {pct}% of tokens",
@@ -1159,7 +1161,9 @@
     "report_ledger_row_meta": "{project} · {count} dispatches",
     "report_ledger_more": "{count} more dispatching conversations",
     "report_ledger_other": "Other (your own use, or no dispatch record found)",
-    "report_ledger_all_reset": "All dispatched work in the last 7 days came before the quota reset, so it counts toward last week."
+    "report_ledger_all_reset": "All dispatched work in the last 7 days came before the quota reset, so it counts toward last week.",
+    "report_unattributed_projects": "Old records (totals only)",
+    "report_unattributed_tools": "Old records (totals only)"
   },
   "zh-CN": {
     "report_title_tools_top": "{tool} 用得最多，占 {pct}%",
@@ -1740,7 +1744,9 @@
     "report_ledger_row_meta": "{project} · 派工 {count} 次",
     "report_ledger_more": "另外 {count} 段派工对话",
     "report_ledger_other": "其他（你直接用的，或没对到派工记录）",
-    "report_ledger_all_reset": "最近 7 天的派工都在额度重置前，算在上周。"
+    "report_ledger_all_reset": "最近 7 天的派工都在额度重置前，算在上周。",
+    "report_unattributed_projects": "旧记录（只剩总数）",
+    "report_unattributed_tools": "旧记录（只剩总数）"
   },
   "ja": {
     "report_title_tools_top": "{tool} が最多で {pct}%",
@@ -2321,7 +2327,9 @@
     "report_ledger_row_meta": "{project} · 委任 {count} 回",
     "report_ledger_more": "ほか {count} 件の委任元の会話",
     "report_ledger_other": "その他（直接使った分、または委任記録が見つからない分）",
-    "report_ledger_all_reset": "直近 7 日間に委任した作業はすべてクォータのリセット前のため、先週分に含まれます。"
+    "report_ledger_all_reset": "直近 7 日間に委任した作業はすべてクォータのリセット前のため、先週分に含まれます。",
+    "report_unattributed_projects": "古い記録（合計のみ）",
+    "report_unattributed_tools": "古い記録（合計のみ）"
   },
   "ko": {
     "report_title_tools_top": "{tool} 사용량이 {pct}%로 가장 많음",
@@ -2902,6 +2910,8 @@
     "report_ledger_row_meta": "{project} · 작업 위임 {count}회",
     "report_ledger_more": "작업을 위임한 대화 {count}개 더",
     "report_ledger_other": "기타 (직접 사용했거나 위임 기록을 찾지 못한 사용량)",
-    "report_ledger_all_reset": "최근 7일 동안 위임한 작업은 모두 한도 초기화 전이므로 지난주 사용량에 포함됩니다."
+    "report_ledger_all_reset": "최근 7일 동안 위임한 작업은 모두 한도 초기화 전이므로 지난주 사용량에 포함됩니다.",
+    "report_unattributed_projects": "이전 기록 (합계만)",
+    "report_unattributed_tools": "이전 기록 (합계만)"
   }
 }

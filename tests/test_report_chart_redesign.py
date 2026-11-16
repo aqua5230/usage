@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import hashlib
 import json
+import math
 import subprocess
 from datetime import date, timedelta
 from html.parser import HTMLParser
@@ -10,11 +12,185 @@ from typing import Any
 import pytest
 
 from analyzer.reporter import DailyTrendPoint
+from tests.test_html_report_snapshot import _full_report_data
 from tests.test_report_filter_js import NODE, NODE_HARNESS
+from tests.test_report_headings import Texts
 from ui import html_report
 from ui.report_charts import weekly_scale
 from ui.report_daily_chart import REPORT_DAILY_CHART_JS
 from ui.report_filter import REPORT_FILTER_JS
+
+
+@pytest.mark.parametrize(
+    ("lang", "digest"),
+    [
+        ("zh-TW", "b406572680b56487b28bf0b6aefac594551baa71bc32c70e76e9c1f0104c3f29"),
+        ("en", "36108cc75186e5fce188cf9ed81698e9e037d0cf11bb6ea7b7e1cc37585c5df9"),
+        ("zh-CN", "2128298532b24b509e9d6b194ca9ebc9367ffdc7672375365b0790f075539daa"),
+        ("ja", "8238e255a10722bec0bfb0e24b7f0764193ec6fbd6c3f3b9fa3fa7bc8cf05c11"),
+        ("ko", "30237ebf08201316198dbc28f875811e495ea70bf2f19d91708a7dd12d8dd126"),
+    ],
+)
+def test_known_rankings_keep_existing_markup(lang: str, digest: str) -> None:
+    # Byte-for-byte baselines captured from the pre-change renderers, in all five languages.
+    data = _full_report_data()
+    data["by_project"][-1]["project"] = "third-private"
+    rendered = html_report._render_project_section(data, lang) + html_report._render_tools_section(
+        data, lang
+    )
+    assert hashlib.sha256(rendered.encode()).hexdigest() == digest
+
+
+@pytest.mark.skipif(NODE is None, reason="Node.js is unavailable")
+@pytest.mark.parametrize("lang", ["zh-TW", "en", "zh-CN", "ja", "ko"])
+@pytest.mark.parametrize("unknown_name", ["unknown", ""])
+@pytest.mark.parametrize("unknown_tokens", [5000, 1])
+def test_unattributed_rankings_match_python_after_date_changes(
+    tmp_path: Path, lang: str, unknown_name: str, unknown_tokens: int
+) -> None:
+    cube: dict[str, Any] = {
+        "dates": ["2026-08-01", "2026-08-02", "2026-08-03"],
+        "agents": [
+            {"id": "unknown", "name": "unknown"},
+            {"id": "codex", "name": "Codex"},
+            {"id": "claude-code", "name": "Claude Code"},
+        ],
+        "models": [{"name": "test", "cost_known": True}],
+        "projects": [unknown_name, *[f"private-{i}" for i in range(12)]],
+        "rows": [[0, 0, 0, 0, unknown_tokens, 0, 0, 0, 5, 0, 1], [0, 1, 0, 1, 1, 0, 0, 0, 1, 1]]
+        + [[1, 1 + i % 2, 0, i + 1, 200 - max(0, i - 1) * 10, 0, 0, 0, 1, 1] for i in range(12)],
+    }
+    config = json.loads(html_report._share_config_json(lang, interactive=True))
+    script = (
+        NODE_HARNESS.split("const cube = {", 1)[0]
+        .replace("__REPORT_DAILY_CHART_JS__", json.dumps(REPORT_DAILY_CHART_JS))
+        .replace("__REPORT_FILTER_JS__", json.dumps(REPORT_FILTER_JS))
+    )
+    script += "\nconst cube = " + json.dumps(cube) + ";\n"
+    script += "const env = makeEnvironment(cube);\n"
+    script += "Object.assign(shareConfig, " + json.dumps(config) + ");\nrun(env);\n"
+    for start, end in [
+        ("2026-08-01", "2026-08-03"),
+        ("2026-08-01", "2026-08-01"),
+        ("2026-08-02", "2026-08-02"),
+        ("2026-08-03", "2026-08-03"),
+        ("2026-08-01", "2026-08-03"),
+    ]:
+        matching = [r for r in cube["rows"] if start <= cube["dates"][r[0]] <= end]
+        data: dict[str, Any] = {
+            "date_from": start,
+            "date_to": end,
+            "cube": cube,
+            "summary": {
+                "total_tokens": sum(sum(r[4:8]) for r in matching),
+                "total_cost": sum(r[8] for r in matching),
+            },
+            "by_project": [
+                {"project": p, "tokens": sum(sum(r[4:8]) for r in matching if r[3] == i)}
+                for i, p in enumerate(cube["projects"])
+                if any(r[3] == i for r in matching)
+            ],
+            "by_agent": [
+                {**a, "tokens": sum(sum(r[4:8]) for r in matching if r[1] == i)}
+                for i, a in enumerate(cube["agents"])
+            ],
+        }
+        for project in data["by_project"]:
+            index = cube["projects"].index(project["project"])
+            project["cost"] = sum(r[8] for r in matching if r[3] == index)
+        # Deliberately reverse ties: the cube dimension order must win in both renderers.
+        data["by_project"] = sorted(reversed(data["by_project"]), key=lambda p: -p["tokens"])[:10]
+        for i, agent in enumerate(data["by_agent"]):
+            agent["cost"] = sum(r[8] for r in matching if r[1] == i)
+            total = data["summary"]["total_tokens"]
+            agent["pct"] = agent["tokens"] / total * 100 if total else 0
+        data["by_agent"] = sorted(
+            [a for a in data["by_agent"] if a["tokens"]], key=lambda a: -a["tokens"]
+        )
+        original = json.dumps(data, sort_keys=True)
+        projects = html_report._render_project_section(data, lang)
+        tools = html_report._render_tools_section(data, lang)
+        assert json.dumps(data, sort_keys=True) == original
+        expected = []
+        for rendered, name_class in [(projects, "name"), (tools, "sub-agent")]:
+            expected.append(
+                [Texts(rendered, cls).values for cls in (name_class, "tokens", "cost", "pct")]
+            )
+        if start == "2026-08-01":
+            names = Texts(projects, "name").values
+            assert names[-1] == html_report._t(lang, "unattributed_projects")
+            assert Texts(tools, "sub-agent").values[-1] == html_report._t(
+                lang, "unattributed_tools"
+            )
+            assert (
+                "background:var(--chart-neutral)"
+                in ChartTree(projects).nodes("hbar")[-1]["attrs"]["style"]
+            )
+            if end == "2026-08-01":
+                # One attributed tool beside legacy totals must not claim all usage.
+                assert Texts(tools, "prompt-title").values == [
+                    html_report._t(
+                        lang,
+                        "title_tools_top",
+                        tool="Codex",
+                        pct=math.floor(100 / (unknown_tokens + 1) + 0.5),
+                    )
+                ]
+            if end == "2026-08-03":
+                assert names == [
+                    *[f"private-{i}" for i in range(10)],
+                    html_report._t(lang, "project_others"),
+                    html_report._t(lang, "unattributed_projects"),
+                ]
+                assert (
+                    "background:var(--chart-accent)"
+                    in ChartTree(projects).nodes("hbar")[0]["attrs"]["style"]
+                )
+                assert (
+                    "background:var(--chart-accent)"
+                    in ChartTree(tools).nodes("hbar")[0]["attrs"]["style"]
+                )
+        script += (
+            "window.usageReportFilter.applyBounds("
+            + json.dumps({"from": start, "to": end})
+            + ");\n"
+        )
+        script += (
+            "assert.deepEqual([[env.projectList.children, 'name'], "
+            "[env.tools.querySelectorAll('.tool-row'), 'sub-agent']].map(([rows,n]) => "
+            "[n,'tokens','cost','pct'].map(c => rows.filter(r => r.querySelector('.pct'))"
+            ".map(r => r.querySelector('.'+c).textContent))), " + json.dumps(expected) + ");\n"
+        )
+        metadata = [
+            [
+                next(iter(Texts(rendered, cls).values), "")
+                for cls in ("prompt-title", "report-subtitle", "report-source")
+            ]
+            for rendered in (projects, tools)
+        ]
+        script += (
+            "assert.deepEqual([env.projectSection, env.toolsSection].map(s => "
+            "['prompt-title','report-subtitle','report-source'].map(c => "
+            "s.querySelector('.'+c)?.textContent || '')), " + json.dumps(metadata) + ");\n"
+        )
+        if matching and start == "2026-08-01":
+            script += """
+assert.equal(env.projectList.children.at(-1).querySelector('.hbar').style.background,
+  'var(--chart-neutral)');
+assert.equal(env.tools.querySelectorAll('.tool-row').at(-1).querySelector('.hbar').style.background,
+  'var(--chart-neutral)');
+"""
+            if end == "2026-08-03":
+                script += """
+assert.equal(env.tools.querySelector('.tool-row').querySelector('.hbar').style.background,
+  'var(--chart-accent)');
+assert.equal(env.projectList.children[0].querySelector('.hbar').style.background,
+  'var(--chart-accent)');
+"""
+    path = tmp_path / "unattributed-rankings.cjs"
+    path.write_text(script, encoding="utf-8")
+    result = subprocess.run([NODE or "node", str(path)], capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
 
 
 class ChartTree(HTMLParser):
