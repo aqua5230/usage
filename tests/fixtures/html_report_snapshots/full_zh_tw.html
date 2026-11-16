@@ -823,9 +823,9 @@ td:first-child{color:var(--muted)}
     </section>
   
     <section class="section project-section">
-      <div class="prompt"><span>[usage]&gt;</span> <span class="prompt-title">前 3 個專案佔了 100% 的用量</span></div>
+      <div class="prompt"><span>[usage]&gt;</span> <span class="prompt-title">專案熱區</span></div>
       <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
-      <p class="report-subtitle">各專案 token 佔比</p><div class="rank-list hchart"><div class="rank-line" data-project-index="0"><div class="hlabel"><span class="arrow">→</span><span class="name">usage</span></div><div class="hlane" style="--value:70.2%"><div class="hbar" aria-hidden="true" style="width:70.2%;background:var(--chart-accent)"></div><span class="htail"><span class="pct">70.2%</span><small><span class="tokens" data-label="Tokens">1.6M</span><span class=""> · </span><span class="cost" data-label="API 等值">$32.07</span></small></span></div></div><div class="rank-line"><div class="hlabel"><span class="arrow">→</span><span class="name">client&lt;portal&gt;</span></div><div class="hlane" style="--value:20.1%"><div class="hbar" aria-hidden="true" style="width:20.1%"></div><span class="htail"><span class="pct">20.1%</span><small><span class="tokens" data-label="Tokens">471.5K</span><span class=""> · </span><span class="cost" data-label="API 等值">$9.18</span></small></span></div></div><div class="rank-line"><div class="hlabel"><span class="arrow">→</span><span class="name">未知</span></div><div class="hlane" style="--value:9.7%"><div class="hbar" aria-hidden="true" style="width:9.7%"></div><span class="htail"><span class="pct">9.7%</span><small><span class="tokens" data-label="Tokens">227.3K</span><span class=""> · </span><span class="cost" data-label="API 等值">$4.43</span></small></span></div></div></div><div class="haxis" aria-hidden="true"><span style="left:0%">0%</span><span style="left:25%">25%</span><span style="left:50%">50%</span><span style="left:75%">75%</span><span style="left:100%">100%</span></div><p class="report-source">資料來源：本機 Claude、Codex 使用紀錄 · 2026-05-01 – 2026-05-24</p>
+      <p class="report-subtitle">各專案 token 佔比</p><div class="rank-list hchart"><div class="rank-line" data-project-index="0"><div class="hlabel"><span class="arrow">→</span><span class="name">usage</span></div><div class="hlane" style="--value:70.2%"><div class="hbar" aria-hidden="true" style="width:70.2%;background:var(--chart-accent)"></div><span class="htail"><span class="pct">70.2%</span><small><span class="tokens" data-label="Tokens">1.6M</span><span class=""> · </span><span class="cost" data-label="API 等值">$32.07</span></small></span></div></div><div class="rank-line"><div class="hlabel"><span class="arrow">→</span><span class="name">client&lt;portal&gt;</span></div><div class="hlane" style="--value:20.1%"><div class="hbar" aria-hidden="true" style="width:20.1%"></div><span class="htail"><span class="pct">20.1%</span><small><span class="tokens" data-label="Tokens">471.5K</span><span class=""> · </span><span class="cost" data-label="API 等值">$9.18</span></small></span></div></div><div class="rank-line"><div class="hlabel"><span class="arrow">→</span><span class="name">舊紀錄（只剩總數）</span></div><div class="hlane" style="--value:9.7%"><div class="hbar" aria-hidden="true" style="width:9.7%;background:var(--chart-neutral)"></div><span class="htail"><span class="pct">9.7%</span><small><span class="tokens" data-label="Tokens">227.3K</span><span class=""> · </span><span class="cost" data-label="API 等值">$4.43</span></small></span></div></div></div><div class="haxis" aria-hidden="true"><span style="left:0%">0%</span><span style="left:25%">25%</span><span style="left:50%">50%</span><span style="left:75%">75%</span><span style="left:100%">100%</span></div><p class="report-source">資料來源：本機 Claude、Codex 使用紀錄 · 2026-05-01 – 2026-05-24</p>
     </section>
     
   
@@ -928,7 +928,7 @@ reportThemeMedia.addEventListener('change', () => {
   updateThemeToggle();
 });
 
-const shareConfig = {"collapse": "收合", "copied": "已複製到剪貼簿 ✓", "expand": "展開", "pathCopied": "路徑已複製 ✓", "projectShare": "佔本專案", "projectOthers": "其他專案", "title_tools_top": "{tool} 用得最多，佔 {pct}%", "title_tools_single": "全部用量來自 {tool}", "sub_tools": "各工具 token 佔比 · 共 {total} tokens", "title_projects_top3": "前 3 個專案佔了 {pct}% 的用量", "sub_projects": "各專案 token 佔比", "title_trend_peak_week": "{date} 那週用量最高", "sub_trend": "每日與每週 token 用量", "title_composition_top": "{pct}% 的 token 是{kind}", "sub_composition": "各類 token 佔比", "title_sessions_top": "最大的一段會話用了 {tokens} tokens", "source_note": "資料來源：本機 {tools} 使用紀錄 · {from} – {to}", "source_pricing": "API 等值依公開 API 價目換算", "weekly_chart_title": "每週用量", "tools_section": "你的工具", "project_section": "專案熱區", "trend_section": "用量趨勢", "composition_section": "Token 組成", "session_section": "Token 用量最多的 5 段會話", "sourceSeparator": "、", "chartOther": "其他", "cost": "API 等值", "costUnpriced": "其中 {tokens} tokens 沒有價格資料，未計入", "claudeMissing": "這 {days} 天有使用 Claude Code，但對話紀錄已被刪除，用量未計入總量。", "emptyProjects": "這段期間還沒有專案用量", "kpiActiveHint": "任一工具當天有用量就算一天", "kpiActiveValue": "{active} / {total} 天", "narrative": "過去這段時間你燒了 {tokens} tokens。{peak_date} 是高峰（{peak_tokens}/天），Token 用量最多的模型是 {top_model}。", "projectSection": "專案熱區", "share": "Token 佔比", "tokens": "Tokens", "unknown": "未知", "vsPrevious": "較前期", "compositionCacheRead": "快取讀取", "compositionCacheWrite": "快取寫入", "compositionHitRate": "快取命中率", "compositionInput": "輸入", "compositionMissing": "另有 {tokens} tokens 沒有輸入／輸出拆解", "trendPartialWeek": "僅 {days} 天", "trendIncompleteWeek": "不完整週", "compositionOutput": "輸出", "duration": "時長", "dailyChartTitle": "每日用量", "dailyChartModeTokens": "Tokens", "dailyChartModeCost": "API 等值", "dailyChartTotal": "合計", "emptyDaily": "這段期間還沒有每日用量", "emptySessions": "這段期間還沒有可列出的會話", "model": "模型", "project": "專案", "pricingAllPriced": "全部用量都有公開價格。", "pricingHint": "API 等值是用公開 API 價目表換算的等值金額，不是你的訂閱帳單；沒有價格資料的用量不計入 API 等值，包括沒有公開價格的模型，以及只存了總量的舊紀錄。沒有價格資料不代表免費，只是無法換算。", "pricingModelSeparator": "、", "pricingPriced": "可換算 API 等值", "pricingUnpriced": "沒有價格資料", "rank": "排名", "startTime": "開始時間", "trendCompareDown": "上個完整週（W{week}）比前一週少 {pct}%。", "trendCompareFirst": "尚不足兩個完整週可比較。", "trendCompareFlat": "上個完整週（W{week}）跟前一週差不多。", "trendCompareNew": "上個完整週（W{week}）比前一週新增用量。", "trendCompareUp": "上個完整週（W{week}）是前一週的 {ratio} 倍。", "trendMarkerNew": "new", "trendWeekInProgress": "進行中"};
+const shareConfig = {"collapse": "收合", "copied": "已複製到剪貼簿 ✓", "expand": "展開", "pathCopied": "路徑已複製 ✓", "projectShare": "佔本專案", "projectOthers": "其他專案", "unattributedProjects": "舊紀錄（只剩總數）", "unattributedTools": "舊紀錄（只剩總數）", "title_tools_top": "{tool} 用得最多，佔 {pct}%", "title_tools_single": "全部用量來自 {tool}", "sub_tools": "各工具 token 佔比 · 共 {total} tokens", "title_projects_top3": "前 3 個專案佔了 {pct}% 的用量", "sub_projects": "各專案 token 佔比", "title_trend_peak_week": "{date} 那週用量最高", "sub_trend": "每日與每週 token 用量", "title_composition_top": "{pct}% 的 token 是{kind}", "sub_composition": "各類 token 佔比", "title_sessions_top": "最大的一段會話用了 {tokens} tokens", "source_note": "資料來源：本機 {tools} 使用紀錄 · {from} – {to}", "source_pricing": "API 等值依公開 API 價目換算", "weekly_chart_title": "每週用量", "tools_section": "你的工具", "project_section": "專案熱區", "trend_section": "用量趨勢", "composition_section": "Token 組成", "session_section": "Token 用量最多的 5 段會話", "sourceSeparator": "、", "chartOther": "其他", "cost": "API 等值", "costUnpriced": "其中 {tokens} tokens 沒有價格資料，未計入", "claudeMissing": "這 {days} 天有使用 Claude Code，但對話紀錄已被刪除，用量未計入總量。", "emptyProjects": "這段期間還沒有專案用量", "kpiActiveHint": "任一工具當天有用量就算一天", "kpiActiveValue": "{active} / {total} 天", "narrative": "過去這段時間你燒了 {tokens} tokens。{peak_date} 是高峰（{peak_tokens}/天），Token 用量最多的模型是 {top_model}。", "projectSection": "專案熱區", "share": "Token 佔比", "tokens": "Tokens", "unknown": "未知", "vsPrevious": "較前期", "compositionCacheRead": "快取讀取", "compositionCacheWrite": "快取寫入", "compositionHitRate": "快取命中率", "compositionInput": "輸入", "compositionMissing": "另有 {tokens} tokens 沒有輸入／輸出拆解", "trendPartialWeek": "僅 {days} 天", "trendIncompleteWeek": "不完整週", "compositionOutput": "輸出", "duration": "時長", "dailyChartTitle": "每日用量", "dailyChartModeTokens": "Tokens", "dailyChartModeCost": "API 等值", "dailyChartTotal": "合計", "emptyDaily": "這段期間還沒有每日用量", "emptySessions": "這段期間還沒有可列出的會話", "model": "模型", "project": "專案", "pricingAllPriced": "全部用量都有公開價格。", "pricingHint": "API 等值是用公開 API 價目表換算的等值金額，不是你的訂閱帳單；沒有價格資料的用量不計入 API 等值，包括沒有公開價格的模型，以及只存了總量的舊紀錄。沒有價格資料不代表免費，只是無法換算。", "pricingModelSeparator": "、", "pricingPriced": "可換算 API 等值", "pricingUnpriced": "沒有價格資料", "rank": "排名", "startTime": "開始時間", "trendCompareDown": "上個完整週（W{week}）比前一週少 {pct}%。", "trendCompareFirst": "尚不足兩個完整週可比較。", "trendCompareFlat": "上個完整週（W{week}）跟前一週差不多。", "trendCompareNew": "上個完整週（W{week}）比前一週新增用量。", "trendCompareUp": "上個完整週（W{week}）是前一週的 {ratio} 倍。", "trendMarkerNew": "new", "trendWeekInProgress": "進行中"};
 const maskedCsvData = JSON.parse(document.querySelector('#usage-masked-csv-data').textContent);
 const csvDataNode = document.querySelector('#usage-csv-data');
 const csvData = csvDataNode ? JSON.parse(csvDataNode.textContent) : maskedCsvData;
@@ -1783,6 +1783,10 @@ document.addEventListener('click', async (e) => {
     return (!text || text === 'unknown') ? (shareConfig.unknown || 'unknown') : text;
   }
 
+  function isUnattributed(value) {
+    return value == null || value === '' || value === 'unknown';
+  }
+
   function modelColor(name) {
     const normalized = name.toLowerCase();
     if (normalized.startsWith('claude')) return '#5abfa0';
@@ -1919,6 +1923,7 @@ document.addEventListener('click', async (e) => {
 
   const toolMetadata = new Map();
   document.querySelectorAll('.tools-section .tool-row').forEach((row) => {
+    if (row.dataset.agentId !== undefined && isUnattributed(row.dataset.agentId)) return;
     const name = rowName(row, '.sub-agent');
     const plan = row.querySelector('.sub-plan');
     const since = row.querySelector('.sub-since');
@@ -1936,7 +1941,7 @@ document.addEventListener('click', async (e) => {
     const head = document.createElement('div');
     head.className = 'tool-head hlabel';
     appendTextSpan(head, 'arrow', '▸');
-    appendTextSpan(head, 'sub-agent', displayName(agent.name));
+    appendTextSpan(head, 'sub-agent', isUnattributed(agent.id) ? shareConfig.unattributedTools : displayName(agent.name));
     const metadata = toolMetadata.get(String(agent.id)) || toolMetadata.get(`name:${agent.name}`);
     appendToolPlan(head, metadata);
     row.append(head);
@@ -1975,14 +1980,15 @@ document.addEventListener('click', async (e) => {
     const byAgent = aggregateRows(summary.rows, 1);
     const entries = Object.entries(byAgent)
       .map(([agentIndex, item]) => ({agentIndex: Number(agentIndex), ...item}))
-      .sort((left, right) => right.tokens - left.tokens || left.agentIndex - right.agentIndex);
+      .sort((left, right) => Number(isUnattributed(cube.agents[left.agentIndex]?.id)) - Number(isUnattributed(cube.agents[right.agentIndex]?.id)) || right.tokens - left.tokens || left.agentIndex - right.agentIndex);
     const usedIds = new Set();
     entries.forEach((item, index) => {
       const agent = cube.agents[item.agentIndex];
       if (!agent) return;
       usedIds.add(String(agent.id));
       const groupRow = createToolRow(agent, item, summary.tokens);
-      if (index === 0) groupRow.querySelector('.hbar').style.background = 'var(--chart-accent)';
+      if (isUnattributed(agent.id)) groupRow.querySelector('.hbar').style.background = 'var(--chart-neutral)';
+      else if (index === 0) groupRow.querySelector('.hbar').style.background = 'var(--chart-accent)';
       tools.append(groupRow);
       const byModel = aggregateRows(
         summary.rows,
@@ -2007,7 +2013,8 @@ document.addEventListener('click', async (e) => {
         String(agent.id) === key || `name:${agent.name}` === key
       ));
       if (!matchedAgent || !usedIds.has(String(matchedAgent.id))) {
-        tools.append(createSubscriptionOnlyRow(metadata));
+        const unattributed = Array.from(tools.querySelectorAll('.tool-row')).find((row) => row.dataset.agentId !== undefined && isUnattributed(row.dataset.agentId));
+        tools.insertBefore(createSubscriptionOnlyRow(metadata), unattributed || null);
       }
     });
   }
@@ -2026,7 +2033,8 @@ document.addEventListener('click', async (e) => {
       }))
       .filter((item) => item.tokens > 0 || item.cost > 0)
       .sort((left, right) => right.tokens - left.tokens || left.projectIndex - right.projectIndex);
-    const displayed = projects.slice(0, 10);
+    const unattributed = projects.filter((project) => isUnattributed(project.name));
+    const displayed = projects.filter((project) => !isUnattributed(project.name)).slice(0, 10);
     displayed.forEach((project, index) => {
       const row = createRankRow(
         project.name,
@@ -2038,12 +2046,20 @@ document.addEventListener('click', async (e) => {
       list.append(row);
       bindProjectRow(row);
     });
-    const remaining = summary.tokens - displayed.reduce((sum, project) => sum + project.tokens, 0);
+    const remaining = summary.tokens - [...displayed, ...unattributed].reduce((sum, project) => sum + project.tokens, 0);
     if (remaining > 0) {
-      const cost = Math.max(0, summary.cost - displayed.reduce((sum, project) => sum + project.cost, 0));
+      const cost = Math.max(0, summary.cost - [...displayed, ...unattributed].reduce((sum, project) => sum + project.cost, 0));
       const other = createRankRow(shareConfig.projectOthers, {tokens: remaining, cost}, summary.tokens, 'var(--chart-neutral)', {costKnown: true, showShare: true});
       other.dataset.projectOther = 'true';
       list.append(other);
+    }
+    if (unattributed.length) {
+      const item = {
+        tokens: unattributed.reduce((sum, project) => sum + project.tokens, 0),
+        cost: unattributed.reduce((sum, project) => sum + project.cost, 0),
+        costKnown: unattributed.some((project) => project.costKnown),
+      };
+      list.append(createRankRow(shareConfig.unattributedProjects, item, summary.tokens, 'var(--chart-neutral)', {costKnown: item.costKnown, showShare: true}));
     }
     if (!projects.length && remaining <= 0) {
       const empty = document.createElement('div');
@@ -2522,7 +2538,7 @@ document.addEventListener('click', async (e) => {
     const pct = (value, total) => total ? Math.floor(value / total * 100 + 0.5) : 0;
     const agents = Object.entries(aggregateRows(summary.rows, 1))
       .map(([index, item]) => ({index: Number(index), ...item}))
-      .filter((item) => item.tokens > 0)
+      .filter((item) => item.tokens > 0 && !isUnattributed(cube.agents[item.index]?.id))
       .sort((a, b) => b.tokens - a.tokens || a.index - b.index);
     const titles = {
       tools: text('tools_section'), projects: text('project_section'),
@@ -2532,7 +2548,9 @@ document.addEventListener('click', async (e) => {
     if (agents.length) titles.tools = text(agents.length === 1 ? 'title_tools_single' : 'title_tools_top', {
       tool: displayName(cube.agents[agents[0].index].name), pct: pct(agents[0].tokens, summary.tokens),
     });
-    const projects = Object.values(aggregateRows(summary.rows, 3))
+    const projects = Object.entries(aggregateRows(summary.rows, 3))
+      .filter(([index]) => !isUnattributed(cube.projects[Number(index)]))
+      .map(([, item]) => item)
       .filter((item) => item.tokens > 0).sort((a, b) => b.tokens - a.tokens);
     if (projects.length >= 3) titles.projects = text('title_projects_top3', {
       pct: pct(projects.slice(0, 3).reduce((sum, p) => sum + p.tokens, 0), summary.tokens),

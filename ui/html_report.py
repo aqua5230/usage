@@ -34,6 +34,8 @@ from usage_common.usage_lang import detect_lang
 from usage_common.subprocess_utils import hidden_console_kwargs
 from ui.report_charts import (
     format_axis_tokens,
+    is_unattributed,
+    project_chart_rows,
     render_axis,
     render_lane,
     render_share_bar,
@@ -139,7 +141,11 @@ def _report_heading(data: Mapping[str, Any], lang: str, kind: str) -> tuple[str,
         for index, agent in enumerate(cube.get("agents", []) if isinstance(cube, Mapping) else [])
     }
     agents = sorted(
-        (a for a in data.get("by_agent", []) if a.get("tokens", 0) > 0),
+        (
+            a
+            for a in data.get("by_agent", [])
+            if a.get("tokens", 0) > 0 and not is_unattributed(a.get("id", a.get("name")))
+        ),
         key=lambda a: (-a["tokens"], agent_order.get(a.get("id"), len(agent_order))),
     )
     title = _t(
@@ -166,7 +172,11 @@ def _report_heading(data: Mapping[str, Any], lang: str, kind: str) -> tuple[str,
         )
     elif kind == "projects":
         projects = sorted(
-            (p for p in data.get("by_project", []) if not p.get("is_other") and p["tokens"] > 0),
+            (
+                p
+                for p in data.get("by_project", [])
+                if not p.get("is_other") and not is_unattributed(p["project"]) and p["tokens"] > 0
+            ),
             key=lambda p: -p["tokens"],
         )
         if len(projects) >= 3:
@@ -539,6 +549,7 @@ def _tools_body(
     by_name = {str(sub.get("agent", "")): sub for sub in subs}
     seen: set[str] = set()
     rows: list[str] = []
+    unattributed_rows: list[str] = []
     models_by_agent = {
         str(group.get("agent_id", "")): group.get("models", []) for group in grouped_models
     }
@@ -556,26 +567,39 @@ def _tools_body(
         plan_html = f'<span class="sub-plan">{_escape(str(plan))}</span>' if plan else ""
         return plan_html + since_html
 
-    peak = max((int(agent["tokens"]) for agent in agents), default=0)
+    peak = max(
+        (int(agent["tokens"]) for agent in agents if not is_unattributed(agent["id"])),
+        default=0,
+    )
     highlighted = False
     for agent in agents:
-        name = _display_name(agent["name"], lang)
+        unattributed = is_unattributed(agent["id"])
+        target_rows = unattributed_rows if unattributed else rows
+        name = (
+            _t(lang, "unattributed_tools") if unattributed else _display_name(agent["name"], lang)
+        )
         seen.add(str(agent["name"]))
         models = models_by_agent.get(str(agent["id"]), [])
-        color = "var(--chart-accent)" if not highlighted and int(agent["tokens"]) == peak else None
-        highlighted = highlighted or color is not None
+        color = (
+            "var(--chart-neutral)"
+            if unattributed
+            else "var(--chart-accent)"
+            if not highlighted and int(agent["tokens"]) == peak
+            else None
+        )
+        highlighted = highlighted or (not unattributed and color is not None)
         detail = (
             f'<small><span class="tokens" data-label="{_escape(_t(lang, "tokens"))}">{_fmt_tokens(int(agent["tokens"]))}</span>'
             f'<span class=""> · </span><span class="cost" data-label="{_escape(_t(lang, "cost"))}">{_fmt_cost(float(agent["cost"]))}</span></small>'
         )
         arrow = '<span class="arrow">▸</span>' if models else ""
-        rows.append(
+        target_rows.append(
             f'<div class="tool-row{(" model-group" if models else "")}" data-agent-id="{_escape(agent["id"])}">'
             f'<div class="tool-head hlabel">{arrow}<span class="sub-agent">{_escape(name)}</span>'
             f'<small class="tool-plan">{_plan_html(by_name.get(str(agent["name"])))}</small></div>'
             f"{render_lane(float(agent['pct']), f'{float(agent["pct"]):.1f}%', detail, color)}</div>"
         )
-        rows.extend(
+        target_rows.extend(
             _rank_line(
                 _display_name(model["model"], lang),
                 float(model["pct"]),
@@ -595,6 +619,7 @@ def _tools_body(
             f'<span class="sub-agent">{_escape(sub_name)}</span>'
             f'<small class="tool-plan">{_plan_html(sub)}</small></div></div>'
         )
+    rows.extend(unattributed_rows)
     if not rows:
         return _empty_line(_t(lang, "sub_empty"))
     return f'<div class="tools hchart">{"".join(rows)}</div>{render_axis()}'
@@ -837,14 +862,16 @@ def _render_share_dialog(lang: str) -> str:
 
 
 def _render_project_section(data: Mapping[str, Any], lang: str) -> str:
-    projects = list(data.get("by_project", []))
+    projects = project_chart_rows(data)
+    unattributed = [p for p in projects if p.get("is_unattributed")]
+    projects = [p for p in projects if not p.get("is_unattributed")]
     total = int(data.get("summary", {}).get("total_tokens", 0))
-    remainder = total - sum(int(project["tokens"]) for project in projects)
+    remainder = total - sum(int(project["tokens"]) for project in projects + unattributed)
     if remainder > 0:
         cost = max(
             0.0,
             float(data.get("summary", {}).get("total_cost", 0))
-            - sum(float(project["cost"]) for project in projects),
+            - sum(float(project["cost"]) for project in projects + unattributed),
         )
         projects.append(
             {
@@ -854,19 +881,22 @@ def _render_project_section(data: Mapping[str, Any], lang: str) -> str:
                 "is_other": True,
             }
         )
+    projects.extend(unattributed)
     cube = data.get("cube")
     cube_projects = cube.get("projects", []) if isinstance(cube, Mapping) else []
     project_indices = {str(project): index for index, project in enumerate(cube_projects)}
     project_rows = [
         _rank_line(
-            _display_name(project["project"], lang),
+            _t(lang, "unattributed_projects")
+            if project.get("is_unattributed")
+            else _display_name(project["project"], lang),
             int(project["tokens"]) / total * 100 if total else 0.0,
             int(project["tokens"]),
             None if not project.get("cost_known", True) else float(project["cost"]),
             lang,
             (
                 "var(--chart-neutral)"
-                if project.get("is_other")
+                if project.get("is_other") or project.get("is_unattributed")
                 else "var(--chart-accent)"
                 if index == 0
                 else None
@@ -878,6 +908,7 @@ def _render_project_section(data: Mapping[str, Any], lang: str) -> str:
                 else (
                     {"project-index": project_indices[str(project["project"])]}
                     if str(project["project"]) in project_indices
+                    and not project.get("is_unattributed")
                     else None
                 )
             ),
@@ -1332,6 +1363,8 @@ def _share_config_json(lang: str, *, interactive: bool = False) -> str:
         "pathCopied": _t(lang, "share_path_copied"),
         "projectShare": _t(lang, "project_share"),
         "projectOthers": _t(lang, "project_others"),
+        "unattributedProjects": _t(lang, "unattributed_projects"),
+        "unattributedTools": _t(lang, "unattributed_tools"),
     }
     if interactive:
         heading_keys = (

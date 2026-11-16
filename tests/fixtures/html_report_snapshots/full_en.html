@@ -823,9 +823,9 @@ Includes 80.0K tokens without pricing data, excluded from the API equivalent</i>
     </section>
   
     <section class="section project-section">
-      <div class="prompt"><span>[usage]&gt;</span> <span class="prompt-title">The top 3 projects account for 100% of tokens</span></div>
+      <div class="prompt"><span>[usage]&gt;</span> <span class="prompt-title">Project hot zones</span></div>
       <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
-      <p class="report-subtitle">Token share by project</p><div class="rank-list hchart"><div class="rank-line" data-project-index="0"><div class="hlabel"><span class="arrow">→</span><span class="name">usage</span></div><div class="hlane" style="--value:70.2%"><div class="hbar" aria-hidden="true" style="width:70.2%;background:var(--chart-accent)"></div><span class="htail"><span class="pct">70.2%</span><small><span class="tokens" data-label="Tokens">1.6M</span><span class=""> · </span><span class="cost" data-label="API equivalent">$32.07</span></small></span></div></div><div class="rank-line"><div class="hlabel"><span class="arrow">→</span><span class="name">client&lt;portal&gt;</span></div><div class="hlane" style="--value:20.1%"><div class="hbar" aria-hidden="true" style="width:20.1%"></div><span class="htail"><span class="pct">20.1%</span><small><span class="tokens" data-label="Tokens">471.5K</span><span class=""> · </span><span class="cost" data-label="API equivalent">$9.18</span></small></span></div></div><div class="rank-line"><div class="hlabel"><span class="arrow">→</span><span class="name">unknown</span></div><div class="hlane" style="--value:9.7%"><div class="hbar" aria-hidden="true" style="width:9.7%"></div><span class="htail"><span class="pct">9.7%</span><small><span class="tokens" data-label="Tokens">227.3K</span><span class=""> · </span><span class="cost" data-label="API equivalent">$4.43</span></small></span></div></div></div><div class="haxis" aria-hidden="true"><span style="left:0%">0%</span><span style="left:25%">25%</span><span style="left:50%">50%</span><span style="left:75%">75%</span><span style="left:100%">100%</span></div><p class="report-source">Source: local Claude, Codex usage logs · 2026-05-01 – 2026-05-24</p>
+      <p class="report-subtitle">Token share by project</p><div class="rank-list hchart"><div class="rank-line" data-project-index="0"><div class="hlabel"><span class="arrow">→</span><span class="name">usage</span></div><div class="hlane" style="--value:70.2%"><div class="hbar" aria-hidden="true" style="width:70.2%;background:var(--chart-accent)"></div><span class="htail"><span class="pct">70.2%</span><small><span class="tokens" data-label="Tokens">1.6M</span><span class=""> · </span><span class="cost" data-label="API equivalent">$32.07</span></small></span></div></div><div class="rank-line"><div class="hlabel"><span class="arrow">→</span><span class="name">client&lt;portal&gt;</span></div><div class="hlane" style="--value:20.1%"><div class="hbar" aria-hidden="true" style="width:20.1%"></div><span class="htail"><span class="pct">20.1%</span><small><span class="tokens" data-label="Tokens">471.5K</span><span class=""> · </span><span class="cost" data-label="API equivalent">$9.18</span></small></span></div></div><div class="rank-line"><div class="hlabel"><span class="arrow">→</span><span class="name">Old records (totals only)</span></div><div class="hlane" style="--value:9.7%"><div class="hbar" aria-hidden="true" style="width:9.7%;background:var(--chart-neutral)"></div><span class="htail"><span class="pct">9.7%</span><small><span class="tokens" data-label="Tokens">227.3K</span><span class=""> · </span><span class="cost" data-label="API equivalent">$4.43</span></small></span></div></div></div><div class="haxis" aria-hidden="true"><span style="left:0%">0%</span><span style="left:25%">25%</span><span style="left:50%">50%</span><span style="left:75%">75%</span><span style="left:100%">100%</span></div><p class="report-source">Source: local Claude, Codex usage logs · 2026-05-01 – 2026-05-24</p>
     </section>
     
   
@@ -928,7 +928,7 @@ reportThemeMedia.addEventListener('change', () => {
   updateThemeToggle();
 });
 
-const shareConfig = {"collapse": "Collapse", "copied": "Copied to clipboard ✓", "expand": "Expand", "pathCopied": "Path copied ✓", "projectShare": "Share of project", "projectOthers": "Other projects", "title_tools_top": "{tool} leads with {pct}% of tokens", "title_tools_single": "All usage came from {tool}", "sub_tools": "Token share by tool · {total} tokens in total", "title_projects_top3": "The top 3 projects account for {pct}% of tokens", "sub_projects": "Token share by project", "title_trend_peak_week": "The week of {date} was the busiest", "sub_trend": "Daily and weekly token usage", "title_composition_top": "{kind} makes up {pct}% of tokens", "sub_composition": "Token share by type", "title_sessions_top": "The largest session used {tokens} tokens", "source_note": "Source: local {tools} usage logs · {from} – {to}", "source_pricing": "API-equivalent cost is based on public API prices", "weekly_chart_title": "Weekly usage", "tools_section": "Your tools", "project_section": "Project hot zones", "trend_section": "Usage trend", "composition_section": "Token composition", "session_section": "Top 5 sessions by token usage", "sourceSeparator": ", ", "chartOther": "Other", "cost": "API equivalent", "costUnpriced": "Includes {tokens} tokens without pricing data, excluded from the API equivalent", "claudeMissing": "Days with Claude Code use whose conversation records were deleted: {days}. That usage is excluded from the total.", "emptyProjects": "No project usage in this period", "kpiActiveHint": "A day counts if any tool records usage", "kpiActiveValue": "{active} / {total} days", "narrative": "You used {tokens} tokens over this period. {peak_date} was the peak ({peak_tokens}/day), and the model with the most token usage was {top_model}.", "projectSection": "Project hot zones", "share": "Token share", "tokens": "Tokens", "unknown": "unknown", "vsPrevious": "vs previous period", "compositionCacheRead": "Cache read", "compositionCacheWrite": "Cache write", "compositionHitRate": "Cache hit rate", "compositionInput": "Input", "compositionMissing": "Another {tokens} tokens have no input/output breakdown.", "trendPartialWeek": "only {days} days", "trendIncompleteWeek": "Incomplete week", "compositionOutput": "Output", "duration": "Duration", "dailyChartTitle": "Daily usage", "dailyChartModeTokens": "Tokens", "dailyChartModeCost": "API equivalent", "dailyChartTotal": "Total", "emptyDaily": "No daily usage in this period", "emptySessions": "No sessions to list in this period", "model": "Model", "project": "Project", "pricingAllPriced": "All usage has a public price.", "pricingHint": "API equivalent is the API-equivalent value from public price lists, not your subscription bill. Usage without pricing data is left out of API equivalent: models with no public price, and older records that kept only totals. Missing pricing data does not mean free; the API equivalent cannot be calculated.", "pricingModelSeparator": ", ", "pricingPriced": "Convertible to API equivalent", "pricingUnpriced": "No pricing data", "rank": "Rank", "startTime": "Start time", "trendCompareDown": "Last complete week (W{week}) dropped {pct}% vs the preceding week.", "trendCompareFirst": "Fewer than two complete weeks to compare.", "trendCompareFlat": "Last complete week (W{week}) was roughly flat vs the preceding week.", "trendCompareNew": "Last complete week (W{week}) has new usage vs the preceding week.", "trendCompareUp": "Last complete week (W{week}) is {ratio}× the preceding week.", "trendMarkerNew": "new", "trendWeekInProgress": "in progress"};
+const shareConfig = {"collapse": "Collapse", "copied": "Copied to clipboard ✓", "expand": "Expand", "pathCopied": "Path copied ✓", "projectShare": "Share of project", "projectOthers": "Other projects", "unattributedProjects": "Old records (totals only)", "unattributedTools": "Old records (totals only)", "title_tools_top": "{tool} leads with {pct}% of tokens", "title_tools_single": "All usage came from {tool}", "sub_tools": "Token share by tool · {total} tokens in total", "title_projects_top3": "The top 3 projects account for {pct}% of tokens", "sub_projects": "Token share by project", "title_trend_peak_week": "The week of {date} was the busiest", "sub_trend": "Daily and weekly token usage", "title_composition_top": "{kind} makes up {pct}% of tokens", "sub_composition": "Token share by type", "title_sessions_top": "The largest session used {tokens} tokens", "source_note": "Source: local {tools} usage logs · {from} – {to}", "source_pricing": "API-equivalent cost is based on public API prices", "weekly_chart_title": "Weekly usage", "tools_section": "Your tools", "project_section": "Project hot zones", "trend_section": "Usage trend", "composition_section": "Token composition", "session_section": "Top 5 sessions by token usage", "sourceSeparator": ", ", "chartOther": "Other", "cost": "API equivalent", "costUnpriced": "Includes {tokens} tokens without pricing data, excluded from the API equivalent", "claudeMissing": "Days with Claude Code use whose conversation records were deleted: {days}. That usage is excluded from the total.", "emptyProjects": "No project usage in this period", "kpiActiveHint": "A day counts if any tool records usage", "kpiActiveValue": "{active} / {total} days", "narrative": "You used {tokens} tokens over this period. {peak_date} was the peak ({peak_tokens}/day), and the model with the most token usage was {top_model}.", "projectSection": "Project hot zones", "share": "Token share", "tokens": "Tokens", "unknown": "unknown", "vsPrevious": "vs previous period", "compositionCacheRead": "Cache read", "compositionCacheWrite": "Cache write", "compositionHitRate": "Cache hit rate", "compositionInput": "Input", "compositionMissing": "Another {tokens} tokens have no input/output breakdown.", "trendPartialWeek": "only {days} days", "trendIncompleteWeek": "Incomplete week", "compositionOutput": "Output", "duration": "Duration", "dailyChartTitle": "Daily usage", "dailyChartModeTokens": "Tokens", "dailyChartModeCost": "API equivalent", "dailyChartTotal": "Total", "emptyDaily": "No daily usage in this period", "emptySessions": "No sessions to list in this period", "model": "Model", "project": "Project", "pricingAllPriced": "All usage has a public price.", "pricingHint": "API equivalent is the API-equivalent value from public price lists, not your subscription bill. Usage without pricing data is left out of API equivalent: models with no public price, and older records that kept only totals. Missing pricing data does not mean free; the API equivalent cannot be calculated.", "pricingModelSeparator": ", ", "pricingPriced": "Convertible to API equivalent", "pricingUnpriced": "No pricing data", "rank": "Rank", "startTime": "Start time", "trendCompareDown": "Last complete week (W{week}) dropped {pct}% vs the preceding week.", "trendCompareFirst": "Fewer than two complete weeks to compare.", "trendCompareFlat": "Last complete week (W{week}) was roughly flat vs the preceding week.", "trendCompareNew": "Last complete week (W{week}) has new usage vs the preceding week.", "trendCompareUp": "Last complete week (W{week}) is {ratio}× the preceding week.", "trendMarkerNew": "new", "trendWeekInProgress": "in progress"};
 const maskedCsvData = JSON.parse(document.querySelector('#usage-masked-csv-data').textContent);
 const csvDataNode = document.querySelector('#usage-csv-data');
 const csvData = csvDataNode ? JSON.parse(csvDataNode.textContent) : maskedCsvData;
@@ -1783,6 +1783,10 @@ document.addEventListener('click', async (e) => {
     return (!text || text === 'unknown') ? (shareConfig.unknown || 'unknown') : text;
   }
 
+  function isUnattributed(value) {
+    return value == null || value === '' || value === 'unknown';
+  }
+
   function modelColor(name) {
     const normalized = name.toLowerCase();
     if (normalized.startsWith('claude')) return '#5abfa0';
@@ -1919,6 +1923,7 @@ document.addEventListener('click', async (e) => {
 
   const toolMetadata = new Map();
   document.querySelectorAll('.tools-section .tool-row').forEach((row) => {
+    if (row.dataset.agentId !== undefined && isUnattributed(row.dataset.agentId)) return;
     const name = rowName(row, '.sub-agent');
     const plan = row.querySelector('.sub-plan');
     const since = row.querySelector('.sub-since');
@@ -1936,7 +1941,7 @@ document.addEventListener('click', async (e) => {
     const head = document.createElement('div');
     head.className = 'tool-head hlabel';
     appendTextSpan(head, 'arrow', '▸');
-    appendTextSpan(head, 'sub-agent', displayName(agent.name));
+    appendTextSpan(head, 'sub-agent', isUnattributed(agent.id) ? shareConfig.unattributedTools : displayName(agent.name));
     const metadata = toolMetadata.get(String(agent.id)) || toolMetadata.get(`name:${agent.name}`);
     appendToolPlan(head, metadata);
     row.append(head);
@@ -1975,14 +1980,15 @@ document.addEventListener('click', async (e) => {
     const byAgent = aggregateRows(summary.rows, 1);
     const entries = Object.entries(byAgent)
       .map(([agentIndex, item]) => ({agentIndex: Number(agentIndex), ...item}))
-      .sort((left, right) => right.tokens - left.tokens || left.agentIndex - right.agentIndex);
+      .sort((left, right) => Number(isUnattributed(cube.agents[left.agentIndex]?.id)) - Number(isUnattributed(cube.agents[right.agentIndex]?.id)) || right.tokens - left.tokens || left.agentIndex - right.agentIndex);
     const usedIds = new Set();
     entries.forEach((item, index) => {
       const agent = cube.agents[item.agentIndex];
       if (!agent) return;
       usedIds.add(String(agent.id));
       const groupRow = createToolRow(agent, item, summary.tokens);
-      if (index === 0) groupRow.querySelector('.hbar').style.background = 'var(--chart-accent)';
+      if (isUnattributed(agent.id)) groupRow.querySelector('.hbar').style.background = 'var(--chart-neutral)';
+      else if (index === 0) groupRow.querySelector('.hbar').style.background = 'var(--chart-accent)';
       tools.append(groupRow);
       const byModel = aggregateRows(
         summary.rows,
@@ -2007,7 +2013,8 @@ document.addEventListener('click', async (e) => {
         String(agent.id) === key || `name:${agent.name}` === key
       ));
       if (!matchedAgent || !usedIds.has(String(matchedAgent.id))) {
-        tools.append(createSubscriptionOnlyRow(metadata));
+        const unattributed = Array.from(tools.querySelectorAll('.tool-row')).find((row) => row.dataset.agentId !== undefined && isUnattributed(row.dataset.agentId));
+        tools.insertBefore(createSubscriptionOnlyRow(metadata), unattributed || null);
       }
     });
   }
@@ -2026,7 +2033,8 @@ document.addEventListener('click', async (e) => {
       }))
       .filter((item) => item.tokens > 0 || item.cost > 0)
       .sort((left, right) => right.tokens - left.tokens || left.projectIndex - right.projectIndex);
-    const displayed = projects.slice(0, 10);
+    const unattributed = projects.filter((project) => isUnattributed(project.name));
+    const displayed = projects.filter((project) => !isUnattributed(project.name)).slice(0, 10);
     displayed.forEach((project, index) => {
       const row = createRankRow(
         project.name,
@@ -2038,12 +2046,20 @@ document.addEventListener('click', async (e) => {
       list.append(row);
       bindProjectRow(row);
     });
-    const remaining = summary.tokens - displayed.reduce((sum, project) => sum + project.tokens, 0);
+    const remaining = summary.tokens - [...displayed, ...unattributed].reduce((sum, project) => sum + project.tokens, 0);
     if (remaining > 0) {
-      const cost = Math.max(0, summary.cost - displayed.reduce((sum, project) => sum + project.cost, 0));
+      const cost = Math.max(0, summary.cost - [...displayed, ...unattributed].reduce((sum, project) => sum + project.cost, 0));
       const other = createRankRow(shareConfig.projectOthers, {tokens: remaining, cost}, summary.tokens, 'var(--chart-neutral)', {costKnown: true, showShare: true});
       other.dataset.projectOther = 'true';
       list.append(other);
+    }
+    if (unattributed.length) {
+      const item = {
+        tokens: unattributed.reduce((sum, project) => sum + project.tokens, 0),
+        cost: unattributed.reduce((sum, project) => sum + project.cost, 0),
+        costKnown: unattributed.some((project) => project.costKnown),
+      };
+      list.append(createRankRow(shareConfig.unattributedProjects, item, summary.tokens, 'var(--chart-neutral)', {costKnown: item.costKnown, showShare: true}));
     }
     if (!projects.length && remaining <= 0) {
       const empty = document.createElement('div');
@@ -2522,7 +2538,7 @@ document.addEventListener('click', async (e) => {
     const pct = (value, total) => total ? Math.floor(value / total * 100 + 0.5) : 0;
     const agents = Object.entries(aggregateRows(summary.rows, 1))
       .map(([index, item]) => ({index: Number(index), ...item}))
-      .filter((item) => item.tokens > 0)
+      .filter((item) => item.tokens > 0 && !isUnattributed(cube.agents[item.index]?.id))
       .sort((a, b) => b.tokens - a.tokens || a.index - b.index);
     const titles = {
       tools: text('tools_section'), projects: text('project_section'),
@@ -2532,7 +2548,9 @@ document.addEventListener('click', async (e) => {
     if (agents.length) titles.tools = text(agents.length === 1 ? 'title_tools_single' : 'title_tools_top', {
       tool: displayName(cube.agents[agents[0].index].name), pct: pct(agents[0].tokens, summary.tokens),
     });
-    const projects = Object.values(aggregateRows(summary.rows, 3))
+    const projects = Object.entries(aggregateRows(summary.rows, 3))
+      .filter(([index]) => !isUnattributed(cube.projects[Number(index)]))
+      .map(([, item]) => item)
       .filter((item) => item.tokens > 0).sort((a, b) => b.tokens - a.tokens);
     if (projects.length >= 3) titles.projects = text('title_projects_top3', {
       pct: pct(projects.slice(0, 3).reduce((sum, p) => sum + p.tokens, 0), summary.tokens),

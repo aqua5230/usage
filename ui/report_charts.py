@@ -7,6 +7,60 @@
 from __future__ import annotations
 
 import html
+from collections.abc import Mapping
+from typing import Any
+
+
+def is_unattributed(value: object) -> bool:
+    return value in (None, "", "unknown")
+
+
+def project_chart_rows(data: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """Keep legacy totals outside the ten project ranks, without changing report data."""
+    projects = list(data.get("by_project", []))
+    cube = data.get("cube")
+    cube = cube if isinstance(cube, Mapping) else {}
+    if not any(is_unattributed(p["project"]) for p in projects) and not any(
+        is_unattributed(p) for p in cube.get("projects", [])
+    ):
+        return projects
+
+    # The analyzer supplies only ten rows. Recover omitted rows from the embedded
+    # cube so unknown neither consumes a rank nor disappears into Other projects.
+    present = {p["project"] for p in projects}
+    missing: dict[str, dict[str, Any]] = {}
+    for row in cube.get("rows", []):
+        day = cube["dates"][int(row[0])]
+        if not data.get("date_from", day) <= day <= data.get("date_to", day):
+            continue
+        name = cube["projects"][int(row[3])]
+        if name in present:
+            continue
+        item = missing.setdefault(
+            name, {"project": name, "tokens": 0, "cost": 0.0, "cost_known": False}
+        )
+        item["tokens"] += sum(int(value) for value in row[4:8])
+        item["cost"] += float(row[8])
+        item["cost_known"] |= bool(cube["models"][int(row[2])].get("cost_known"))
+    projects.extend(p for p in missing.values() if p["tokens"] > 0 or p["cost"] > 0)
+    unknown = [p for p in projects if is_unattributed(p["project"]) and not p.get("is_other")]
+    project_order = {name: index for index, name in enumerate(cube.get("projects", []))}
+    ranked = sorted(
+        [p for p in projects if not is_unattributed(p["project"]) and not p.get("is_other")],
+        key=lambda p: (-p["tokens"], project_order.get(p["project"], len(project_order))),
+    )[:10]
+    ranked.extend(p for p in projects if p.get("is_other"))
+    if unknown:
+        ranked.append(
+            {
+                "project": "unknown",
+                "tokens": sum(p["tokens"] for p in unknown),
+                "cost": sum(p["cost"] for p in unknown),
+                "cost_known": any(p.get("cost_known", True) for p in unknown),
+                "is_unattributed": True,
+            }
+        )
+    return ranked
 
 
 def render_trend_bar(tokens: int, max_tokens: int) -> str:

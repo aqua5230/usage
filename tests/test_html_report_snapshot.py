@@ -619,7 +619,8 @@ def test_generate_html_wires_cube_rows_to_report_filter_script() -> None:
     assert 'data-project-index="0"' in html
     assert (
         '<div class="rank-line"><div class="hlabel"><span class="arrow">→</span>'
-        '<span class="name">unknown</span></div><div class="hlane"'
+        '<span class="name">Old records (totals only)</span>'
+        '</div><div class="hlane"'
     ) in html
     assert "window.usageReportFilter = {cube, aggregateRows, displayName, normalizeBounds" in html
     assert REPORT_FILTER_JS in html
