@@ -67,6 +67,7 @@ KNOWN_STATUS = frozenset(
         "_received_at",
         "_received_at_ts",
         "_rate_limits_session_id",
+        "_rate_limits_account_uuid",
     ]
 )
 KNOWN_CLAUDE_LIMITS = frozenset({"five_hour", "seven_day"})

@@ -108,6 +108,7 @@ def status() -> dict[str, Any]:
 
 def test_claude_statusline_ok(status: dict[str, Any]) -> None:
     status["_rate_limits_session_id"] = "session"
+    status["_rate_limits_account_uuid"] = "account"
     write_json(check.CLAUDE_STATUS_PATH, status)
     assert check.check_claude_statusline()[0] == "OK"
 
