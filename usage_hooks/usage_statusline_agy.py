@@ -26,7 +26,12 @@ from typing import Any, Dict, List, Optional, Tuple, cast
 # Gemini group; the usage app caches the production host's answer here.
 USAGE_AGY_CACHE = os.path.expanduser("~/.usage/agy_quota_cache.json")
 _CACHE_MAX_AGE_SECONDS = 15 * 60
-_CACHE_GROUP_KEYS = (("gemini", "gemini-5h", "gemini-weekly"), ("claude", "3p-5h", "3p-weekly"))
+# "GEMINI 4 ARGON" also contains "gemini", so argon is matched first.
+_CACHE_GROUP_KEYS = (
+    ("argon", "argon-5h", "argon-weekly"),
+    ("gemini", "gemini-5h", "gemini-weekly"),
+    ("claude", "3p-5h", "3p-weekly"),
+)
 
 STATUSLINE_TRANSLATIONS = {
     "zh-TW": {
@@ -286,8 +291,11 @@ def _terminal_width(value: Any) -> int:
 
 
 def _quota_keys(data: Dict[str, Any]) -> Tuple[str, str]:
-    model_id = _as_dict(data.get("model")).get("id", "")
-    if isinstance(model_id, str) and "gemini" in model_id.lower():
+    # The CLI sends display names as ids, e.g. "Orchestrator (Argon)" draws on the Argon pool.
+    name = str(_as_dict(data.get("model")).get("id") or "").lower()
+    if "argon" in name:
+        return "argon-5h", "argon-weekly"
+    if "gemini" in name:
         return "gemini-5h", "gemini-weekly"
     return "3p-5h", "3p-weekly"
 
@@ -308,9 +316,6 @@ def _usage_cached_quota(now: Optional[datetime] = None) -> Dict[str, Dict[str, f
     for group in cache.get("groups") or []:
         group = _as_dict(group)
         name = str(group.get("name", "")).lower()
-        if "argon" in name:
-            # "GEMINI 4 ARGON" is a separate quota; it must not overwrite the Gemini keys.
-            continue
         for marker, five_hour_key, weekly_key in _CACHE_GROUP_KEYS:
             if marker not in name:
                 continue
@@ -337,6 +342,7 @@ def _usage_cached_quota(now: Optional[datetime] = None) -> Dict[str, Dict[str, f
                 if minutes is not None:
                     entry["reset_in_seconds"] = minutes * 60 - age
                 quota[key] = entry
+            break
     return quota
 
 
