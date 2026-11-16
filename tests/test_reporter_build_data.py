@@ -22,6 +22,44 @@ from loaders import codex_loader, history_loader
 from usage_common import pricing
 
 
+@pytest.mark.parametrize("mixed", [False, True])
+def test_project_cost_known_requires_a_priced_model(
+    monkeypatch: pytest.MonkeyPatch, mixed: bool
+) -> None:
+    from ui import html_report
+
+    now = datetime.now(UTC)
+    entries = [
+        _entry(
+            when=now,
+            session_id="one",
+            model="unknown",
+            project="worker-project",
+            agent_id="antigravity",
+            input_tokens=100,
+        )
+    ]
+    if mixed:
+        entries.append(
+            _entry(
+                when=now,
+                session_id="two",
+                model="priced",
+                project="worker-project",
+                agent_id="antigravity",
+                input_tokens=100,
+            )
+        )
+    monkeypatch.setattr(reporter, "_load_agent_entries", lambda *_args: entries)
+    monkeypatch.setattr(reporter, "calculate_cost", lambda _entry: 0.0)
+    data = reporter.build_report_data([AgentInfo("antigravity", "Antigravity", "", True)], "today")
+    assert data["by_project"][0]["cost_known"] is mixed
+    rendered = html_report._render_project_section(data, "en")
+    assert ("$0.00" in rendered) is mixed
+    if not mixed:
+        assert "—" in rendered
+
+
 def _empty_year_payload() -> dict[str, Any]:
     return {
         "contribution": {

@@ -867,7 +867,7 @@ def _assemble_groups(
     full = AgyQuotaWindow(100.0, None, None)
     layout = (
         ("gemini", "GEMINI MODELS", ["Gemini Flash", "Gemini Pro"]),
-        ("claude-gpt", "CLAUDE AND GPT MODELS", ["Claude Opus", "Claude Sonnet", "GPT-OSS"]),
+        ("claude-gpt", "CLAUDE AND GPT MODELS", ["Claude Opus", "Claude Sonnet"]),
         ("argon", "GEMINI 4 ARGON", ["Gemini 4 Argon"]),
     )
     groups: list[AgyQuotaGroup] = []

@@ -437,6 +437,7 @@ env = run(makeEnvironment(singleCube, {}, true));
 env.groups[0].fire('click');
 window.usageReportFilter.applyBounds({from: '2026-05-21', to: '2026-05-21'});
 const rebuiltSingleTool = env.tools.children.find((row) => row.classList.contains('model-group'));
+assert.equal(env.projectList.children[0].querySelector('.cost').textContent, '—');
 assert.equal(rebuiltSingleTool.getAttribute('aria-expanded'), 'true');
 assert.equal(rebuiltSingleTool.nextElementSibling.querySelector('.cost').textContent, '—');
 env.projectList.children.find((row) => row.dataset.projectIndex !== undefined).fire('click');

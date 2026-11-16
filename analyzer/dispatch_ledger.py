@@ -352,7 +352,7 @@ def load_windows() -> dict[str, QuotaWindow]:
                 group_key = f"antigravity:{group.name}"
                 windows[group_key] = window
                 for model in group.models:
-                    windows[f"antigravity-model:{model.lower()}"] = window
+                    windows[f"antigravity-model:{model.lower().replace('-', ' ')}"] = window
     muse = muse_quota_probe.read_cache()
     if muse:
         window = _window(muse["weekly"]["used_percent"], muse["weekly"]["resets_at"], 7 * 24 * 60)

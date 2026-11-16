@@ -267,7 +267,8 @@ def test_weekly_survives_failed_or_skipped_cli_and_stays_stale(
     assert projection is not None
     assert projection.weekly.percent == 58
     assert projection.weekly.reset_text != "--"
-    assert projection.stale == {"ageText": "about 6 minutes ago"}
+    assert projection.stale is None
+    assert projection.weekly.reset_text == "Resets in 1h 54m · about 6 minutes ago"
     assert (
         probe._carry_missing_weekly(_quota(now + timedelta(minutes=6), None), result)
         .groups[0]

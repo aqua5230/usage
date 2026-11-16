@@ -597,7 +597,7 @@ def test_build_result_splits_gemini_and_claude_gpt_groups() -> None:
         "GEMINI MODELS",
         "CLAUDE AND GPT MODELS",
     ]
-    assert result.groups[1].models == ["Claude Opus", "Claude Sonnet", "GPT-OSS"]
+    assert result.groups[1].models == ["Claude Opus", "Claude Sonnet"]
 
 
 # --- probe_quota end-to-end (mocked HTTP) ----------------------------------

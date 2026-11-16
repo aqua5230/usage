@@ -64,6 +64,15 @@ def test_model_short_uses_known_names_and_truncates(model: str, expected: str) -
     assert tables._model_short(model) == expected
 
 
+@pytest.mark.parametrize("effort", ["low", "medium", "high"])
+def test_carbon_model_normalizes_and_has_short_name(effort: str) -> None:
+    from adapters import agy
+
+    model = agy._normalize_model(f"gemini-4-carbon-{effort}")
+    assert model == "gemini-4-carbon"
+    assert tables._model_short(model) == "Carbon 4"
+
+
 @pytest.mark.parametrize(
     ("tokens", "expected"),
     [
