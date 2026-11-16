@@ -409,7 +409,7 @@ def _round_cost(value: float) -> float:
 def _load_persona_for_period(period: str) -> PersonaReportData | None:
     days_back = _period_spec(period).persona_days
     try:
-        profile = persona_loader.load_profile(days_back)
+        profile = persona_loader.load_report_profile(days_back)
     except Exception:
         return None
     return {

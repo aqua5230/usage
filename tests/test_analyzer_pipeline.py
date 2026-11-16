@@ -35,7 +35,7 @@ def _stub_persona_loader(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Non
             total_messages=0,
         )
 
-    monkeypatch.setattr("analyzer.reporter.persona_loader.load_profile", fake_load_profile)
+    monkeypatch.setattr("analyzer.reporter.persona_loader.load_report_profile", fake_load_profile)
     monkeypatch.setattr(reporter, "YEAR_CACHE_PATH", tmp_path / "year_cache.json")
     monkeypatch.setattr(reporter, "YEAR_LEDGER_PATH", tmp_path / "year_ledger.json")
 
@@ -663,7 +663,7 @@ def test_build_report_data_includes_serialized_persona(monkeypatch: Any) -> None
             total_messages=3,
         )
 
-    monkeypatch.setattr("analyzer.reporter.persona_loader.load_profile", fake_load_profile)
+    monkeypatch.setattr("analyzer.reporter.persona_loader.load_report_profile", fake_load_profile)
     monkeypatch.setattr("analyzer.reporter.subscription.load_subscriptions", lambda: [])
 
     data = reporter.build_report_data([], "last7")
