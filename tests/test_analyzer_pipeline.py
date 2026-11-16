@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 import time
 from datetime import UTC, date, datetime, timedelta, tzinfo
 from pathlib import Path
@@ -18,6 +19,7 @@ from adapters.types import AgentInfo, UsageEntry
 from analyzer import persona_loader, reporter
 from loaders import cache_quarantine, codex_loader, history_loader
 from menubar import app as menubar
+from usage_app import report
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -303,6 +305,7 @@ def test_html_panels_expose_analyze_action() -> None:
 
 def test_generate_analysis_report_uses_analyzer_pipeline(
     monkeypatch: Any,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
     agents = [AgentInfo("codex", "Codex", "~/.codex", True)]
     report_data: dict[str, object] = {"summary": {"total_tokens": 123}}
@@ -324,11 +327,12 @@ def test_generate_analysis_report_uses_analyzer_pipeline(
         calls["default_range"] = default_range
         return "~/.usage-reports/usage-report-test.html"
 
-    monkeypatch.setattr("adapters.registry.detect_agents", lambda: agents)
-    monkeypatch.setattr("analyzer.reporter.build_report_data", fake_build_report_data)
-    monkeypatch.setattr("ui.html_report.save_and_open", fake_save_and_open)
+    monkeypatch.setattr(report, "detect_agents", lambda: agents)
+    monkeypatch.setattr(report, "build_report_data", fake_build_report_data)
+    monkeypatch.setattr(report, "save_and_open", fake_save_and_open)
 
-    assert menubar._generate_analysis_report() == "~/.usage-reports/usage-report-test.html"
+    assert report.main(["--period", "all", "--default-range", "month"]) == 0
+    assert capsys.readouterr().out.strip() == "~/.usage-reports/usage-report-test.html"
     assert calls == {
         "agents": agents,
         "period": "all",
@@ -340,6 +344,7 @@ def test_generate_analysis_report_uses_analyzer_pipeline(
 
 def test_generate_analysis_report_propagates_language(
     monkeypatch: Any,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
     agents = [AgentInfo("codex", "Codex", "~/.codex", True)]
     report_data: dict[str, object] = {"summary": {"total_tokens": 123}}
@@ -361,14 +366,12 @@ def test_generate_analysis_report_propagates_language(
         calls["default_range"] = default_range
         return "~/.usage-reports/usage-report-test.html"
 
-    monkeypatch.setattr("adapters.registry.detect_agents", lambda: agents)
-    monkeypatch.setattr("analyzer.reporter.build_report_data", fake_build_report_data)
-    monkeypatch.setattr("ui.html_report.save_and_open", fake_save_and_open)
+    monkeypatch.setattr(report, "detect_agents", lambda: agents)
+    monkeypatch.setattr(report, "build_report_data", fake_build_report_data)
+    monkeypatch.setattr(report, "save_and_open", fake_save_and_open)
 
-    assert (
-        menubar._generate_analysis_report(language="zh-TW")
-        == "~/.usage-reports/usage-report-test.html"
-    )
+    assert report.main(["--period", "all", "--default-range", "month", "--language", "zh-TW"]) == 0
+    assert capsys.readouterr().out.strip() == "~/.usage-reports/usage-report-test.html"
     assert calls == {
         "agents": agents,
         "period": "all",
@@ -400,14 +403,14 @@ def test_app_analyze_uses_project_range_period(
     delegate = menubar.AppDelegate.alloc().initWithMock_interval_(False, 60)
     monkeypatch.setattr("menubar.app.threading.Thread", InlineThread)
 
-    def fake_generate_analysis_report(
-        period: str = "month",
-        language: str | None = None,
-    ) -> str:
-        calls.append(period)
-        return "~/.usage-reports/report.html"
+    def fake_run(argv: list[str], **kwargs: Any) -> subprocess.CompletedProcess[str]:
+        # Source bootstrap embeds all report arguments in its final element.
+        for period in ("last30", "all"):
+            if f"'--default-range','{period}'" in argv[-1]:
+                calls.append(period)
+        return subprocess.CompletedProcess(argv, 0, stdout="~/.usage-reports/report.html\n")
 
-    monkeypatch.setattr(menubar, "_generate_analysis_report", fake_generate_analysis_report)
+    monkeypatch.setattr("menubar.actions.subprocess.run", fake_run)
     monkeypatch.setattr(
         delegate,
         "performSelectorOnMainThread_withObject_waitUntilDone_",
