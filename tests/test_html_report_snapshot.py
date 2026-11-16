@@ -1021,3 +1021,23 @@ def test_date_inputs_allow_generation_date_after_last_usage() -> None:
         "en",
     )
     assert html.count('max="2026-11-04"') == 2
+
+
+@pytest.mark.parametrize("lang", ["zh-TW", "zh-CN", "en", "ja", "ko"])
+@pytest.mark.parametrize("missing_days", [0, 2])
+def test_token_card_explains_missing_claude_usage(lang: str, missing_days: int) -> None:
+    import html as html_module
+    import json
+
+    data = _full_report_data()
+    data["claude_missing_days"] = missing_days
+    rendered = html_report.generate_html(data, language=lang)
+    cards = re.search(r'<section class="cards">(.*?)</section>', rendered, re.S)
+    assert cards
+    token_card = cards.group(1).split("</div>", 1)[0]
+    message = html_report._t(lang, "kpi_claude_missing", days=2)
+    assert (html_module.escape(message) in token_card) is bool(missing_days)
+    if missing_days:
+        assert token_card.index("2,345,678") < token_card.index(html_module.escape(message))
+    config = json.loads(html_report._share_config_json(lang, interactive=True))
+    assert config["claudeMissing"].replace("{days}", "2") == message

@@ -689,6 +689,10 @@ def _summary_cards(data: ReportData, lang: str) -> list[tuple[str, str, str]]:
         if cost_delta:
             cost_sub = f"{cost_sub}\n{cost_delta}" if cost_sub else cost_delta
 
+    missing_days = int(data.get("claude_missing_days", 0))
+    if missing_days:
+        tokens_sub += "\n" + _t(lang, "kpi_claude_missing", days=missing_days)
+
     cube = data.get("cube")
     unpriced_tokens = (
         pricing_usage(cube)[1]
@@ -1375,6 +1379,7 @@ def _share_config_json(lang: str, *, interactive: bool = False) -> str:
                 "chartOther": _t(lang, "chart_other"),
                 "cost": _t(lang, "cost"),
                 "costUnpriced": _t(lang, "kpi_cost_unpriced", tokens="{tokens}"),
+                "claudeMissing": _t(lang, "kpi_claude_missing", days="{days}"),
                 "emptyProjects": _t(lang, "empty_projects"),
                 "kpiActiveHint": _t(lang, "kpi_active_hint"),
                 "kpiActiveValue": _t(lang, "kpi_active_value", active="{active}", total="{total}"),

@@ -262,6 +262,7 @@ function makeEnvironment(
     chartOther: 'Other',
     cost: 'Cost',
     costUnpriced: '{tokens} tokens have no public pricing',
+    claudeMissing: 'Claude Code used on {days} days; records deleted; usage excluded.',
     kpiActiveValue: '{active} / {total} days',
     kpiActiveHint: 'A day counts if any tool records usage',
     emptyModels: 'No models',
@@ -987,5 +988,69 @@ assert.deepEqual(window.usageReportFilter.normalizeBounds('2026-10-01', '2099-01
   {from: '2026-10-01', to: '2026-10-30'});
 """
     path = tmp_path / "shortcuts.cjs"
+    path.write_text(script, encoding="utf-8")
+    subprocess.run([NODE or "node", str(path)], check=True, capture_output=True, text=True)
+
+
+@pytest.mark.skipif(NODE is None, reason="Node.js is unavailable")
+def test_claude_activity_filter_updates_active_days_and_missing_note(tmp_path: Path) -> None:
+    prefix = NODE_HARNESS.split("const cube = {", 1)[0]
+    script = prefix.replace("__REPORT_DAILY_CHART_JS__", json.dumps(REPORT_DAILY_CHART_JS)).replace(
+        "__REPORT_FILTER_JS__", json.dumps(REPORT_FILTER_JS)
+    )
+    script += r"""
+const cube = {
+  today: '2026-05-06',
+  dates: ['2026-05-01', '2026-05-03', '2026-05-04', '2026-05-05', '2026-05-06'],
+  claude_activity_dates: [
+    '2026-04-01', '2026-05-02', '2026-05-03', '2026-05-04', '2026-05-05',
+    '2026-05-06', '2026-06-01',
+  ],
+  unknown_ledger_dates: ['2026-05-04', '2026-05-05'],
+  agents: [
+    {id: 'codex', name: 'Codex'}, {id: 'claude-code', name: 'Claude Code'},
+    {id: 'unknown', name: 'Unknown'},
+  ],
+  models: [{name: 'priced', cost_known: true}],
+  projects: ['demo'],
+  rows: [
+    [0, 0, 0, 0, 100, 0, 0, 0, 1, 1],
+    [1, 1, 0, 0, 200, 0, 0, 0, 2, 1],
+    [2, 2, 0, 0, 300, 0, 0, 0, 3, 0, 1],
+    // The unknown ledger was fully covered by live Codex tokens: no ledger row remains.
+    [3, 0, 0, 0, 400, 0, 0, 0, 4, 1],
+    [4, 1, 0, 0, 0, 0, 0, 0, 0, 1],
+  ],
+};
+const env = run(makeEnvironment(cube, {}, false, [], true));
+const api = window.usageReportFilter;
+assert.deepEqual(api.rangeBounds('all'), {from: '2026-05-01', to: '2026-05-06'});
+const originalRows = JSON.stringify(cube.rows);
+const all = api.applyBounds(api.rangeBounds('all'));
+assert.equal(all.activeDays, 6);
+assert.equal(all.claudeMissingDays, 2);
+assert.equal(all.tokens, 1000);
+assert.equal(all.cost, 10);
+assert.equal(env.cards.active.querySelector('b').textContent, '6 / 6 days');
+assert.match(env.cards.tokens.querySelector('i').textContent, /used on 2 days/);
+const onlyActivity = api.applyBounds({from: '2026-05-02', to: '2026-05-02'});
+assert.equal(onlyActivity.activeDays, 1);
+assert.equal(onlyActivity.claudeMissingDays, 1);
+assert.equal(onlyActivity.tokens, 0);
+assert.equal(onlyActivity.cost, 0);
+assert.match(env.cards.tokens.querySelector('i').textContent, /used on 1 days/);
+for (const day of ['2026-05-01', '2026-05-03', '2026-05-04', '2026-05-05']) {
+  const covered = api.applyBounds({from: day, to: day});
+  assert.equal(covered.activeDays, 1);
+  assert.equal(covered.claudeMissingDays, 0);
+  assert.equal(env.cards.tokens.querySelector('i').textContent.includes('records deleted'), false);
+}
+const zeroClaude = api.applyBounds({from: '2026-05-06', to: '2026-05-06'});
+assert.equal(zeroClaude.activeDays, 1);
+assert.equal(zeroClaude.claudeMissingDays, 1);
+assert.equal(zeroClaude.tokens, 0);
+assert.equal(JSON.stringify(cube.rows), originalRows);
+"""
+    path = tmp_path / "claude-activity.cjs"
     path.write_text(script, encoding="utf-8")
     subprocess.run([NODE or "node", str(path)], check=True, capture_output=True, text=True)
