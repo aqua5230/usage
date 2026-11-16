@@ -26,6 +26,7 @@ import tempfile
 import threading
 from typing import NotRequired, TypeGuard, TypedDict
 
+from adapters import agy
 from adapters.types import UsageEntry
 from loaders import cache_quarantine
 from usage_common.pricing import calculate_cost
@@ -317,6 +318,13 @@ def _synthetic_ids(row: SnapshotRow, suffix: str) -> tuple[str, str]:
     return token, token
 
 
+def _replay_model(row: SnapshotRow) -> str:
+    # Rows recorded before agy names were normalized keep raw IDs (gemini-3.8-flash-n).
+    if row["agent_id"] == "antigravity":
+        return agy._normalize_model(row["model"])
+    return row["model"]
+
+
 def _zero_entry(row: SnapshotRow, timestamp: datetime, suffix: str) -> UsageEntry:
     message_id, request_id = _synthetic_ids(row, suffix)
     return UsageEntry(
@@ -324,7 +332,7 @@ def _zero_entry(row: SnapshotRow, timestamp: datetime, suffix: str) -> UsageEntr
         session_id=row["session_id"],
         message_id=message_id,
         request_id=request_id,
-        model=row["model"],
+        model=_replay_model(row),
         input_tokens=0,
         output_tokens=0,
         cache_creation_tokens=0,
@@ -363,12 +371,14 @@ def _replay_row(row: SnapshotRow, header: SessionHeader | None) -> list[UsageEnt
             session_id=row["session_id"],
             message_id=message_id,
             request_id=request_id,
-            model=row["model"],
+            model=_replay_model(row),
             input_tokens=row["input_tokens"],
             output_tokens=row["output_tokens"],
             cache_creation_tokens=row["cache_creation_tokens"],
             cache_read_tokens=row["cache_read_tokens"],
-            cost_usd=row["cost"],
+            # Live agy entries carry no cost and are priced on read; replay them the same
+            # way so rows stored while their model was unpriced are not frozen at 0.
+            cost_usd=None if row["agent_id"] == "antigravity" else row["cost"],
             project=row["project"],
             agent_id=row["agent_id"],
             message_count=row["message_count"],

@@ -183,6 +183,28 @@ def test_replay_single_row_duration_zero(snapshot_path: Path) -> None:
     assert replayed[0].message_id.startswith("usage-snapshot:")
 
 
+def test_replay_normalizes_raw_agy_rows_and_reprices_them(snapshot_path: Path) -> None:
+    agy_entry = _entry(
+        when=datetime(2026, 9, 1, 12, 0),
+        session_id="agy-1",
+        model="gemini-3.8-flash-n",
+        agent_id="antigravity",
+        cost_usd=0.0,
+    )
+    codex_entry = _entry(when=datetime(2026, 9, 1, 13, 0), model="gpt-5-high", cost_usd=0.0)
+    usage_snapshot.record_entries([agy_entry, codex_entry])
+
+    replayed = {
+        entry.agent_id: entry
+        for entry in usage_snapshot.replay_entries(date(2026, 9, 1), date(2026, 9, 1))
+    }
+
+    assert replayed["antigravity"].model == "gemini-3.8-flash"
+    assert replayed["antigravity"].cost_usd is None
+    assert replayed["codex"].model == "gpt-5-high"
+    assert replayed["codex"].cost_usd == 0.0
+
+
 def test_replay_duration_placeholder_same_day(snapshot_path: Path) -> None:
     first = _entry(when=datetime(2026, 9, 1, 12, 0), input_tokens=10, cost_usd=0.5)
     last = _entry(when=datetime(2026, 9, 1, 12, 30), input_tokens=20, cost_usd=0.5)
