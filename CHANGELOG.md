@@ -15,6 +15,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 - **New Antigravity models are announced even when every model in the first scan was already known from other tools.** usage did not record that Antigravity had been scanned, so later new models were treated as part of the first scan and not announced.
 - **The offline check works when NO_PROXY excludes Google.** With a proxy set, usage assumed it was online even when Google's sign-in host bypassed the proxy, so it could run the Antigravity CLI while offline and mark you as signed out.
 - **Offline prices for Claude Mythos 5 and Mythos 5.2 were added,** and the price-table check now covers Mythos models.
+- **A refusal from a separate Codex limit no longer shows your regular Codex quota as 100% used.** When a dedicated limit such as Codex Spark or a premium model refused a request, the card marked the regular weekly window as full. Only a refusal of the regular Codex limit does that now.
+- **Reopening an old Codex session no longer hides newer quota from your other sessions.** After a refusal in a resumed old session, the card kept that session's old reading and skipped newer readings from other sessions. It now takes the newest reading, then applies the refusal.
+- **The Codex disk cache is no longer rewritten on every refresh when you have forked or subagent sessions.** Those sessions were dropped each time the cache was saved, so the cache was rewritten and they were read again.
 
 ## [0.34.21] - 2026-11-14
 
