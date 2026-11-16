@@ -205,9 +205,10 @@ REPORT_FILTER_JS = r"""(() => {
       .filter((day) => day >= bounds.from && day <= bounds.to));
     const unknownLedgerDates = new Set(cube.unknown_ledger_dates || []);
     claudeDates.forEach((day) => activeDates.add(day));
-    const claudeMissingDays = Array.from(claudeDates).filter((day) =>
+    const claudeMissingDates = Array.from(claudeDates).filter((day) =>
       !claudeTokenDates.has(day) && !unknownLedgerDates.has(day)
-    ).length;
+    ).sort();
+    const claudeMissingDays = claudeMissingDates.length;
     return {
       topModel,
       bounds,
@@ -221,6 +222,7 @@ REPORT_FILTER_JS = r"""(() => {
       }).length,
       activeDays: activeDates.size,
       claudeMissingDays,
+      claudeMissingDates,
       totalDays,
       peakDate,
       peakTokens: Math.max(0, peakTokens),
@@ -667,10 +669,7 @@ REPORT_FILTER_JS = r"""(() => {
 
   function updateSummary(summary) {
     const tokenDelta = deltaText(summary.tokens, summary.previousTokens, summary.hasPrevious);
-    const missing = summary.claudeMissingDays
-      ? shareConfig.claudeMissing.replace('{days}', summary.claudeMissingDays)
-      : '';
-    const tokenSub = [formatInteger(summary.tokens), tokenDelta, missing].filter(Boolean).join('\n');
+    const tokenSub = [formatInteger(summary.tokens), tokenDelta].filter(Boolean).join('\n');
     const costDelta = deltaText(summary.cost, summary.previousCost, summary.hasPrevious);
     const unpriced = summary.unpricedTokens
       ? shareConfig.costUnpriced.replace('{tokens}', formatTokens(summary.unpricedTokens))
@@ -681,6 +680,37 @@ REPORT_FILTER_JS = r"""(() => {
       .replace('{active}', summary.activeDays)
       .replace('{total}', summary.totalDays), shareConfig.kpiActiveHint);
     updateCard('peak', summary.peakDate, `${formatTokens(summary.peakTokens)} ${shareConfig.tokens}`);
+  }
+
+  function rebuildMissingUsage(summary) {
+    const appendix = document.querySelector('.report-appendix');
+    if (!appendix) return;
+    const previous = appendix.querySelector('.missing-usage-section');
+    if (previous) previous.remove();
+    const dates = summary.claudeMissingDates;
+    if (!dates.length) return;
+    const ranges = [];
+    let start = dates[0]; let end = start;
+    function addRange() { ranges.push(start === end ? start : `${start}–${end}`); }
+    dates.slice(1).forEach((day) => {
+      if (formatDate(shiftDate(parseDate(end), 1)) === day) end = day;
+      else { addRange(); start = end = day; }
+    });
+    addRange();
+    const section = document.createElement('section');
+    section.className = 'section missing-usage-section';
+    const prompt = document.createElement('div'); prompt.className = 'prompt';
+    appendTextSpan(prompt, '', '[usage]>');
+    appendTextSpan(prompt, 'prompt-title', ` ${shareConfig.missingUsageTitle}`);
+    const rule = document.createElement('div'); rule.className = 'rule';
+    rule.setAttribute('aria-hidden', 'true');
+    rule.textContent = '────────────────────────────────────────────────────────';
+    const body = document.createElement('p'); body.className = 'pricing-hint';
+    body.textContent = shareConfig.missingUsageBody
+      .replace('{days}', summary.claudeMissingDays)
+      .replace('{ranges}', ranges.join(shareConfig.sourceSeparator));
+    section.append(prompt, rule, body);
+    appendix.append(section);
   }
 
   function updateNarrative(summary) {
@@ -1184,6 +1214,7 @@ REPORT_FILTER_JS = r"""(() => {
     if (window.usageReportDaily && window.usageReportDaily.rebuildPricing) {
       window.usageReportDaily.rebuildPricing(summary);
     }
+    rebuildMissingUsage(summary);
     rebuildSessions(summary);
     updateSectionHeadings(summary);
     updatePeriod(summary.bounds);

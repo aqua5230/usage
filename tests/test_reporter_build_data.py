@@ -1472,7 +1472,11 @@ def test_report_claude_activity_preserves_usage_and_bounds(
     agents = [AgentInfo("codex", "Codex", "", True)]
     data = reporter.build_report_data(agents, "all")
     assert data["summary"]["active_days"] == 3
-    assert data["claude_missing_days"] == (1 if coverage in {"claude-code", "unknown"} else 2)
+    expected_missing = (
+        ["2026-04-28"] if coverage in {"claude-code", "unknown"} else ["2026-04-27", "2026-04-28"]
+    )
+    assert data["claude_missing_dates"] == expected_missing
+    assert data["claude_missing_days"] == len(expected_missing)
     assert data["date_from"] == "2026-04-26"
     assert data["date_to"] == "2026-04-28"
     assert data["cube"]["claude_activity_dates"] == ["2026-04-27", "2026-04-28"]
@@ -1519,6 +1523,7 @@ def test_report_activity_only_day_has_no_usage(monkeypatch: pytest.MonkeyPatch) 
     monkeypatch.setattr(claude_activity, "activity_dates", lambda: frozenset({date(2026, 4, 27)}))
     data = reporter.build_report_data([], "today")
     assert data["summary"]["active_days"] == 1
+    assert data["claude_missing_dates"] == ["2026-04-27"]
     assert data["claude_missing_days"] == 1
     assert data["summary"]["total_tokens"] == 0
     assert data["summary"]["cost_usd"] == 0
@@ -1562,6 +1567,7 @@ def test_report_unknown_ledger_excludes_missing_even_without_synthetic_rows(
         ],
     )
     data = reporter.build_report_data([AgentInfo("codex", "Codex", "", True)], "today")
+    assert data["claude_missing_dates"] == []
     assert data["claude_missing_days"] == 0
     assert data["cube"]["unknown_ledger_dates"] == ["2026-04-27"]
     assert all(len(row) == 10 for row in data["cube"]["rows"])

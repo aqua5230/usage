@@ -720,10 +720,6 @@ def _summary_cards(data: ReportData, lang: str) -> list[tuple[str, str, str]]:
         if cost_delta:
             cost_sub = f"{cost_sub}\n{cost_delta}" if cost_sub else cost_delta
 
-    missing_days = int(data.get("claude_missing_days", 0))
-    if missing_days:
-        tokens_sub += "\n" + _t(lang, "kpi_claude_missing", days=missing_days)
-
     cube = data.get("cube")
     unpriced_tokens = (
         pricing_usage(cube)[1]
@@ -1125,14 +1121,41 @@ def _render_pricing_section(data: Mapping[str, Any], lang: str) -> str:
     )
 
 
+def _render_missing_usage(data: Mapping[str, Any], lang: str) -> str:
+    dates = sorted(set(data.get("claude_missing_dates", [])))
+    if not dates:
+        return ""
+    ranges: list[tuple[str, str]] = []
+    start = end = dates[0]
+    for day in dates[1:]:
+        if (date.fromisoformat(day) - date.fromisoformat(end)).days == 1:
+            end = day
+        else:
+            ranges.append((start, end))
+            start = end = day
+    ranges.append((start, end))
+    separator = "、" if lang in {"zh-TW", "zh-CN", "ja"} else ", "
+    range_text = separator.join(
+        start if start == end else f"{start}–{end}" for start, end in ranges
+    )
+    body = _t(lang, "missing_usage_body", days=len(dates), ranges=range_text)
+    return (
+        '<section class="section missing-usage-section"><div class="prompt"><span>[usage]&gt;</span> '
+        f'<span class="prompt-title">{_escape(_t(lang, "missing_usage_title"))}</span></div><div class="rule" aria-hidden="true">'
+        "────────────────────────────────────────────────────────</div>"
+        f'<p class="pricing-hint">{_escape(body)}</p></section>'
+    )
+
+
 def _render_appendix(data: Mapping[str, Any], lang: str) -> str:
     pricing = _render_pricing_section(data, lang)
-    if not pricing:
+    missing = _render_missing_usage(data, lang)
+    if not pricing and not missing:
         return ""
     return (
         '<details class="report-appendix">'
         f'<summary><span>[usage]&gt;</span> {_escape(_t(lang, "appendix_title"))}<span class="appendix-desc">{_escape(_t(lang, "appendix_desc"))}</span><i class="appendix-caret" aria-hidden="true">▸</i></summary>'
-        f"{pricing}"
+        f"{pricing}{missing}"
         "</details>"
     )
 
@@ -1418,7 +1441,10 @@ def _share_config_json(lang: str, *, interactive: bool = False) -> str:
                 "chartOther": _t(lang, "chart_other"),
                 "cost": _t(lang, "cost"),
                 "costUnpriced": _t(lang, "kpi_cost_unpriced", tokens="{tokens}"),
-                "claudeMissing": _t(lang, "kpi_claude_missing", days="{days}"),
+                "missingUsageTitle": _t(lang, "missing_usage_title"),
+                "missingUsageBody": _t(
+                    lang, "missing_usage_body", days="{days}", ranges="{ranges}"
+                ),
                 "emptyProjects": _t(lang, "empty_projects"),
                 "kpiActiveHint": _t(lang, "kpi_active_hint"),
                 "kpiActiveValue": _t(lang, "kpi_active_value", active="{active}", total="{total}"),
@@ -1588,6 +1614,8 @@ def generate_html(
             f"  {_render_persona_section(report_data, lang)}{_render_recent_titles_section(report_data, lang)}\n"
             f"  {_render_wrapped_section(report_data, lang)}\n"
         )
+    elif report_data.get("claude_missing_dates"):
+        detail_sections = f"  {_render_appendix(report_data, lang)}\n"
     default_range_attr = (
         f' data-default-range="{html.escape(default_range, quote=True)}"' if default_range else ""
     )

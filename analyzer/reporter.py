@@ -250,6 +250,7 @@ class _ReportDataRequired(TypedDict):
 
 class ReportData(_ReportDataRequired, total=False):
     claude_missing_days: int
+    claude_missing_dates: list[str]
     by_agent_model: list[AgentModelReportRow]
     cube: CubeReportData
     sessions: list[SessionRowData]
@@ -1128,10 +1129,12 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
         if date_from.isoformat() <= day <= date_to.isoformat()
         and value["agent_tokens"].get("unknown", 0) > 0
     }
-    claude_missing_days = sum(
-        day not in claude_token_dates and day.isoformat() not in unknown_ledger_dates
+    claude_missing_dates = sorted(
+        day.isoformat()
         for day in claude_dates
+        if day not in claude_token_dates and day.isoformat() not in unknown_ledger_dates
     )
+    claude_missing_days = len(claude_missing_dates)
     total_days = (date_to - date_from).days + 1
     comparison = _build_comparison(raw_entries, entry_dates, period, date_from, date_to)
 
@@ -1452,6 +1455,7 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
         "date_from": date_from.isoformat(),
         "date_to": date_to.isoformat(),
         "claude_missing_days": claude_missing_days,
+        "claude_missing_dates": claude_missing_dates,
         "summary": {
             "total_tokens": total_tokens,
             "input_tokens": sum(entry.input_tokens for entry in real_entries),
