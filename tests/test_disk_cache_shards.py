@@ -315,6 +315,43 @@ def test_codex_file_info_round_trips_spawn_flag_without_replay_key(
     assert not seeded
 
 
+@pytest.mark.parametrize("is_thread_spawn", [False, True])
+def test_codex_flush_preserves_seeded_fork_metadata_without_rewriting_shard(
+    tmp_path: Path, is_thread_spawn: bool
+) -> None:
+    cache_path = tmp_path / "codex.json"
+    source, recent = _distinct_paths(codex_disk_cache._shard_index, tmp_path / "sessions")
+    source.parent.mkdir()
+    source.write_text("", encoding="utf-8")
+    metadata = _SessionFileInfo(
+        session_id="child", forked_from_id="parent", is_thread_spawn=is_thread_spawn
+    )
+    entries = OrderedDict([(source, _codex_entry(source))])
+    info = OrderedDict([(source, (1.0, 10, metadata))])
+    schema = codex_loader._CODEX_JSONL_CACHE_SCHEMA
+    sqlite_cache = codex_loader._SqliteLogCache()
+    codex_disk_cache.flush_caches(cache_path, schema, entries, info, sqlite_cache)
+    shard = codex_disk_cache._shard_path(cache_path, codex_disk_cache._shard_index(source))
+    original = shard.read_bytes()
+    os.utime(shard, ns=(1_000_000_000, 1_000_000_000))
+
+    for _ in range(2):
+        seeded: OrderedDict[Path, codex_loader._JsonlCacheEntry] = OrderedDict()
+        seeded_info: OrderedDict[Path, tuple[float, int, _SessionFileInfo]] = OrderedDict()
+        codex_disk_cache.seed_caches(cache_path, schema, 4096, seeded, seeded_info, sqlite_cache)
+        assert source not in seeded
+        assert seeded_info[source] == (1.0, 10, metadata)
+        seeded[recent] = _codex_entry(recent)
+        seeded_info[recent] = (1.0, 10, _SessionFileInfo(session_id="recent"))
+
+        codex_disk_cache.flush_caches(cache_path, schema, seeded, seeded_info, sqlite_cache)
+
+        assert shard.is_file()
+        assert json.loads(shard.read_bytes())["files"][str(source)]["entries"] is None
+        assert shard.read_bytes() == original
+        assert shard.stat().st_mtime_ns == 1_000_000_000
+
+
 @pytest.mark.parametrize("stale_schema", [False, True])
 def test_codex_seed_does_not_assume_missing_spawn_flag_is_false(
     tmp_path: Path, stale_schema: bool

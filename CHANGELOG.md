@@ -9,6 +9,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Fixed
 - **The Windows tray tooltip no longer lists a tool you hid under Hide Sections.** Claude and Codex were always listed, even when hidden, and their lines could push the last tools past Windows' 127-character tooltip limit. A hidden tool's line is now left out; the tool chosen as Tray Display Source stays, because the icon shows its number.
+- **A refusal from a separate Codex limit no longer shows your regular Codex quota as 100% used.** When a dedicated limit such as Codex Spark or a premium model refused a request, the card marked the regular weekly window as full. Only a refusal of the regular Codex limit does that now.
+- **Reopening an old Codex session no longer hides newer quota from your other sessions.** After a refusal in a resumed old session, the card kept that session's old reading and skipped newer readings from other sessions. It now takes the newest reading, then applies the refusal.
+- **The Codex disk cache is no longer rewritten on every refresh when you have forked or subagent sessions.** Those sessions were dropped each time the cache was saved, so the cache was rewritten and they were read again.
 
 ## [0.34.21] - 2026-11-14
 
