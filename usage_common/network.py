@@ -31,7 +31,9 @@ def google_auth_reachable(timeout: float = _PROBE_TIMEOUT_SECONDS) -> bool:
     ``NO_PROXY`` does not route anything through a proxy and keeps the probe.
     """
     proxies = urllib.request.getproxies()
-    if proxies.get("https") or proxies.get("all"):
+    if (proxies.get("https") or proxies.get("all")) and not urllib.request.proxy_bypass(
+        _GOOGLE_AUTH_HOST
+    ):
         return True
     result: Future[bool] = Future()
 

@@ -419,6 +419,66 @@ def test_agy_log_models_baseline_then_new_with_suffixes_collapsed(
     assert "agy_log:claude-sonnet-5-5" not in items
 
 
+def test_first_usage_of_catalogued_codex_model_does_not_announce_again(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    from usage_hooks import usage_quota_aware as hook
+
+    monkeypatch.setattr(pricing, "is_model_priced", lambda _: True)
+    monkeypatch.setattr(hook, "MODEL_REGISTRY", model_registry.REGISTRY_PATH)
+    monkeypatch.setattr(hook, "STATE_PATH", tmp_path / "state.json")
+    _write_codex_cache(
+        model_registry.CODEX_MODELS_CACHE_PATH,
+        models=[
+            {"slug": "gpt-6.1-sol", "visibility": "list"},
+            {"slug": "gpt-6-luna", "visibility": "list"},
+        ],
+    )
+    first = _adapter_entry("codex", "gpt-6.1-sol")
+    model_registry.update(entries=[first])
+    model_registry.update(entries=[first, _adapter_entry("codex", " GPT-6-LUNA ")])
+
+    assert hook.reminder("session", time.time()) == ""
+    assert "usage_log:gpt-6-luna" not in _read_registry()["items"]
+
+
+@pytest.mark.parametrize("legacy", [False, True])
+def test_agy_scan_with_only_overlapping_models_still_completes_baseline(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, legacy: bool
+) -> None:
+    from usage_hooks import usage_quota_aware as hook
+
+    monkeypatch.setattr(pricing, "is_model_priced", lambda _: True)
+    monkeypatch.setattr(hook, "MODEL_REGISTRY", model_registry.REGISTRY_PATH)
+    monkeypatch.setattr(hook, "STATE_PATH", tmp_path / "state.json")
+    agy_models = ["claude-sonnet-5-5-medium"]
+    monkeypatch.setattr(
+        agy_loader,
+        "load_entries",
+        lambda hours_back=0: [SimpleNamespace(model=model) for model in agy_models],
+    )
+    entry = _history_entry("claude-sonnet-5-5")
+    model_registry.update(entries=[entry])
+    if legacy:
+        payload = _read_registry()
+        payload.pop("scanned_sources", None)
+        payload["items"]["agy_log:old-model"] = {
+            "source": "agy_log",
+            "name": "old-model",
+            "baseline": True,
+        }
+        model_registry.REGISTRY_PATH.write_text(json.dumps(payload))
+    else:
+        assert "agy_log:claude-sonnet-5-5" not in _read_registry()["items"]
+    agy_models.append("gemini-5-neon-high")
+    model_registry.update(entries=[entry])
+
+    payload = _read_registry()
+    assert payload["items"]["agy_log:gemini-5-neon"]["baseline"] is False
+    assert "agy_log" in payload["scanned_sources"]
+    assert 'model "gemini-5-neon"' in hook.reminder("session", time.time())
+
+
 def test_no_write_when_unchanged_and_atomic_write_cleans_tmp_on_failure(
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,

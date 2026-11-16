@@ -546,6 +546,23 @@ def test_compare_fallback_pricing_reports_all_difference_categories() -> None:
     assert result.has_differences is True
 
 
+def test_compare_fallback_pricing_detects_missing_mythos() -> None:
+    upstream: pricing.PricingTable = {
+        "claude-mythos-5-2": {
+            "input_cost_per_token": 8e-6,
+            "output_cost_per_token": 40e-6,
+            "cache_creation_input_token_cost": 10e-6,
+            "cache_read_input_token_cost": 0.2e-6,
+        }
+    }
+
+    result = CHECK_FALLBACK_PRICING["compare_pricing"]({}, upstream)
+
+    assert result.missing_fallback == ("claude-mythos-5-2",)
+    assert result.has_differences is True
+    assert pricing._fallback_pricing()["claude-mythos-5-2"] == upstream["claude-mythos-5-2"]
+
+
 def test_compare_fallback_pricing_accepts_matching_tables() -> None:
     table: pricing.PricingTable = {
         "claude-opus-5": {

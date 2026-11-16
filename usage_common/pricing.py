@@ -33,7 +33,7 @@ FALLBACK_RETRY_SECONDS = 600
 MISSING_MODEL_REFRESH_SECONDS = FALLBACK_RETRY_SECONDS
 USER_AGENT = "usage/0.9"
 # The date when the hard-coded fallback table was last manually checked upstream.
-FALLBACK_PRICING_AS_OF: str = "2026-11-13"
+FALLBACK_PRICING_AS_OF: str = "2026-11-16"
 # Anthropic's official cache write/read prices relative to input pricing. These
 # are only fallbacks for missing upstream fields and may be wrong for other providers.
 CACHE_WRITE_COST_MULTIPLIER = 1.25
@@ -540,11 +540,23 @@ def _fallback_pricing() -> PricingTable:
             "cache_creation_input_token_cost": 0.125e-6,
             "cache_read_input_token_cost": 0.01e-6,
         },
+        "claude-mythos-5": {
+            "input_cost_per_token": 10e-6,
+            "output_cost_per_token": 50e-6,
+            "cache_creation_input_token_cost": 12.5e-6,
+            "cache_read_input_token_cost": 1e-6,
+        },
         "claude-mythos-5-1": {
             "input_cost_per_token": 10e-6,
             "output_cost_per_token": 50e-6,
             "cache_creation_input_token_cost": 12.5e-6,
             "cache_read_input_token_cost": 0.25e-6,
+        },
+        "claude-mythos-5-2": {
+            "input_cost_per_token": 8e-6,
+            "output_cost_per_token": 40e-6,
+            "cache_creation_input_token_cost": 10e-6,
+            "cache_read_input_token_cost": 0.2e-6,
         },
         "gpt-6-astra": {
             "input_cost_per_token": 10e-6,

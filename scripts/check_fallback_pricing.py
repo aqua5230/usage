@@ -22,7 +22,7 @@ PRICE_FIELDS = (
     "cache_creation_input_token_cost",
     "cache_read_input_token_cost",
 )
-MAINSTREAM_CLAUDE_RE = re.compile(r"^claude-(?:opus|sonnet|haiku|fable)-(?:4|5)(?:-|$)")
+MAINSTREAM_CLAUDE_RE = re.compile(r"^claude-(?:opus|sonnet|haiku|fable|mythos)-(?:4|5)(?:-|$)")
 MAINSTREAM_CODEX_RE = re.compile(r"^gpt-\d+(?:\.\d+)?-(?:astra|sol|terra|luna)(?:-|$)")
 
 
