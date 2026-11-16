@@ -45,7 +45,7 @@ _YEAR_WEEKS = 53
 YEAR_CACHE_PATH = Path(os.path.expanduser("~/.usage/year_cache.json"))
 YEAR_LEDGER_PATH = YEAR_CACHE_PATH.with_name("year_ledger.json")
 YEAR_CACHE_TTL_SECONDS = 6 * 3600
-_YEAR_CACHE_SCHEMA = 9
+_YEAR_CACHE_SCHEMA = 10
 _YEAR_LEDGER_SCHEMA = 1
 _LEDGER_AGENT_VERSIONS: dict[str, int] = {"antigravity": 2}
 _year_ledger_lock = threading.RLock()
@@ -552,6 +552,16 @@ def _normalize_project_tokens(tokens: dict[str, int]) -> dict[str, int]:
     return normalized
 
 
+def _normalize_model_tokens(tokens: dict[str, int]) -> dict[str, int]:
+    # Ledger days written before agy names were normalized keep raw IDs such as
+    # gemini-3.8-flash-n; fold them into the priced name live entries use.
+    normalized: dict[str, int] = {}
+    for key, count in tokens.items():
+        model = agy._normalize_model(key)
+        normalized[model] = normalized.get(model, 0) + count
+    return normalized
+
+
 def _year_day_from_json(value: object) -> _YearDay | None:
     if not isinstance(value, dict):
         return None
@@ -570,7 +580,7 @@ def _year_day_from_json(value: object) -> _YearDay | None:
     day: _YearDay = {
         "total_tokens": total_tokens,
         "cost": float(cost),
-        "model_tokens": _token_map(value.get("model_tokens")),
+        "model_tokens": _normalize_model_tokens(_token_map(value.get("model_tokens"))),
         "project_tokens": _normalize_project_tokens(_token_map(value.get("project_tokens"))),
         "agent_tokens": _token_map(value.get("agent_tokens")),
         "sessions": sessions,

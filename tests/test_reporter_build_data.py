@@ -1395,7 +1395,7 @@ def test_read_year_ledger_accepts_days_without_agent_versions_and_persists_new_d
     )
     assert year_data["wrapped"]["total_tokens"] == 4700
     assert reporter._YEAR_LEDGER_SCHEMA == 1
-    assert reporter._YEAR_CACHE_SCHEMA == 9
+    assert reporter._YEAR_CACHE_SCHEMA == 10
 
     persisted = json.loads(reporter.YEAR_LEDGER_PATH.read_text(encoding="utf-8"))
     assert persisted["days"]["2026-11-01"]["agent_versions"] == {"antigravity": 2}

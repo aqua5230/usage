@@ -1000,6 +1000,43 @@ def test_read_year_ledger_merges_git_project_names(
     assert ledger["days"]["2026-06-17"]["agent_tokens"] == {"agent.git": 150}
 
 
+def test_read_year_ledger_merges_raw_agy_model_names(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    ledger_path = tmp_path / "year_ledger.json"
+    ledger_path.write_text(
+        json.dumps(
+            {
+                "schema_version": reporter._YEAR_LEDGER_SCHEMA,
+                "days": {
+                    "2026-10-01": {
+                        "total_tokens": 100,
+                        "cost": 0.0,
+                        "model_tokens": {
+                            "gemini-3.8-flash-n": 40,
+                            "gemini-3.8-flash": 30,
+                            "claude-sonnet-5-5-medium": 20,
+                            "gpt-5.6-sol": 10,
+                        },
+                        "sessions": 1,
+                    },
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(reporter, "YEAR_LEDGER_PATH", ledger_path)
+
+    ledger = reporter._read_year_ledger()
+
+    assert ledger["days"]["2026-10-01"]["model_tokens"] == {
+        "gemini-3.8-flash": 70,
+        "claude-sonnet-5-5": 20,
+        "gpt-5.6-sol": 10,
+    }
+
+
 def test_read_year_ledger_preserves_dot_git_project_name(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -1409,7 +1446,7 @@ def test_year_activity_is_fresh_and_kept_out_of_disk_cache(
     assert cached["data"]["contribution"]["active_days"] == 0
     assert cached["data"]["wrapped"]["active_days"] == 0
     assert set(cached["data"]) == {"contribution", "wrapped"}
-    assert cached["schema_version"] == 9
+    assert cached["schema_version"] == 10
     assert all(day["tokens"] == 0 for week in data["contribution"]["weeks"] for day in week)
     assert data["wrapped"]["total_tokens"] == data["wrapped"]["total_cost"] == 0
     activity_file.write_text(
