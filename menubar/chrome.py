@@ -5,7 +5,17 @@ import logging
 import os
 from typing import Any
 
-from AppKit import NSAlert, NSAttributedString, NSImage, NSMakeRect, NSMakeSize, NSTextAttachment
+from AppKit import (
+    NSAlert,
+    NSAttributedString,
+    NSColor,
+    NSCompositingOperationSourceAtop,
+    NSImage,
+    NSMakeRect,
+    NSMakeSize,
+    NSRectFillUsingOperation,
+    NSTextAttachment,
+)
 
 from panels.base import resolve_resource
 
@@ -60,13 +70,25 @@ def _alert_icon() -> Any:
 
 
 def _load_menubar_brand_icon(filename: str) -> Any:
-    # Monochrome brand marks drawn black-on-clear: as template images the status
-    # bar button tints them for the light and dark menu bar, so they never wash
-    # out against a wallpaper the way the color art does.
-    image = NSImage.alloc().initWithContentsOfFile_(resolve_resource(filename))
-    if image is not None:
-        image.setTemplate_(True)
-        image.setSize_(NSMakeSize(16, 16))
+    # Monochrome brand marks drawn black-on-clear, so they never wash out against
+    # a wallpaper the way the color art does. NSTextAttachment draws its image
+    # directly and skips the status bar's template tinting, which left them black
+    # on a dark menu bar (#352); fill the mark with the dynamic text color at draw
+    # time so it follows the light and dark menu bar.
+    mask = NSImage.alloc().initWithContentsOfFile_(resolve_resource(filename))
+    if mask is None:
+        return None
+    size = NSMakeSize(16, 16)
+    mask.setSize_(size)
+
+    def draw(rect: Any) -> bool:
+        mask.drawInRect_(rect)
+        NSColor.controlTextColor().set()
+        NSRectFillUsingOperation(rect, NSCompositingOperationSourceAtop)
+        return True
+
+    image = NSImage.imageWithSize_flipped_drawingHandler_(size, False, draw)
+    image.setTemplate_(True)
     return image
 
 

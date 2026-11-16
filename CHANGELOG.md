@@ -9,6 +9,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Fixed
 - **The Windows tray tooltip no longer lists a tool you hid under Hide Sections.** Claude and Codex were always listed, even when hidden, and their lines could push the last tools past Windows' 127-character tooltip limit. A hidden tool's line is now left out; the tool chosen as Tray Display Source stays, because the icon shows its number.
+- **Menu bar icons are visible again on a dark menu bar.** The Claude, Codex, Antigravity, Grok, and Muse icons were drawn black even when the menu bar was dark, so on macOS Tahoe they disappeared against it. They now follow the menu bar's text color in light and dark. Reported in #352.
 - **The Antigravity card no longer goes stale when only its weekly reading is carried over.** When the weekly reading could not be refreshed, the whole card was marked stale, which stopped the 5-hour burn rate, notifications, and the window keeper. Now only the weekly row shows its age, and the 5-hour row keeps working.
 - **Quota notifications no longer use a reading from before the window reset.** After the reset time passed, the old percentage could still send a "used up" notification or block the next window's notifications. On macOS and Windows, a window past its reset time now ends quietly.
 - **Projects that use only unpriced models show "—" instead of $0.00 in the report,** including after date filtering.

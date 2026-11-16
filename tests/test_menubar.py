@@ -1328,6 +1328,40 @@ def test_make_alert_ignores_icon_failure(monkeypatch: pytest.MonkeyPatch) -> Non
     assert isinstance(menubar_chrome._make_alert(), FakeAlert)
 
 
+@pytest.mark.parametrize("filename", ["claude_mono_menubar.png", "agy_mono_menubar.png"])
+def test_menubar_brand_icon_follows_light_and_dark_menu_bar(filename: str) -> None:
+    # Regression for #352: the attachment drew the black mark as-is on a dark menu bar.
+    from AppKit import NSAppearance, NSBitmapImageRep, NSColor, NSImage, NSMakeRect, NSRectFill
+
+    title = menubar_chrome._menubar_icon_attachment_string(
+        menubar_chrome._load_menubar_brand_icon(filename)
+    )
+
+    def brightness(appearance: str) -> float:
+        canvas = NSImage.alloc().initWithSize_((24, 24))
+
+        def draw() -> None:
+            canvas.lockFocus()
+            NSColor.clearColor().set()
+            NSRectFill(NSMakeRect(0, 0, 24, 24))
+            title.drawAtPoint_((2, 6))
+            canvas.unlockFocus()
+
+        NSAppearance.appearanceNamed_(appearance).performAsCurrentDrawingAppearance_(draw)
+        rep = NSBitmapImageRep.imageRepWithData_(canvas.TIFFRepresentation())
+        pixels: list[float] = [
+            color.brightnessComponent()
+            for x in range(rep.pixelsWide())
+            for y in range(rep.pixelsHigh())
+            if (color := rep.colorAtX_y_(x, y)) is not None and color.alphaComponent() > 0.1
+        ]
+        assert pixels
+        return sum(pixels) / len(pixels)
+
+    assert brightness("NSAppearanceNameDarkAqua") > 0.75
+    assert brightness("NSAppearanceNameAqua") < 0.25
+
+
 def test_statusline_action_in_background_returns_failure_output(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
