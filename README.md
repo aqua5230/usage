@@ -10,7 +10,7 @@
 
 [繁體中文](docs/README.zh-TW.md) · [简体中文](docs/README.zh-CN.md) · English · [日本語](docs/README.ja.md) · [한국어](docs/README.ko.md) &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [Landing page](https://aqua5230.github.io/usage/)
 
-[Install](#install) · [Features](#what-you-get) · [Themes](#theme-gallery) · [Comparison](#comparison) · [Troubleshooting](#troubleshooting)
+[Install](#install) · [Features](#what-you-get) · [Side pane](#claude-code-side-pane) · [Themes](#theme-gallery) · [Comparison](#comparison) · [Privacy](#privacy--data-sources) · [Troubleshooting](#troubleshooting)
 
 [![GitHub stars](https://img.shields.io/github/stars/aqua5230/usage?style=flat)](https://github.com/aqua5230/usage/stargazers)
 [![CI](https://github.com/aqua5230/usage/actions/workflows/check.yml/badge.svg)](https://github.com/aqua5230/usage/actions/workflows/check.yml)
@@ -85,7 +85,7 @@ Once set up, the bottom of the Claude Code window will show a status line like t
 
 ### On Screen
 
-- **Menu bar monitor:** A quota turns red as it nears its limit. Click for the full session, weekly, and per-project breakdown. On macOS, the menu bar keeps at most three tools with the highest Session usage, in Claude → Codex → Antigravity → Grok → Muse order; the panel still shows all tools.
+- **Menu bar monitor:** A quota turns red as it nears its limit. Click for the full session, weekly, and per-project breakdown. On macOS, the menu bar keeps at most three tools with the highest Session usage, in Claude → Codex → Antigravity → Grok → Muse order; the panel still shows all tools. When a quota is used up, the menu bar and status line count down to its recovery instead.
 - **Antigravity card:** Shows the Gemini pool by default. Tap the `Gemini ⇄` tag to cycle through the separate Claude / GPT and Gemini 4 Argon pools; the choice is remembered. Argon has a weekly limit only.
 - **Grok CLI card:** The weekly credit percentage from Grok CLI's local debug log. Its tokens also count toward cost and project totals.
 - **Muse Code card:** Shows 5-hour (Session) and weekly quota with reset countdowns. Available in all 15 quota themes, with a menu bar item and optional low, exhausted, and recovered quota notifications. Hidden automatically when Muse is not installed. Tokens and cost still count toward today's cost, project totals, reports, and the CLI.
@@ -117,7 +117,7 @@ Once set up, the bottom of the Claude Code window will show a status line like t
 
 - **Context colors:** The context figure turns yellow at 50% or 200K tokens and red at 80% or 400K tokens, whichever comes first. The nudge appears at 70%, or earlier when the context is filling fast. When the color changes, the status line shows the image count and the estimated share of files and command output.
 - **Prompt cache:** The hit rate needs Claude Code 2.1.251 or newer. For 10 minutes after a miss, the status line says why — the model changed, the tools changed, you sat idle past the 5-minute TTL, and so on; that needs 2.1.260 or newer. On older versions those parts don't appear.
-- **Notifications:** Opt in to system notifications for quota limits and recoveries.
+- **Notifications:** Opt in to system notifications for quota limits and recoveries. Pick the alert levels under **Usage Alert Notifications → Alert thresholds**: 50%, 70%, 80%, 90%, or 95% (90% by default).
 - **Antigravity card:** Refreshed every few minutes. It appears in every theme except World Cup 2026, which stays a two-team HUD.
 - **Outage alerts:** Antigravity isn't covered; it has no public status page.
 - **Token-waste health check:** It also flags polluter directories and noisy Bash output.
@@ -224,7 +224,7 @@ Windows has the full core experience: the system-tray UI with the same 16 themes
 
 The system-tray icon shows the remaining session quota percentage for Claude or Codex. Choose **Tray Display Source → Claude Code / Codex** in the right-click menu or panel menu; the change applies immediately and survives restarts (default: Claude). If Codex has no session window, the icon uses its weekly quota instead and the tooltip identifies that window. Missing quota data shows `--`. The tooltip lists the tools whose cards are shown, with the selected source first and always included; Windows caps a tooltip at 127 characters, so a long list is cut short. Left-click opens the quota themes in WebView2. Right-click also provides Reset Panel Position and Quit; panel switching, refresh, launch at login, and update checks are in the panel menu.
 
-Enable **Show Taskbar Quota** in either menu for a transparent `Codex: 92%` label inside the taskbar, immediately left of the notification area. It follows taskbar position, scaling, and light/dark theme, and hides during fullscreen use or taskbar auto-hide. Click the label to open the panel. If buttons leave insufficient space, it moves just outside the taskbar. The normal app icon remains as a menu entry point; the label follows the selected source and quota window. Right-click the label to open the same menu as the tray icon.
+Enable **Show Taskbar Quota** in either menu for a transparent `Codex: 92%` label inside the taskbar, immediately left of the notification area. It follows taskbar position, scaling, and light/dark theme, and hides during fullscreen use or taskbar auto-hide. Click the label to open the panel. If buttons leave insufficient space, it moves just outside the taskbar. The normal app icon remains as a menu entry point; the label follows the selected source and quota window. Right-click the label to open the same menu as the tray icon. When the quota is used up, the label counts down to its recovery.
 
 The panel opens at the bottom-right of the working area rather than next to the tray icon, and update prompts use a system Yes/No dialog.
 
