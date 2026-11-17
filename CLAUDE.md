@@ -2,6 +2,17 @@
 
 A macOS menu bar / TUI usage monitor. Reads Claude Code and Codex usage from local files; Antigravity quota comes from Google's official quota endpoint.
 
+## Commands
+
+Run the full set before pushing; CI (`.github/workflows/check.yml`) runs the same, and its Windows job is why mypy runs twice.
+
+- Setup: `uv sync --frozen --group dev`
+- Lint: `uv run ruff check .` and `uv run ruff format --check .`
+- Typecheck: `uv run mypy .` and `uv run mypy . --platform win32` — both include `tests/`
+- Tests: `uv run pytest`; one file: `uv run pytest tests/test_x.py`
+- Repo checks: `uv run python scripts/check_doc_parity.py`, `uv run python scripts/build_site_pages.py --check`, `uv run python scripts/check_file_size.py`
+- After changing a hook or what it writes: `uv run python scripts/check_upstream.py`
+
 ## Gotchas
 
 - Claude usage is written atomically to `~/.claude/usage-status.json` by the statusLine hook. Read order: that file, the legacy `usag-status.json`, the migration-only `tt-status.json`, and finally `cachedUsageUtilization` in `~/.claude.json`. If neither Claude Code source is usable, `loaders/claude_desktop.py` reads the desktop app's `plan-usage-history.json` without credentials or network access. `loaders/chromium_cache.py` can supply exact reset times from the same desktop profile's local block-file HTTP cache when the organization and response age match. Newer cached observations replace throttled history samples; older cached windows must match the observed percentages. Missing or unusable cache keeps resets unknown (`None`); never fabricate them or merge windows across organizations. Cache reads are bounded and read-only; Windows opens share read/write/delete access. Never read or decrypt desktop credentials to query quota. Tests isolate desktop discovery with `_isolate_desktop_quota`. `usag-*` may be read for migration only — never written again.
