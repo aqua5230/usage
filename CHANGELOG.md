@@ -7,6 +7,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+- **The resume and Token Saver greetings no longer start with 🐾.** Claude sometimes broke off mid-emoji to run a tool, which showed a box with a question mark and then repeated the greeting. The greetings are now plain text. Notification titles keep their 🐾.
+- **Token Saver's no-analogy, no-emoji, and no-decorative-table rules now cover only Claude's own replies.** Articles, posts, and slides you ask it to write are no longer held to them, so asking for a post full of analogies no longer conflicts with Token Saver.
+
 ## [0.34.22] - 2026-11-16
 
 ### Fixed
