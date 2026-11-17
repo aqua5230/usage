@@ -50,7 +50,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, TypedDict, cast
 
-__version__ = "1.14"
+__version__ = "1.15"
 
 
 class _HiddenConsoleKwargs(TypedDict, total=False):
@@ -133,7 +133,7 @@ _DEFAULT_PROMPT = (
 _DEFAULT_NONE = "(none recorded)"
 _DEFAULT_EMPTY = (
     "(At the very start of your first reply in this session, say one line: "
-    '"Welcome back — nothing to pick up on this project yet.", '
+    '"🐾 Welcome back — nothing to pick up on this project yet.", '
     "then respond normally.)"
 )
 _DEFAULT_TEMPLATES: dict[str, dict[str, Any]] = {
@@ -147,7 +147,7 @@ _DEFAULT_TEMPLATES: dict[str, dict[str, Any]] = {
         "none": _DEFAULT_NONE,
         "lead": (
             "(This is a resume handoff. At the very start of your first reply, lead "
-            'with one line: "Picked up where you left off — let\'s keep going!", '
+            'with one line: "🐾 Picked up where you left off — let\'s keep going!", '
             "then, instead of reading the traces below aloud, digest them like a sharp, "
             "thoughtful partner: first work out what the user was actually in the middle of "
             '("Recently working on" is newest-first, so trust the topmost item and don\'t get '
@@ -192,7 +192,7 @@ _DEFAULT_TEMPLATES: dict[str, dict[str, Any]] = {
         "none": "（未記錄）",
         "lead": (
             "（這是進度交接。請在這次對話第一則回覆的最前面，先說一行"
-            "「已接回上次進度，繼續吧！」，然後別照唸下面的線索，"
+            "「🐾 已接回上次進度，繼續吧！」，然後別照唸下面的線索，"
             "而是像聰明又貼心的搭檔那樣消化它：先判斷使用者最後真正在忙的是什麼"
             "（「最近在忙的」是新到舊排列，以最前面那筆為準，別被較舊的帶偏），"
             "用一兩句溫暖具體地說他上次做到哪、完成了什麼，再直接給出你判斷最該"
@@ -201,7 +201,7 @@ _DEFAULT_TEMPLATES: dict[str, dict[str, Any]] = {
             "接著正常回應。）\n\n"
         ),
         "empty": (
-            "（請在你這次對話的第一則回覆最前面，說一行「歡迎回來，"
+            "（請在你這次對話的第一則回覆最前面，說一行「🐾 歡迎回來，"
             "這個專案目前沒有要接的進度。」，再正常回應。）"
         ),
         "uncommitted": ("上次離開時還留著：{branch} 分支有 {count} 個檔案改了還沒提交（{files}）"),
@@ -220,7 +220,7 @@ _DEFAULT_TEMPLATES: dict[str, dict[str, Any]] = {
         "none": "（未记录）",
         "lead": (
             "（这是进度交接。请在这次对话第一则回复的最前面，先说一行"
-            "「已接回上次进度，继续吧！」，然后别照念下面的线索，"
+            "「🐾 已接回上次进度，继续吧！」，然后别照念下面的线索，"
             "而是像聪明又贴心的搭档那样消化它：先判断用户最后真正在忙的是什么"
             "（「最近在忙的」是新到旧排列，以最前面那笔为准，别被较旧的带偏），"
             "用一两句温暖具体地说他上次做到哪、完成了什么，再直接给出你判断最该"
@@ -229,7 +229,7 @@ _DEFAULT_TEMPLATES: dict[str, dict[str, Any]] = {
             "接着正常回应。）\n\n"
         ),
         "empty": (
-            "（请在你这次对话的第一则回复最前面，说一行「欢迎回来，"
+            "（请在你这次对话的第一则回复最前面，说一行「🐾 欢迎回来，"
             "这个项目目前没有要接的进度。」，再正常回应。）"
         ),
         "uncommitted": ("上次离开时还留着：{branch} 分支有 {count} 个文件改了还没提交（{files}）"),
@@ -249,7 +249,7 @@ _DEFAULT_TEMPLATES: dict[str, dict[str, Any]] = {
         "none": "（記録なし）",
         "lead": (
             "（これは進捗の引き継ぎです。最初の返信の冒頭で、まず一行"
-            "「前回の続きを引き継ぎました！そのまま続けましょう！」と述べ、"
+            "「🐾 前回の続きを引き継ぎました！そのまま続けましょう！」と述べ、"
             "下記の手がかりをそのまま読み上げるのではなく、賢く気の利いた相棒のように"
             "消化してください：まずユーザーが最後に実際に取り組んでいたことを見極め"
             "（「最近の作業」は新しい順なので、先頭の項目を信頼し、古いものに引きずられない"
@@ -260,7 +260,7 @@ _DEFAULT_TEMPLATES: dict[str, dict[str, Any]] = {
             "その後、通常どおり応答してください。）\n\n"
         ),
         "empty": (
-            "（このセッションの最初の返信の冒頭に、一行「おかえりなさい！"
+            "（このセッションの最初の返信の冒頭に、一行「🐾 おかえりなさい！"
             "このプロジェクトはまだ引き継ぐ進捗がありません。」と述べてから、"
             "通常どおり応答してください。）"
         ),
@@ -284,7 +284,7 @@ _DEFAULT_TEMPLATES: dict[str, dict[str, Any]] = {
         "none": "(기록 없음)",
         "lead": (
             "(이것은 진행 상황 인수인계입니다. 첫 답변 맨 앞에 먼저 한 줄 "
-            '"지난 작업을 불러왔어요! 이어서 가볼까요?"라고 '
+            '"🐾 지난 작업을 불러왔어요! 이어서 가볼까요?"라고 '
             "말한 뒤, 아래 단서를 그대로 읽지 말고 똑똑하고 사려 깊은 동료처럼 소화하세요: "
             '먼저 사용자가 마지막에 실제로 무엇을 하고 있었는지 파악하고("최근 작업한 내용"은 '
             "최신순이므로 맨 위 항목을 신뢰하고 오래된 것에 끌려가지 마세요), 지난번에 어디까지 "
@@ -295,7 +295,7 @@ _DEFAULT_TEMPLATES: dict[str, dict[str, Any]] = {
             "그런 다음 평소대로 응답하세요.)\n\n"
         ),
         "empty": (
-            '(이 세션의 첫 답변 맨 앞에 한 줄 "돌아오셨네요! '
+            '(이 세션의 첫 답변 맨 앞에 한 줄 "🐾 돌아오셨네요! '
             '이 프로젝트는 아직 이어갈 내용이 없어요."라고 말한 뒤 평소대로 응답하세요.)'
         ),
         "uncommitted": (
