@@ -8,6 +8,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Fixed
+- **Report exports are named after the dates they cover.** HTML, CSV, and PNG exports used the export day as the file name, so a filtered export opened months later did not say which period it held. They are now named like `usage-report-2026-10-01_2026-11-17.csv`; reports without the date picker keep the export date.
 - **The resume and Token Saver greetings no longer start with 🐾.** Claude sometimes broke off mid-emoji to run a tool, which showed a box with a question mark and then repeated the greeting. The greetings are now plain text. Notification titles keep their 🐾.
 - **Token Saver's no-analogy, no-emoji, and no-decorative-table rules now cover only Claude's own replies.** Articles, posts, and slides you ask it to write are no longer held to them, so asking for a post full of analogies no longer conflicts with Token Saver.
 - **Token Saver no longer lets a short reply pass off unverified work as done.** After edits or commands, replies now say what was verified, and untested or partly finished work must be stated as such. Unverified assumptions and open risks are written out in full, and teaching rules in your CLAUDE.md — or asking for an analogy, or saying you don't follow — now take precedence over terseness. The no-abbreviation rule also drops its unsupported claim that abbreviations save no tokens.
