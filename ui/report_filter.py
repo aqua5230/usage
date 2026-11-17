@@ -1223,6 +1223,9 @@ REPORT_FILTER_JS = r"""(() => {
 
   window.usageReportFilter.applyBounds = applyBounds;
   window.usageReportFilter.buildCsv = buildCsv;
+  window.usageReportFilter.currentBounds = () => activeBounds || normalizeBounds(
+    cube.dates[0], cube.dates[cube.dates.length - 1]
+  );
 
   const dateFilter = document.querySelector('[data-date-filter]');
   if (!dateFilter || !cube.dates.length) return;

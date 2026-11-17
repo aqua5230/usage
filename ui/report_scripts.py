@@ -104,7 +104,11 @@ function closeShareModal() {
 }
 
 function buildShareFilename(ext) {
-  return `usage-report-${new Date().toISOString().slice(0, 10)}.${ext}`;
+  // 檔名帶資料涵蓋的日期，隔幾個月打開也知道是哪段；舊報表沒有日期篩選器才用匯出當天。
+  const bounds = window.usageReportFilter?.currentBounds?.();
+  const range = !bounds ? new Date().toISOString().slice(0, 10)
+    : bounds.from === bounds.to ? bounds.from : `${bounds.from}_${bounds.to}`;
+  return `usage-report-${range}.${ext}`;
 }
 
 let snakeTimer = null;
