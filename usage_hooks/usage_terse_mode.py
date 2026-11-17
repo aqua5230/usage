@@ -29,7 +29,7 @@ import sys
 from pathlib import Path
 from typing import Any, cast
 
-__version__ = "1.8"
+__version__ = "1.9"
 
 
 def _read_stdin_utf8() -> str:
@@ -46,7 +46,7 @@ _DEFAULT_INSTRUCTION: dict[str, str] = {
     "zh-TW": (
         "（這個對話已開啟「精簡模式」：請在這次對話第一則回覆的最前面提一下這件事——如果你同時收"
         "到其他要打招呼的指示（例如進度交接），就把「精簡模式已開啟」自然併入那句招呼裡就好，不要"
-        "另外多開一句；如果沒有其他招呼可以搭，就自己說一行「🐾 已開啟精簡模式，回覆會盡量簡短，"
+        "另外多開一句；如果沒有其他招呼可以搭，就自己說一行「已開啟精簡模式，回覆會盡量簡短，"
         "繼續吧！」。整個對話都適用。去掉贅字（其實、基本上、真的）、客套語、重複鋪陳與不必要的過渡"
         "句；用詞挑"
         "簡短的（例如「修」不要「針對這個問題實作解決方案」）。精簡是預算，白話是風格：短不等於難"
@@ -76,7 +76,7 @@ _DEFAULT_INSTRUCTION: dict[str, str] = {
         "(Terse mode is on for this entire conversation. Mention this at the very start o"
         "f your first reply — if you're already leading with another greeting (e.g. a res"
         'ume handoff), fold "terse mode is on" into that same line instead of adding a se'
-        "parate one; if there's no other greeting to fold into, say your own line: \"🐾 Ter"
+        "parate one; if there's no other greeting to fold into, say your own line: \"Ter"
         "se mode is on — keeping replies short, let's go!\" Drop filler (just/really/basic"
         "ally/actually) and pleasantri"
         "es (sure/certainly/happy to). Prefer short synonyms (big, not extensive; fix, no"
@@ -119,7 +119,7 @@ _DEFAULT_INSTRUCTION: dict[str, str] = {
     "zh-CN": (
         "（这个对话已开启「精简模式」：请在这次对话第一则回复的最前面提一下这件事——如果你同时收"
         "到其他要打招呼的指示（例如进度交接），就把「精简模式已开启」自然并入那句招呼里就好，不要"
-        "另外多开一句；如果没有其他招呼可以搭，就自己说一行「🐾 已开启精简模式，回复会尽量简短，"
+        "另外多开一句；如果没有其他招呼可以搭，就自己说一行「已开启精简模式，回复会尽量简短，"
         "继续吧！」。整个对话都适用。去掉赘字（其实、基本上、真的）、客套语、重复铺陈和不必要的过渡"
         "句；用词挑"
         "简短的（例如「修」不要「针对这个问题实现解决方案」）。精简是预算，白话是风格：短不等于难"
@@ -149,7 +149,7 @@ _DEFAULT_INSTRUCTION: dict[str, str] = {
         "（この会話では「簡潔モード」が有効です。最初の返信の冒頭でこのことに触れてください——す"
         "でに他の挨拶（進捗の引き継ぎなど）を述べる予定がある場合は、「簡潔モードが有効」であるこ"
         "とをその挨拶に自然に組み込み、別の行を追加しないでください。組み込める挨拶がない場合は、"
-        "自分で一行「🐾 簡潔モードが有効になりました。返答は短くしていきます！」と述べてください"
+        "自分で一行「簡潔モードが有効になりました。返答は短くしていきます！」と述べてください"
         "。会話全体に適用されます。前置き、丁寧すぎる"
         "言い回し、重複した表現、不必要なつなぎ文を省き、短文や箇条書きで済むなら長い段落に広げな"
         "いでください。言葉は短い方を選んでください（例:「修正」であって「この問題に対する解決策"
@@ -189,7 +189,7 @@ _DEFAULT_INSTRUCTION: dict[str, str] = {
         "(이 대화에는 '간결 모드'가 켜져 있습니다. 첫 답변 맨 앞에서 이 사실을 언"
         "급하세요 — 이미 다른 인사(예: 진행 상황 인수인계)를 할 예정이라면, '간결"
         " 모드가 켜졌다'는 내용을 그 인사에 자연스럽게 합쳐서 한 줄로 말하고 따로 추"
-        '가하지 마세요. 합칠 인사가 없다면 직접 한 줄로 "🐾 간결 모드를 켰어요. 답'
+        '가하지 마세요. 합칠 인사가 없다면 직접 한 줄로 "간결 모드를 켰어요. 답'
         '변을 짧게 이어갈게요!"라고 말하세요. 대화 전체에 적용됩니다. 빈말, 지나친 '
         "격식, 반복되는 서두, 불필요한 연결 "
         "문장은 덜어내고, 짧은 문장이나 목록으로 충분하면 긴 단락으로 늘이지 마세요. "
