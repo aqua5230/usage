@@ -1471,24 +1471,36 @@ def test_report_claude_activity_preserves_usage_and_bounds(
     monkeypatch.setattr(reporter, "calculate_cost", lambda entry: float(entry.cost_usd or 0.0))
     agents = [AgentInfo("codex", "Codex", "", True)]
     data = reporter.build_report_data(agents, "all")
-    assert data["summary"]["active_days"] == 3
-    expected_missing = (
-        ["2026-04-28"] if coverage in {"claude-code", "unknown"} else ["2026-04-27", "2026-04-28"]
-    )
+    assert data["summary"]["active_days"] == 4
+    expected_missing = ["2026-04-01"]
+    if coverage not in {"claude-code", "unknown"}:
+        expected_missing.append("2026-04-27")
+    expected_missing.append("2026-04-28")
     assert data["claude_missing_dates"] == expected_missing
     assert data["claude_missing_days"] == len(expected_missing)
-    assert data["date_from"] == "2026-04-26"
+    assert data["date_from"] == "2026-04-01"
     assert data["date_to"] == "2026-04-28"
-    assert data["cube"]["claude_activity_dates"] == ["2026-04-27", "2026-04-28"]
-    # Removing the activity source changes only activity metadata and active-day counts.
+    assert data["cube"]["claude_activity_dates"] == ["2026-04-01", "2026-04-27", "2026-04-28"]
+    # Removing the activity source shortens the range and preserves recorded usage.
     activity_file.write_text("{}", encoding="utf-8")
     baseline = reporter.build_report_data(agents, "all")
-    for key in ["by_agent", "by_model", "by_project", "daily_trend", "comparison", "sessions"]:
+    for key in ["by_agent", "by_model", "by_project", "comparison"]:
         assert dict(data)[key] == dict(baseline)[key]
+    assert baseline["date_from"] == "2026-04-26"
+    assert data["daily_trend"][25:] == baseline["daily_trend"]
+    assert data["summary"]["total_days"] == 28
     for key in data["summary"]:
-        if key != "active_days":
+        if key not in {"active_days", "total_days"}:
             assert dict(data["summary"])[key] == dict(baseline["summary"])[key]
-    assert data["cube"]["rows"] == baseline["cube"]["rows"]
+    for row, baseline_row in zip(data["cube"]["rows"], baseline["cube"]["rows"], strict=True):
+        assert data["cube"]["dates"][int(row[0])] == baseline["cube"]["dates"][int(baseline_row[0])]
+        assert row[1:] == baseline_row[1:]
+    for session, baseline_session in zip(data["sessions"], baseline["sessions"], strict=True):
+        assert (
+            data["cube"]["dates"][session["date_idx"]]
+            == baseline["cube"]["dates"][baseline_session["date_idx"]]
+        )
+        assert dict(session, date_idx=baseline_session["date_idx"]) == baseline_session
 
 
 def test_report_zero_token_messages_do_not_count_as_active(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -1529,6 +1541,39 @@ def test_report_activity_only_day_has_no_usage(monkeypatch: pytest.MonkeyPatch) 
     assert data["summary"]["cost_usd"] == 0
     assert data["daily_trend"] == [{"date": "2026-04-27", "tokens": 0, "cost": 0.0}]
     assert data["cube"]["rows"] == []
+
+
+@pytest.mark.parametrize("has_usage", [False, True])
+def test_all_report_starts_at_earlier_claude_activity(
+    monkeypatch: pytest.MonkeyPatch, has_usage: bool
+) -> None:
+    from analyzer import claude_activity
+    from ui import html_report
+
+    today = datetime(2026, 4, 28, 12, tzinfo=UTC)
+    activity_day = date(2026, 4, 26)
+    monkeypatch.setattr(reporter, "datetime", _fixed_datetime(today))
+    monkeypatch.setattr(claude_activity, "activity_dates", lambda: frozenset({activity_day}))
+    entry = _entry(
+        when=today,
+        session_id="codex",
+        model="priced",
+        project="proj",
+        agent_id="codex",
+        input_tokens=100,
+    )
+    monkeypatch.setattr(reporter, "_load_agent_entries", lambda *_args: [entry])
+    agents = [AgentInfo("codex", "Codex", "", True)] if has_usage else []
+
+    data = reporter.build_report_data(agents, "all")
+
+    assert data["date_from"] == activity_day.isoformat()
+    assert data["claude_missing_dates"] == [activity_day.isoformat()]
+    assert data["summary"]["active_days"] == 1 + has_usage
+    assert data["summary"]["total_tokens"] == (100 if has_usage else 0)
+    assert data["cube"]["dates"][0] == activity_day.isoformat()
+    html = html_report.generate_html(data, language="en")
+    assert 'data-date-from min="2026-04-26" max="2026-04-28"' in html
 
 
 def test_report_unknown_ledger_excludes_missing_even_without_synthetic_rows(

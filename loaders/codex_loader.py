@@ -78,7 +78,7 @@ _RECENT_JSONL_SCAN_LIMIT = 30
 _RateLimitWindows = tuple[
     float | None, float | None, float | None, float | None, float | None, float | None
 ]
-_RateLimitRejection = tuple[datetime, str, str]
+_RateLimitRejection = tuple[datetime, str]
 
 
 @dataclass(slots=True)
@@ -449,36 +449,40 @@ def load_rate_limits(
     jsonl_candidates: Iterable[tuple[Path, float]] | None = None,
 ) -> CodexRateLimits | None:
     sqlite_limits = _load_sqlite_rate_limits()
-    jsonl_limits, latest_rejection = _load_jsonl_rate_limits_with_rejection(
+    jsonl_limits, rejections = _load_jsonl_rate_limits_with_rejection(
         jsonl_candidates=jsonl_candidates
     )
     if sqlite_limits is None:
-        return _with_limit_reached_at(jsonl_limits, latest_rejection)
+        return _with_limit_reached_at(jsonl_limits, rejections)
     if jsonl_limits is None:
-        return _with_limit_reached_at(sqlite_limits, latest_rejection)
+        return _with_limit_reached_at(sqlite_limits, rejections)
     merged = _merge_rate_limits(sqlite_limits, jsonl_limits)
     if merged is not None:
-        return _with_limit_reached_at(merged, latest_rejection)
+        return _with_limit_reached_at(merged, rejections)
     selected = (
         jsonl_limits
         if _rate_limits_timestamp(jsonl_limits) > _rate_limits_timestamp(sqlite_limits)
         else sqlite_limits
     )
-    return _with_limit_reached_at(selected, latest_rejection)
+    return _with_limit_reached_at(selected, rejections)
 
 
 def _with_limit_reached_at(
     rate_limits: CodexRateLimits | None,
-    latest_rejection: _RateLimitRejection | None,
+    rejections: dict[str, _RateLimitRejection],
 ) -> CodexRateLimits | None:
-    if rate_limits is None or latest_rejection is None:
+    if rate_limits is None or not rejections:
         return rate_limits
-    rejection_dt, rejection_str, rejection_limit_id = latest_rejection
     updated_dt = _parse_timestamp(rate_limits.updated_at)
-    if updated_dt is None or rejection_dt <= updated_dt:
+    if updated_dt is None:
         return rate_limits
-    if not rejection_limit_id or rejection_limit_id != rate_limits.limit_id:
-        return replace(rate_limits, limit_reached_at=rejection_str)
+    rejection = rejections.get(rate_limits.limit_id) if rate_limits.limit_id else None
+    if rejection is None or rejection[0] <= updated_dt:
+        unknown_rejection = rejections.get("")
+        if unknown_rejection is not None and unknown_rejection[0] > updated_dt:
+            return replace(rate_limits, limit_reached_at=unknown_rejection[1])
+        return rate_limits
+    rejection_dt, rejection_str = rejection
     rejection_ts = rejection_dt.timestamp()
     five_pct, five_reset, _, seven_pct, seven_reset, _ = _original_rate_limit_windows(rate_limits)
     five_candidate = five_reset is not None and five_reset > rejection_ts
@@ -513,24 +517,24 @@ def _load_jsonl_rate_limits(
     *,
     jsonl_candidates: Iterable[tuple[Path, float]] | None = None,
 ) -> CodexRateLimits | None:
-    rate_limits, latest_rejection = _load_jsonl_rate_limits_with_rejection(
+    rate_limits, rejections = _load_jsonl_rate_limits_with_rejection(
         jsonl_candidates=jsonl_candidates
     )
-    return _with_limit_reached_at(rate_limits, latest_rejection)
+    return _with_limit_reached_at(rate_limits, rejections)
 
 
 def _load_jsonl_rate_limits_with_rejection(
     *,
     jsonl_candidates: Iterable[tuple[Path, float]] | None = None,
-) -> tuple[CodexRateLimits | None, _RateLimitRejection | None]:
+) -> tuple[CodexRateLimits | None, dict[str, _RateLimitRejection]]:
     if jsonl_candidates is None and not any(root.is_dir() for root in _session_roots(SESSIONS_DIR)):
-        return None, None
+        return None, {}
     models = _load_thread_models()
     # scan 30 recent sessions because short/interrupted Codex sessions write null rate_limits
     fallback: CodexRateLimits | None = None
     selected: CodexRateLimits | None = None
     selected_dt: datetime | None = None
-    latest_rejection: _RateLimitRejection | None = None
+    rejections: dict[str, _RateLimitRejection] = {}
     candidate_mtimes: dict[Path, float] | None = None
     if jsonl_candidates is not None:
         jsonl_candidates = tuple(jsonl_candidates)
@@ -546,11 +550,11 @@ def _load_jsonl_rate_limits_with_rejection(
                 continue
             if mtime < selected_dt.timestamp():
                 break
-        rate_limits, file_rejection = _extract_rate_limits_and_rejection(path, models)
-        if file_rejection is not None and (
-            latest_rejection is None or file_rejection[0] > latest_rejection[0]
-        ):
-            latest_rejection = file_rejection
+        rate_limits, file_rejections = _extract_rate_limits_and_rejection(path, models)
+        for limit_id, rejection in file_rejections.items():
+            previous = rejections.get(limit_id)
+            if previous is None or rejection[0] > previous[0]:
+                rejections[limit_id] = rejection
         if rate_limits is None:
             continue
         if rate_limits.limit_id == "codex" and (
@@ -561,7 +565,7 @@ def _load_jsonl_rate_limits_with_rejection(
             selected_dt = _parse_timestamp(rate_limits.updated_at)
         if fallback is None:
             fallback = rate_limits
-    return selected or fallback, latest_rejection
+    return selected or fallback, rejections
 
 
 def _rate_limits_timestamp(rate_limits: CodexRateLimits) -> datetime:
@@ -1104,18 +1108,18 @@ def _sort_recent_jsonl_files(paths: list[Path]) -> list[Path]:
 
 
 def _extract_rate_limits(path: Path, models: dict[str, str]) -> CodexRateLimits | None:
-    rate_limits, latest_rejection = _extract_rate_limits_and_rejection(path, models)
-    return _with_limit_reached_at(rate_limits, latest_rejection)
+    rate_limits, rejections = _extract_rate_limits_and_rejection(path, models)
+    return _with_limit_reached_at(rate_limits, rejections)
 
 
 def _extract_rate_limits_and_rejection(
     path: Path, models: dict[str, str]
-) -> tuple[CodexRateLimits | None, _RateLimitRejection | None]:
+) -> tuple[CodexRateLimits | None, dict[str, _RateLimitRejection]]:
     session_id = ""
     session_model = "unknown"
     last_rate_limits: tuple[dict[str, Any], str] | None = None
     last_general_rate_limits: tuple[dict[str, Any], str] | None = None
-    latest_rejection: _RateLimitRejection | None = None
+    rejections: dict[str, _RateLimitRejection] = {}
     try:
         with path.open("rb") as file:
             while True:
@@ -1144,15 +1148,15 @@ def _extract_rate_limits_and_rejection(
                     if error.get("codex_error_info") == "usage_limit_exceeded":
                         ts_str = _as_str(data.get("timestamp"))
                         ts_dt = _parse_timestamp(ts_str)
-                        if ts_dt is not None and (
-                            latest_rejection is None or ts_dt > latest_rejection[0]
-                        ):
+                        if ts_dt is not None:
                             limit_id = (
                                 _as_str(last_rate_limits[0].get("limit_id"))
                                 if last_rate_limits is not None
                                 else ""
                             )
-                            latest_rejection = (ts_dt, ts_str, limit_id)
+                            previous = rejections.get(limit_id)
+                            if previous is None or ts_dt > previous[0]:
+                                rejections[limit_id] = (ts_dt, ts_str)
                     continue
                 if payload_type != "token_count":
                     continue
@@ -1163,10 +1167,10 @@ def _extract_rate_limits_and_rejection(
                         last_general_rate_limits = last_rate_limits
     except (OSError, UnicodeDecodeError) as exc:
         logger.warning("failed to read codex session %s: %s", path, exc)
-        return None, None
+        return None, {}
     last_rate_limits = last_general_rate_limits or last_rate_limits
     if last_rate_limits is None:
-        return None, latest_rejection
+        return None, rejections
     rate_limits, updated_at = last_rate_limits
     primary = _as_dict(rate_limits.get("primary"))
     secondary = _as_dict(rate_limits.get("secondary"))
@@ -1188,7 +1192,7 @@ def _extract_rate_limits_and_rejection(
         seven_pct = 0.0
         seven_reset = None
     if five_pct is None and seven_pct is None:
-        return None, latest_rejection
+        return None, rejections
     five_pct, five_reset, five_window, seven_pct, seven_reset, seven_window = (
         _assign_rate_limit_slots(
             five_pct,
@@ -1215,7 +1219,7 @@ def _extract_rate_limits_and_rejection(
             limit_id=_as_str(rate_limits.get("limit_id")),
             _original_windows=original_windows,
         ),
-        latest_rejection,
+        rejections,
     )
 
 

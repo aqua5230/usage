@@ -243,8 +243,9 @@ def update(entries: Sequence[Any] | None = None) -> None:
                 codex_identity = catalog_identity
             for model_name in codex_models:
                 scanned_sources.add("codex_catalog")
-                key = f"codex_catalog:{_normalize_model_key(model_name)}"
-                if key in items:
+                normalized = _normalize_model_key(model_name)
+                key = f"codex_catalog:{normalized}"
+                if key in items or f"usage_log:{normalized}" in items:
                     continue
                 items[key] = {
                     "source": "codex_catalog",
