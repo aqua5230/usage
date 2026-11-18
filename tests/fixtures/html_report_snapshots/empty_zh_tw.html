@@ -1698,6 +1698,41 @@ document.addEventListener('click', async (e) => {
     return value == null || value === '' || value === 'unknown';
   }
 
+  function isLegacyUnattributedProjectRow(row) {
+    return row[10] === 1 && isUnattributed(cube.projects[Number(row[3])]);
+  }
+
+  function projectSummaryRows(rows) {
+    const groups = {};
+    rows.forEach((row) => {
+      const projectIndex = Number(row[3]);
+      const unattributed = isLegacyUnattributedProjectRow(row);
+      const key = unattributed ? `u:${projectIndex}` : `p:${projectIndex}`;
+      if (!Object.prototype.hasOwnProperty.call(groups, key)) {
+        groups[key] = {
+          projectIndex,
+          name: String(cube.projects[projectIndex] || ''),
+          isUnattributed: unattributed,
+          tokens: 0,
+          cost: 0,
+          costKnown: false,
+        };
+      }
+      const item = groups[key];
+      item.tokens += rowTokens(row);
+      item.cost += Number(row[8]);
+      const model = cube.models[Number(row[2])];
+      item.costKnown = item.costKnown || Boolean(model && model.cost_known);
+    });
+    const all = Object.values(groups)
+      .filter((item) => item.tokens > 0 || item.cost > 0)
+      .sort((left, right) => right.tokens - left.tokens || left.projectIndex - right.projectIndex);
+    return {
+      ranked: all.filter((item) => !item.isUnattributed),
+      unattributed: all.filter((item) => item.isUnattributed),
+    };
+  }
+
   function modelColor(name) {
     const normalized = name.toLowerCase();
     if (normalized.startsWith('claude')) return '#5abfa0';
@@ -1792,7 +1827,7 @@ document.addEventListener('click', async (e) => {
     const byModel = aggregateRows(
       cube.rows,
       2,
-      (row) => Number(row[3]) === projectIndex && (!activeBounds || rowMatches(activeBounds)(row))
+      (row) => Number(row[3]) === projectIndex && !isLegacyUnattributedProjectRow(row) && (!activeBounds || rowMatches(activeBounds)(row))
     );
     const details = Object.entries(byModel)
       .map(([modelIndex, item]) => ({modelIndex: Number(modelIndex), ...item}))
@@ -1935,20 +1970,11 @@ document.addEventListener('click', async (e) => {
     const list = projectSection.querySelector('.rank-list');
     if (!list) return;
     list.replaceChildren();
-    const byProject = aggregateRows(summary.rows, 3);
-    const projects = Object.entries(byProject)
-      .map(([projectIndex, item]) => ({
-        projectIndex: Number(projectIndex),
-        name: String(cube.projects[Number(projectIndex)] || ''),
-        ...item,
-      }))
-      .filter((item) => item.tokens > 0 || item.cost > 0)
-      .sort((left, right) => right.tokens - left.tokens || left.projectIndex - right.projectIndex);
-    const unattributed = projects.filter((project) => isUnattributed(project.name));
-    const displayed = projects.filter((project) => !isUnattributed(project.name)).slice(0, 10);
+    const {ranked, unattributed} = projectSummaryRows(summary.rows);
+    const displayed = ranked.slice(0, 10);
     displayed.forEach((project, index) => {
       const row = createRankRow(
-        project.name,
+        displayName(project.name),
         project,
         summary.tokens,
         index === 0 ? 'var(--chart-accent)' : null,
@@ -1972,7 +1998,7 @@ document.addEventListener('click', async (e) => {
       };
       list.append(createRankRow(shareConfig.unattributedProjects, item, summary.tokens, 'var(--chart-neutral)', {costKnown: item.costKnown, showShare: true}));
     }
-    if (!projects.length && remaining <= 0) {
+    if (!ranked.length && !unattributed.length && remaining <= 0) {
       const empty = document.createElement('div');
       empty.className = 'empty';
       empty.textContent = `→ ${shareConfig.emptyProjects}`;
@@ -2431,16 +2457,9 @@ document.addEventListener('click', async (e) => {
     const lines = ['type,name,share_pct,tokens,cost_usd'];
     if (!summary) return `${lines[0]}\r\n`;
     const total = summary.tokens;
-    const projects = Object.entries(aggregateRows(summary.rows, 3))
-      .map(([projectIndex, item]) => ({
-        projectIndex: Number(projectIndex),
-        name: String(cube.projects[Number(projectIndex)] || ''),
-        ...item,
-      }))
-      .filter((item) => item.tokens > 0 || item.cost > 0)
-      .sort((left, right) => right.tokens - left.tokens || left.projectIndex - right.projectIndex)
-      .slice(0, 10);
-    projects.forEach((project, index) => {
+    const {ranked, unattributed} = projectSummaryRows(summary.rows);
+    const displayed = ranked.slice(0, 10);
+    displayed.forEach((project, index) => {
       const name = maskProjects ? `Project ${index + 1}` : displayName(project.name);
       const share = total ? project.tokens / total * 100 : 0;
       lines.push([
@@ -2448,6 +2467,19 @@ document.addEventListener('click', async (e) => {
         String(Math.round(project.tokens)), csvCost(project.cost, true),
       ].join(','));
     });
+    if (unattributed.length) {
+      const tokens = unattributed.reduce((sum, project) => sum + project.tokens, 0);
+      const cost = unattributed.reduce((sum, project) => sum + project.cost, 0);
+      const costKnown = unattributed.some((project) => project.costKnown);
+      const name = maskProjects
+        ? `Project ${displayed.length + 1}`
+        : (shareConfig.unattributedProjects || displayName(unattributed[0].name));
+      const share = total ? tokens / total * 100 : 0;
+      lines.push([
+        'project', csvField(name), share.toFixed(1),
+        String(Math.round(tokens)), csvCost(cost, costKnown),
+      ].join(','));
+    }
     const models = Object.entries(aggregateRows(summary.rows, 2))
       .map(([modelIndex, item]) => ({modelIndex: Number(modelIndex), ...item}))
       .filter((item) => item.tokens > 0 || item.cost > 0)
@@ -2487,10 +2519,7 @@ document.addEventListener('click', async (e) => {
     if (agents.length) titles.tools = text(agents.length === 1 && agents[0].tokens >= summary.tokens ? 'title_tools_single' : 'title_tools_top', {
       tool: displayName(cube.agents[agents[0].index].name), pct: pct(agents[0].tokens, summary.tokens),
     });
-    const projects = Object.entries(aggregateRows(summary.rows, 3))
-      .filter(([index]) => !isUnattributed(cube.projects[Number(index)]))
-      .map(([, item]) => item)
-      .filter((item) => item.tokens > 0).sort((a, b) => b.tokens - a.tokens);
+    const projects = projectSummaryRows(summary.rows).ranked.filter((item) => item.tokens > 0);
     if (projects.length >= 3) titles.projects = text('title_projects_top3', {
       pct: pct(projects.slice(0, 3).reduce((sum, p) => sum + p.tokens, 0), summary.tokens),
     });

@@ -370,6 +370,7 @@ def test_save_preserves_existing_complete_rate_limits_when_new_data_is_incomplet
     }
     assert data["_received_at"] == now.isoformat()
     assert data["_received_at_ts"] == now.timestamp()
+    assert "_rate_limits_observed_at" not in data
 
 
 def test_save_overwrites_existing_rate_limits_when_new_data_is_complete(
@@ -408,6 +409,7 @@ def test_save_overwrites_existing_rate_limits_when_new_data_is_complete(
     }
     assert data["_received_at"] == now.isoformat()
     assert data["_received_at_ts"] == now.timestamp()
+    assert data["_rate_limits_observed_at"] == now.timestamp()
 
 
 @pytest.mark.parametrize(
@@ -427,6 +429,7 @@ def test_save_merges_rate_limit_windows_one_by_one(
 ) -> None:
     monkeypatch.setattr(usage_statusline, "_account_uuid", lambda: "same-account")
     now = datetime(2026, 11, 1, 12, 0, tzinfo=UTC)
+    cached_observed = now.timestamp() - 7200
     cached_five_reset = int(now.timestamp()) + reset_offset
     status_file = tmp_path / "usage-status.json"
     status_file.write_text(
@@ -437,6 +440,7 @@ def test_save_merges_rate_limit_windows_one_by_one(
                     "seven_day": {"used_percentage": 34, "resets_at": 9_999_999_999},
                 },
                 "_rate_limits_account_uuid": "same-account",
+                "_rate_limits_observed_at": cached_observed,
             }
         ),
         encoding="utf-8",
@@ -449,10 +453,12 @@ def test_save_merges_rate_limit_windows_one_by_one(
         now,
     )
 
-    rate_limits = json.loads(status_file.read_text(encoding="utf-8"))["rate_limits"]
+    data = json.loads(status_file.read_text(encoding="utf-8"))
+    rate_limits = data["rate_limits"]
     assert rate_limits["seven_day"] == fresh_seven
     expected_five = {"used_percentage": 11, "resets_at": cached_five_reset} if keep_five else None
     assert rate_limits.get("five_hour") == expected_five
+    assert data["_rate_limits_observed_at"] == (cached_observed if keep_five else now.timestamp())
 
 
 def test_save_keeps_expired_cached_windows_when_payload_has_no_quota(

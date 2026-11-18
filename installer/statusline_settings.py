@@ -156,7 +156,7 @@ def _enable_statusline_settings() -> int:
         return 0
 
     exit_code = setup_hook.setup()
-    if exit_code != 0 and setup_hook.is_agy_setup():
+    if exit_code != 0 and (setup_hook.is_agy_setup() or setup_hook.is_grok_setup()):
         return 0
     return exit_code
 

@@ -47,7 +47,7 @@ def _load_muse_rate_limits() -> RateLimits | None:
         five_hour_resets_at=int(quota["window"]["resets_at"]),
         seven_day_pct=quota["weekly"]["used_percent"],
         seven_day_resets_at=int(quota["weekly"]["resets_at"]),
-        updated_at=datetime.fromtimestamp(quota["checked_at"], UTC)
+        updated_at=datetime.fromtimestamp(quota["observed_at"], UTC)
         .isoformat()
         .replace("+00:00", "Z"),
     )
@@ -178,7 +178,7 @@ def _status_muse(now: int) -> dict[str, Any]:
         if quota is None:
             return _status_agent(None, now)
         updated_at = (
-            datetime.fromtimestamp(quota["checked_at"], UTC).isoformat().replace("+00:00", "Z")
+            datetime.fromtimestamp(quota["observed_at"], UTC).isoformat().replace("+00:00", "Z")
         )
         return {
             "available": True,

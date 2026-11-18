@@ -1584,3 +1584,19 @@ def test_grok_edit_rejects_fake_header_in_multiline_instructions() -> None:
 )
 def test_is_older_never_downgrades(installed: str | None, older: bool) -> None:
     assert setup_hook.is_older(installed, "1.17") is older
+
+
+@pytest.mark.parametrize(("grok", "expected"), [(True, 0), (False, 1)])
+def test_statusline_switch_succeeds_with_only_grok(
+    monkeypatch: pytest.MonkeyPatch, grok: bool, expected: int
+) -> None:
+    from installer import statusline_settings
+
+    monkeypatch.setattr(statusline_settings, "_sync_agy_statusline", lambda enabled: None)
+    monkeypatch.setattr(statusline_settings, "_sync_grok_statusline", lambda enabled: None)
+    monkeypatch.setattr(statusline_settings, "_load_claude_settings", lambda: {})
+    monkeypatch.setattr("installer.setup_hook.setup", lambda: 1)
+    monkeypatch.setattr("installer.setup_hook.is_agy_setup", lambda: False)
+    monkeypatch.setattr("installer.setup_hook.is_grok_setup", lambda: grok)
+
+    assert statusline_settings._enable_statusline_settings() == expected

@@ -36,7 +36,7 @@ def test_cache_is_rechecked_after_worker_finishes(monkeypatch: pytest.MonkeyPatc
 
 
 @pytest.mark.parametrize("channel", ["muse_session", "muse_weekly"])
-def test_reset_notifications_use_displayed_usage(channel: str) -> None:
+def test_reset_notifications_close_quietly(channel: str) -> None:
     panel = state._empty_state()
     row = state.QuotaRowState("", 100.0, "", "", (0.0, 0.0, 0.0))
     setattr(panel, channel, row)
@@ -46,9 +46,8 @@ def test_reset_notifications_use_displayed_usage(channel: str) -> None:
     ]
     row.reset_done = True
     assert QuotaNotifier().update(notify.notification_channels(panel)) == []
-    assert [(e.channel, e.kind) for e in notifier.update(notify.notification_channels(panel))] == [
-        (channel, "restored")
-    ]
+    # Like the other tools, a window past its reset time ends quietly until a new reading.
+    assert notifier.update(notify.notification_channels(panel)) == []
 
 
 def test_failed_probe_waits_for_new_session_and_cooldown(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -9,6 +9,7 @@ from __future__ import annotations
 import contextlib
 from bisect import bisect_right
 from collections import defaultdict
+from collections.abc import Iterator
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
@@ -26,6 +27,7 @@ from analyzer import claude_activity, persona_loader
 from analyzer import subscription
 from adapters import agy, claude, codex, grok, muse
 from adapters.types import AgentInfo, UsageEntry
+from usage_common.file_lock import exclusive_file_lock
 from usage_common.pricing import calculate_cost, is_model_priced
 
 from .aggregator import aggregate_sessions
@@ -47,8 +49,9 @@ YEAR_LEDGER_PATH = YEAR_CACHE_PATH.with_name("year_ledger.json")
 YEAR_CACHE_TTL_SECONDS = 6 * 3600
 _YEAR_CACHE_SCHEMA = 11
 _YEAR_LEDGER_SCHEMA = 1
-_LEDGER_AGENT_VERSIONS: dict[str, int] = {"antigravity": 2}
+_LEDGER_AGENT_VERSIONS: dict[str, int] = usage_snapshot.AGENT_VERSIONS
 _year_ledger_lock = threading.RLock()
+_year_ledger_lock_depth = 0
 _YEAR_LEDGER_TRIM_BUFFER_DAYS = 60
 
 
@@ -102,6 +105,7 @@ class ProjectReportRow(TypedDict):
     cost_known: bool
     sessions: int
     pct: float
+    is_unattributed: NotRequired[bool]
 
 
 class ModelReportRow(TypedDict):
@@ -591,8 +595,29 @@ def _year_day_from_json(value: object) -> _YearDay | None:
     return day
 
 
-def _read_year_ledger() -> _YearLedger:
+@contextlib.contextmanager
+def _year_ledger_guard() -> Iterator[None]:
+    """Serialize year ledger read/merge/write across threads and processes."""
+    global _year_ledger_lock_depth
     with _year_ledger_lock:
+        if _year_ledger_lock_depth > 0:
+            _year_ledger_lock_depth += 1
+            try:
+                yield
+            finally:
+                _year_ledger_lock_depth -= 1
+            return
+        lock_path = YEAR_LEDGER_PATH.with_name(f"{YEAR_LEDGER_PATH.name}.lock")
+        with exclusive_file_lock(lock_path):
+            _year_ledger_lock_depth += 1
+            try:
+                yield
+            finally:
+                _year_ledger_lock_depth -= 1
+
+
+def _read_year_ledger() -> _YearLedger:
+    with _year_ledger_guard():
         ledger = _read_year_ledger_unlocked()
         if ledger_legacy_backfill.backfill_days(ledger["days"]):
             _write_year_ledger(ledger)
@@ -704,28 +729,15 @@ def _aggregate_year_days(entries: list[UsageEntry]) -> dict[str, _YearDay]:
 
 
 def _should_replace_ledger_day(ledger_day: _YearDay, current_day: _YearDay) -> bool:
-    if current_day["total_tokens"] >= ledger_day["total_tokens"]:
-        return True
-    ledger_versions = ledger_day.get("agent_versions", {})
-    upgraded_agents = [
-        agent
-        for agent, version in _LEDGER_AGENT_VERSIONS.items()
-        if ledger_versions.get(agent, 0) < version
-    ]
-    if not upgraded_agents:
-        return False
-    if current_day["sessions"] < ledger_day["sessions"]:
-        return False
-    ledger_agents = ledger_day["agent_tokens"]
-    current_agents = current_day["agent_tokens"]
-    return any(
-        current_agents.get(agent, 0) > 0
-        and all(
-            current_agents.get(other, 0) >= tokens
-            for other, tokens in ledger_agents.items()
-            if other != agent
-        )
-        for agent in upgraded_agents
+    return usage_snapshot.should_replace_day(
+        stored_tokens=ledger_day["total_tokens"],
+        stored_sessions=ledger_day["sessions"],
+        stored_agents=ledger_day["agent_tokens"],
+        stored_versions=ledger_day.get("agent_versions", {}),
+        current_tokens=current_day["total_tokens"],
+        current_sessions=current_day["sessions"],
+        current_agents=current_day["agent_tokens"],
+        target_versions=_LEDGER_AGENT_VERSIONS,
     )
 
 
@@ -746,7 +758,7 @@ def _merge_year_ledger(
     *,
     trim_before: date,
 ) -> _YearLedger:
-    with _year_ledger_lock:
+    with _year_ledger_guard():
         ledger = _read_year_ledger()
         days = ledger["days"]
         for day_key, current_day in current_days.items():
@@ -1152,7 +1164,7 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
             "messages": 0,
         }
     )
-    by_project_totals: dict[str, dict[str, Any]] = defaultdict(
+    by_project_totals: dict[tuple[str, bool], dict[str, Any]] = defaultdict(
         lambda: {"tokens": 0, "cost": 0.0, "cost_known": False, "sessions": set()}
     )
     by_model_totals: dict[str, dict[str, Any]] = defaultdict(lambda: {"tokens": 0, "cost": 0.0})
@@ -1189,7 +1201,11 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
         agent_totals["cost"] += cost
         agent_totals["messages"] += entry.message_count
 
-        project = by_project_totals[entry.project or "unknown"]
+        project_name = entry.project or "unknown"
+        is_unattributed_ledger = (
+            ledger_backfill.is_ledger_entry(entry) and project_name == "unknown"
+        )
+        project = by_project_totals[(project_name, is_unattributed_ledger)]
         project["tokens"] += entry.total_tokens
         project["cost"] += cost
         project["cost_known"] = project["cost_known"] or is_model_priced(entry.model)
@@ -1248,17 +1264,21 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
     ]
     by_agent.sort(key=lambda item: item["tokens"], reverse=True)
 
-    by_project: list[ProjectReportRow] = [
-        {
-            "project": project,
-            "tokens": data["tokens"],
-            "cost": _round_cost(data["cost"]),
-            "cost_known": data["cost_known"],
-            "sessions": len(data["sessions"]),
-            "pct": _pct(data["tokens"], total_tokens),
+    by_project: list[ProjectReportRow] = []
+    for (project_name_key, is_unattributed_ledger), proj_data in by_project_totals.items():
+        row: ProjectReportRow = {
+            "project": project_name_key,
+            "tokens": proj_data["tokens"],
+            "cost": _round_cost(proj_data["cost"]),
+            "cost_known": proj_data["cost_known"],
+            "sessions": len(proj_data["sessions"]),
+            "pct": _pct(proj_data["tokens"], total_tokens),
         }
-        for project, data in by_project_totals.items()
-    ]
+        if is_unattributed_ledger:
+            row["is_unattributed"] = True
+        elif project_name_key == "unknown":
+            row["is_unattributed"] = False
+        by_project.append(row)
     by_project.sort(key=lambda item: item["tokens"], reverse=True)
 
     by_model: list[ModelReportRow] = [
@@ -1471,7 +1491,7 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
             "cost_usd": _round_cost(total_cost),
             "sessions": len(session_ids),
             # by_project 只留前 10 名，敘述句要報真實專案數就得另外帶
-            "projects": len(by_project_totals),
+            "projects": len({project for project, _ in by_project_totals}),
             "messages": sum(entry.message_count for entry in entries),
             "active_days": len(active_dates),
             "total_days": total_days,

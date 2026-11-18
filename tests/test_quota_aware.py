@@ -935,7 +935,7 @@ def test_service_normal_without_record_is_silent(paths: Path) -> None:
 
 
 def test_service_hook_versions_match() -> None:
-    assert hook.__version__ == session_hooks.QUOTA_AWARE_HOOK_VERSION == "1.17"
+    assert hook.__version__ == session_hooks.QUOTA_AWARE_HOOK_VERSION == "1.18"
 
 
 @pytest.mark.parametrize("window,label", [("five_hour", "5-hour"), ("seven_day", "weekly")])
@@ -1493,6 +1493,28 @@ def status_writer(paths: Path, monkeypatch: pytest.MonkeyPatch) -> Any:
     monkeypatch.setattr(usage_statusline, "STATUS_FILE", str(hook.CLAUDE_STATUS))
     monkeypatch.setattr(usage_statusline, "LOCK_FILE", str(paths / "status.lock"))
     return usage_statusline.save
+
+
+@pytest.mark.parametrize("complete", [True, False])
+def test_claude_redraw_preserves_quota_observation_age(
+    accounts: Path, overview: None, status_writer: Any, complete: bool
+) -> None:
+    account_config(accounts, "A")
+    observed = NOW - 7200
+    limits = {"five_hour": {"used_percentage": 95, "resets_at": RESET}}
+    if complete:
+        limits["seven_day"] = {"used_percentage": 10, "resets_at": RESET}
+    status_writer(
+        {"session_id": "one", "rate_limits": limits}, datetime.fromtimestamp(observed, UTC)
+    )
+    status_writer({"session_id": "one"}, datetime.fromtimestamp(NOW, UTC))
+
+    saved = hook._read(hook.CLAUDE_STATUS)
+    assert saved["_received_at_ts"] == NOW
+    assert saved["_rate_limits_observed_at"] == observed
+    output = hook.reminder("one", NOW)
+    assert "[usage quota overview]" not in output
+    assert "last updated 2h ago" in output
 
 
 @pytest.mark.parametrize("new_session", ["one", "two"])
@@ -2402,3 +2424,29 @@ def test_models_block_alone_and_ordered_after_existing_three_blocks(overview: No
     assert blocks[1].startswith("[usage quota] ")
     assert blocks[2].startswith("[usage service status] ")
     assert blocks[3] == only_models
+
+
+@pytest.mark.parametrize("tool", ["Codex", "Antigravity (GEMINI)"])
+def test_earlier_reset_estimate_is_same_window(paths: Path, tool: str) -> None:
+    def observation(at: float, reset: float) -> None:
+        window: dict[str, Any] = {"used_percent": 85, "resets_at": reset}
+        agents: dict[str, Any] = {}
+        if tool == "Codex":
+            agents["codex"] = {"available": True, "five_hour": window}
+        else:
+            window.pop("resets_at")
+            window["resets_in_seconds"] = reset - at
+            agents["antigravity"] = {
+                "available": True,
+                "groups": [{"name": "GEMINI", "five_hour": window}],
+            }
+        hook.QUOTA_SNAPSHOT.write_text(
+            json.dumps(
+                {"generated_at": datetime.fromtimestamp(at, UTC).isoformat(), "agents": agents}
+            )
+        )
+
+    observation(NOW, NOW + 3600)
+    assert "5-hour quota: 85% used" in hook.reminder("one", NOW)
+    observation(NOW + 60, NOW + 2400)
+    assert hook.reminder("one", NOW + 60) == ""

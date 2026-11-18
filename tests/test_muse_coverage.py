@@ -92,3 +92,13 @@ def test_demo_contains_muse() -> None:
     assert state.hide_muse is False
     assert state.muse_session.available
     assert state.muse_weekly.available
+
+
+def test_status_muse_uses_observation_time(muse_cache: dict[str, Any]) -> None:
+    probe.CACHE_PATH.write_text(json.dumps({**muse_cache, "observed_at": 993_600.5}))
+    status = status_payload._status_muse(1_000_100)
+    assert status["updated_at"] == "1970-01-12T12:00:00.500000Z"
+    assert status["age_seconds"] == 6500
+    limits = status_payload._load_muse_rate_limits()
+    assert limits is not None
+    assert limits.updated_at == "1970-01-12T12:00:00.500000Z"

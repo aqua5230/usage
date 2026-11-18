@@ -7,7 +7,7 @@
 from __future__ import annotations
 
 import html
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from typing import Any
 
 
@@ -15,38 +15,104 @@ def is_unattributed(value: object) -> bool:
     return value in (None, "", "unknown")
 
 
+def _row_in_range(cube: Mapping[str, Any], row: Sequence[Any], data: Mapping[str, Any]) -> bool:
+    dates = cube.get("dates", [])
+    index = int(row[0])
+    if not 0 <= index < len(dates):
+        return False
+    day = dates[index]
+    date_from = data.get("date_from", day)
+    date_to = data.get("date_to", day)
+    return bool(date_from <= day <= date_to)
+
+
+def _row_is_ledger_unattributed(cube: Mapping[str, Any], row: Sequence[Any]) -> bool:
+    projects = cube.get("projects", [])
+    index = int(row[3])
+    name = projects[index] if 0 <= index < len(projects) else None
+    return len(row) > 10 and row[10] == 1 and is_unattributed(name)
+
+
+def is_unattributed_project(
+    project: Mapping[str, Any],
+    data: Mapping[str, Any] | None = None,
+) -> bool:
+    """Identify total-only legacy project buckets without mislabeling live unknown projects."""
+    if "is_unattributed" in project:
+        return bool(project["is_unattributed"])
+    name = project.get("project")
+    if not is_unattributed(name):
+        return False
+    cube = data.get("cube") if isinstance(data, Mapping) else None
+    if not isinstance(cube, Mapping) or not cube.get("rows") or data is None:
+        return True
+    projects = cube.get("projects", [])
+    matched_ledger = False
+    matched_live = False
+    for row in cube.get("rows", []):
+        if not _row_in_range(cube, row, data):
+            continue
+        index = int(row[3])
+        if 0 <= index < len(projects) and projects[index] == name:
+            if len(row) > 10 and row[10] == 1:
+                matched_ledger = True
+            else:
+                matched_live = True
+    if matched_ledger and matched_live:
+        return not any(
+            other is not project
+            and other.get("project") == name
+            and other.get("is_unattributed") is True
+            for other in data.get("by_project", [])
+        )
+    if matched_ledger:
+        return True
+    return not matched_live
+
+
 def project_chart_rows(data: Mapping[str, Any]) -> list[dict[str, Any]]:
     """Keep legacy totals outside the ten project ranks, without changing report data."""
     projects = list(data.get("by_project", []))
     cube = data.get("cube")
     cube = cube if isinstance(cube, Mapping) else {}
-    if not any(is_unattributed(p["project"]) for p in projects) and not any(
-        is_unattributed(p) for p in cube.get("projects", [])
-    ):
+    has_unattributed_in_projects = any(
+        is_unattributed_project(p, data) and not p.get("is_other") for p in projects
+    )
+    has_unattributed_in_cube = any(
+        _row_is_ledger_unattributed(cube, row) for row in cube.get("rows", [])
+    )
+    if not has_unattributed_in_projects and not has_unattributed_in_cube:
         return projects
 
     # The analyzer supplies only ten rows. Recover omitted rows from the embedded
-    # cube so unknown neither consumes a rank nor disappears into Other projects.
-    present = {p["project"] for p in projects}
-    missing: dict[str, dict[str, Any]] = {}
+    # cube so legacy totals neither consume a rank nor disappear into Other projects.
+    present = {(p["project"], is_unattributed_project(p, data)) for p in projects}
+    missing: dict[tuple[str, bool], dict[str, Any]] = {}
     for row in cube.get("rows", []):
-        day = cube["dates"][int(row[0])]
-        if not data.get("date_from", day) <= day <= data.get("date_to", day):
+        if not _row_in_range(cube, row, data):
             continue
         name = cube["projects"][int(row[3])]
-        if name in present:
+        row_unattributed = _row_is_ledger_unattributed(cube, row)
+        key = (name, row_unattributed)
+        if key in present:
             continue
-        item = missing.setdefault(
-            name, {"project": name, "tokens": 0, "cost": 0.0, "cost_known": False}
-        )
+        default_item: dict[str, Any] = {
+            "project": name,
+            "tokens": 0,
+            "cost": 0.0,
+            "cost_known": False,
+        }
+        # Recovered rows know whether they are ledger totals; never leave it to inference.
+        default_item["is_unattributed"] = row_unattributed
+        item = missing.setdefault(key, default_item)
         item["tokens"] += sum(int(value) for value in row[4:8])
         item["cost"] += float(row[8])
         item["cost_known"] |= bool(cube["models"][int(row[2])].get("cost_known"))
     projects.extend(p for p in missing.values() if p["tokens"] > 0 or p["cost"] > 0)
-    unknown = [p for p in projects if is_unattributed(p["project"]) and not p.get("is_other")]
+    unknown = [p for p in projects if is_unattributed_project(p, data) and not p.get("is_other")]
     project_order = {name: index for index, name in enumerate(cube.get("projects", []))}
     ranked = sorted(
-        [p for p in projects if not is_unattributed(p["project"]) and not p.get("is_other")],
+        [p for p in projects if not is_unattributed_project(p, data) and not p.get("is_other")],
         key=lambda p: (-p["tokens"], project_order.get(p["project"], len(project_order))),
     )[:10]
     ranked.extend(p for p in projects if p.get("is_other"))
@@ -55,7 +121,7 @@ def project_chart_rows(data: Mapping[str, Any]) -> list[dict[str, Any]]:
             {
                 "project": "unknown",
                 "tokens": sum(p["tokens"] for p in unknown),
-                "cost": sum(p["cost"] for p in unknown),
+                "cost": sum(p.get("cost", 0.0) for p in unknown),
                 "cost_known": any(p.get("cost_known", True) for p in unknown),
                 "is_unattributed": True,
             }

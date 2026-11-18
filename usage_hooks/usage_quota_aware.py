@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional, cast
 
-__version__ = "1.17"
+__version__ = "1.18"
 CLAUDE_STATUS = Path.home() / ".claude/usage-status.json"
 QUOTA_SNAPSHOT = Path.home() / ".usage/quota_snapshot.json"
 SERVICE_SNAPSHOT = Path.home() / ".usage/service_status_snapshot.json"
@@ -232,7 +232,13 @@ def _windows(
     windows: list[tuple[str, str, float, float, str]] = []
 
     def add(
-        tool: str, data: Any, *, claude: bool = False, generated: float = 0, updated_at: Any = None
+        tool: str,
+        data: Any,
+        *,
+        claude: bool = False,
+        generated: float = 0,
+        updated_at: Any = None,
+        observed_at: Optional[float] = None,
     ) -> None:
         if not isinstance(data, dict):
             return
@@ -242,7 +248,9 @@ def _windows(
                 continue
             suffix = ""
             age = None
-            if "age_seconds" in window and "updated_at" not in window:
+            if observed_at is not None:
+                age = now - observed_at
+            elif "age_seconds" in window and "updated_at" not in window:
                 age = _number(window["age_seconds"])
                 if age is not None and generated:
                     age += max(0, now - generated)
@@ -264,7 +272,10 @@ def _windows(
     # A session that has not replied yet carries another session's windows, which are only safe
     # to reuse when both sessions belong to the current account. Older hooks omit the field.
     if _can_use_status(session_id, status, state):
-        add("Claude Code", status.get("rate_limits"), claude=True)
+        observed_at = None
+        with suppress(OverflowError):
+            observed_at = _number(status.get("_rate_limits_observed_at"))
+        add("Claude Code", status.get("rate_limits"), claude=True, observed_at=observed_at)
     snapshot = _read(QUOTA_SNAPSHOT)
     try:
         generated = _generated_at(snapshot.get("generated_at"))
@@ -560,8 +571,9 @@ def _same_window(seen: dict[str, float], observed_reset: float, observed_used: f
     if not seen:
         return False
     delta = observed_reset - seen["anchor_resets_at"]
-    # A later estimate alone cannot reset a notice while usage remains at its level.
-    return -600 < delta < 600 or (delta >= 600 and observed_used >= seen["level"])
+    # A moved estimate alone, earlier or later, cannot reset a notice while usage remains at
+    # its level.
+    return -600 < delta < 600 or observed_used >= seen["level"]
 
 
 def _reminder(session_id: str, now: float) -> str:

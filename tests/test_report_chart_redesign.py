@@ -404,3 +404,125 @@ assert.deepEqual(billionEnv.trendSection.querySelectorAll('.weekly-grid')
     path.write_text(script, encoding="utf-8")
     result = subprocess.run([NODE or "node", str(path)], capture_output=True, text=True)
     assert result.returncode == 0, result.stderr
+
+
+@pytest.mark.skipif(NODE is None, reason="Node.js is unavailable")
+@pytest.mark.parametrize("lang", ["zh-TW", "en"])
+def test_live_unknown_project_uses_unknown_label_while_ledger_unknown_stays_legacy(
+    tmp_path: Path, lang: str
+) -> None:
+    import csv as csv_module
+    import io
+
+    cube: dict[str, Any] = {
+        "dates": ["2026-08-01", "2026-11-16"],
+        "agents": [
+            {"id": "unknown", "name": "unknown"},
+            {"id": "codex", "name": "Codex"},
+        ],
+        "models": [
+            {"name": "unknown", "cost_known": False},
+            {"name": "gpt-demo", "cost_known": True},
+        ],
+        "projects": ["unknown", "alpha"],
+        "rows": [
+            # Legacy ledger row (11 fields, index 10 == 1)
+            [0, 0, 0, 0, 500, 0, 0, 0, 0.0, 0, 1],
+            # Live Codex row with unknown cwd (10 fields)
+            [1, 1, 1, 0, 100, 0, 0, 0, 0.01, 1],
+            # Live Codex row with named project (10 fields)
+            [1, 1, 1, 1, 200, 0, 0, 0, 0.02, 1],
+        ],
+    }
+    data: dict[str, Any] = {
+        "date_from": "2026-08-01",
+        "date_to": "2026-11-16",
+        "summary": {"total_tokens": 800, "total_cost": 0.03},
+        "by_project": [
+            {
+                "project": "unknown",
+                "tokens": 500,
+                "cost": 0.0,
+                "cost_known": False,
+                "is_unattributed": True,
+            },
+            {"project": "alpha", "tokens": 200, "cost": 0.02, "cost_known": True},
+            {"project": "unknown", "tokens": 100, "cost": 0.01, "cost_known": True},
+        ],
+        "by_agent": [
+            {"id": "unknown", "name": "unknown", "tokens": 500, "cost": 0.0, "pct": 62.5},
+            {"id": "codex", "name": "Codex", "tokens": 300, "cost": 0.03, "pct": 37.5},
+        ],
+        "by_model": [],
+        "cube": cube,
+    }
+    rendered = html_report._render_project_section(data, lang)
+    names = Texts(rendered, "name").values
+    unknown_label = html_report._t(lang, "unknown")
+    legacy_label = html_report._t(lang, "unattributed_projects")
+    assert names == ["alpha", unknown_label, legacy_label]
+
+    csv_rows = [
+        row
+        for row in csv_module.DictReader(io.StringIO(html_report._build_csv_data(data, lang)))
+        if row["type"] == "project"
+    ]
+    assert [row["name"] for row in csv_rows] == ["alpha", unknown_label, legacy_label]
+
+    config = json.loads(html_report._share_config_json(lang, interactive=True))
+    prefix = NODE_HARNESS.split("const cube = {", 1)[0]
+    script = prefix.replace("__REPORT_DAILY_CHART_JS__", json.dumps(REPORT_DAILY_CHART_JS)).replace(
+        "__REPORT_FILTER_JS__", json.dumps(REPORT_FILTER_JS)
+    )
+    script += "\nconst cube = " + json.dumps(cube) + ";\n"
+    script += "const env = makeEnvironment(cube);\n"
+    script += "Object.assign(shareConfig, " + json.dumps(config) + ");\nrun(env);\n"
+    script += "window.usageReportFilter.applyBounds({from: '2026-11-16', to: '2026-11-16'});\n"
+    script += (
+        "assert.deepEqual("
+        "env.projectList.children.map((r) => r.querySelector('.name').textContent), "
+        + json.dumps(["alpha", unknown_label])
+        + ");\n"
+    )
+    script += "window.usageReportFilter.applyBounds({from: '2026-08-01', to: '2026-11-16'});\n"
+    script += (
+        "assert.deepEqual("
+        "env.projectList.children.map((r) => r.querySelector('.name').textContent), "
+        + json.dumps(["alpha", unknown_label, legacy_label])
+        + ");\n"
+    )
+    path = tmp_path / "live-unknown.cjs"
+    path.write_text(script, encoding="utf-8")
+    result = subprocess.run([NODE or "node", str(path)], capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+
+
+def test_recovered_live_unknown_stays_out_of_ledger_totals() -> None:
+    from ui.report_charts import project_chart_rows
+
+    named = [f"p{i:02d}" for i in range(1, 11)]
+    data: dict[str, Any] = {
+        "date_from": "2026-08-01",
+        "date_to": "2026-11-16",
+        "summary": {"total_tokens": 10050, "total_cost": 10.5},
+        "by_project": [
+            {"project": f"p{i:02d}", "tokens": 1010 - i * 10, "cost": 1.0, "cost_known": True}
+            for i in range(1, 11)
+        ],
+        "cube": {
+            "dates": ["2026-08-01", "2026-11-16"],
+            "agents": [{"id": "unknown", "name": "unknown"}, {"id": "codex", "name": "Codex"}],
+            "models": [
+                {"name": "unknown", "cost_known": False},
+                {"name": "gpt", "cost_known": True},
+            ],
+            "projects": ["unknown", *named],
+            "rows": [
+                *[[1, 1, 1, i, 1010 - i * 10, 0, 0, 0, 1.0, 1] for i in range(1, 11)],
+                [0, 0, 0, 0, 300, 0, 0, 0, 0.0, 0, 1],  # ledger total-only row
+                [1, 1, 1, 0, 200, 0, 0, 0, 0.5, 1],  # live Codex row with no project
+            ],
+        },
+    }
+    legacy = [row for row in project_chart_rows(data) if row.get("is_unattributed")]
+    assert [row["tokens"] for row in legacy] == [300]

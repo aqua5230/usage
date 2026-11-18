@@ -35,6 +35,7 @@ logger = logging.getLogger(__name__)
 
 SNAPSHOT_PATH = Path(os.path.expanduser("~/.usage/usage_snapshot.json"))
 SNAPSHOT_SCHEMA = 1
+AGENT_VERSIONS: dict[str, int] = {"antigravity": 2}
 _snapshot_lock = threading.Lock()
 
 _RowKey = tuple[str, str, str, str, str]
@@ -66,6 +67,7 @@ class UsageSnapshot(TypedDict):
     schema_version: int
     rows: list[SnapshotRow]
     sessions: dict[str, SessionHeader]
+    day_versions: NotRequired[dict[str, dict[str, int]]]
 
 
 @dataclass(frozen=True)
@@ -81,9 +83,9 @@ def record_entries(
     entry_dates: Mapping[int, date] | None = None,
 ) -> UsageSnapshot:
     """Merge this load into the on-disk snapshot and return the result."""
-    new_rows, new_headers = _aggregate_entries(entries, entry_dates)
+    new_rows, new_headers, new_day_versions = _aggregate_entries(entries, entry_dates)
     with _snapshot_lock:
-        merged = _merge_snapshot(_read_snapshot(), new_rows, new_headers)
+        merged = _merge_snapshot(_read_snapshot(), new_rows, new_headers, new_day_versions)
         _write_snapshot(merged)
         return merged
 
@@ -153,6 +155,70 @@ def replay_entries(date_from: date, date_to: date) -> list[UsageEntry]:
     return _lead_with_header_project(entries, snapshot["sessions"])
 
 
+def should_replace_day(
+    *,
+    stored_tokens: int,
+    stored_sessions: int,
+    stored_agents: Mapping[str, int],
+    stored_versions: Mapping[str, int],
+    current_tokens: int,
+    current_sessions: int,
+    current_agents: Mapping[str, int],
+    target_versions: Mapping[str, int] = AGENT_VERSIONS,
+) -> bool:
+    """Return True if live/current data should replace stored day totals."""
+    if current_tokens >= stored_tokens:
+        return True
+    upgraded_agents = [
+        agent
+        for agent, version in target_versions.items()
+        if stored_versions.get(agent, 0) < version
+    ]
+    if not upgraded_agents:
+        return False
+    if current_sessions < stored_sessions:
+        return False
+    return any(
+        current_agents.get(agent, 0) > 0
+        and all(
+            current_agents.get(other, 0) >= tokens
+            for other, tokens in stored_agents.items()
+            if other != agent
+        )
+        for agent in upgraded_agents
+    )
+
+
+def _day_agent_versions(entries: Sequence[UsageEntry]) -> dict[str, int]:
+    # Days written now are counted by the current parsers; snapshots written before
+    # day_versions existed carry no versions and read as version 0.
+    del entries
+    return dict(AGENT_VERSIONS)
+
+
+def _rows_day_stats(rows: Sequence[SnapshotRow]) -> tuple[int, int, dict[str, int]]:
+    tokens = 0
+    sessions: set[str] = set()
+    agents: dict[str, int] = defaultdict(int)
+    for row in rows:
+        row_tokens = _row_tokens(row)
+        tokens += row_tokens
+        sessions.add(row["session_id"])
+        agents[row["agent_id"]] += row_tokens
+    return tokens, len(sessions), agents
+
+
+def _entries_day_stats(entries: Sequence[UsageEntry]) -> tuple[int, int, dict[str, int]]:
+    tokens = 0
+    sessions: set[str] = set()
+    agents: dict[str, int] = defaultdict(int)
+    for entry in entries:
+        tokens += entry.total_tokens
+        sessions.add(entry.session_id)
+        agents[entry.agent_id or "unknown"] += entry.total_tokens
+    return tokens, len(sessions), agents
+
+
 def merge_live_with_snapshot(
     live_entries: Sequence[UsageEntry],
     live_dates: Mapping[int, date],
@@ -172,7 +238,7 @@ def merge_live_with_snapshot(
             live_by_day[day].append(entry)
 
     snapshot = _read_snapshot()
-    snap_tokens_by_day: dict[date, int] = defaultdict(int)
+    snap_rows_by_day: dict[date, list[SnapshotRow]] = defaultdict(list)
     replay_by_day: dict[date, list[UsageEntry]] = defaultdict(list)
     for row in snapshot["rows"]:
         try:
@@ -180,21 +246,36 @@ def merge_live_with_snapshot(
         except ValueError:
             continue
         if date_from <= day <= date_to:
-            snap_tokens_by_day[day] += _row_tokens(row)
+            snap_rows_by_day[day].append(row)
             replay_by_day[day].extend(_replay_row(row, snapshot["sessions"].get(row["session_id"])))
     for day, day_entries in replay_by_day.items():
         replay_by_day[day] = _lead_with_header_project(day_entries, snapshot["sessions"])
+    snap_day_versions = snapshot.get("day_versions", {})
 
     merged: list[UsageEntry] = []
     merged_dates: dict[int, date] = {}
     cursor = date_from
     while cursor <= date_to:
         live_day = live_by_day.get(cursor, [])
-        live_tokens = sum(entry.total_tokens for entry in live_day)
-        if live_tokens >= snap_tokens_by_day.get(cursor, 0):
+        snap_rows = snap_rows_by_day.get(cursor)
+        if snap_rows is None:
             chosen = live_day
         else:
-            chosen = replay_by_day.get(cursor, [])
+            snap_tokens, snap_sessions, snap_agents = _rows_day_stats(snap_rows)
+            live_tokens, live_sessions, live_agents = _entries_day_stats(live_day)
+            if should_replace_day(
+                stored_tokens=snap_tokens,
+                stored_sessions=snap_sessions,
+                stored_agents=snap_agents,
+                stored_versions=snap_day_versions.get(cursor.isoformat(), {}),
+                current_tokens=live_tokens,
+                current_sessions=live_sessions,
+                current_agents=live_agents,
+                target_versions=_day_agent_versions(live_day),
+            ):
+                chosen = live_day
+            else:
+                chosen = replay_by_day.get(cursor, [])
         for entry in chosen:
             merged.append(entry)
             merged_dates[id(entry)] = cursor
@@ -207,6 +288,7 @@ def _empty_snapshot() -> UsageSnapshot:
         "schema_version": SNAPSHOT_SCHEMA,
         "rows": [],
         "sessions": {},
+        "day_versions": {},
     }
 
 
@@ -558,10 +640,28 @@ def _read_snapshot() -> UsageSnapshot:
             header = _header_from_json(raw_header)
             if header is not None:
                 sessions[session_id] = header
+    raw_day_versions = payload.get("day_versions")
+    day_versions: dict[str, dict[str, int]] = {}
+    if isinstance(raw_day_versions, dict):
+        for day_key, raw_versions in raw_day_versions.items():
+            if not isinstance(day_key, str) or not isinstance(raw_versions, dict):
+                continue
+            try:
+                date.fromisoformat(day_key)
+            except ValueError:
+                continue
+            parsed_versions = {
+                agent: version
+                for agent, version in raw_versions.items()
+                if isinstance(agent, str) and _is_int(version)
+            }
+            if parsed_versions:
+                day_versions[day_key] = parsed_versions
     return {
         "schema_version": SNAPSHOT_SCHEMA,
         "rows": rows,
         "sessions": sessions,
+        "day_versions": day_versions,
     }
 
 
@@ -586,24 +686,26 @@ def _write_snapshot(snapshot: UsageSnapshot) -> None:
 def _aggregate_entries(
     entries: Sequence[UsageEntry],
     entry_dates: Mapping[int, date] | None,
-) -> tuple[dict[_RowKey, SnapshotRow], dict[str, SessionHeader]]:
+) -> tuple[dict[_RowKey, SnapshotRow], dict[str, SessionHeader], dict[str, dict[str, int]]]:
     rows: dict[_RowKey, SnapshotRow] = {}
     by_session: dict[str, list[UsageEntry]] = defaultdict(list)
+    by_day_entries: dict[str, list[UsageEntry]] = defaultdict(list)
     for entry in entries:
         day = (
             entry_dates.get(id(entry), _entry_date(entry))
             if entry_dates is not None
             else _entry_date(entry)
         )
+        day_key = day.isoformat()
         agent_id = entry.agent_id or "unknown"
         model = entry.model or "unknown"
         project = entry.project or "unknown"
-        key: _RowKey = (entry.session_id, day.isoformat(), agent_id, model, project)
+        key: _RowKey = (entry.session_id, day_key, agent_id, model, project)
         row = rows.get(key)
         if row is None:
             row = _new_row(
                 session_id=entry.session_id,
-                day=day.isoformat(),
+                day=day_key,
                 agent_id=agent_id,
                 model=model,
                 project=project,
@@ -621,6 +723,7 @@ def _aggregate_entries(
         row["first_ts"] = ts_iso if current_first is None else _earlier_start(current_first, ts_iso)
         row["last_ts"] = ts_iso if current_last is None else _later_end(current_last, ts_iso)
         by_session[entry.session_id].append(entry)
+        by_day_entries[day_key].append(entry)
 
     headers: dict[str, SessionHeader] = {}
     for session_id, group in by_session.items():
@@ -636,13 +739,19 @@ def _aggregate_entries(
             "duration_min": round(duration, 1),
             "project": first.project or "unknown",
         }
-    return rows, headers
+    day_versions = {
+        day_key: versions
+        for day_key, day_entries in by_day_entries.items()
+        if (versions := _day_agent_versions(day_entries))
+    }
+    return rows, headers, day_versions
 
 
 def _merge_snapshot(
     current: UsageSnapshot,
     new_rows: dict[_RowKey, SnapshotRow],
     new_headers: dict[str, SessionHeader],
+    new_day_versions: Mapping[str, Mapping[str, int]],
 ) -> UsageSnapshot:
     old_by_day: dict[str, list[SnapshotRow]] = defaultdict(list)
     for row in current["rows"]:
@@ -652,17 +761,46 @@ def _merge_snapshot(
     for row in new_rows.values():
         new_by_day[row["date"]].append(row)
 
+    old_day_versions = current.get("day_versions", {})
+    merged_day_versions: dict[str, dict[str, int]] = {}
     merged_rows: list[SnapshotRow] = []
     for day, rows in old_by_day.items():
         if day not in new_by_day:
             merged_rows.extend(rows)
+            if day in old_day_versions:
+                merged_day_versions[day] = dict(old_day_versions[day])
 
     for day, rows in new_by_day.items():
         old_rows = old_by_day.get(day)
-        if old_rows is None or _day_tokens(rows) >= _day_tokens(old_rows):
+        target_versions = new_day_versions.get(day, {})
+        if old_rows is None:
             merged_rows.extend(rows)
+            if target_versions:
+                merged_day_versions[day] = dict(target_versions)
+            continue
+        old_tokens, old_sessions, old_agents = _rows_day_stats(old_rows)
+        new_tokens, new_sessions, new_agents = _rows_day_stats(rows)
+        if should_replace_day(
+            stored_tokens=old_tokens,
+            stored_sessions=old_sessions,
+            stored_agents=old_agents,
+            stored_versions=old_day_versions.get(day, {}),
+            current_tokens=new_tokens,
+            current_sessions=new_sessions,
+            current_agents=new_agents,
+            target_versions=target_versions,
+        ):
+            merged_rows.extend(rows)
+            # Unchanged totals (e.g. a day replayed from this snapshot) prove nothing about
+            # the parser that counted them, so they keep the stored versions.
+            unchanged = new_tokens == old_tokens and new_sessions == old_sessions
+            versions = old_day_versions.get(day, {}) if unchanged else target_versions
+            if versions:
+                merged_day_versions[day] = dict(versions)
         else:
             merged_rows.extend(old_rows)
+            if day in old_day_versions:
+                merged_day_versions[day] = dict(old_day_versions[day])
 
     merged_rows.sort(
         key=lambda row: (
@@ -696,4 +834,5 @@ def _merge_snapshot(
         "schema_version": SNAPSHOT_SCHEMA,
         "rows": merged_rows,
         "sessions": merged_headers,
+        "day_versions": merged_day_versions,
     }

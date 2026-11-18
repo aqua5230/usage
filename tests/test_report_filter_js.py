@@ -1186,3 +1186,57 @@ assert.equal(noMissing.appendix.querySelector('.missing-usage-section'), null);
     path = tmp_path / "missing-ranges.cjs"
     path.write_text(script, encoding="utf-8")
     subprocess.run([NODE or "node", str(path)], check=True, capture_output=True, text=True)
+
+
+@pytest.mark.skipif(NODE is None, reason="Node.js is unavailable")
+def test_csv_excludes_unattributed_from_top_ten_and_appends_it_last(tmp_path: Path) -> None:
+    import csv as csv_module
+
+    from ui import html_report
+
+    config = json.loads(html_report._share_config_json("en", interactive=True))
+    cube = {
+        "dates": ["2026-08-01", "2026-08-02"],
+        "agents": [
+            {"id": "unknown", "name": "unknown"},
+            {"id": "codex", "name": "Codex"},
+        ],
+        "models": [
+            {"name": "unknown", "cost_known": False},
+            {"name": "gpt-6-sol", "cost_known": True},
+        ],
+        "projects": ["unknown", *[f"project-{i:02d}" for i in range(1, 12)]],
+        "rows": [
+            [0, 0, 0, 0, 500, 0, 0, 0, 0.0, 0, 1],
+            *[[1, 1, 1, i, 200 - i * 10, 0, 0, 0, 1.0, 1] for i in range(1, 12)],
+        ],
+    }
+    prefix = NODE_HARNESS.split("const cube = {", 1)[0]
+    script = prefix.replace("__REPORT_DAILY_CHART_JS__", json.dumps(REPORT_DAILY_CHART_JS)).replace(
+        "__REPORT_FILTER_JS__", json.dumps(REPORT_FILTER_JS)
+    )
+    script += "\nconst cube = " + json.dumps(cube) + ";\n"
+    script += "const env = makeEnvironment(cube);\n"
+    script += "Object.assign(shareConfig, " + json.dumps(config) + ");\nrun(env);\n"
+    script += "console.log(window.usageReportFilter.buildCsv(false));\n"
+    script += "console.log('---MASKED---');\n"
+    script += "console.log(window.usageReportFilter.buildCsv(true));\n"
+
+    path = tmp_path / "csv-top10.cjs"
+    path.write_text(script, encoding="utf-8")
+    result = subprocess.run(
+        [NODE or "node", str(path)], check=True, capture_output=True, text=True, encoding="utf-8"
+    )
+    plain_text, masked_text = result.stdout.split("---MASKED---\n", 1)
+    plain_projects = [
+        row for row in csv_module.DictReader(plain_text.splitlines()) if row["type"] == "project"
+    ]
+    assert [row["name"] for row in plain_projects] == [
+        *[f"project-{i:02d}" for i in range(1, 11)],
+        "Old records (totals only)",
+    ]
+    assert plain_projects[-1]["cost_usd"] == "—"
+    masked_projects = [
+        row for row in csv_module.DictReader(masked_text.splitlines()) if row["type"] == "project"
+    ]
+    assert [row["name"] for row in masked_projects] == [f"Project {i}" for i in range(1, 12)]

@@ -213,3 +213,15 @@ def test_ledger_without_quota_shares_omits_unowned_counts(codex: int, agy: int) 
         )
         == ""
     )
+
+
+def test_history_scope_starts_at_first_usage_row_not_activity_day() -> None:
+    # cube.dates can start on a Claude Code activity-only day before any usage row.
+    data: Any = {
+        "cube": {
+            "dates": ["2026-04-01", "2026-04-20"],
+            "rows": [[1, 0, 0, 0, 10, 0, 0, 0, 0.0, 1]],
+        },
+        "contribution": {"weeks": [[{"date": "2026-04-10", "tokens": 5}]]},
+    }
+    assert "Per-tool records start on 2026-04-20" in html_report._date_filter(data, "en")

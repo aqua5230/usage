@@ -151,14 +151,8 @@ def notification_channels(state: PopoverState) -> dict[str, tuple[float | None, 
         "codex_weekly": quota_reading(state.codex_weekly),
         "agy_session": quota_reading(state.agy_session, state.agy_stale is None),
         "agy_weekly": quota_reading(state.agy_weekly, state.agy_stale is None),
-        "muse_session": (
-            state.muse_session.display_percent,
-            state.muse_session.available and state.muse_stale is None,
-        ),
-        "muse_weekly": (
-            state.muse_weekly.display_percent,
-            state.muse_weekly.available and state.muse_stale is None,
-        ),
+        "muse_session": quota_reading(state.muse_session, state.muse_stale is None),
+        "muse_weekly": quota_reading(state.muse_weekly, state.muse_stale is None),
     }
 
 

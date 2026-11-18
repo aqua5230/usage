@@ -1711,3 +1711,138 @@ def test_year_activity_colors_preserve_tokens_and_tooltips(monkeypatch: pytest.M
     rendered = html_report._render_contribution_section(data, "en")
     title = html_report._t("en", "contribution_cell_title", date="2026-05-09", tokens="0")
     assert f'class="contribution-cell level-1" title="{title}"' in rendered
+
+
+def test_year_ledger_cross_process_lock_preserves_backfill_and_new_day(tmp_path: Path) -> None:
+    import json
+    import sqlite3
+    import subprocess
+    import sys
+    import threading
+    from contextlib import closing
+
+    legacy_day = "2026-11-15"
+    new_day = "2026-11-16"
+    ledger_path = tmp_path / "year_ledger.json"
+    ledger_path.write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "days": {
+                    legacy_day: {
+                        "total_tokens": 100,
+                        "cost": 0.0,
+                        "agent_tokens": {},
+                        "model_tokens": {},
+                        "project_tokens": {},
+                        "sessions": 1,
+                    }
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    db_path = tmp_path / "state_5.sqlite"
+    with closing(sqlite3.connect(db_path)) as db, db:
+        db.execute(
+            "CREATE TABLE threads (created_at INTEGER, tokens_used INTEGER, model TEXT, cwd TEXT)"
+        )
+        db.execute(
+            "INSERT INTO threads VALUES (?, ?, ?, ?)",
+            (datetime.fromisoformat(f"{legacy_day}T12:00:00").timestamp(), 100, "gpt-demo", ""),
+        )
+
+    child_code = """
+import sys
+from pathlib import Path
+from unittest.mock import patch
+from analyzer import reporter
+from loaders import codex_loader
+
+root = Path(sys.argv[1])
+real_write = reporter._write_year_ledger
+
+def paused_write(ledger):
+    print("ready", flush=True)
+    assert sys.stdin.readline().strip() == "continue"
+    real_write(ledger)
+
+with (
+    patch.object(reporter, "YEAR_LEDGER_PATH", root / "year_ledger.json"),
+    patch.object(codex_loader, "STATE_DB", root / "state_5.sqlite"),
+    patch.object(reporter, "_write_year_ledger", paused_write),
+):
+    reporter._read_year_ledger()
+"""
+    writer_code = """
+import sys
+from datetime import date, datetime
+from pathlib import Path
+from unittest.mock import patch
+from adapters.types import UsageEntry
+from analyzer import reporter
+from loaders import codex_loader
+
+root = Path(sys.argv[1])
+entry = UsageEntry(
+    timestamp=datetime.fromisoformat("2026-11-16T12:00:00").astimezone(),
+    session_id="new-session",
+    message_id="new-message",
+    request_id="",
+    model="gpt-demo",
+    input_tokens=50,
+    output_tokens=0,
+    cache_creation_tokens=0,
+    cache_read_tokens=0,
+    cost_usd=0.0,
+    project="example",
+    agent_id="codex",
+)
+with (
+    patch.object(reporter, "YEAR_LEDGER_PATH", root / "year_ledger.json"),
+    patch.object(codex_loader, "STATE_DB", root / "state_5.sqlite"),
+):
+    reporter.persist_year_entries([entry], date(2026, 11, 16))
+"""
+    reader = subprocess.Popen(
+        [sys.executable, "-B", "-c", child_code, str(tmp_path)],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        text=True,
+    )
+    assert reader.stdin is not None and reader.stdout is not None
+    writer: subprocess.Popen[str] | None = None
+    try:
+        assert reader.stdout.readline().strip() == "ready"
+        writer = subprocess.Popen(
+            [sys.executable, "-B", "-c", writer_code, str(tmp_path)],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        # While reader holds the file lock, writer must block instead of racing.
+        wait_done = threading.Event()
+
+        def _watch_writer() -> None:
+            assert writer is not None
+            writer.wait()
+            wait_done.set()
+
+        watcher = threading.Thread(target=_watch_writer, daemon=True)
+        watcher.start()
+        assert not wait_done.wait(0.25)
+
+        reader.stdin.write("continue\n")
+        reader.stdin.flush()
+        assert reader.wait(timeout=5) == 0
+        assert wait_done.wait(5)
+        assert writer.returncode == 0, writer.stderr.read() if writer.stderr else ""
+    finally:
+        if reader.poll() is None:
+            reader.kill()
+        if writer is not None and writer.poll() is None:
+            writer.kill()
+
+    saved = json.loads(ledger_path.read_text(encoding="utf-8"))["days"]
+    assert saved[legacy_day]["agent_tokens"] == {"codex": 100}
+    assert saved[new_day]["total_tokens"] == 50

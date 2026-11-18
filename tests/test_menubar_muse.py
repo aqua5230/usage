@@ -2,7 +2,10 @@
 from __future__ import annotations
 
 import json
+import threading
+import time
 from typing import Any
+from unittest.mock import Mock
 
 import pytest
 
@@ -30,6 +33,23 @@ def test_stale_requires_newer_session_and_old_cache(
     assert result.stale == ({"ageText": stale} if stale else None)
     assert result.session.title == "Session"
     assert result.weekly.title == "Weekly"
+
+
+def test_old_observation_is_shown_even_during_probe_cooldown(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    now = 8200
+    probe.CACHE_PATH.write_text(json.dumps({**quota(now), "observed_at": now - 7200}))
+    monkeypatch.setattr(probe, "find_muse", lambda: "/fake/muse")
+    monkeypatch.setattr(probe, "latest_session_mtime", lambda: now - 600)
+    monkeypatch.setattr(time, "time", lambda: now)
+    thread = Mock()
+    monkeypatch.setattr(threading, "Thread", thread)
+
+    result = muse.load_refresh_result("en")
+    assert result.projection is not None
+    assert result.projection.stale == {"ageText": "about 2 hours ago"}
+    thread.assert_not_called()
 
 
 @pytest.mark.parametrize("now,expected", [(9999, 25), (10000, 0), (10001, 0), (20000, 0)])
