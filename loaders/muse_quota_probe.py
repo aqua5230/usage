@@ -48,6 +48,7 @@ class MuseQuotaWindow(TypedDict):
 
 class MuseQuotaResult(TypedDict):
     checked_at: float
+    observed_at: float
     window: MuseQuotaWindow
     weekly: MuseQuotaWindow
 
@@ -81,8 +82,15 @@ def validate_muse_cache(payload: object) -> MuseQuotaResult | None:
         if not _number(used) or not _number(reset) or used < 0:
             return None
         windows.append(MuseQuotaWindow(used_percent=float(used), resets_at=float(reset)))
+    checked_at = float(payload["checked_at"])
+    observed_at = payload.get("observed_at")
     return MuseQuotaResult(
-        checked_at=float(payload["checked_at"]), window=windows[0], weekly=windows[1]
+        checked_at=checked_at,
+        observed_at=float(observed_at)
+        if _number(observed_at) and observed_at <= checked_at
+        else checked_at,
+        window=windows[0],
+        weekly=windows[1],
     )
 
 
@@ -114,7 +122,12 @@ def parse_muse_usage(stdout: str, checked_at: float) -> MuseQuotaResult | None:
     """Read ``muse usage --json`` (Muse 1.4.13+); its allowance fields are camelCase."""
     try:
         allowance = json.loads(stdout)["allowance"]
+        if not isinstance(allowance, dict):
+            return None
         payload: dict[str, object] = {"checked_at": checked_at}
+        observed_ms = allowance.get("asOfMs", allowance.get("observedAtMs"))
+        if _number(observed_ms):
+            payload["observed_at"] = observed_ms / 1000
         for name in ("window", "weekly"):
             raw = allowance[name]
             if not _number(raw["resetsAtMs"]):
@@ -168,15 +181,13 @@ def parse_exhausted_window(
         return None
     used_up = MuseQuotaWindow(used_percent=100.0, resets_at=reset)
     if reset - now <= WINDOW_SECONDS:
-        return MuseQuotaResult(
-            checked_at=cached["checked_at"], window=used_up, weekly=cached["weekly"]
-        )
+        return {**cached, "window": used_up}
     window = cached["window"]
     # Nothing runs without weekly allowance, so a lapsed window is empty. One resetting past
     # 5 hours is a weekly 429 that v0.34.5 recorded as the 5-hour window.
     if not now < window["resets_at"] <= now + WINDOW_SECONDS:
         window = MuseQuotaWindow(used_percent=0.0, resets_at=now)
-    return MuseQuotaResult(checked_at=now, window=window, weekly=used_up)
+    return MuseQuotaResult(checked_at=now, observed_at=now, window=window, weekly=used_up)
 
 
 def read_cache() -> MuseQuotaResult | None:
@@ -201,8 +212,8 @@ def latest_session_mtime() -> float | None:
 def is_stale(quota: MuseQuotaResult, latest: float | None, now: float) -> bool:
     return (
         latest is not None
-        and latest > quota["checked_at"]
-        and now - quota["checked_at"] > STALE_SECONDS
+        and latest > quota["observed_at"]
+        and now - quota["observed_at"] > STALE_SECONDS
     )
 
 
@@ -342,9 +353,15 @@ def load_quota_snapshot(*, allow_probe: bool = True) -> tuple[MuseQuotaResult | 
     with _probe_lock:
         # A worker may have finished since the first cache read.
         cached = read_cache()
+        now = time.time()
         if (
             latest is None
-            or (cached is not None and not is_stale(cached, latest, time.time()))
+            or (
+                cached is not None
+                and (
+                    now - cached["checked_at"] <= STALE_SECONDS or not is_stale(cached, latest, now)
+                )
+            )
             or _probe_running
             or _probe_shutdown
             or time.monotonic() < _retry_after

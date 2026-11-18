@@ -23,6 +23,7 @@ _REAL_READ_USAGE = probe.read_usage
 def quota(checked_at: float = 1000) -> probe.MuseQuotaResult:
     return {
         "checked_at": checked_at,
+        "observed_at": checked_at,
         "window": {"used_percent": 25, "resets_at": 10000},
         "weekly": {"used_percent": 75, "resets_at": 20000},
     }
@@ -61,6 +62,13 @@ def test_read_missing_corrupt_and_good_cache() -> None:
     assert probe.read_cache() is None
     assert probe.CACHE_PATH.read_text() == "{"
     probe.CACHE_PATH.write_text(json.dumps(quota()))
+    assert probe.read_cache() == quota()
+
+
+def test_read_legacy_cache_uses_checked_at_as_observation() -> None:
+    legacy = dict(quota())
+    del legacy["observed_at"]
+    probe.CACHE_PATH.write_text(json.dumps(legacy))
     assert probe.read_cache() == quota()
 
 
@@ -119,6 +127,7 @@ def test_weekly_429_fills_weekly_and_refreshes_age(
     cached["window"]["resets_at"] = window_reset
     assert probe.parse_exhausted_window(WEEKLY_EXHAUSTED, cached, now) == {
         "checked_at": now,
+        "observed_at": now,
         "window": expected_window,
         "weekly": {"used_percent": 100.0, "resets_at": WEEKLY_RESET},
     }
@@ -378,7 +387,26 @@ USAGE = json.dumps(
 
 
 def test_parse_muse_usage_converts_camel_case() -> None:
-    assert probe.parse_muse_usage(USAGE, 1000) == quota()
+    assert probe.parse_muse_usage(USAGE, 1000) == {**quota(), "observed_at": 999}
+
+
+@pytest.mark.parametrize(
+    ("fields", "expected"),
+    [
+        ({"asOfMs": 998000, "observedAtMs": 999000}, 998),
+        ({"observedAtMs": 999000}, 999),
+        ({}, 1000),
+        ({"asOfMs": 1001000}, 1000),
+        ({"asOfMs": "999000"}, 1000),
+        ({"observedAtMs": True}, 1000),
+        ({"asOfMs": float("nan")}, 1000),
+    ],
+)
+def test_parse_muse_usage_observation_fallback(fields: dict[str, object], expected: float) -> None:
+    raw = json.loads(USAGE)
+    del raw["allowance"]["asOfMs"]
+    raw["allowance"].update(fields)
+    assert probe.parse_muse_usage(json.dumps(raw), 1000) == {**quota(), "observed_at": expected}
 
 
 @pytest.mark.parametrize(
@@ -401,7 +429,7 @@ def test_read_usage_runs_without_model(monkeypatch: pytest.MonkeyPatch) -> None:
     popen = Mock(return_value=process)
     monkeypatch.setattr(subprocess, "Popen", popen)
     monkeypatch.setattr(time, "time", lambda: 1000)
-    assert _REAL_READ_USAGE("/fake/muse") == quota()
+    assert _REAL_READ_USAGE("/fake/muse") == {**quota(), "observed_at": 999}
     assert popen.call_args.args[0] == ["/fake/muse", "usage", "--json"]
     process.returncode = 2
     process.communicate.return_value = ("", "unknown command")

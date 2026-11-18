@@ -147,6 +147,23 @@ def test_self_heal_restores_missing_script_when_enabled(
     assert "recent_claude_entries=" in detail
 
 
+def test_self_heal_restores_missing_sidecar_without_downgrading_script(
+    resume_paths: ResumeHookPaths,
+) -> None:
+    session_hooks.enable_session_resume()
+    newer_script = '__version__ = "99.0"\n'
+    resume_paths.resume_target.write_text(newer_script, encoding="utf-8")
+    resume_paths.sidecar.unlink()
+
+    session_hooks._self_heal_resume()
+
+    assert resume_paths.resume_target.read_text(encoding="utf-8") == newer_script
+    assert json.loads(resume_paths.sidecar.read_text(encoding="utf-8"))["en"]["prompt"]
+    log = json.loads(resume_paths.settings.read_text(encoding="utf-8"))["usage"]["selfHealLog"]
+    assert log[-1]["action"] == "restore_resume_hook"
+    assert "missing=sidecar" in log[-1]["detail"]
+
+
 def test_self_heal_normalizes_existing_target_command(
     resume_paths: ResumeHookPaths,
 ) -> None:

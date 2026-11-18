@@ -35,6 +35,7 @@ from usage_common.subprocess_utils import hidden_console_kwargs
 from ui.report_charts import (
     format_axis_tokens,
     is_unattributed,
+    is_unattributed_project,
     project_chart_rows,
     render_axis,
     render_lane,
@@ -177,7 +178,9 @@ def _report_heading(data: Mapping[str, Any], lang: str, kind: str) -> tuple[str,
             (
                 p
                 for p in data.get("by_project", [])
-                if not p.get("is_other") and not is_unattributed(p["project"]) and p["tokens"] > 0
+                if not p.get("is_other")
+                and not is_unattributed_project(p, data)
+                and p["tokens"] > 0
             ),
             key=lambda p: -p["tokens"],
         )
@@ -1508,17 +1511,34 @@ def _build_csv_data(data: Mapping[str, Any], lang: str, *, mask_projects: bool =
     out = StringIO()
     writer = csv.writer(out, lineterminator="\r\n")
     writer.writerow(["type", "name", "share_pct", "tokens", "cost_usd"])
-    for idx, item in enumerate(data.get("by_project", []), start=1):
-        name = f"Project {idx}" if mask_projects else _display_name(item.get("project"), lang)
+    total = int(data.get("summary", {}).get("total_tokens", 0))
+    projects = [p for p in project_chart_rows(data) if not p.get("is_other")]
+    for idx, item in enumerate(projects, start=1):
+        if mask_projects:
+            name = f"Project {idx}"
+        elif item.get("is_unattributed"):
+            name = _t(lang, "unattributed_projects")
+        else:
+            name = _display_name(item.get("project"), lang)
         if name.startswith(("=", "+", "-", "@", "\t", "\r")):
             name = "'" + name
+        pct = (
+            float(item["pct"])
+            if "pct" in item
+            else (int(item.get("tokens", 0)) / total * 100 if total else 0.0)
+        )
+        cost_val = (
+            None
+            if item.get("is_unattributed") and not item.get("cost_known", True)
+            else float(item.get("cost", 0.0))
+        )
         writer.writerow(
             [
                 "project",
                 name,
-                f"{float(item.get('pct', 0.0)):.1f}",
+                f"{pct:.1f}",
                 str(int(item.get("tokens", 0))),
-                _csv_cost(float(item.get("cost", 0.0))),
+                _csv_cost(cost_val),
             ]
         )
     for model_item in data.get("by_model", []):

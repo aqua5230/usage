@@ -95,7 +95,7 @@ _TERSE_REMINDER_MARKER = "usage-terse-reminder"
 _TERSE_REMINDER_MARKERS = (_TERSE_REMINDER_MARKER, "usage_terse_reminder")
 # Independent, opt-in Claude Code UserPromptSubmit hook.
 QUOTA_AWARE_HOOK_TARGET = Path(os.path.expanduser("~/.claude/usage-quota-aware.py"))
-QUOTA_AWARE_HOOK_VERSION = "1.17"
+QUOTA_AWARE_HOOK_VERSION = "1.18"
 QUOTA_AWARE_MATCHER = ""
 _QUOTA_AWARE_MARKER = "usage-quota-aware"
 _QUOTA_AWARE_MARKERS = (_QUOTA_AWARE_MARKER, "usage_quota_aware")
@@ -856,15 +856,16 @@ def _self_heal_resume() -> None:
     _migrate_resume_matcher_if_needed()
     _migrate_resume_command_if_needed()
     missing = _missing_resume_artifacts()
+    detail = _resume_restore_context(missing) if missing else ""
+    old = _installed_resume_version()
+    replace_script = "script" in missing or setup_hook.is_older(old, RESUME_HOOK_VERSION)
+    if replace_script:
+        _copy_resume_script()
+    if replace_script or "sidecar" in missing:
+        _write_resume_sidecar()
     if missing:
-        detail = _resume_restore_context(missing)
-        _copy_resume_script()
-        _write_resume_sidecar()
         _append_self_heal_log("restore_resume_hook", detail)
-    elif setup_hook.is_older(_installed_resume_version(), RESUME_HOOK_VERSION):
-        old = _installed_resume_version()
-        _copy_resume_script()
-        _write_resume_sidecar()
+    elif replace_script:
         _append_self_heal_log("update_resume_hook", f"{old or 'unknown'} -> {RESUME_HOOK_VERSION}")
 
 

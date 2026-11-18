@@ -459,3 +459,158 @@ def test_day_growth_can_replace_a_session_with_smaller_totals(snapshot_path: Pat
         "a": 50,
         "b": 200,
     }
+
+
+@pytest.mark.parametrize("old_versions", [None, {"antigravity": 1}])
+def test_old_agy_snapshot_replaced_when_all_sources_present(
+    snapshot_path: Path,
+    old_versions: dict[str, int] | None,
+) -> None:
+    day = date(2026, 11, 1)
+    payload: dict[str, Any] = {
+        "schema_version": usage_snapshot.SNAPSHOT_SCHEMA,
+        "rows": [
+            {
+                "session_id": "agy-1",
+                "date": day.isoformat(),
+                "agent_id": "antigravity",
+                "model": "gemini-3-pro",
+                "project": "proj",
+                "input_tokens": 5000,
+                "output_tokens": 0,
+                "cache_creation_tokens": 0,
+                "cache_read_tokens": 0,
+                "cost": 0.0,
+                "message_count": 2,
+            },
+            {
+                "session_id": "codex-1",
+                "date": day.isoformat(),
+                "agent_id": "codex",
+                "model": "gpt-5-codex",
+                "project": "proj",
+                "input_tokens": 1000,
+                "output_tokens": 0,
+                "cache_creation_tokens": 0,
+                "cache_read_tokens": 0,
+                "cost": 1.0,
+                "message_count": 1,
+            },
+        ],
+        "sessions": {},
+    }
+    if old_versions is not None:
+        payload["day_versions"] = {day.isoformat(): old_versions}
+    snapshot_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    live = [
+        _entry(
+            when=datetime(2026, 11, 1, 10, tzinfo=UTC),
+            session_id="agy-1",
+            # The live parser keeps raw Antigravity IDs such as this one.
+            model="gemini-3.8-flash-n",
+            agent_id="antigravity",
+            input_tokens=3000,
+            cost_usd=0.0,
+        ),
+        _entry(
+            when=datetime(2026, 11, 1, 11, tzinfo=UTC),
+            session_id="codex-1",
+            model="gpt-5-codex",
+            agent_id="codex",
+            input_tokens=1000,
+            cost_usd=1.0,
+        ),
+    ]
+    live_dates = {id(entry): day for entry in live}
+    merged, _ = usage_snapshot.merge_live_with_snapshot(live, live_dates, day, day)
+    assert sum(entry.total_tokens for entry in merged) == 4000
+
+    saved = usage_snapshot.record_entries(live, entry_dates=live_dates)
+    assert usage_snapshot.period_totals(saved, day, day).total_tokens == 4000
+    assert saved.get("day_versions", {}).get(day.isoformat()) == {"antigravity": 2}
+
+
+def test_old_agy_snapshot_kept_when_other_agent_or_session_missing(
+    snapshot_path: Path,
+) -> None:
+    day = date(2026, 11, 1)
+    snapshot_path.write_text(
+        json.dumps(
+            {
+                "schema_version": usage_snapshot.SNAPSHOT_SCHEMA,
+                "rows": [
+                    {
+                        "session_id": "agy-1",
+                        "date": day.isoformat(),
+                        "agent_id": "antigravity",
+                        "model": "gemini-3-pro",
+                        "project": "proj",
+                        "input_tokens": 5000,
+                        "output_tokens": 0,
+                        "cache_creation_tokens": 0,
+                        "cache_read_tokens": 0,
+                        "cost": 0.0,
+                        "message_count": 2,
+                    },
+                    {
+                        "session_id": "codex-1",
+                        "date": day.isoformat(),
+                        "agent_id": "codex",
+                        "model": "gpt-5-codex",
+                        "project": "proj",
+                        "input_tokens": 1000,
+                        "output_tokens": 0,
+                        "cache_creation_tokens": 0,
+                        "cache_read_tokens": 0,
+                        "cost": 1.0,
+                        "message_count": 1,
+                    },
+                ],
+                "sessions": {},
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    only_agy = [
+        _entry(
+            when=datetime(2026, 11, 1, 10, tzinfo=UTC),
+            session_id="agy-1",
+            model="gemini-3-pro",
+            agent_id="antigravity",
+            input_tokens=3000,
+            cost_usd=0.0,
+        )
+    ]
+    live_dates = {id(entry): day for entry in only_agy}
+    merged, _ = usage_snapshot.merge_live_with_snapshot(only_agy, live_dates, day, day)
+    assert sum(entry.total_tokens for entry in merged) == 6000
+    saved = usage_snapshot.record_entries(only_agy, entry_dates=live_dates)
+    assert usage_snapshot.period_totals(saved, day, day).total_tokens == 6000
+    assert day.isoformat() not in saved.get("day_versions", {})
+
+
+def test_current_version_agy_snapshot_kept_when_live_shrinks(snapshot_path: Path) -> None:
+    day = date(2026, 11, 1)
+    first = _entry(
+        when=datetime(2026, 11, 1, 10, tzinfo=UTC),
+        session_id="agy-1",
+        model="gemini-3-pro",
+        agent_id="antigravity",
+        input_tokens=3000,
+        cost_usd=0.0,
+    )
+    usage_snapshot.record_entries([first], entry_dates={id(first): day})
+    smaller = _entry(
+        when=datetime(2026, 11, 1, 10, tzinfo=UTC),
+        session_id="agy-1",
+        model="gemini-3-pro",
+        agent_id="antigravity",
+        input_tokens=2000,
+        cost_usd=0.0,
+    )
+    merged, _ = usage_snapshot.merge_live_with_snapshot([smaller], {id(smaller): day}, day, day)
+    assert sum(entry.total_tokens for entry in merged) == 3000
+    saved = usage_snapshot.record_entries([smaller], entry_dates={id(smaller): day})
+    assert usage_snapshot.period_totals(saved, day, day).total_tokens == 3000

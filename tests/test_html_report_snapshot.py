@@ -1101,3 +1101,50 @@ def test_activity_only_report_still_shows_missing_usage_appendix(lang: str) -> N
         in rendered
     )
     assert 'class="section trend-section"' not in rendered
+
+
+def test_build_csv_data_recovers_tenth_project_and_appends_unattributed() -> None:
+    data: dict[str, Any] = {
+        "date_from": "2026-08-01",
+        "date_to": "2026-08-02",
+        "summary": {"total_tokens": 1750, "total_cost": 10.0},
+        "by_project": [
+            {
+                "project": "unknown",
+                "tokens": 500,
+                "cost": 0.0,
+                "cost_known": False,
+                "is_unattributed": True,
+            },
+            *[
+                {
+                    "project": f"project-{i:02d}",
+                    "tokens": 200 - i * 10,
+                    "cost": 1.0,
+                    "cost_known": True,
+                }
+                for i in range(1, 10)
+            ],
+        ],
+        "by_model": [],
+        "cube": {
+            "dates": ["2026-08-01", "2026-08-02"],
+            "agents": [{"id": "unknown", "name": "unknown"}, {"id": "codex", "name": "Codex"}],
+            "models": [
+                {"name": "unknown", "cost_known": False},
+                {"name": "gpt-6-sol", "cost_known": True},
+            ],
+            "projects": ["unknown", *[f"project-{i:02d}" for i in range(1, 11)]],
+            "rows": [
+                [0, 0, 0, 0, 500, 0, 0, 0, 0.0, 0, 1],
+                *[[1, 1, 1, i, 200 - i * 10, 0, 0, 0, 1.0, 1] for i in range(1, 11)],
+            ],
+        },
+    }
+    rows = list(csv.DictReader(io.StringIO(html_report._build_csv_data(data, "en"))))
+    project_rows = [row for row in rows if row["type"] == "project"]
+    assert [row["name"] for row in project_rows] == [
+        *[f"project-{i:02d}" for i in range(1, 11)],
+        "Old records (totals only)",
+    ]
+    assert project_rows[-1]["cost_usd"] == "—"

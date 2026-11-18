@@ -38,7 +38,7 @@ def project_quota(
     current = time.time() if now is None else now
     stale: MuseStaleState | None = None
     if probe.is_stale(quota, latest_session, current):
-        age = current - quota["checked_at"]
+        age = current - quota["observed_at"]
         # The existing age-only translations are shared with Grok.
         stale = (
             {"ageText": _t(language, "grok_stale_minutes", minutes=int(age // 60))}
