@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional, cast
 
-__version__ = "1.18"
+__version__ = "1.19"
 CLAUDE_STATUS = Path.home() / ".claude/usage-status.json"
 QUOTA_SNAPSHOT = Path.home() / ".usage/quota_snapshot.json"
 SERVICE_SNAPSHOT = Path.home() / ".usage/service_status_snapshot.json"
@@ -238,7 +238,7 @@ def _windows(
         claude: bool = False,
         generated: float = 0,
         updated_at: Any = None,
-        observed_at: Optional[float] = None,
+        observed_at: Any = None,
     ) -> None:
         if not isinstance(data, dict):
             return
@@ -248,8 +248,13 @@ def _windows(
                 continue
             suffix = ""
             age = None
-            if observed_at is not None:
-                age = now - observed_at
+            timestamp = None
+            with suppress(OverflowError):
+                timestamp = _number(
+                    observed_at.get(name) if isinstance(observed_at, dict) else observed_at
+                )
+            if timestamp is not None:
+                age = now - timestamp
             elif "age_seconds" in window and "updated_at" not in window:
                 age = _number(window["age_seconds"])
                 if age is not None and generated:
@@ -272,10 +277,12 @@ def _windows(
     # A session that has not replied yet carries another session's windows, which are only safe
     # to reuse when both sessions belong to the current account. Older hooks omit the field.
     if _can_use_status(session_id, status, state):
-        observed_at = None
-        with suppress(OverflowError):
-            observed_at = _number(status.get("_rate_limits_observed_at"))
-        add("Claude Code", status.get("rate_limits"), claude=True, observed_at=observed_at)
+        add(
+            "Claude Code",
+            status.get("rate_limits"),
+            claude=True,
+            observed_at=status.get("_rate_limits_observed_at"),
+        )
     snapshot = _read(QUOTA_SNAPSHOT)
     try:
         generated = _generated_at(snapshot.get("generated_at"))

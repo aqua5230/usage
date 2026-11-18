@@ -987,9 +987,8 @@ function closeShareModal() {
   }
 }
 
-function buildShareFilename(ext) {
+function buildShareFilename(ext, bounds = window.usageReportFilter?.currentBounds?.()) {
   // 檔名帶資料涵蓋的日期，隔幾個月打開也知道是哪段；舊報表沒有日期篩選器才用匯出當天。
-  const bounds = window.usageReportFilter?.currentBounds?.();
   const range = !bounds ? new Date().toISOString().slice(0, 10)
     : bounds.from === bounds.to ? bounds.from : `${bounds.from}_${bounds.to}`;
   return `usage-report-${range}.${ext}`;
@@ -1133,11 +1132,18 @@ async function withShareableReport(maskProjects, callback) {
 }
 
 async function downloadHtml(maskProjects) {
-  const html = await withShareableReport(maskProjects, async () => (
-    '<!doctype html>\n' + document.documentElement.outerHTML
-  ));
+  const bounds = window.usageReportFilter?.currentBounds?.() || null;
+  const html = await withShareableReport(maskProjects, async () => {
+    const root = document.documentElement.cloneNode(true);
+    if (bounds) {
+      const {dataset} = root.querySelector('body');
+      dataset.exportFrom = bounds.from;
+      dataset.exportTo = bounds.to;
+    }
+    return '<!doctype html>\n' + root.outerHTML;
+  });
   const blob = new Blob([html], {type: 'text/html'});
-  downloadBlob(blob, buildShareFilename('html'));
+  downloadBlob(blob, buildShareFilename('html', bounds));
 }
 
 async function downloadCsv(maskProjects) {
@@ -1660,7 +1666,7 @@ document.addEventListener('click', async (e) => {
       peakTokens: Math.max(0, peakTokens),
       unpricedTokens,
       // 前期只要有一天早於資料的第一天，那段本來就沒資料，拿來當基準會算出假成長。
-      hasPrevious: previousRows.length > 0 && previousBounds.from >= cube.dates[0],
+      hasPrevious: previousRows.length > 0 && Boolean(firstTokenDate) && previousBounds.from >= firstTokenDate,
       previousTokens: previousRows.reduce((total, row) => total + rowTokens(row), 0),
       previousCost: previousRows.reduce((total, row) => total + Number(row[8]), 0),
     };
@@ -1755,6 +1761,8 @@ document.addEventListener('click', async (e) => {
     bindModelGroup(group, savedModelIds.has(group.dataset.agentId));
   });
   if (!cube || !Array.isArray(cube.dates) || !Array.isArray(cube.rows)) return;
+  const firstTokenRow = cube.rows.find((row) => rowTokens(row) > 0);
+  const firstTokenDate = firstTokenRow ? cube.dates[Number(firstTokenRow[0])] : null;
 
   function formatTokens(value) {
     if (value >= 999950000) return `${(value / 1000000000).toFixed(2)}B`;
@@ -2728,10 +2736,16 @@ document.addEventListener('click', async (e) => {
   fromInput.addEventListener('change', applyManualRange);
   toInput.addEventListener('change', applyManualRange);
 
-  const defaultRange = document.body.dataset.defaultRange || 'all';
-  selectShortcut(['today', 'last7', 'last30', 'month', 'all'].includes(defaultRange)
-    ? defaultRange
-    : 'all');
+  const {exportFrom, exportTo, defaultRange} = document.body.dataset;
+  if (exportFrom && exportTo) {
+    fromInput.value = exportFrom;
+    toInput.value = exportTo;
+    applyManualRange();
+  } else {
+    selectShortcut(['today', 'last7', 'last30', 'month', 'all'].includes(defaultRange)
+      ? defaultRange
+      : 'all');
+  }
 })();
 
 </script>

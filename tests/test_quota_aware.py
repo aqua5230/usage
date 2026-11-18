@@ -935,7 +935,7 @@ def test_service_normal_without_record_is_silent(paths: Path) -> None:
 
 
 def test_service_hook_versions_match() -> None:
-    assert hook.__version__ == session_hooks.QUOTA_AWARE_HOOK_VERSION == "1.18"
+    assert hook.__version__ == session_hooks.QUOTA_AWARE_HOOK_VERSION == "1.19"
 
 
 @pytest.mark.parametrize("window,label", [("five_hour", "5-hour"), ("seven_day", "weekly")])
@@ -1511,10 +1511,39 @@ def test_claude_redraw_preserves_quota_observation_age(
 
     saved = hook._read(hook.CLAUDE_STATUS)
     assert saved["_received_at_ts"] == NOW
-    assert saved["_rate_limits_observed_at"] == observed
+    expected = {"five_hour": observed}
+    if complete:
+        expected["seven_day"] = observed
+    assert saved["_rate_limits_observed_at"] == expected
     output = hook.reminder("one", NOW)
     assert "[usage quota overview]" not in output
     assert "last updated 2h ago" in output
+
+
+@pytest.mark.parametrize("fresh_window", ["five_hour", "seven_day"])
+def test_claude_quota_reminder_uses_each_windows_observation_age(
+    accounts: Path, status_writer: Any, fresh_window: str
+) -> None:
+    account_config(accounts, "A")
+    labels = {"five_hour": "5-hour", "seven_day": "weekly"}
+    cached_window = next(window for window in labels if window != fresh_window)
+    claude(96, 96)
+    status = hook._read(hook.CLAUDE_STATUS)
+    status.update({"_rate_limits_account_uuid": "A", "_rate_limits_observed_at": NOW - 7200})
+    hook.CLAUDE_STATUS.write_text(json.dumps(status), encoding="utf-8")
+    legacy_windows = hook._windows("one", NOW, {})
+    assert {window[1] for window in legacy_windows} == set(labels)
+    assert all("last updated 2h ago" in window[-1] for window in legacy_windows)
+    status_writer(
+        {"session_id": "one", "rate_limits": {fresh_window: status["rate_limits"][fresh_window]}},
+        datetime.fromtimestamp(NOW, UTC),
+    )
+
+    lines = hook.reminder("one", NOW).splitlines()
+    fresh = next(line for line in lines if f"{labels[fresh_window]} quota: 96% used" in line)
+    cached = next(line for line in lines if f"{labels[cached_window]} quota: 96% used" in line)
+    assert "last updated" not in fresh
+    assert "last updated 2h ago" in cached
 
 
 @pytest.mark.parametrize("new_session", ["one", "two"])

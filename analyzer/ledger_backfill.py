@@ -14,6 +14,7 @@ from datetime import date, datetime
 from typing import TYPE_CHECKING
 
 from adapters.types import UsageEntry
+from analyzer import usage_snapshot
 from usage_common.pricing import calculate_cost
 
 if TYPE_CHECKING:
@@ -22,6 +23,14 @@ if TYPE_CHECKING:
 
 def is_ledger_entry(entry: UsageEntry) -> bool:
     return entry.session_id.startswith("usage-ledger:")
+
+
+def has_stale_agent_version(day: _YearDay) -> bool:
+    versions = day.get("agent_versions", {})
+    return any(
+        day["agent_tokens"].get(agent, 0) > 0 and versions.get(agent, 0) < version
+        for agent, version in usage_snapshot.AGENT_VERSIONS.items()
+    )
 
 
 def _allocate(
@@ -58,6 +67,8 @@ def merge_with_ledger(
         if not date_from <= day <= date_to or not any(
             tokens > 0 for tokens in ledger["agent_tokens"].values()
         ):
+            continue
+        if has_stale_agent_version(ledger):
             continue
         current = by_day.get(day, [])
         gap = ledger["total_tokens"] - sum(entry.total_tokens for entry in current)

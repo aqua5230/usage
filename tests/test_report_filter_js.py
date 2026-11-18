@@ -9,6 +9,7 @@ import pytest
 
 from ui.report_daily_chart import REPORT_DAILY_CHART_JS
 from ui.report_filter import REPORT_FILTER_JS
+from ui.report_scripts import REPORT_JS_TEMPLATE
 
 NODE = shutil.which("node")
 
@@ -1184,6 +1185,107 @@ window.usageReportFilter.applyBounds(allBounds);
 assert.equal(noMissing.appendix.querySelector('.missing-usage-section'), null);
 """
     path = tmp_path / "missing-ranges.cjs"
+    path.write_text(script, encoding="utf-8")
+    subprocess.run([NODE or "node", str(path)], check=True, capture_output=True, text=True)
+
+
+@pytest.mark.skipif(NODE is None, reason="Node.js is unavailable")
+def test_previous_period_requires_token_history_from_its_start(tmp_path: Path) -> None:
+    prefix = NODE_HARNESS.split("const cube = {", 1)[0]
+    script = prefix.replace("__REPORT_DAILY_CHART_JS__", json.dumps(REPORT_DAILY_CHART_JS)).replace(
+        "__REPORT_FILTER_JS__", json.dumps(REPORT_FILTER_JS)
+    )
+    script += r"""
+const cube = {
+  today: '2026-10-31',
+  dates: ['2026-10-01', '2026-10-07', '2026-10-14'],
+  claude_activity_dates: ['2026-10-01'],
+  agents: [{id: 'claude-code', name: 'Claude Code'}],
+  models: [{name: 'priced', cost_known: true}],
+  projects: ['demo'],
+  rows: [[1, 0, 0, 0, 100, 0, 0, 0, 1, 1], [2, 0, 0, 0, 200, 0, 0, 0, 2, 1]],
+};
+const env = run(makeEnvironment(cube, {}, false, [], true));
+const api = window.usageReportFilter;
+const partial = api.applyBounds({from: '2026-10-08', to: '2026-10-14'});
+assert.equal(partial.previousTokens, 100);
+assert.equal(partial.hasPrevious, false);
+const tokenHint = () => env.cards.tokens.querySelector('i').textContent;
+assert.equal(tokenHint().includes(shareConfig.vsPrevious), false);
+const complete = api.applyBounds({from: '2026-10-14', to: '2026-10-20'});
+assert.equal(complete.hasPrevious, true);
+assert.equal(tokenHint().includes(shareConfig.vsPrevious), true);
+"""
+    path = tmp_path / "previous-token-period.cjs"
+    path.write_text(script, encoding="utf-8")
+    subprocess.run([NODE or "node", str(path)], check=True, capture_output=True, text=True)
+
+
+@pytest.mark.skipif(NODE is None, reason="Node.js is unavailable")
+def test_exported_html_reopens_at_range_used_in_filename(tmp_path: Path) -> None:
+    prefix = NODE_HARNESS.split("const cube = {", 1)[0]
+    script = prefix.replace("__REPORT_DAILY_CHART_JS__", json.dumps(REPORT_DAILY_CHART_JS)).replace(
+        "__REPORT_FILTER_JS__", json.dumps(REPORT_FILTER_JS)
+    )
+    start = REPORT_JS_TEMPLATE.index("function buildShareFilename(")
+    end = REPORT_JS_TEMPLATE.index("\nlet snakeTimer", start)
+    share_js = REPORT_JS_TEMPLATE[start:end]
+    start = REPORT_JS_TEMPLATE.index("async function withShareableReport(")
+    end = REPORT_JS_TEMPLATE.index("\nasync function downloadCsv(", start)
+    share_js += REPORT_JS_TEMPLATE[start:end]
+    script += r"""
+const cube = {
+  today: '2026-10-31',
+  dates: ['2026-10-01', '2026-10-07', '2026-10-14'],
+  agents: [{id: 'codex', name: 'Codex'}],
+  models: [{name: 'priced', cost_known: true}],
+  projects: ['demo'],
+  rows: [[1, 0, 0, 0, 100, 0, 0, 0, 1, 1], [2, 0, 0, 0, 200, 0, 0, 0, 2, 1]],
+};
+const report = run(makeEnvironment(cube, {}, false, [], true));
+assert.equal(report.period.textContent, '2026-10-01 -> 2026-10-31');
+report.fromInput.value = '2026-10-08';
+report.toInput.value = '2026-10-14';
+report.toInput.fire('change');
+assert.equal(report.cards.tokens.querySelector('b').textContent, '≈ 200');
+
+function documentElement(body) {
+  return {
+    cloneNode: () => documentElement({dataset: {...body.dataset}}),
+    querySelector: (selector) => selector === 'body' ? body : null,
+    get outerHTML() {
+      const attrs = Object.entries(body.dataset).map(([key, value]) =>
+        `data-${key.replace(/[A-Z]/g, letter => '-' + letter.toLowerCase())}="${value}"`
+      );
+      return `<html><body ${attrs.join(' ')}></body></html>`;
+    },
+  };
+}
+document.documentElement = documentElement(document.body);
+const reportRoot = new Element('div');
+function closeShareModal() {}
+function stopSnakeAndRestore() {}
+let download;
+function downloadBlob(blob, filename) { download = {blob, filename}; }
+
+(async () => {
+  await eval(__SHARE_JS__ + '\ndownloadHtml(false);');
+  assert.equal(download.filename, 'usage-report-2026-10-08_2026-10-14.html');
+  assert.deepEqual(document.body.dataset, {});
+  const html = await download.blob.text();
+  const reopened = makeEnvironment(cube, {}, false, [], true);
+  for (const [, key, value] of html.matchAll(/data-([a-z-]+)="([^"]*)"/g)) {
+    const property = key.replace(/-([a-z])/g, (_match, letter) => letter.toUpperCase());
+    document.body.dataset[property] = value;
+  }
+  run(reopened);
+  assert.equal(reopened.period.textContent, '2026-10-08 -> 2026-10-14');
+  assert.equal(reopened.cards.tokens.querySelector('b').textContent, '≈ 200');
+  assert.equal(reopened.fromInput.value, '2026-10-08');
+  assert.equal(reopened.toInput.value, '2026-10-14');
+})();
+""".replace("__SHARE_JS__", json.dumps(share_js))
+    path = tmp_path / "exported-report-range.cjs"
     path.write_text(script, encoding="utf-8")
     subprocess.run([NODE or "node", str(path)], check=True, capture_output=True, text=True)
 

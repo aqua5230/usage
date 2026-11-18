@@ -409,7 +409,10 @@ def test_save_overwrites_existing_rate_limits_when_new_data_is_complete(
     }
     assert data["_received_at"] == now.isoformat()
     assert data["_received_at_ts"] == now.timestamp()
-    assert data["_rate_limits_observed_at"] == now.timestamp()
+    assert data["_rate_limits_observed_at"] == {
+        "five_hour": now.timestamp(),
+        "seven_day": now.timestamp(),
+    }
 
 
 @pytest.mark.parametrize(
@@ -458,7 +461,10 @@ def test_save_merges_rate_limit_windows_one_by_one(
     assert rate_limits["seven_day"] == fresh_seven
     expected_five = {"used_percentage": 11, "resets_at": cached_five_reset} if keep_five else None
     assert rate_limits.get("five_hour") == expected_five
-    assert data["_rate_limits_observed_at"] == (cached_observed if keep_five else now.timestamp())
+    observed = {"seven_day": now.timestamp()}
+    if keep_five:
+        observed["five_hour"] = cached_observed
+    assert data["_rate_limits_observed_at"] == observed
 
 
 def test_save_keeps_expired_cached_windows_when_payload_has_no_quota(

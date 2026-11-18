@@ -69,7 +69,7 @@ else:
 fcntl = _fcntl
 msvcrt = _msvcrt
 
-__version__ = "1.20"
+__version__ = "1.21"
 
 STATUS_FILE = os.path.expanduser("~/.claude/usage-status.json")
 LOCK_FILE = os.path.expanduser("~/.claude/usage-status.lock")
@@ -548,9 +548,13 @@ def save(data: Dict[str, Any], now: datetime) -> None:
     incoming = data.get("rate_limits")
     # Before its first reply a session reuses the cached windows, which may belong to the
     # account used before a /login switch; record which session actually observed them.
-    fresh = isinstance(incoming, dict) and any(_window_used(incoming.get(k)) for k in _RATE_WINDOWS)
+    observed_at = {
+        key: data["_received_at_ts"]
+        for key in _RATE_WINDOWS
+        if isinstance(incoming, dict) and _window_used(incoming.get(key))
+    }
+    fresh = bool(observed_at)
     observed_by = data.get("session_id") if fresh else None
-    observed_at = data["_received_at_ts"] if fresh else None
     account_uuid = _account_uuid()
     try:
         with _exclusive_lock(lock_fd):
@@ -570,23 +574,25 @@ def save(data: Dict[str, Any], now: datetime) -> None:
                     )
                     if merged is not None:
                         data["rate_limits"] = merged
-                    # A single timestamp covers both windows, so never re-date a reused one.
-                    if isinstance(merged, dict) and any(
-                        _window_used(merged.get(key))
-                        and (not isinstance(incoming, dict) or not _window_used(incoming.get(key)))
-                        for key in _RATE_WINDOWS
-                    ):
-                        observed_at = existing.get("_rate_limits_observed_at")
+                    if isinstance(merged, dict):
+                        cached_at = existing.get("_rate_limits_observed_at")
+                        for key in _RATE_WINDOWS:
+                            if key not in observed_at and _window_used(merged.get(key)):
+                                timestamp = (
+                                    cached_at.get(key) if isinstance(cached_at, dict) else cached_at
+                                )
+                                if timestamp is not None:
+                                    observed_at[key] = timestamp
                     if not fresh:
                         observed_by = existing.get(
                             "_rate_limits_session_id", existing.get("session_id")
                         )
             data["_rate_limits_session_id"] = observed_by
             data["_rate_limits_account_uuid"] = account_uuid
-            if observed_at is None:
-                data.pop("_rate_limits_observed_at", None)
-            else:
+            if observed_at:
                 data["_rate_limits_observed_at"] = observed_at
+            else:
+                data.pop("_rate_limits_observed_at", None)
             fd, tmp_path = tempfile.mkstemp(dir=target_dir, suffix=".tmp")
             with os.fdopen(fd, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False)

@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import json
 import threading
+from dataclasses import replace
 from datetime import UTC, date, datetime, timedelta, tzinfo
 from typing import Any, Self
 
 import pytest
 
 from adapters.types import AgentInfo, UsageEntry
-from analyzer import history_persist, reporter, usage_snapshot
+from analyzer import claude_activity, history_persist, reporter, usage_snapshot
 
 
 class _UtcLocalDateTime(datetime):
@@ -25,6 +26,7 @@ def _entry_date_utc(entry: UsageEntry) -> date:
 
 
 NOW = _UtcLocalDateTime(2026, 8, 12, 12, tzinfo=UTC)
+_AGY_AGENT = AgentInfo(id="antigravity", name="Antigravity", installed=True, data_dir="")
 _REAL_SCHEDULE_NEXT = history_persist._schedule_next_locked
 
 
@@ -43,6 +45,23 @@ def _entry(when: datetime = NOW, session: str = "real") -> UsageEntry:
         cache_read_tokens=70,
         cost_usd=1.0,
     )
+
+
+def _agy_entry(tokens: int, session: str = "agy") -> UsageEntry:
+    return replace(
+        _entry(session=session),
+        agent_id="antigravity",
+        input_tokens=tokens,
+        output_tokens=0,
+        cache_creation_tokens=0,
+        cache_read_tokens=0,
+    )
+
+
+def _write_stale_agy_ledger(entries: list[UsageEntry]) -> None:
+    days = reporter._aggregate_year_days(entries)
+    days[NOW.date().isoformat()]["agent_versions"] = {"antigravity": 1}
+    reporter._write_year_ledger({"schema_version": reporter._YEAR_LEDGER_SCHEMA, "days": days})
 
 
 @pytest.fixture(autouse=True)
@@ -77,6 +96,114 @@ def test_missing_state_persists_real_recent_entries(monkeypatch: pytest.MonkeyPa
     ledger = json.loads(reporter.YEAR_LEDGER_PATH.read_text())
     assert ledger["days"]["2026-08-12"]["total_tokens"] == 200
     assert json.loads(history_persist.STATE_PATH.read_text())["last_success"] == NOW.isoformat()
+
+
+def test_year_ledger_lock_timeout_does_not_record_success(monkeypatch: pytest.MonkeyPatch) -> None:
+    from usage_common import file_lock
+
+    def timed_out(_path: object) -> Any:
+        raise file_lock.LockTimeout("held")
+
+    monkeypatch.setattr(reporter, "_load_agent_entries", lambda *_args: [_entry()])
+    monkeypatch.setattr(reporter, "exclusive_file_lock", timed_out)
+
+    with pytest.raises(file_lock.LockTimeout):
+        history_persist.refresh_history(NOW)
+    assert not history_persist.STATE_PATH.exists()
+
+
+def test_load_year_data_cached_reuses_cache_after_snapshot_verified_agy_recount(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FixedDateTime:
+        @staticmethod
+        def now(tz: tzinfo | None = None) -> datetime:
+            return NOW if tz is None else NOW.astimezone(tz)
+
+    monkeypatch.setattr(reporter, "datetime", FixedDateTime)
+    monkeypatch.setattr(claude_activity, "activity_dates", frozenset)
+    current = [_agy_entry(4000)]
+    usage_snapshot.record_entries(current)
+    _write_stale_agy_ledger([_agy_entry(6000)])
+    agents = [_AGY_AGENT]
+    monkeypatch.setattr(reporter, "_load_agent_entries", lambda *_args: current)
+
+    data = reporter._load_year_data_cached(agents)
+
+    day_key = NOW.date().isoformat()
+    saved = json.loads(reporter.YEAR_LEDGER_PATH.read_text())["days"][day_key]
+    assert saved["total_tokens"] == 4000
+    assert saved["agent_versions"] == usage_snapshot.AGENT_VERSIONS
+    assert data["contribution"]["busiest_day"] == {"date": day_key, "tokens": 4000}
+
+    def fail_rebuild(_agents: list[AgentInfo]) -> reporter.YearReportData:
+        pytest.fail("the corrected year ledger should allow a year cache hit")
+
+    monkeypatch.setattr(reporter, "build_year_data", fail_rebuild)
+    assert reporter._load_year_data_cached(agents) == data
+
+
+def test_merge_year_ledger_drops_year_cache_when_snapshot_verifies_lower_agy_day() -> None:
+    today = NOW.date()
+    agy = _agy_entry(4000)
+    usage_snapshot.record_entries([agy])
+    _write_stale_agy_ledger([_agy_entry(6000)])
+    reporter.YEAR_CACHE_PATH.write_text("{}", encoding="utf-8")
+
+    reporter._merge_year_ledger(reporter._aggregate_year_days([agy]), trim_before=today)
+
+    assert not reporter.YEAR_CACHE_PATH.exists()
+
+
+@pytest.mark.parametrize("snapshot_difference", ["stale-version", "agent-totals"])
+def test_merge_year_ledger_requires_current_snapshot_version_and_matching_agent_totals(
+    snapshot_difference: str,
+) -> None:
+    today = NOW.date()
+    day_key = today.isoformat()
+    agy = _agy_entry(3000)
+    codex = replace(_agy_entry(1000, "codex"), agent_id="codex")
+    current_days = reporter._aggregate_year_days([agy, codex])
+    _write_stale_agy_ledger([replace(agy, input_tokens=5000), codex])
+    verified = usage_snapshot.record_entries([agy, codex])
+    if snapshot_difference == "stale-version":
+        usage_snapshot._write_snapshot({**verified, "day_versions": {day_key: {"antigravity": 1}}})
+    else:
+        # Same total across the day, but different totals for both agents.
+        usage_snapshot.record_entries(
+            [replace(agy, input_tokens=2000), replace(codex, input_tokens=2000)]
+        )
+
+    kept = reporter._merge_year_ledger(current_days, trim_before=today)["days"][day_key]
+    assert kept["total_tokens"] == 6000
+    assert kept["agent_versions"] == {"antigravity": 1}
+
+    usage_snapshot._write_snapshot(verified)
+    replaced = reporter._merge_year_ledger(current_days, trim_before=today)["days"][day_key]
+    assert replaced == current_days[day_key]
+
+
+def test_refresh_history_lowers_stale_agy_ledger_after_snapshot_recount(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    day_key = NOW.date().isoformat()
+    old_entries = [_agy_entry(3000, "A"), _agy_entry(2000, "B")]
+    old_snapshot = usage_snapshot.record_entries(old_entries)
+    usage_snapshot._write_snapshot({**old_snapshot, "day_versions": {day_key: {"antigravity": 1}}})
+    _write_stale_agy_ledger(old_entries)
+    current = [_agy_entry(2000, "A"), _agy_entry(1000, "B")]
+    monkeypatch.setattr(history_persist, "detect_agents", lambda: [_AGY_AGENT])
+    monkeypatch.setattr(reporter, "_load_agent_entries", lambda *_args: current)
+
+    assert history_persist.refresh_history(NOW)
+
+    snapshot = usage_snapshot.read_snapshot()
+    assert usage_snapshot.period_totals(snapshot, NOW.date(), NOW.date()).total_tokens == 3000
+    assert {row["session_id"] for row in snapshot["rows"]} == {"A", "B"}
+    assert snapshot["day_versions"][day_key] == usage_snapshot.AGENT_VERSIONS
+    saved = json.loads(reporter.YEAR_LEDGER_PATH.read_text())["days"][day_key]
+    assert saved["total_tokens"] == 3000
+    assert saved["agent_versions"] == usage_snapshot.AGENT_VERSIONS
 
 
 def test_recent_success_skips_and_six_hours_refreshes(monkeypatch: pytest.MonkeyPatch) -> None:

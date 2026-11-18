@@ -16,7 +16,7 @@ from typing import Any, Self
 import pytest
 
 from adapters.types import AgentInfo, UsageEntry
-from analyzer import persona_loader, reporter, subscription
+from analyzer import ledger_legacy_backfill, persona_loader, reporter, subscription
 from analyzer.aggregator import aggregate_sessions
 from loaders import codex_loader, history_loader
 from usage_common import pricing
@@ -1146,7 +1146,7 @@ def _ledger_day_payload(
 
 
 @pytest.mark.parametrize("old_versions", [None, {"antigravity": 1}])
-def test_merge_year_ledger_replaces_old_agy_day_when_all_sources_present(
+def test_merge_year_ledger_keeps_old_agy_day_when_session_ids_unavailable(
     old_versions: dict[str, int] | None,
 ) -> None:
     import json
@@ -1180,13 +1180,153 @@ def test_merge_year_ledger_replaces_old_agy_day_when_all_sources_present(
     saved = json.loads(reporter.YEAR_LEDGER_PATH.read_text(encoding="utf-8"))
     for result in (merged, saved):
         day = result["days"][day_key]
-        assert day["total_tokens"] == 4000
-        assert day["cost"] == 4.5
-        assert day["agent_tokens"] == {"antigravity": 3000, "codex": 1000}
-        assert day["project_tokens"] == {"new-proj": 4000}
+        assert day["total_tokens"] == 6000
+        assert day["cost"] == 9.0
+        assert day["agent_tokens"] == {"antigravity": 5000, "codex": 1000}
+        assert day["project_tokens"] == {"old-proj": 6000}
         assert day["sessions"] == 3
-        assert day["agent_versions"] == {"antigravity": 2}
-    assert merged["days"][day_key]["agent_versions"] is not reporter._LEDGER_AGENT_VERSIONS
+        assert day.get("agent_versions") == old_versions
+
+
+@pytest.mark.parametrize("operation", ["read", "merge"])
+def test_year_ledger_timeout_uses_saved_data_without_writing(
+    monkeypatch: pytest.MonkeyPatch, operation: str
+) -> None:
+    import errno
+    from types import SimpleNamespace
+
+    from usage_common import file_lock
+
+    day = date(2026, 11, 1)
+    day_key = day.isoformat()
+    saved_day = _ledger_day_payload(
+        total_tokens=100,
+        cost=0.0,
+        agent_tokens={"codex": 100},
+        model_tokens={"gpt-5-codex": 100},
+        project_tokens={"proj": 100},
+        sessions=1,
+    )
+    _write_year_ledger_days({day_key: saved_day})
+
+    def held(*_args: object) -> None:
+        raise OSError(errno.EAGAIN, "lock is held")
+
+    monkeypatch.setattr(file_lock, "fcntl", SimpleNamespace(flock=held, LOCK_EX=2, LOCK_NB=4))
+    monkeypatch.setattr(
+        reporter, "exclusive_file_lock", lambda path: file_lock.exclusive_file_lock(path, 0)
+    )
+    writes: list[reporter._YearLedger] = []
+    monkeypatch.setattr(reporter, "_write_year_ledger", writes.append)
+    monkeypatch.setattr(ledger_legacy_backfill, "backfill_days", lambda _: True)
+
+    if operation == "read":
+        monkeypatch.setattr(
+            reporter, "datetime", _fixed_datetime(datetime(2026, 11, 1, 12, tzinfo=UTC))
+        )
+        data = reporter.build_report_data([], "today")
+        assert data["summary"]["total_tokens"] == 100
+    else:
+        current = reporter._aggregate_year_days(
+            [
+                _entry(
+                    when=datetime(2026, 11, 2, 12, tzinfo=UTC),
+                    session_id="new",
+                    model="gpt-5-codex",
+                    project="proj",
+                    agent_id="codex",
+                    input_tokens=200,
+                )
+            ]
+        )
+        # The background writer must see the timeout so it does not record a success.
+        with pytest.raises(file_lock.LockTimeout):
+            reporter._merge_year_ledger(current, trim_before=day)
+        # The year view falls back to the saved ledger instead.
+        shown: list[dict[str, Any]] = []
+        monkeypatch.setattr(reporter, "_aggregate_year_days", lambda _entries: current)
+        monkeypatch.setattr(
+            reporter,
+            "_build_year_output_from_ledger",
+            lambda ledger, **_kwargs: shown.append(ledger["days"]),
+        )
+        reporter.build_year_data([])
+        assert shown == [{day_key: saved_day}]
+    assert not writes
+
+
+def test_report_uses_year_ledger_when_lock_file_cannot_open(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    when = datetime(2026, 11, 1, 12, tzinfo=UTC)
+    monkeypatch.setattr(reporter, "datetime", _fixed_datetime(when))
+    _write_year_ledger_days(
+        {
+            when.date().isoformat(): _ledger_day_payload(
+                total_tokens=100,
+                cost=0.0,
+                agent_tokens={"codex": 100},
+                model_tokens={"gpt-5-codex": 100},
+                project_tokens={"proj": 100},
+                sessions=1,
+            )
+        }
+    )
+    real_open = os.open
+    lock_path = reporter.YEAR_LEDGER_PATH.with_suffix(".json.lock")
+
+    def open_file(path: Any, *args: Any, **kwargs: Any) -> int:
+        if path == lock_path:
+            raise PermissionError("lock file is read-only")
+        return real_open(path, *args, **kwargs)
+
+    monkeypatch.setattr(os, "open", open_file)
+    assert reporter.build_report_data([], "today")["summary"]["total_tokens"] == 100
+
+
+def test_report_does_not_backfill_corrected_agy_tokens_from_stale_ledger(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from analyzer import usage_snapshot
+
+    when = datetime(2026, 11, 1, 12, tzinfo=UTC)
+    day = when.date()
+    monkeypatch.setattr(reporter, "datetime", _fixed_datetime(when))
+
+    def agy(tokens: int) -> UsageEntry:
+        return _entry(
+            when=when,
+            session_id="agy-1",
+            model="gemini-3-pro",
+            project="proj",
+            agent_id="antigravity",
+            input_tokens=tokens,
+        )
+
+    old = agy(5000)
+    monkeypatch.setattr(usage_snapshot, "AGENT_VERSIONS", {"antigravity": 1})
+    usage_snapshot.record_entries([old], entry_dates={id(old): day})
+    monkeypatch.setattr(usage_snapshot, "AGENT_VERSIONS", {"antigravity": 2})
+    _write_year_ledger_days(
+        {
+            day.isoformat(): _ledger_day_payload(
+                total_tokens=5000,
+                cost=0.0,
+                agent_tokens={"antigravity": 5000},
+                model_tokens={"gemini-3-pro": 5000},
+                project_tokens={old.project or "unknown": 5000},
+                sessions=1,
+                agent_versions={"antigravity": 1},
+            )
+        }
+    )
+    live = agy(3000)
+    monkeypatch.setattr(reporter, "_load_agent_entries", lambda *_args: [live])
+    data = reporter.build_report_data([AgentInfo("antigravity", "Antigravity", "", True)], "today")
+    assert (
+        usage_snapshot.period_totals(usage_snapshot.read_snapshot(), day, day).total_tokens == 3000
+    )
+    assert data["summary"]["total_tokens"] == 3000
 
 
 def test_merge_year_ledger_keeps_old_agy_day_when_other_agent_missing() -> None:
@@ -1393,16 +1533,14 @@ def test_read_year_ledger_accepts_days_without_agent_versions_and_persists_new_d
             AgentInfo("codex", "Codex", "~/.codex", True),
         ]
     )
-    assert year_data["wrapped"]["total_tokens"] == 4700
+    assert year_data["wrapped"]["total_tokens"] == 6700
     assert reporter._YEAR_LEDGER_SCHEMA == 1
     assert reporter._YEAR_CACHE_SCHEMA == 11
 
     persisted = json.loads(reporter.YEAR_LEDGER_PATH.read_text(encoding="utf-8"))
-    assert persisted["days"]["2026-11-01"]["agent_versions"] == {"antigravity": 2}
+    assert "agent_versions" not in persisted["days"]["2026-11-01"]
     assert persisted["days"]["2026-11-02"]["agent_versions"] == {"antigravity": 2}
-    assert reporter._read_year_ledger()["days"]["2026-11-01"]["agent_versions"] == {
-        "antigravity": 2
-    }
+    assert "agent_versions" not in reporter._read_year_ledger()["days"]["2026-11-01"]
 
 
 @pytest.mark.parametrize("coverage", ["none", "claude-code", "unknown", "codex"])

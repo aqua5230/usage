@@ -61,8 +61,9 @@ def test_exclusive_file_lock_times_out_when_another_process_holds_it(tmp_path: P
     try:
         assert holder.stdout.readline() == b"locked\n"
         started = time.monotonic()
-        with file_lock.exclusive_file_lock(lock_path, timeout_s=0.02):
-            elapsed = time.monotonic() - started
+        with pytest.raises(TimeoutError), file_lock.exclusive_file_lock(lock_path, timeout_s=0.02):
+            pytest.fail("entered the context while another process held the lock")
+        elapsed = time.monotonic() - started
         assert 0.015 <= elapsed < 0.5
     finally:
         holder.stdin.close()
@@ -163,8 +164,8 @@ def test_acquire_msvcrt_lock_gives_up_at_the_deadline(
     monkeypatch.setattr(file_lock, "msvcrt", FakeMsvcrt())
     monkeypatch.setattr(file_lock, "_LOCK_POLL_INTERVAL_S", 0.0)
 
-    with tempfile.TemporaryFile() as handle:
-        assert file_lock._acquire_msvcrt_lock(handle.fileno(), 0.01) is False
+    with tempfile.TemporaryFile() as handle, pytest.raises(TimeoutError):
+        file_lock._acquire_msvcrt_lock(handle.fileno(), 0.01)
 
 
 def test_acquire_msvcrt_lock_does_not_spin_when_locking_is_unsupported(
