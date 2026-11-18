@@ -442,6 +442,35 @@ def test_first_usage_of_catalogued_codex_model_does_not_announce_again(
     assert "usage_log:gpt-6-luna" not in _read_registry()["items"]
 
 
+def test_codex_catalog_does_not_announce_model_already_seen_in_usage(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from usage_hooks import usage_quota_aware as hook
+
+    monkeypatch.setattr(pricing, "is_model_priced", lambda _: True)
+    catalog = [{"slug": "gpt-6.1-sol", "visibility": "list"}]
+    _write_codex_cache(model_registry.CODEX_MODELS_CACHE_PATH, models=catalog)
+    baseline = _adapter_entry("codex", "existing-model")
+    model_registry.update(entries=[baseline])
+    entries = [baseline, _adapter_entry("codex", " GPT-6-LUNA ")]
+    model_registry.update(entries=entries)
+    first_seen = _read_registry()["items"]["usage_log:gpt-6-luna"]["first_seen"]
+
+    state: dict[str, Any] = {}
+    first, _ = hook._model_reminders("session", time.time(), state)
+    assert "gpt-6-luna" in first.lower()
+
+    catalog.append({"slug": "gpt-6-luna", "visibility": "list"})
+    _write_codex_cache(model_registry.CODEX_MODELS_CACHE_PATH, models=catalog)
+    model_registry.update(entries=entries)
+    second, _ = hook._model_reminders("session", time.time(), state)
+
+    assert second == ""
+    items = _read_registry()["items"]
+    assert "codex_catalog:gpt-6-luna" not in items
+    assert items["usage_log:gpt-6-luna"]["first_seen"] == first_seen
+
+
 @pytest.mark.parametrize("legacy", [False, True])
 def test_agy_scan_with_only_overlapping_models_still_completes_baseline(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, legacy: bool

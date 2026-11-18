@@ -1075,6 +1075,7 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
     entry_dates = {id(entry): _entry_date(entry) for entry in raw_entries}
 
     ledger_days = _read_year_ledger()["days"]
+    activity_dates = claude_activity.activity_dates()
     if date_from is None:
         earliest_live = min(entry_dates.values()) if entry_dates else None
         earliest_snap = usage_snapshot.earliest_date()
@@ -1086,8 +1087,11 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
             ),
             default=None,
         )
+        earliest_activity = min((day for day in activity_dates if day <= date_to), default=None)
         earliest_candidates = [
-            day for day in (earliest_live, earliest_snap, earliest_ledger) if day is not None
+            day
+            for day in (earliest_live, earliest_snap, earliest_ledger, earliest_activity)
+            if day is not None
         ]
         date_from = min(earliest_candidates) if earliest_candidates else date_to
 
@@ -1112,9 +1116,7 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
     total_tokens = sum(entry.total_tokens for entry in entries)
     total_cost = 0.0
     session_ids = {entry.session_id for entry in real_entries}
-    claude_dates = frozenset(
-        day for day in claude_activity.activity_dates() if date_from <= day <= date_to
-    )
+    claude_dates = frozenset(day for day in activity_dates if date_from <= day <= date_to)
     active_dates = {
         entry_dates[id(entry)] for entry in entries if entry.total_tokens > 0
     } | claude_dates
@@ -1323,7 +1325,11 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
         cube_dimension_tokens["models"][cube_model_name] += row_tokens
         cube_dimension_tokens["projects"][cube_project_name] += row_tokens
 
-    cube_dates = sorted({day.isoformat() for day, *_rest in cube_totals})
+    cube_days = {day for day, *_rest in cube_totals}
+    if period == "all":
+        # The HTML date picker uses this date index for its range.
+        cube_days.update(claude_dates)
+    cube_dates = sorted(day.isoformat() for day in cube_days)
     cube_agent_ids = sorted(
         cube_dimension_tokens["agents"],
         key=lambda value: (-cube_dimension_tokens["agents"][value], value),

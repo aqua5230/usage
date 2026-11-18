@@ -8,6 +8,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Fixed
+- **All-time reports include earlier Claude Code activity.** The report used to start at the first recorded usage day, so it dropped earlier days with activity but no token records. It now starts at the earliest usage or activity day, and the date picker includes that day.
+- **Codex quota rejections stay with their own quota.** A newer rejection for a dedicated quota, such as Codex Spark, used to hide a general Codex rejection and drop the general window below 100%. The loader now keeps the latest rejection for each quota and applies it to the matching window.
+- **Codex models are announced once when they first appear in usage logs.** A model first seen in usage logs used to be announced again in the same conversation when it appeared in the Codex catalog. The catalog now reuses the existing registry record and preserves its first-seen time.
 - **GPT-6.2 Sol and GPT-6.2 Astra are priced while offline.** Codex's new GPT-6.2 models counted as $0 whenever the price table could not be downloaded. The built-in fallback now carries their prices: Sol $2 / $10 and Astra $8 / $40 per million input / output tokens.
 - **Report exports are named after the dates they cover.** HTML, CSV, and PNG exports used the export day as the file name, so a filtered export opened months later did not say which period it held. They are now named like `usage-report-2026-10-01_2026-11-17.csv`; reports without the date picker keep the export date.
 - **Token Saver's no-analogy, no-emoji, and no-decorative-table rules now cover only Claude's own replies.** Articles, posts, and slides you ask it to write are no longer held to them, so asking for a post full of analogies no longer conflicts with Token Saver.
