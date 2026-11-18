@@ -512,7 +512,10 @@ def test_recovered_live_unknown_stays_out_of_ledger_totals() -> None:
         "cube": {
             "dates": ["2026-08-01", "2026-11-16"],
             "agents": [{"id": "unknown", "name": "unknown"}, {"id": "codex", "name": "Codex"}],
-            "models": [{"name": "unknown", "cost_known": False}, {"name": "gpt", "cost_known": True}],
+            "models": [
+                {"name": "unknown", "cost_known": False},
+                {"name": "gpt", "cost_known": True},
+            ],
             "projects": ["unknown", *named],
             "rows": [
                 *[[1, 1, 1, i, 1010 - i * 10, 0, 0, 0, 1.0, 1] for i in range(1, 11)],
