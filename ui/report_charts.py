@@ -102,8 +102,8 @@ def project_chart_rows(data: Mapping[str, Any]) -> list[dict[str, Any]]:
             "cost": 0.0,
             "cost_known": False,
         }
-        if row_unattributed:
-            default_item["is_unattributed"] = True
+        # Recovered rows know whether they are ledger totals; never leave it to inference.
+        default_item["is_unattributed"] = row_unattributed
         item = missing.setdefault(key, default_item)
         item["tokens"] += sum(int(value) for value in row[4:8])
         item["cost"] += float(row[8])

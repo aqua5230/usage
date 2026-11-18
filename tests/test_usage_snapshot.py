@@ -614,3 +614,30 @@ def test_current_version_agy_snapshot_kept_when_live_shrinks(snapshot_path: Path
     assert sum(entry.total_tokens for entry in merged) == 3000
     saved = usage_snapshot.record_entries([smaller], entry_dates={id(smaller): day})
     assert usage_snapshot.period_totals(saved, day, day).total_tokens == 3000
+
+
+def test_unchanged_replayed_day_keeps_stored_versions(snapshot_path: Path) -> None:
+    when = datetime(2026, 11, 1, 10, tzinfo=UTC)
+
+    def agy(tokens: int) -> UsageEntry:
+        return _entry(
+            when=when,
+            session_id="agy-1",
+            model="gemini-3.8-flash-n",
+            agent_id="antigravity",
+            input_tokens=tokens,
+            cost_usd=0.0,
+        )
+
+    usage_snapshot.record_entries([agy(6000)])
+    payload = json.loads(snapshot_path.read_text(encoding="utf-8"))
+    payload.pop("day_versions", None)  # written before day_versions existed
+    snapshot_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    # A report that replays the stored day writes the same totals back.
+    saved = usage_snapshot.record_entries([agy(6000)])
+    assert "2026-11-01" not in saved["day_versions"]
+
+    saved = usage_snapshot.record_entries([agy(4000)])
+    assert sum(row["input_tokens"] for row in saved["rows"]) == 4000
+    assert saved["day_versions"]["2026-11-01"] == usage_snapshot.AGENT_VERSIONS

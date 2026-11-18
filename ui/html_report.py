@@ -804,13 +804,17 @@ def _date_filter(data: Mapping[str, Any], lang: str) -> str:
             ("all", "range_all"),
         )
     )
+    # cube.dates may start on a Claude Code activity-only day; per-tool records start at
+    # the first usage row.
+    rows = cube.get("rows") or []
+    usage_start = dates[min(int(row[0]) for row in rows)] if rows else dates[0]
     earlier = any(
-        str(cell.get("date", "")) < str(dates[0]) and int(cell.get("tokens", 0)) > 0
+        str(cell.get("date", "")) < str(usage_start) and int(cell.get("tokens", 0)) > 0
         for week in data.get("contribution", {}).get("weeks", [])
         for cell in week
     )
     history_note = (
-        f'<p class="composition-hint" data-history-note hidden>{_escape(_t(lang, "history_scope", date=dates[0]))}</p>'
+        f'<p class="composition-hint" data-history-note hidden>{_escape(_t(lang, "history_scope", date=usage_start))}</p>'
         if earlier
         else ""
     )

@@ -791,8 +791,12 @@ def _merge_snapshot(
             target_versions=target_versions,
         ):
             merged_rows.extend(rows)
-            if target_versions:
-                merged_day_versions[day] = dict(target_versions)
+            # Unchanged totals (e.g. a day replayed from this snapshot) prove nothing about
+            # the parser that counted them, so they keep the stored versions.
+            unchanged = new_tokens == old_tokens and new_sessions == old_sessions
+            versions = old_day_versions.get(day, {}) if unchanged else target_versions
+            if versions:
+                merged_day_versions[day] = dict(versions)
         else:
             merged_rows.extend(old_rows)
             if day in old_day_versions:

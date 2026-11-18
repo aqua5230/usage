@@ -495,3 +495,31 @@ def test_live_unknown_project_uses_unknown_label_while_ledger_unknown_stays_lega
     path.write_text(script, encoding="utf-8")
     result = subprocess.run([NODE or "node", str(path)], capture_output=True, text=True)
     assert result.returncode == 0, result.stderr
+
+
+def test_recovered_live_unknown_stays_out_of_ledger_totals() -> None:
+    from ui.report_charts import project_chart_rows
+
+    named = [f"p{i:02d}" for i in range(1, 11)]
+    data: dict[str, Any] = {
+        "date_from": "2026-08-01",
+        "date_to": "2026-11-16",
+        "summary": {"total_tokens": 10050, "total_cost": 10.5},
+        "by_project": [
+            {"project": f"p{i:02d}", "tokens": 1010 - i * 10, "cost": 1.0, "cost_known": True}
+            for i in range(1, 11)
+        ],
+        "cube": {
+            "dates": ["2026-08-01", "2026-11-16"],
+            "agents": [{"id": "unknown", "name": "unknown"}, {"id": "codex", "name": "Codex"}],
+            "models": [{"name": "unknown", "cost_known": False}, {"name": "gpt", "cost_known": True}],
+            "projects": ["unknown", *named],
+            "rows": [
+                *[[1, 1, 1, i, 1010 - i * 10, 0, 0, 0, 1.0, 1] for i in range(1, 11)],
+                [0, 0, 0, 0, 300, 0, 0, 0, 0.0, 0, 1],  # ledger total-only row
+                [1, 1, 1, 0, 200, 0, 0, 0, 0.5, 1],  # live Codex row with no project
+            ],
+        },
+    }
+    legacy = [row for row in project_chart_rows(data) if row.get("is_unattributed")]
+    assert [row["tokens"] for row in legacy] == [300]
