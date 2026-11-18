@@ -228,7 +228,7 @@ REPORT_FILTER_JS = r"""(() => {
       peakTokens: Math.max(0, peakTokens),
       unpricedTokens,
       // 前期只要有一天早於資料的第一天，那段本來就沒資料，拿來當基準會算出假成長。
-      hasPrevious: previousRows.length > 0 && previousBounds.from >= cube.dates[0],
+      hasPrevious: previousRows.length > 0 && Boolean(firstTokenDate) && previousBounds.from >= firstTokenDate,
       previousTokens: previousRows.reduce((total, row) => total + rowTokens(row), 0),
       previousCost: previousRows.reduce((total, row) => total + Number(row[8]), 0),
     };
@@ -323,6 +323,8 @@ REPORT_FILTER_JS = r"""(() => {
     bindModelGroup(group, savedModelIds.has(group.dataset.agentId));
   });
   if (!cube || !Array.isArray(cube.dates) || !Array.isArray(cube.rows)) return;
+  const firstTokenRow = cube.rows.find((row) => rowTokens(row) > 0);
+  const firstTokenDate = firstTokenRow ? cube.dates[Number(firstTokenRow[0])] : null;
 
   function formatTokens(value) {
     if (value >= 999950000) return `${(value / 1000000000).toFixed(2)}B`;
@@ -1296,9 +1298,15 @@ REPORT_FILTER_JS = r"""(() => {
   fromInput.addEventListener('change', applyManualRange);
   toInput.addEventListener('change', applyManualRange);
 
-  const defaultRange = document.body.dataset.defaultRange || 'all';
-  selectShortcut(['today', 'last7', 'last30', 'month', 'all'].includes(defaultRange)
-    ? defaultRange
-    : 'all');
+  const {exportFrom, exportTo, defaultRange} = document.body.dataset;
+  if (exportFrom && exportTo) {
+    fromInput.value = exportFrom;
+    toInput.value = exportTo;
+    applyManualRange();
+  } else {
+    selectShortcut(['today', 'last7', 'last30', 'month', 'all'].includes(defaultRange)
+      ? defaultRange
+      : 'all');
+  }
 })();
 """

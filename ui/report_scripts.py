@@ -103,9 +103,8 @@ function closeShareModal() {
   }
 }
 
-function buildShareFilename(ext) {
+function buildShareFilename(ext, bounds = window.usageReportFilter?.currentBounds?.()) {
   // 檔名帶資料涵蓋的日期，隔幾個月打開也知道是哪段；舊報表沒有日期篩選器才用匯出當天。
-  const bounds = window.usageReportFilter?.currentBounds?.();
   const range = !bounds ? new Date().toISOString().slice(0, 10)
     : bounds.from === bounds.to ? bounds.from : `${bounds.from}_${bounds.to}`;
   return `usage-report-${range}.${ext}`;
@@ -249,11 +248,18 @@ async function withShareableReport(maskProjects, callback) {
 }
 
 async function downloadHtml(maskProjects) {
-  const html = await withShareableReport(maskProjects, async () => (
-    '<!doctype html>\\n' + document.documentElement.outerHTML
-  ));
+  const bounds = window.usageReportFilter?.currentBounds?.() || null;
+  const html = await withShareableReport(maskProjects, async () => {
+    const root = document.documentElement.cloneNode(true);
+    if (bounds) {
+      const {dataset} = root.querySelector('body');
+      dataset.exportFrom = bounds.from;
+      dataset.exportTo = bounds.to;
+    }
+    return '<!doctype html>\\n' + root.outerHTML;
+  });
   const blob = new Blob([html], {type: 'text/html'});
-  downloadBlob(blob, buildShareFilename('html'));
+  downloadBlob(blob, buildShareFilename('html', bounds));
 }
 
 async function downloadCsv(maskProjects) {

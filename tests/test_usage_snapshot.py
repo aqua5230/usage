@@ -591,6 +591,40 @@ def test_old_agy_snapshot_kept_when_other_agent_or_session_missing(
     assert day.isoformat() not in saved.get("day_versions", {})
 
 
+@pytest.mark.parametrize("write_snapshot", [False, True], ids=["report-replay", "disk-merge"])
+def test_old_agy_snapshot_keeps_missing_session_despite_equal_count(
+    snapshot_path: Path, write_snapshot: bool
+) -> None:
+    when = datetime(2026, 11, 1, 10, tzinfo=UTC)
+    day = when.date()
+
+    def agy(session_id: str, tokens: int) -> UsageEntry:
+        return _entry(
+            when=when,
+            session_id=session_id,
+            model="gemini-3-pro",
+            agent_id="antigravity",
+            input_tokens=tokens,
+        )
+
+    old_entries = [agy("a", 5000), agy("b", 2000)]
+    old = usage_snapshot.record_entries(
+        old_entries, entry_dates=dict.fromkeys(map(id, old_entries), day)
+    )
+    old["day_versions"] = {day.isoformat(): {"antigravity": 1}}
+    snapshot_path.write_text(json.dumps(old), encoding="utf-8")
+    live = [agy("a", 3000), agy("c", 100)]
+    live_dates = dict.fromkeys(map(id, live), day)
+
+    if write_snapshot:
+        saved = usage_snapshot.record_entries(live, entry_dates=live_dates)
+        totals = {row["session_id"]: row["input_tokens"] for row in saved["rows"]}
+    else:
+        merged, _ = usage_snapshot.merge_live_with_snapshot(live, live_dates, day, day)
+        totals = {entry.session_id: entry.input_tokens for entry in merged}
+    assert totals == {"a": 5000, "b": 2000}
+
+
 def test_current_version_agy_snapshot_kept_when_live_shrinks(snapshot_path: Path) -> None:
     day = date(2026, 11, 1)
     first = _entry(

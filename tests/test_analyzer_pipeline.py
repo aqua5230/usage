@@ -11,7 +11,7 @@ import subprocess
 import time
 from datetime import UTC, date, datetime, timedelta, tzinfo
 from pathlib import Path
-from typing import Any, Self
+from typing import Any, Self, cast
 
 import pytest
 
@@ -172,6 +172,31 @@ def test_load_year_data_cached_uses_fresh_cache(
 
     def fail_build_year_data(_agents: list[AgentInfo]) -> dict[str, Any]:
         raise AssertionError("fresh year cache should not rebuild")
+
+    monkeypatch.setattr(reporter, "build_year_data", fail_build_year_data)
+
+    assert reporter._load_year_data_cached([]) == payload
+
+
+def test_load_year_data_cached_keeps_fresh_cache_while_agy_ledger_day_is_unverified(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # A stale day may never be verified (deleted sessions, outside the lookback), so it
+    # must not disable the year cache for good; lowering a day drops the cache instead.
+    when = datetime(2026, 11, 1, 12, tzinfo=UTC)
+    monkeypatch.setattr(reporter, "datetime", _fixed_datetime(when))
+    ledger = reporter._empty_year_ledger()
+    day = reporter._new_year_day()
+    day["total_tokens"] = 5000
+    day["agent_tokens"] = {"antigravity": 5000}
+    day["agent_versions"] = {"antigravity": 1}
+    ledger["days"][when.date().isoformat()] = day
+    reporter._write_year_ledger(ledger)
+    payload = _empty_year_payload()
+    reporter._write_year_cache(cast(reporter.YearReportData, payload))
+
+    def fail_build_year_data(_agents: list[AgentInfo]) -> dict[str, Any]:
+        raise AssertionError("an unverified stale ledger day should not bypass the year cache")
 
     monkeypatch.setattr(reporter, "build_year_data", fail_build_year_data)
 

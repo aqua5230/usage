@@ -94,6 +94,23 @@ def read_snapshot() -> UsageSnapshot:
     return _read_snapshot()
 
 
+def current_day_agent_tokens(snapshot: UsageSnapshot) -> dict[str, dict[str, int]]:
+    """Return per-agent totals for snapshot days with current parser versions."""
+    current_days = {
+        day
+        for day, versions in snapshot.get("day_versions", {}).items()
+        if all(versions.get(agent, 0) >= version for agent, version in AGENT_VERSIONS.items())
+    }
+    totals: dict[str, dict[str, int]] = {}
+    for row in snapshot["rows"]:
+        day = row["date"]
+        if day in current_days:
+            agent = row["agent_id"]
+            day_totals = totals.setdefault(day, {})
+            day_totals[agent] = day_totals.get(agent, 0) + _row_tokens(row)
+    return totals
+
+
 def period_totals(
     snapshot: UsageSnapshot,
     date_from: date,
@@ -158,26 +175,28 @@ def replay_entries(date_from: date, date_to: date) -> list[UsageEntry]:
 def should_replace_day(
     *,
     stored_tokens: int,
-    stored_sessions: int,
+    stored_session_ids: set[str] | None,
     stored_agents: Mapping[str, int],
     stored_versions: Mapping[str, int],
     current_tokens: int,
-    current_sessions: int,
+    current_session_ids: set[str] | None,
     current_agents: Mapping[str, int],
     target_versions: Mapping[str, int] = AGENT_VERSIONS,
 ) -> bool:
     """Return True if live/current data should replace stored day totals."""
     if current_tokens >= stored_tokens:
         return True
+    if (
+        stored_session_ids is None
+        or current_session_ids is None
+        or not stored_session_ids <= current_session_ids
+    ):
+        return False
     upgraded_agents = [
         agent
         for agent, version in target_versions.items()
         if stored_versions.get(agent, 0) < version
     ]
-    if not upgraded_agents:
-        return False
-    if current_sessions < stored_sessions:
-        return False
     return any(
         current_agents.get(agent, 0) > 0
         and all(
@@ -196,7 +215,7 @@ def _day_agent_versions(entries: Sequence[UsageEntry]) -> dict[str, int]:
     return dict(AGENT_VERSIONS)
 
 
-def _rows_day_stats(rows: Sequence[SnapshotRow]) -> tuple[int, int, dict[str, int]]:
+def _rows_day_stats(rows: Sequence[SnapshotRow]) -> tuple[int, set[str], dict[str, int]]:
     tokens = 0
     sessions: set[str] = set()
     agents: dict[str, int] = defaultdict(int)
@@ -205,10 +224,10 @@ def _rows_day_stats(rows: Sequence[SnapshotRow]) -> tuple[int, int, dict[str, in
         tokens += row_tokens
         sessions.add(row["session_id"])
         agents[row["agent_id"]] += row_tokens
-    return tokens, len(sessions), agents
+    return tokens, sessions, agents
 
 
-def _entries_day_stats(entries: Sequence[UsageEntry]) -> tuple[int, int, dict[str, int]]:
+def _entries_day_stats(entries: Sequence[UsageEntry]) -> tuple[int, set[str], dict[str, int]]:
     tokens = 0
     sessions: set[str] = set()
     agents: dict[str, int] = defaultdict(int)
@@ -216,7 +235,7 @@ def _entries_day_stats(entries: Sequence[UsageEntry]) -> tuple[int, int, dict[st
         tokens += entry.total_tokens
         sessions.add(entry.session_id)
         agents[entry.agent_id or "unknown"] += entry.total_tokens
-    return tokens, len(sessions), agents
+    return tokens, sessions, agents
 
 
 def merge_live_with_snapshot(
@@ -265,11 +284,11 @@ def merge_live_with_snapshot(
             live_tokens, live_sessions, live_agents = _entries_day_stats(live_day)
             if should_replace_day(
                 stored_tokens=snap_tokens,
-                stored_sessions=snap_sessions,
+                stored_session_ids=snap_sessions,
                 stored_agents=snap_agents,
                 stored_versions=snap_day_versions.get(cursor.isoformat(), {}),
                 current_tokens=live_tokens,
-                current_sessions=live_sessions,
+                current_session_ids=live_sessions,
                 current_agents=live_agents,
                 target_versions=_day_agent_versions(live_day),
             ):
@@ -782,18 +801,18 @@ def _merge_snapshot(
         new_tokens, new_sessions, new_agents = _rows_day_stats(rows)
         if should_replace_day(
             stored_tokens=old_tokens,
-            stored_sessions=old_sessions,
+            stored_session_ids=old_sessions,
             stored_agents=old_agents,
             stored_versions=old_day_versions.get(day, {}),
             current_tokens=new_tokens,
-            current_sessions=new_sessions,
+            current_session_ids=new_sessions,
             current_agents=new_agents,
             target_versions=target_versions,
         ):
             merged_rows.extend(rows)
             # Unchanged totals (e.g. a day replayed from this snapshot) prove nothing about
             # the parser that counted them, so they keep the stored versions.
-            unchanged = new_tokens == old_tokens and new_sessions == old_sessions
+            unchanged = new_tokens == old_tokens and len(new_sessions) == len(old_sessions)
             versions = old_day_versions.get(day, {}) if unchanged else target_versions
             if versions:
                 merged_day_versions[day] = dict(versions)

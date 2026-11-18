@@ -45,6 +45,10 @@ _MSVCRT_CONTENDED_ERRNOS = frozenset(
 )
 
 
+class LockTimeout(TimeoutError):
+    """Another process still holds the lock when the deadline expires."""
+
+
 def _acquire_posix_lock(lock_fd: int, timeout_s: float) -> bool:
     """Poll non-blocking flock until acquired, unsupported, or deadline."""
     if fcntl is None:
@@ -58,7 +62,7 @@ def _acquire_posix_lock(lock_fd: int, timeout_s: float) -> bool:
             if exc.errno not in _POSIX_CONTENDED_ERRNOS:
                 return False
             if time.monotonic() >= deadline:
-                return False
+                raise LockTimeout("Timed out acquiring POSIX file lock") from exc
             time.sleep(_LOCK_POLL_INTERVAL_S)
 
 
@@ -78,7 +82,7 @@ def _acquire_msvcrt_lock(lock_fd: int, timeout_s: float) -> bool:
             if exc.errno not in _MSVCRT_CONTENDED_ERRNOS:
                 return False
             if time.monotonic() >= deadline:
-                return False
+                raise LockTimeout("Timed out acquiring Windows file lock") from exc
             time.sleep(_LOCK_POLL_INTERVAL_S)
 
 
@@ -89,11 +93,15 @@ def exclusive_file_lock(
 ) -> Iterator[None]:
     """Acquire an exclusive cross-process lock on ``lock_path``.
 
-    Falls back to yielding without a lock if native locking is unavailable or
-    unsupported on the filesystem, preserving atomic file-replacement behavior.
+    Raises LockTimeout if contention lasts until the deadline. Yields without a
+    lock if native locking is unavailable or the lock file cannot be opened.
     """
     lock_path.parent.mkdir(parents=True, exist_ok=True)
-    lock_fd = os.open(lock_path, os.O_CREAT | os.O_RDWR, 0o600)
+    try:
+        lock_fd = os.open(lock_path, os.O_CREAT | os.O_RDWR, 0o600)
+    except OSError:
+        yield
+        return
     locked_posix = False
     locked_msvcrt = False
     try:

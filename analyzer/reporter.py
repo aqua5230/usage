@@ -27,7 +27,7 @@ from analyzer import claude_activity, persona_loader
 from analyzer import subscription
 from adapters import agy, claude, codex, grok, muse
 from adapters.types import AgentInfo, UsageEntry
-from usage_common.file_lock import exclusive_file_lock
+from usage_common.file_lock import LockTimeout, exclusive_file_lock
 from usage_common.pricing import calculate_cost, is_model_priced
 
 from .aggregator import aggregate_sessions
@@ -617,14 +617,17 @@ def _year_ledger_guard() -> Iterator[None]:
 
 
 def _read_year_ledger() -> _YearLedger:
-    with _year_ledger_guard():
-        ledger = _read_year_ledger_unlocked()
-        if ledger_legacy_backfill.backfill_days(ledger["days"]):
-            _write_year_ledger(ledger)
-        return ledger
+    try:
+        with _year_ledger_guard():
+            ledger = _read_year_ledger_unlocked()
+            if ledger_legacy_backfill.backfill_days(ledger["days"]):
+                _write_year_ledger(ledger)
+            return ledger
+    except LockTimeout:
+        return _read_year_ledger_unlocked(quarantine_bad_file=False)
 
 
-def _read_year_ledger_unlocked() -> _YearLedger:
+def _read_year_ledger_unlocked(*, quarantine_bad_file: bool = True) -> _YearLedger:
     try:
         with YEAR_LEDGER_PATH.open(encoding="utf-8") as file:
             ledger = json.load(file)
@@ -635,11 +638,13 @@ def _read_year_ledger_unlocked() -> _YearLedger:
                 YEAR_LEDGER_PATH,
                 exc_info=True,
             )
-        cache_quarantine.quarantine(YEAR_LEDGER_PATH, "year ledger unreadable")
+        if quarantine_bad_file:
+            cache_quarantine.quarantine(YEAR_LEDGER_PATH, "year ledger unreadable")
         return _empty_year_ledger()
 
     if not isinstance(ledger, dict):
-        cache_quarantine.quarantine(YEAR_LEDGER_PATH, "year ledger schema unreadable")
+        if quarantine_bad_file:
+            cache_quarantine.quarantine(YEAR_LEDGER_PATH, "year ledger schema unreadable")
         return _empty_year_ledger()
     if ledger.get("schema_version") != _YEAR_LEDGER_SCHEMA:
         logger.warning(
@@ -650,7 +655,8 @@ def _read_year_ledger_unlocked() -> _YearLedger:
         )
     raw_days = ledger.get("days")
     if not isinstance(raw_days, dict):
-        cache_quarantine.quarantine(YEAR_LEDGER_PATH, "year ledger schema unreadable")
+        if quarantine_bad_file:
+            cache_quarantine.quarantine(YEAR_LEDGER_PATH, "year ledger schema unreadable")
         return _empty_year_ledger()
 
     days: dict[str, _YearDay] = {}
@@ -664,7 +670,7 @@ def _read_year_ledger_unlocked() -> _YearLedger:
         day = _year_day_from_json(raw_day)
         if day is not None:
             days[day_key] = day
-    if raw_days and not days:
+    if quarantine_bad_file and raw_days and not days:
         cache_quarantine.quarantine(YEAR_LEDGER_PATH, "year ledger days unparseable")
         return _empty_year_ledger()
     return {
@@ -728,19 +734,6 @@ def _aggregate_year_days(entries: list[UsageEntry]) -> dict[str, _YearDay]:
     return days
 
 
-def _should_replace_ledger_day(ledger_day: _YearDay, current_day: _YearDay) -> bool:
-    return usage_snapshot.should_replace_day(
-        stored_tokens=ledger_day["total_tokens"],
-        stored_sessions=ledger_day["sessions"],
-        stored_agents=ledger_day["agent_tokens"],
-        stored_versions=ledger_day.get("agent_versions", {}),
-        current_tokens=current_day["total_tokens"],
-        current_sessions=current_day["sessions"],
-        current_agents=current_day["agent_tokens"],
-        target_versions=_LEDGER_AGENT_VERSIONS,
-    )
-
-
 def _with_current_agent_versions(day: _YearDay) -> _YearDay:
     return {
         "total_tokens": day["total_tokens"],
@@ -761,10 +754,21 @@ def _merge_year_ledger(
     with _year_ledger_guard():
         ledger = _read_year_ledger()
         days = ledger["days"]
+        snapshot_agent_tokens: dict[str, dict[str, int]] | None = None
+        lowered = False
         for day_key, current_day in current_days.items():
             ledger_day = days.get(day_key)
-            if ledger_day is None or _should_replace_ledger_day(ledger_day, current_day):
+            if ledger_day is None or current_day["total_tokens"] >= ledger_day["total_tokens"]:
                 days[day_key] = _with_current_agent_versions(current_day)
+            elif ledger_backfill.has_stale_agent_version(ledger_day):
+                # The ledger has no session IDs, so trust a matching current snapshot.
+                if snapshot_agent_tokens is None:
+                    snapshot_agent_tokens = usage_snapshot.current_day_agent_tokens(
+                        usage_snapshot.read_snapshot()
+                    )
+                if snapshot_agent_tokens.get(day_key) == current_day["agent_tokens"]:
+                    days[day_key] = _with_current_agent_versions(current_day)
+                    lowered = True
 
         ledger["days"] = {
             day_key: day
@@ -772,6 +776,10 @@ def _merge_year_ledger(
             if date.fromisoformat(day_key) >= trim_before
         }
         _write_year_ledger(ledger)
+        if lowered:
+            # The year cache still holds the old totals; drop it so the next read rebuilds.
+            with contextlib.suppress(OSError):
+                YEAR_CACHE_PATH.unlink(missing_ok=True)
         return ledger
 
 
@@ -897,10 +905,13 @@ def build_year_data(agents: list[AgentInfo]) -> YearReportData:
     entries = [entry for entry in raw_entries if grid_start <= _entry_date(entry) <= today]
 
     current_days = _aggregate_year_days(entries)
-    ledger = _merge_year_ledger(
-        current_days,
-        trim_before=grid_start - timedelta(days=_YEAR_LEDGER_TRIM_BUFFER_DAYS),
-    )
+    try:
+        ledger = _merge_year_ledger(
+            current_days,
+            trim_before=grid_start - timedelta(days=_YEAR_LEDGER_TRIM_BUFFER_DAYS),
+        )
+    except LockTimeout:
+        ledger = _read_year_ledger_unlocked(quarantine_bad_file=False)
     return _build_year_output_from_ledger(
         ledger,
         grid_start=grid_start,
