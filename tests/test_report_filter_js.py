@@ -1224,7 +1224,9 @@ def test_csv_excludes_unattributed_from_top_ten_and_appends_it_last(tmp_path: Pa
 
     path = tmp_path / "csv-top10.cjs"
     path.write_text(script, encoding="utf-8")
-    result = subprocess.run([NODE or "node", str(path)], check=True, capture_output=True, text=True)
+    result = subprocess.run(
+        [NODE or "node", str(path)], check=True, capture_output=True, text=True, encoding="utf-8"
+    )
     plain_text, masked_text = result.stdout.split("---MASKED---\n", 1)
     plain_projects = [
         row for row in csv_module.DictReader(plain_text.splitlines()) if row["type"] == "project"
