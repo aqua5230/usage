@@ -702,6 +702,18 @@ def _codex_window_title(
     return _t(language, key)
 
 
+def _expired_codex_row(title: str, language: str) -> QuotaRowState:
+    """codex_loader zeroes a window whose reset has passed and clears its reset time."""
+    return QuotaRowState(
+        title=title,
+        percent=0.0,
+        percent_text=_t(language, "percent_used", value=_format_percent(0.0)),
+        reset_text=_t(language, "reset_done"),
+        color=_bar_color(0.0, CODEX_COLOR),
+        reset_done=True,
+    )
+
+
 def codex_rows(
     *,
     mock: bool,
@@ -799,7 +811,9 @@ def codex_rows(
         else _codex_window_title(rate_limits.seven_day_window_minutes, "weekly_label", language)
     )
     rows = (
-        _quota_row(
+        _expired_codex_row(session_title, language)
+        if rate_limits.five_hour_pct == 0.0 and rate_limits.five_hour_resets_at is None
+        else _quota_row(
             session_title,
             rate_limits.five_hour_pct,
             rate_limits.five_hour_resets_at,
@@ -808,7 +822,9 @@ def codex_rows(
             language,
             forecast_seconds=burn_rate_trackers["codex_session"].forecast_seconds(),
         ),
-        _quota_row(
+        _expired_codex_row(weekly_title, language)
+        if rate_limits.seven_day_pct == 0.0 and rate_limits.seven_day_resets_at is None
+        else _quota_row(
             weekly_title,
             rate_limits.seven_day_pct,
             rate_limits.seven_day_resets_at,

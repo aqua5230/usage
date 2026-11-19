@@ -9,6 +9,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Fixed
 - **The Muse quota card disappears once the subscription ends.** Before this fix, usage kept showing the last saved Muse quota after a subscription lapsed. Once its reset times passed, the card, the Claude Code quota line and the notifications treated that quota as unused. usage rechecked only after a new Muse conversation, so it never noticed. It now reruns the model-free `muse usage --json` at most every 5 minutes, which also brings the card up to date within about 5 minutes of using Muse instead of 30. When Muse reports that the account has no subscription allowance, usage deletes the saved quota without falling back to a `muse exec` model call, and the card disappears. It comes back once Muse reports quota again.
+- **A Codex window past its reset time reads 0% and Reset.** Before this fix, both its usage and its reset time showed `--`, which looked like missing data. It now matches Claude Code and Antigravity until Codex reports a new reading.
 
 ## [0.34.23] - 2026-11-19
 
