@@ -61,17 +61,33 @@ def test_failed_probe_waits_for_new_session_and_cooldown(monkeypatch: pytest.Mon
     thread = Mock()
     monkeypatch.setattr(threading, "Thread", thread)
     probe.load_quota()
+    thread.assert_called_once_with(target=probe._probe_worker, args=("/fake/muse",), daemon=True)
     probe._probe_worker("/fake/muse")
-    for clock[0] in (1801, 3602):
-        probe.load_quota()
-    assert thread.call_count == 1
+
     latest[0] = 2
     clock[0] = 1799
     probe.load_quota()
-    assert thread.call_count == 1
+    # Only the model-free check may run before the paid probe's cooldown ends.
+    assert thread.call_count == 2
+    assert thread.call_args_list[1].kwargs["target"] is probe._usage_check_worker
+    probe._usage_check_worker("/fake/muse", latest[0])
+
     clock[0] = 1800
     probe.load_quota()
-    assert thread.call_count == 2
+    assert thread.call_count == 3
+    assert thread.call_args.kwargs["target"] is probe._probe_worker
+    probe._probe_worker("/fake/muse")
+
+    for clock[0] in (3601, 5402):
+        probe.load_quota()
+        probe._usage_check_worker("/fake/muse", latest[0])
+    assert [call.kwargs["target"] for call in thread.call_args_list] == [
+        probe._probe_worker,
+        probe._usage_check_worker,
+        probe._probe_worker,
+        probe._usage_check_worker,
+        probe._usage_check_worker,
+    ]
 
 
 @pytest.mark.parametrize("stubborn", [False, True])

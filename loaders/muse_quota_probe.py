@@ -17,8 +17,9 @@ import threading
 import time
 from contextlib import suppress
 from datetime import datetime
+from enum import Enum
 from pathlib import Path
-from typing import TypedDict, TypeGuard
+from typing import Final, TypedDict, TypeGuard
 
 from loaders import muse_loader
 from usage_common.cli_lookup import cli_env, resolve_cli
@@ -29,6 +30,8 @@ CACHE_PATH = Path.home() / ".usage/muse_quota.json"
 PROBE_DIR = Path.home() / ".usage/muse-probe"
 MUSE_MODEL = "muse-spark-1.3"
 STALE_SECONDS = 30 * 60
+# `muse usage` runs no model, so it rechecks as often as Antigravity's model-free probe.
+USAGE_RECHECK_SECONDS = 5 * 60
 WINDOW_SECONDS = 5 * 3600
 _EXHAUSTED = re.compile(
     r"Subscription quota exhausted\. Your usage window resets at (\d{4}-\d\d-\d\dT[\d:.]+Z)"
@@ -37,6 +40,7 @@ _probe_lock = threading.Lock()
 _probe_running = False
 _retry_after = 0.0
 _last_attempt_session: float | None = None
+_last_check_at: float | None = None
 _probe_process: subprocess.Popen[str] | None = None
 _probe_shutdown = False
 
@@ -51,6 +55,13 @@ class MuseQuotaResult(TypedDict):
     observed_at: float
     window: MuseQuotaWindow
     weekly: MuseQuotaWindow
+
+
+class _UsageStatus(Enum):
+    NO_ALLOWANCE = "no_allowance"
+
+
+NO_ALLOWANCE: Final = _UsageStatus.NO_ALLOWANCE
 
 
 def find_muse() -> str | None:
@@ -118,10 +129,15 @@ def parse_muse_allowance(stdout: str, checked_at: float) -> MuseQuotaResult | No
     return None
 
 
-def parse_muse_usage(stdout: str, checked_at: float) -> MuseQuotaResult | None:
+def parse_muse_usage(stdout: str, checked_at: float) -> MuseQuotaResult | _UsageStatus | None:
     """Read ``muse usage --json`` (Muse 1.4.13+); its allowance fields are camelCase."""
     try:
-        allowance = json.loads(stdout)["allowance"]
+        record = json.loads(stdout)
+        if not isinstance(record, dict):
+            return None
+        allowance = record["allowance"]
+        if allowance is None and record.get("reason") == NO_ALLOWANCE.value:
+            return NO_ALLOWANCE
         if not isinstance(allowance, dict):
             return None
         payload: dict[str, object] = {"checked_at": checked_at}
@@ -141,11 +157,10 @@ def parse_muse_usage(stdout: str, checked_at: float) -> MuseQuotaResult | None:
     return validate_muse_cache(payload)
 
 
-def read_usage(executable: str) -> MuseQuotaResult | None:
+def read_usage(executable: str) -> MuseQuotaResult | _UsageStatus | None:
     """Ask Muse for its last observed allowance without a model call.
 
-    Returns ``None`` when Muse has no reading (e.g. an exhausted window) or predates the command;
-    the caller then falls back to the ``muse exec`` probe.
+    ``NO_ALLOWANCE`` confirms the subscription ended. ``None`` means there was no reading.
     """
     process = None
     try:
@@ -159,9 +174,8 @@ def read_usage(executable: str) -> MuseQuotaResult | None:
     finally:
         if process is not None:
             _stop_process(process)
-    if process.returncode != 0:
-        return None
-    return parse_muse_usage(stdout, time.time())
+    result = parse_muse_usage(stdout, time.time())
+    return result if process.returncode == 0 or result is NO_ALLOWANCE else None
 
 
 def parse_exhausted_window(
@@ -234,6 +248,13 @@ def _write_cache(result: MuseQuotaResult) -> None:
                 os.unlink(temporary_path)
 
 
+def _delete_cache() -> None:
+    try:
+        CACHE_PATH.unlink(missing_ok=True)
+    except OSError:
+        logger.warning("Could not remove Muse quota cache", exc_info=True)
+
+
 def _stop_process(process: subprocess.Popen[str]) -> None:
     if process.poll() is not None:
         return
@@ -285,6 +306,10 @@ def _probe_worker(executable: str) -> None:
     process = None
     try:
         result = read_usage(executable)
+        if result is NO_ALLOWANCE:
+            _delete_cache()
+            succeeded = True
+            return
         if result is None:
             PROBE_DIR.mkdir(parents=True, exist_ok=True)
             process = _spawn(
@@ -335,48 +360,75 @@ def _probe_worker(executable: str) -> None:
             _probe_running = False
 
 
+def _usage_check_worker(executable: str, latest: float) -> None:
+    global _last_attempt_session, _probe_process, _probe_running
+    result = None
+    try:
+        result = read_usage(executable)
+        if result is NO_ALLOWANCE:
+            _delete_cache()
+        elif result is not None:
+            _write_cache(result)
+    except OSError:
+        logger.warning("Muse quota check failed", exc_info=True)
+    finally:
+        with _probe_lock:
+            # Deleting the snapshot must not make this old session eligible for a full probe.
+            if result is NO_ALLOWANCE and (
+                _last_attempt_session is None or latest > _last_attempt_session
+            ):
+                _last_attempt_session = latest
+            _probe_process = None
+            _probe_running = False
+
+
 def load_quota_snapshot(*, allow_probe: bool = True) -> tuple[MuseQuotaResult | None, float | None]:
     """Read sessions once and return the snapshot plus its projection context.
 
-    ``allow_probe=False`` only reads: a probe spends Muse quota, so a hidden card never starts one.
+    A hidden card (``allow_probe=False``) never starts a background check.
     """
-    global _probe_running, _retry_after, _last_attempt_session
+    global _probe_running, _retry_after, _last_attempt_session, _last_check_at
     cached = read_cache()
     executable = find_muse()
     if executable is None:
         return None, None
     latest = latest_session_mtime()
-    if (
-        not allow_probe
-        or latest is None
-        or (cached is not None and not is_stale(cached, latest, time.time()))
-    ):
+    if not allow_probe or latest is None:
         return cached, latest
     with _probe_lock:
         # A worker may have finished since the first cache read.
         cached = read_cache()
         now = time.time()
+        if _probe_running or _probe_shutdown:
+            return cached, latest
+        if cached is not None and now - cached["checked_at"] <= USAGE_RECHECK_SECONDS:
+            return cached, latest
+        monotonic_now = time.monotonic()
+        full_probe = (
+            (cached is None or is_stale(cached, latest, now))
+            and monotonic_now >= _retry_after
+            and (_last_attempt_session is None or latest > _last_attempt_session)
+        )
         if (
-            latest is None
-            or (
-                cached is not None
-                and (
-                    now - cached["checked_at"] <= STALE_SECONDS or not is_stale(cached, latest, now)
-                )
-            )
-            or _probe_running
-            or _probe_shutdown
-            or time.monotonic() < _retry_after
-            or (_last_attempt_session is not None and latest <= _last_attempt_session)
+            not full_probe
+            and _last_check_at is not None
+            and monotonic_now - _last_check_at <= USAGE_RECHECK_SECONDS
         ):
             return cached, latest
         _probe_running = True
-        _last_attempt_session = latest
+        _last_check_at = monotonic_now
         try:
-            threading.Thread(target=_probe_worker, args=(executable,), daemon=True).start()
+            if full_probe:
+                _last_attempt_session = latest
+                threading.Thread(target=_probe_worker, args=(executable,), daemon=True).start()
+            else:
+                threading.Thread(
+                    target=_usage_check_worker, args=(executable, latest), daemon=True
+                ).start()
         except RuntimeError:
             _probe_running = False
-            _retry_after = time.monotonic() + STALE_SECONDS
+            if full_probe:
+                _retry_after = time.monotonic() + STALE_SECONDS
             logger.warning("Could not start Muse quota probe thread", exc_info=True)
     return cached, latest
 
