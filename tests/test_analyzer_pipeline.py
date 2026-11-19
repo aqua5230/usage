@@ -136,14 +136,14 @@ def test_load_year_data_cached_writes_missing_cache(
     payload = _empty_year_payload()
     calls = 0
 
-    def fake_build_year_data(received_agents: list[AgentInfo]) -> dict[str, Any]:
+    def fake_build_year_data(received_agents: list[AgentInfo]) -> tuple[dict[str, Any], bool]:
         nonlocal calls
         calls += 1
         assert received_agents == agents
-        return payload
+        return payload, True
 
     monkeypatch.setattr(reporter, "YEAR_CACHE_PATH", cache_path)
-    monkeypatch.setattr(reporter, "build_year_data", fake_build_year_data)
+    monkeypatch.setattr(reporter, "_build_year_data", fake_build_year_data)
 
     assert reporter._load_year_data_cached(agents) == payload
 
@@ -173,7 +173,7 @@ def test_load_year_data_cached_uses_fresh_cache(
     def fail_build_year_data(_agents: list[AgentInfo]) -> dict[str, Any]:
         raise AssertionError("fresh year cache should not rebuild")
 
-    monkeypatch.setattr(reporter, "build_year_data", fail_build_year_data)
+    monkeypatch.setattr(reporter, "_build_year_data", fail_build_year_data)
 
     assert reporter._load_year_data_cached([]) == payload
 
@@ -198,7 +198,7 @@ def test_load_year_data_cached_keeps_fresh_cache_while_agy_ledger_day_is_unverif
     def fail_build_year_data(_agents: list[AgentInfo]) -> dict[str, Any]:
         raise AssertionError("an unverified stale ledger day should not bypass the year cache")
 
-    monkeypatch.setattr(reporter, "build_year_data", fail_build_year_data)
+    monkeypatch.setattr(reporter, "_build_year_data", fail_build_year_data)
 
     assert reporter._load_year_data_cached([]) == payload
 
@@ -222,12 +222,12 @@ def test_load_year_data_cached_rebuilds_expired_cache(
     )
     calls = 0
 
-    def fake_build_year_data(_agents: list[AgentInfo]) -> dict[str, Any]:
+    def fake_build_year_data(_agents: list[AgentInfo]) -> tuple[dict[str, Any], bool]:
         nonlocal calls
         calls += 1
-        return fresh_payload
+        return fresh_payload, True
 
-    monkeypatch.setattr(reporter, "build_year_data", fake_build_year_data)
+    monkeypatch.setattr(reporter, "_build_year_data", fake_build_year_data)
 
     assert reporter._load_year_data_cached([]) == fresh_payload
     assert calls == 1
@@ -242,12 +242,12 @@ def test_load_year_data_cached_rebuilds_bad_json(
     cache_path.write_text("{bad json", encoding="utf-8")
     calls = 0
 
-    def fake_build_year_data(_agents: list[AgentInfo]) -> dict[str, Any]:
+    def fake_build_year_data(_agents: list[AgentInfo]) -> tuple[dict[str, Any], bool]:
         nonlocal calls
         calls += 1
-        return payload
+        return payload, True
 
-    monkeypatch.setattr(reporter, "build_year_data", fake_build_year_data)
+    monkeypatch.setattr(reporter, "_build_year_data", fake_build_year_data)
 
     assert reporter._load_year_data_cached([]) == payload
     assert calls == 1
@@ -272,12 +272,12 @@ def test_load_year_data_cached_rebuilds_schema_mismatch(
     )
     calls = 0
 
-    def fake_build_year_data(_agents: list[AgentInfo]) -> dict[str, Any]:
+    def fake_build_year_data(_agents: list[AgentInfo]) -> tuple[dict[str, Any], bool]:
         nonlocal calls
         calls += 1
-        return fresh_payload
+        return fresh_payload, True
 
-    monkeypatch.setattr(reporter, "build_year_data", fake_build_year_data)
+    monkeypatch.setattr(reporter, "_build_year_data", fake_build_year_data)
 
     assert reporter._load_year_data_cached([]) == fresh_payload
     assert calls == 1
@@ -508,7 +508,7 @@ def test_report_today_uses_expected_codex_hours_back(monkeypatch: Any) -> None:
         return [recent_entry]
 
     monkeypatch.setattr("analyzer.reporter.codex_loader.load_entries", fake_load_entries)
-    monkeypatch.setattr(reporter, "build_year_data", lambda _agents: _empty_year_payload())
+    monkeypatch.setattr(reporter, "_build_year_data", lambda _agents: (_empty_year_payload(), True))
 
     data = reporter.build_report_data([agent], "today")
 
@@ -579,7 +579,7 @@ def test_report_week_includes_previous_period_comparison(monkeypatch: Any) -> No
     monkeypatch.setattr(reporter, "_entry_date", _entry_date_utc)
     monkeypatch.setattr(reporter, "_load_agent_entries", fake_load_agent_entries)
     monkeypatch.setattr("analyzer.reporter.subscription.load_subscriptions", lambda: [])
-    monkeypatch.setattr(reporter, "build_year_data", lambda _agents: _empty_year_payload())
+    monkeypatch.setattr(reporter, "_build_year_data", lambda _agents: (_empty_year_payload(), True))
 
     data = reporter.build_report_data([agent], "week")
 
@@ -657,7 +657,7 @@ def test_report_last7_includes_previous_period_comparison(monkeypatch: Any) -> N
     monkeypatch.setattr(reporter, "_entry_date", _entry_date_utc)
     monkeypatch.setattr(reporter, "_load_agent_entries", fake_load_agent_entries)
     monkeypatch.setattr("analyzer.reporter.subscription.load_subscriptions", lambda: [])
-    monkeypatch.setattr(reporter, "build_year_data", lambda _agents: _empty_year_payload())
+    monkeypatch.setattr(reporter, "_build_year_data", lambda _agents: (_empty_year_payload(), True))
 
     data = reporter.build_report_data([agent], "last7")
 
@@ -1362,7 +1362,7 @@ def test_report_last30_uses_expected_codex_hours_back(monkeypatch: Any) -> None:
         return []
 
     monkeypatch.setattr("analyzer.reporter.codex_loader.load_entries", fake_full)
-    monkeypatch.setattr(reporter, "build_year_data", lambda _agents: _empty_year_payload())
+    monkeypatch.setattr(reporter, "_build_year_data", lambda _agents: (_empty_year_payload(), True))
 
     reporter.build_report_data([agent], "last30")
 
@@ -1484,7 +1484,7 @@ def test_year_activity_is_fresh_and_kept_out_of_disk_cache(
         ),
         encoding="utf-8",
     )
-    monkeypatch.setattr(reporter, "build_year_data", lambda _: pytest.fail("must use year cache"))
+    monkeypatch.setattr(reporter, "_build_year_data", lambda _: pytest.fail("must use year cache"))
     warm = reporter._load_year_data_cached([])
     assert warm["contribution"]["active_days"] == warm["wrapped"]["active_days"] == 2
     activity_file.write_text("{}", encoding="utf-8")
@@ -1540,7 +1540,7 @@ def test_year_cache_hit_refreshes_activity_streaks_and_colors(
         claude_activity, "activity_dates", lambda: frozenset({date(2026, 5, 9), date(2026, 5, 11)})
     )
     fresh = reporter.build_year_data(agents)
-    monkeypatch.setattr(reporter, "build_year_data", lambda _: pytest.fail("must use year cache"))
+    monkeypatch.setattr(reporter, "_build_year_data", lambda _: pytest.fail("must use year cache"))
     cached = reporter._load_year_data_cached(agents)
     assert cached["contribution"]["current_streak"] == 4
     assert cached["contribution"]["longest_streak"] == cached["wrapped"]["longest_streak"] == 4

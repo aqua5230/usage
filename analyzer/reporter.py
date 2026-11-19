@@ -9,7 +9,7 @@ from __future__ import annotations
 import contextlib
 from bisect import bisect_right
 from collections import defaultdict
-from collections.abc import Iterator
+from collections.abc import Iterator, Mapping, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
@@ -746,6 +746,25 @@ def _with_current_agent_versions(day: _YearDay) -> _YearDay:
     }
 
 
+def _merge_year_days(days: dict[str, _YearDay], current_days: dict[str, _YearDay]) -> bool:
+    snapshot_agent_tokens: dict[str, dict[str, int]] | None = None
+    lowered = False
+    for day_key, current_day in current_days.items():
+        ledger_day = days.get(day_key)
+        if ledger_day is None or current_day["total_tokens"] >= ledger_day["total_tokens"]:
+            days[day_key] = _with_current_agent_versions(current_day)
+        elif ledger_backfill.has_stale_agent_version(ledger_day):
+            # The ledger has no session IDs, so trust a matching current snapshot.
+            if snapshot_agent_tokens is None:
+                snapshot_agent_tokens = usage_snapshot.current_day_agent_tokens(
+                    usage_snapshot.read_snapshot()
+                )
+            if snapshot_agent_tokens.get(day_key) == current_day["agent_tokens"]:
+                days[day_key] = _with_current_agent_versions(current_day)
+                lowered = True
+    return lowered
+
+
 def _merge_year_ledger(
     current_days: dict[str, _YearDay],
     *,
@@ -754,21 +773,7 @@ def _merge_year_ledger(
     with _year_ledger_guard():
         ledger = _read_year_ledger()
         days = ledger["days"]
-        snapshot_agent_tokens: dict[str, dict[str, int]] | None = None
-        lowered = False
-        for day_key, current_day in current_days.items():
-            ledger_day = days.get(day_key)
-            if ledger_day is None or current_day["total_tokens"] >= ledger_day["total_tokens"]:
-                days[day_key] = _with_current_agent_versions(current_day)
-            elif ledger_backfill.has_stale_agent_version(ledger_day):
-                # The ledger has no session IDs, so trust a matching current snapshot.
-                if snapshot_agent_tokens is None:
-                    snapshot_agent_tokens = usage_snapshot.current_day_agent_tokens(
-                        usage_snapshot.read_snapshot()
-                    )
-                if snapshot_agent_tokens.get(day_key) == current_day["agent_tokens"]:
-                    days[day_key] = _with_current_agent_versions(current_day)
-                    lowered = True
+        lowered = _merge_year_days(days, current_days)
 
         ledger["days"] = {
             day_key: day
@@ -892,10 +897,21 @@ def _build_year_output_from_ledger(
     }
 
 
-def build_year_data(agents: list[AgentInfo]) -> YearReportData:
-    today = datetime.now().astimezone().date()
+def _year_grid_bounds(today: date) -> tuple[date, date]:
     grid_end = today + timedelta(days=(5 - today.weekday()) % 7)
     grid_start = grid_end - timedelta(days=_YEAR_WEEKS * 7 - 1)
+    return grid_start, grid_end
+
+
+def build_year_data(agents: list[AgentInfo]) -> YearReportData:
+    data, _ = _build_year_data(agents)
+    return data
+
+
+def _build_year_data(agents: list[AgentInfo]) -> tuple[YearReportData, bool]:
+    """Return the year report and whether the ledger merge finished without a timeout."""
+    today = datetime.now().astimezone().date()
+    grid_start, grid_end = _year_grid_bounds(today)
     hours_back = ((today - grid_start).days + 2) * 24
 
     raw_entries: list[UsageEntry] = []
@@ -905,6 +921,7 @@ def build_year_data(agents: list[AgentInfo]) -> YearReportData:
     entries = [entry for entry in raw_entries if grid_start <= _entry_date(entry) <= today]
 
     current_days = _aggregate_year_days(entries)
+    cacheable = True
     try:
         ledger = _merge_year_ledger(
             current_days,
@@ -912,31 +929,64 @@ def build_year_data(agents: list[AgentInfo]) -> YearReportData:
         )
     except LockTimeout:
         ledger = _read_year_ledger_unlocked(quarantine_bad_file=False)
-    return _build_year_output_from_ledger(
+        _merge_year_days(ledger["days"], current_days)
+        cacheable = False
+    data = _build_year_output_from_ledger(
         ledger,
         grid_start=grid_start,
         grid_end=grid_end,
         today=today,
     )
+    return data, cacheable
 
 
 def persist_year_entries(entries: list[UsageEntry], today: date) -> _YearLedger:
-    grid_end = today + timedelta(days=(5 - today.weekday()) % 7)
-    grid_start = grid_end - timedelta(days=_YEAR_WEEKS * 7 - 1)
+    grid_start, _ = _year_grid_bounds(today)
     return _merge_year_ledger(
         _aggregate_year_days(entries),
         trim_before=grid_start - timedelta(days=_YEAR_LEDGER_TRIM_BUFFER_DAYS),
     )
 
 
-def _load_year_data_cached(agents: list[AgentInfo]) -> YearReportData:
-    cached = _read_year_cache()
+def _load_year_data_cached(agents: list[AgentInfo], *, refresh: bool = False) -> YearReportData:
+    cached = None if refresh else _read_year_cache()
     if cached is not None:
         return _year_with_activity(cast(YearReportData, cached), claude_activity.activity_dates())
 
-    data = build_year_data(agents)
-    _write_year_cache(data)
+    data, cacheable = _build_year_data(agents)
+    if cacheable:
+        _write_year_cache(data)
     return data
+
+
+def _has_verified_year_recount(
+    snapshot: usage_snapshot.UsageSnapshot,
+    ledger_days: Mapping[str, _YearDay],
+    entries: Sequence[UsageEntry],
+    entry_dates: Mapping[int, date],
+    today: date,
+) -> bool:
+    """Check whether this report's live data can lower a stale year ledger day."""
+    grid_start, _ = _year_grid_bounds(today)
+    start_key, end_key = grid_start.isoformat(), today.isoformat()
+    stale_days = {
+        key
+        for key, day in ledger_days.items()
+        if start_key <= key <= end_key and ledger_backfill.has_stale_agent_version(day)
+    }
+    if not stale_days:
+        return False
+
+    verified_days = usage_snapshot.current_day_agent_tokens(snapshot)
+    live_days = {
+        entry_dates[id(entry)].isoformat()
+        for entry in entries
+        if not usage_snapshot.is_replayed_entry(entry)
+    }
+    return any(
+        sum(verified_days[key].values()) < ledger_days[key]["total_tokens"]
+        for key in stale_days & live_days & verified_days.keys()
+    )
 
 
 def _year_with_activity(data: YearReportData, dates: frozenset[date]) -> YearReportData:
@@ -1483,8 +1533,11 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
             }
         )
 
-    year_data = _load_year_data_cached(agents)
-    usage_snapshot.record_entries(real_entries, entry_dates=entry_dates)
+    snapshot = usage_snapshot.record_entries(real_entries, entry_dates=entry_dates)
+    year_data = _load_year_data_cached(
+        agents,
+        refresh=_has_verified_year_recount(snapshot, ledger_days, real_entries, entry_dates, today),
+    )
 
     return {
         "period": period,

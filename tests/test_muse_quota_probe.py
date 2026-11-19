@@ -15,6 +15,8 @@ import pytest
 
 from loaders import muse_loader
 from loaders import muse_quota_probe as probe
+from menubar import muse
+from quota import notifications
 
 # conftest stubs read_usage so no test launches real Muse; keep the original to test it.
 _REAL_READ_USAGE = probe.read_usage
@@ -97,11 +99,15 @@ EXHAUSTED = json.dumps(
         },
     }
 )
-EXHAUSTED_QUOTA = {**quota(), "window": {"used_percent": 100.0, "resets_at": 1792571336.0}}
+EXHAUSTED_OBSERVED_AT = 1792571336.0 - 3600
+EXHAUSTED_QUOTA = {
+    **quota(EXHAUSTED_OBSERVED_AT),
+    "window": {"used_percent": 100.0, "resets_at": 1792571336.0},
+}
 
 
-def test_exhausted_429_keeps_weekly_and_snapshot_age() -> None:
-    now = 1792571336 - 3600
+def test_exhausted_429_keeps_weekly_and_refreshes_snapshot_age() -> None:
+    now = EXHAUSTED_OBSERVED_AT
     assert probe.parse_exhausted_window(EXHAUSTED, quota(), now) == EXHAUSTED_QUOTA
     assert probe.parse_exhausted_window(EXHAUSTED, None, now) is None
     assert probe.parse_exhausted_window(json.dumps(event()), quota(), now) is None
@@ -135,6 +141,7 @@ def test_weekly_429_fills_weekly_and_refreshes_age(
 
 def test_exhausted_probe_updates_session_window(monkeypatch: pytest.MonkeyPatch) -> None:
     probe.CACHE_PATH.write_text(json.dumps(quota()))
+    monkeypatch.setattr(time, "time", lambda: EXHAUSTED_OBSERVED_AT)
     process = Mock(returncode=1)
     process.poll.return_value = 1
     process.communicate.return_value = (EXHAUSTED, "")
@@ -142,6 +149,35 @@ def test_exhausted_probe_updates_session_window(monkeypatch: pytest.MonkeyPatch)
     probe._probe_worker("/fake/muse")
     assert probe.read_cache() == EXHAUSTED_QUOTA
     assert probe._retry_after == 0.0
+
+
+def test_five_hour_429_keeps_quota_fresh_and_defers_next_probe(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    now = EXHAUSTED_OBSERVED_AT
+    previous = quota(now - 7200)
+    result = probe.parse_exhausted_window(EXHAUSTED, previous, now)
+    assert result is not None
+    probe.CACHE_PATH.write_text(json.dumps(result))
+    monkeypatch.setattr(probe, "find_muse", lambda: "/fake/muse")
+    monkeypatch.setattr(probe, "latest_session_mtime", lambda: now + 60)
+    monkeypatch.setattr(time, "time", lambda: now + 60)
+    thread = Mock()
+    monkeypatch.setattr(threading, "Thread", thread)
+
+    actual, latest = probe.load_quota_snapshot()
+
+    assert actual is not None
+    assert actual["checked_at"] == actual["observed_at"] == now
+    assert actual["weekly"] == previous["weekly"]
+    assert actual["window"]["used_percent"] == 100.0
+    shown = muse.project_quota(actual, "en", now + 60, latest_session=latest)
+    assert shown is not None and shown.stale is None
+    notifier = notifications.QuotaNotifier()
+    notifier.update({"muse_session": (85.0, True)})
+    reading = notifications.quota_reading(shown.session, shown.stale is None)
+    assert any(event.kind == "depleted" for event in notifier.update({"muse_session": reading}))
+    thread.assert_not_called()
 
 
 def test_missing_weekly_is_rejected() -> None:

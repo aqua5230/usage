@@ -94,10 +94,10 @@ def exclusive_file_lock(
     """Acquire an exclusive cross-process lock on ``lock_path``.
 
     Raises LockTimeout if contention lasts until the deadline. Yields without a
-    lock if native locking is unavailable or the lock file cannot be opened.
+    lock if native locking is unavailable or the lock file cannot be prepared.
     """
-    lock_path.parent.mkdir(parents=True, exist_ok=True)
     try:
+        lock_path.parent.mkdir(parents=True, exist_ok=True)
         lock_fd = os.open(lock_path, os.O_CREAT | os.O_RDWR, 0o600)
     except OSError:
         yield

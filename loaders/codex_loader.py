@@ -590,6 +590,15 @@ def _merge_rate_limits(
 ) -> CodexRateLimits | None:
     sqlite_ts = _rate_limits_timestamp(sqlite_limits)
     jsonl_ts = _rate_limits_timestamp(jsonl_limits)
+    if sqlite_limits.limit_id != jsonl_limits.limit_id:
+        # Older general readings can omit limit_id. Dedicated readings have their own clock.
+        general_ids = {"", "codex"}
+        if sqlite_limits.limit_id not in general_ids:
+            if jsonl_limits.limit_id in general_ids or jsonl_ts > sqlite_ts:
+                return jsonl_limits
+            return sqlite_limits
+        if jsonl_limits.limit_id not in general_ids:
+            return sqlite_limits
     five_pct, five_reset, five_window = _pick_rate_limit_window(
         sqlite_limits.five_hour_pct,
         sqlite_limits.five_hour_resets_at,

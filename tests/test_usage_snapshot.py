@@ -320,7 +320,7 @@ def _sandbox_report_write(
     monkeypatch.setattr(
         reporter,
         "_load_year_data_cached",
-        lambda _agents: {
+        lambda _agents, **_kwargs: {
             "contribution": {
                 "weeks": [],
                 "start": "2026-01-01",
@@ -651,7 +651,7 @@ def test_current_version_agy_snapshot_kept_when_live_shrinks(snapshot_path: Path
 
 
 def test_unchanged_replayed_day_keeps_stored_versions(snapshot_path: Path) -> None:
-    when = datetime(2026, 11, 1, 10, tzinfo=UTC)
+    when = datetime(2026, 11, 1, 10)
 
     def agy(tokens: int) -> UsageEntry:
         return _entry(
@@ -669,7 +669,12 @@ def test_unchanged_replayed_day_keeps_stored_versions(snapshot_path: Path) -> No
     snapshot_path.write_text(json.dumps(payload), encoding="utf-8")
 
     # A report that replays the stored day writes the same totals back.
-    saved = usage_snapshot.record_entries([agy(6000)])
+    day = when.date()
+    replayed = usage_snapshot.replay_entries(day, day)
+    assert replayed
+    saved = usage_snapshot.record_entries(
+        replayed, entry_dates={id(entry): day for entry in replayed}
+    )
     assert "2026-11-01" not in saved["day_versions"]
 
     saved = usage_snapshot.record_entries([agy(4000)])

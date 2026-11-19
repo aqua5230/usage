@@ -139,7 +139,7 @@ def test_load_year_data_cached_reuses_cache_after_snapshot_verified_agy_recount(
     def fail_rebuild(_agents: list[AgentInfo]) -> reporter.YearReportData:
         pytest.fail("the corrected year ledger should allow a year cache hit")
 
-    monkeypatch.setattr(reporter, "build_year_data", fail_rebuild)
+    monkeypatch.setattr(reporter, "_build_year_data", fail_rebuild)
     assert reporter._load_year_data_cached(agents) == data
 
 
@@ -204,6 +204,26 @@ def test_refresh_history_lowers_stale_agy_ledger_after_snapshot_recount(
     saved = json.loads(reporter.YEAR_LEDGER_PATH.read_text())["days"][day_key]
     assert saved["total_tokens"] == 3000
     assert saved["agent_versions"] == usage_snapshot.AGENT_VERSIONS
+
+
+def test_refresh_history_marks_live_recount_with_unchanged_snapshot_totals(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    day_key = NOW.date().isoformat()
+    live = [_agy_entry(20_000)]
+    previous = usage_snapshot.record_entries(live)
+    previous.pop("day_versions")
+    usage_snapshot._write_snapshot(previous)
+    _write_stale_agy_ledger([_agy_entry(100_000)])
+    monkeypatch.setattr(history_persist, "detect_agents", lambda: [_AGY_AGENT])
+    monkeypatch.setattr(reporter, "_load_agent_entries", lambda *_args: live)
+
+    assert history_persist.refresh_history(NOW)
+
+    snapshot = usage_snapshot.read_snapshot()
+    assert snapshot["rows"] == previous["rows"]
+    assert snapshot["day_versions"][day_key] == usage_snapshot.AGENT_VERSIONS
+    assert reporter._read_year_ledger()["days"][day_key]["total_tokens"] == 20_000
 
 
 def test_recent_success_skips_and_six_hours_refreshes(monkeypatch: pytest.MonkeyPatch) -> None:

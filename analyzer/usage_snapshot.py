@@ -39,6 +39,7 @@ AGENT_VERSIONS: dict[str, int] = {"antigravity": 2}
 _snapshot_lock = threading.Lock()
 
 _RowKey = tuple[str, str, str, str, str]
+_REPLAY_ID_PREFIX = "usage-snapshot:"
 
 
 class SnapshotRow(TypedDict):
@@ -208,10 +209,14 @@ def should_replace_day(
     )
 
 
+def is_replayed_entry(entry: UsageEntry) -> bool:
+    return entry.message_id == entry.request_id and entry.message_id.startswith(_REPLAY_ID_PREFIX)
+
+
 def _day_agent_versions(entries: Sequence[UsageEntry]) -> dict[str, int]:
-    # Days written now are counted by the current parsers; snapshots written before
-    # day_versions existed carry no versions and read as version 0.
-    del entries
+    # A replay only reconstructs stored rows. It cannot verify the parser version.
+    if any(is_replayed_entry(entry) for entry in entries):
+        return {}
     return dict(AGENT_VERSIONS)
 
 
@@ -415,7 +420,7 @@ def _synthetic_ids(row: SnapshotRow, suffix: str) -> tuple[str, str]:
         f"{row['session_id']}|{row['date']}|{row['agent_id']}|"
         f"{row['model']}|{row['project']}{suffix}"
     )
-    token = f"usage-snapshot:{key}"
+    token = f"{_REPLAY_ID_PREFIX}{key}"
     return token, token
 
 
@@ -810,10 +815,7 @@ def _merge_snapshot(
             target_versions=target_versions,
         ):
             merged_rows.extend(rows)
-            # Unchanged totals (e.g. a day replayed from this snapshot) prove nothing about
-            # the parser that counted them, so they keep the stored versions.
-            unchanged = new_tokens == old_tokens and len(new_sessions) == len(old_sessions)
-            versions = old_day_versions.get(day, {}) if unchanged else target_versions
+            versions = target_versions or old_day_versions.get(day, {})
             if versions:
                 merged_day_versions[day] = dict(versions)
         else:
