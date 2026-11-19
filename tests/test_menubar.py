@@ -20,6 +20,7 @@ import pytest
 
 import panels
 import quota.agy_window_keeper as agy_window_keeper
+import quota.notifications as notifications
 import quota.window_keeper as window_keeper
 from installer import session_hooks, statusline_settings
 from loaders import codex_loader, grok_loader, history_loader
@@ -3017,6 +3018,70 @@ def test_codex_rows_free_plan_labels_window_as_monthly(
     # Free plan has no weekly window — second row stays blank, not "Weekly".
     assert rows[1].title == ""
     assert rows[1].available is False
+
+
+def test_codex_rows_show_expired_windows_as_reset(
+    monkeypatch: pytest.MonkeyPatch,
+    state_delegate: menubar.AppDelegate,
+) -> None:
+    delegate = state_delegate
+    delegate.language = "en"
+    monkeypatch.setattr("time.time", lambda: 1_700_000_000.0)
+    # codex_loader reports a window past its reset as 0% with no reset time.
+    monkeypatch.setattr(
+        codex_loader,
+        "load_rate_limits",
+        lambda: codex_loader.CodexRateLimits(
+            five_hour_pct=0.0,
+            five_hour_resets_at=None,
+            seven_day_pct=0.0,
+            seven_day_resets_at=None,
+            five_hour_window_minutes=300.0,
+            seven_day_window_minutes=10080.0,
+            model="gpt-5",
+            updated_at="2026-06-23T15:16:48+00:00",
+        ),
+    )
+
+    rows, _codex_5h_pct, _model, _stale, _credits = _codex_rows(delegate)
+
+    for row in rows:
+        assert row.available is True
+        assert row.reset_done is True
+        assert row.display_percent == 0.0
+        assert row.percent_text == _t("en", "percent_used", value="0")
+        assert row.reset_text == _t("en", "reset_done")
+    assert notifications.quota_reading(rows[0]) == (None, True)
+
+
+def test_codex_rows_keep_unknown_nonzero_window_missing(
+    monkeypatch: pytest.MonkeyPatch,
+    state_delegate: menubar.AppDelegate,
+) -> None:
+    delegate = state_delegate
+    delegate.language = "en"
+    monkeypatch.setattr("time.time", lambda: 1_700_000_000.0)
+    monkeypatch.setattr(
+        codex_loader,
+        "load_rate_limits",
+        lambda: codex_loader.CodexRateLimits(
+            five_hour_pct=40.0,
+            five_hour_resets_at=None,
+            seven_day_pct=12.0,
+            seven_day_resets_at=1_700_100_000.0,
+            five_hour_window_minutes=300.0,
+            seven_day_window_minutes=10080.0,
+            model="gpt-5",
+            updated_at="2026-06-23T15:16:48+00:00",
+        ),
+    )
+
+    rows, _codex_5h_pct, _model, _stale, _credits = _codex_rows(delegate)
+
+    # Only the loader's expired-window marker (0% with no reset) reads as reset.
+    assert rows[0].available is False
+    assert rows[0].reset_done is False
+    assert rows[1].reset_done is False
 
 
 def test_state_from_outcome_keeps_reset_when_burn_rate_is_not_positive(
