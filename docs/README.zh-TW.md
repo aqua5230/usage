@@ -249,7 +249,7 @@ Windows 可完整使用核心功能：系統匣 UI（與 macOS 相同的 16 款�
 - **本機紀錄：** Claude Code、Codex、Grok CLI 與 Muse Code 的 token 與花費數字讀自你機器上的紀錄檔，內容不會被上傳。
 - **Claude 桌面版：** 沒裝 Claude Code CLI、也沒設定狀態列時，保持 Claude 桌面版開啟，`usage` 會讀它的本機額度歷史。不需要 Cookie、登入權杖或 API 呼叫。重置時間只在本機快取能確認時才顯示，不推測。
 - **Antigravity** 需要連網，而且只有你真的使用它才會發生：額度先用 `agy -p /usage` 問 Antigravity CLI（不呼叫模型）；失敗時才用 Antigravity CLI 登入後存下的 OAuth 憑證，向 Google 官方額度端點查詢——依 CLI 版本不同，這個憑證讀自 macOS Keychain、Windows 認證管理員，或本機 token 檔。`usage` 只讀取這個憑證而不寫回，任何刷新後的 access token 也只留在記憶體中；這個呼叫本身讀取額度資訊。
-- **Muse 額度：** Muse 本機沒有額度檔。`usage` 會先執行不呼叫模型的 `muse usage --json`（Muse 1.4.13 起支援），把回傳額度存到 `~/.usage/muse_quota.json`；讀不到才退回在空資料夾用 Muse 自己的登入執行 `muse exec`（帶 `--no-session-log`），這會連到 Muse 送一次小模型呼叫，用掉一點 Muse 額度。裝了 Muse 且有對話時會取得第一份快照；之後只在快照超過 30 分鐘且有更新的 Muse 對話時探測。失敗後至少等 30 分鐘，還要有新的 Muse 用量才重試。可在「隱藏區塊」關掉 Muse 額度卡。
+- **Muse 額度：** Muse 本機沒有額度檔。`usage` 會先執行不呼叫模型的 `muse usage --json`（Muse 1.4.13 起支援），把回傳額度存到 `~/.usage/muse_quota.json`；讀不到才退回在空資料夾用 Muse 自己的登入執行 `muse exec`（帶 `--no-session-log`），這會連到 Muse 送一次小模型呼叫，用掉一點 Muse 額度。裝了 Muse 且有對話時會取得第一份快照。快照超過 30 分鐘後，最多每 30 分鐘重跑一次 `muse usage --json`；只有出現更新的 Muse 對話，才可能退回 `muse exec`。`muse exec` 失敗後至少等 30 分鐘，還要有新的 Muse 用量才重試。`muse usage --json` 回報帳號沒有訂閱額度時，`usage` 會刪掉快照，額度卡隨之消失。可在「隱藏區塊」關掉 Muse 額度卡。
 - **其他背景連網：** 用來標示故障的 Claude 與 Codex 公開狀態頁、估算成本用的公開價格表（斷網會用內建預設），以及偶爾檢查 GitHub 版本更新。
 - **新手模式**只有你打開才會連網：它透過你自己的 Claude Code 登入，把 Claude Code 最新一則回答送給 Claude Haiku 挑名詞。你的名詞紀錄存在 `~/.usage/glossary.json`。
 - **長期紀錄**：Claude Code 預設會刪掉 30 天前的對話紀錄。app 開著時，`usage` 每 6 小時把每日總量存進 `~/.usage/usage_snapshot.json` 和 `~/.usage/year_ledger.json`，報表才看得到更早的日子。這些檔只存在本機。換電腦時，記得把整個 `~/.usage/` 資料夾一起搬過去。
