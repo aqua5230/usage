@@ -439,6 +439,9 @@ jobs:
   # --check-url skips files already on PyPI, which makes a re-run of the same
   # tag a no-op instead of an error.
   publish-pypi:
+    # The pypi environment only accepts v* tags; a manual run from a branch
+    # would be rejected and leave a red deployment, so skip it instead.
+    if: startsWith(github.ref, 'refs/tags/')
     needs: build-pypi
     runs-on: ubuntu-latest
     environment: pypi
