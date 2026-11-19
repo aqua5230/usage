@@ -8,7 +8,7 @@ import sys
 import threading
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 from unittest.mock import Mock
 
 import pytest
@@ -187,16 +187,16 @@ def test_missing_weekly_is_rejected() -> None:
 
 
 @pytest.mark.parametrize(
-    "installed,cached,latest,now,starts",
+    "installed,cached,latest,now,worker",
     [
-        (False, None, 1001, 2801, False),
-        (True, None, None, 2801, False),
-        (True, None, 1001, 2801, True),
-        (True, 1000, 1001, 2800, False),  # Exactly 30 minutes stays fresh.
-        (True, 1000, 1001, 2801, True),
-        (True, 1000, 1000, 2801, False),
-        (True, 1000, 999, 2801, False),
-        (True, 1000, None, 2801, False),
+        (False, None, 1001, 2801, None),
+        (True, None, None, 2801, None),
+        (True, None, 1001, 2801, "full"),
+        (True, 1000, 1001, 2800, None),  # Exactly 30 minutes stays fresh.
+        (True, 1000, 1001, 2801, "full"),
+        (True, 1000, 1000, 2801, "usage"),
+        (True, 1000, 999, 2801, "usage"),
+        (True, 1000, None, 2801, None),
     ],
 )
 def test_probe_gates(
@@ -205,7 +205,7 @@ def test_probe_gates(
     cached: int | None,
     latest: int | None,
     now: int,
-    starts: bool,
+    worker: Literal["full", "usage"] | None,
 ) -> None:
     if cached is not None:
         probe.CACHE_PATH.write_text(json.dumps(quota(cached)))
@@ -215,9 +215,13 @@ def test_probe_gates(
     thread = Mock()
     monkeypatch.setattr(threading, "Thread", thread)
     result = probe.load_quota()
-    assert thread.called is starts
     assert result == (quota(cached) if installed and cached is not None else None)
-    if starts:
+    if worker is None:
+        thread.assert_not_called()
+    else:
+        assert thread.call_args.kwargs["target"] is (
+            probe._probe_worker if worker == "full" else probe._usage_check_worker
+        )
         assert thread.call_args.kwargs["daemon"] is True
         thread.return_value.start.assert_called_once()
 
@@ -246,7 +250,8 @@ def test_probe_hides_windows_console(monkeypatch: pytest.MonkeyPatch) -> None:
 @pytest.mark.parametrize("failure", ["timeout", "exit", "invalid", "write"])
 def test_failure_cools_down_for_30_minutes(monkeypatch: pytest.MonkeyPatch, failure: str) -> None:
     monkeypatch.setattr(probe, "find_muse", lambda: "/fake/muse")
-    monkeypatch.setattr(probe, "latest_session_mtime", lambda: 1001)
+    latest = [1001]
+    monkeypatch.setattr(probe, "latest_session_mtime", lambda: latest[0])
     clock = [100.0]
     monkeypatch.setattr(time, "monotonic", lambda: clock[0])
     process = Mock(returncode=1 if failure == "exit" else 0)
@@ -257,15 +262,20 @@ def test_failure_cools_down_for_30_minutes(monkeypatch: pytest.MonkeyPatch, fail
     if failure == "write":
         monkeypatch.setattr(probe, "_write_cache", Mock(side_effect=OSError("disk full")))
     monkeypatch.setattr(subprocess, "Popen", Mock(return_value=process))
-    probe._probe_worker("/fake/muse")
-    assert probe._retry_after == 1900
     thread = Mock()
     monkeypatch.setattr(threading, "Thread", thread)
+    probe.load_quota()
+    thread.assert_called_once_with(target=probe._probe_worker, args=("/fake/muse",), daemon=True)
+    probe._probe_worker("/fake/muse")
+    assert probe._retry_after == 1900
+    thread.reset_mock()
+    latest[0] = 1002
     clock[0] = 1899.999
     probe.load_quota()
     thread.assert_not_called()
     clock[0] = 1900
     probe.load_quota()
+    thread.assert_called_once_with(target=probe._probe_worker, args=("/fake/muse",), daemon=True)
     thread.return_value.start.assert_called_once()
 
 
@@ -286,7 +296,7 @@ def test_single_background_probe_returns_old_snapshot(monkeypatch: pytest.Monkey
     probe.CACHE_PATH.write_text(json.dumps(quota(0)))
     monkeypatch.setattr(probe, "find_muse", lambda: "/fake/muse")
     monkeypatch.setattr(probe, "latest_session_mtime", lambda: 1)
-    entered, release, finished = threading.Event(), threading.Event(), threading.Event()
+    entered, release = threading.Event(), threading.Event()
     calls: list[dict[str, Any]] = []
 
     def popen(command: list[str], **kwargs: Any) -> Mock:
@@ -305,15 +315,15 @@ def test_single_background_probe_returns_old_snapshot(monkeypatch: pytest.Monkey
         return process
 
     monkeypatch.setattr(subprocess, "Popen", popen)
-    worker = probe._probe_worker
+    new_thread = threading.Thread
+    threads: list[threading.Thread] = []
 
-    def tracked_worker(executable: str) -> None:
-        try:
-            worker(executable)
-        finally:
-            finished.set()
+    def tracked_thread(**kwargs: Any) -> threading.Thread:
+        thread = new_thread(**kwargs)
+        threads.append(thread)
+        return thread
 
-    monkeypatch.setattr(probe, "_probe_worker", tracked_worker)
+    monkeypatch.setattr(threading, "Thread", tracked_thread)
     try:
         assert probe.load_quota() == quota(0)
         assert entered.wait(5)
@@ -323,7 +333,8 @@ def test_single_background_probe_returns_old_snapshot(monkeypatch: pytest.Monkey
         assert probe._probe_running
     finally:
         release.set()
-        assert finished.wait(5)
+        for thread in threads:
+            thread.join()
     assert not probe._probe_running
     assert probe.read_cache() != quota(0)
     assert probe.load_quota() == probe.read_cache()
@@ -420,6 +431,7 @@ USAGE = json.dumps(
         "hint": None,
     }
 )
+NO_ALLOWANCE_USAGE = '{"schemaVersion":1,"allowance":null,"reason":"no_allowance","hint":null}'
 
 
 def test_parse_muse_usage_converts_camel_case() -> None:
@@ -450,6 +462,10 @@ def test_parse_muse_usage_observation_fallback(fields: dict[str, object], expect
     [
         "",
         '{"schemaVersion":1,"allowance":null,"reason":"server_sent_no_usage","hint":null}',
+        '{"schemaVersion":1,"allowance":null,"reason":"api_key","hint":null}',
+        '{"reason":"no_allowance"}',
+        '[{"allowance":null,"reason":"no_allowance"}]',
+        '{"allowance":{},"reason":"no_allowance"}',
         USAGE.replace('"resetsAtMs": 10000000', '"resetsAtMs": true'),
         USAGE.replace('"weekly"', '"other"'),
     ],
@@ -470,6 +486,96 @@ def test_read_usage_runs_without_model(monkeypatch: pytest.MonkeyPatch) -> None:
     process.returncode = 2
     process.communicate.return_value = ("", "unknown command")
     assert _REAL_READ_USAGE("/fake/muse") is None
+
+
+@pytest.mark.parametrize("returncode", [0, 2])
+def test_read_usage_recognizes_no_allowance(
+    monkeypatch: pytest.MonkeyPatch, returncode: int
+) -> None:
+    process = Mock(returncode=returncode)
+    process.communicate.return_value = (NO_ALLOWANCE_USAGE, "")
+    monkeypatch.setattr(probe, "_spawn", Mock(return_value=process))
+    assert _REAL_READ_USAGE("/fake/muse") is probe.NO_ALLOWANCE
+
+
+def test_full_probe_removes_cache_when_subscription_ends(monkeypatch: pytest.MonkeyPatch) -> None:
+    probe.CACHE_PATH.write_text(json.dumps(quota()))
+    process = Mock(returncode=2)
+    process.communicate.return_value = (NO_ALLOWANCE_USAGE, "")
+    spawn = Mock(return_value=process)
+    monkeypatch.setattr(probe, "_spawn", spawn)
+    monkeypatch.setattr(probe, "read_usage", _REAL_READ_USAGE)
+
+    probe._probe_worker("/fake/muse")
+
+    assert not probe.CACHE_PATH.exists()
+    assert probe.read_cache() is None
+    spawn.assert_called_once_with(["/fake/muse", "usage", "--json"])
+
+
+@pytest.mark.parametrize(
+    "stdout,expected",
+    [
+        ('{"allowance":null,"reason":"server_sent_no_usage"}', quota()),
+        (USAGE, {**quota(2801), "observed_at": 999}),
+        (NO_ALLOWANCE_USAGE, None),
+    ],
+)
+def test_usage_check_refreshes_old_session_without_model_call(
+    monkeypatch: pytest.MonkeyPatch, stdout: str, expected: probe.MuseQuotaResult | None
+) -> None:
+    probe.CACHE_PATH.write_text(json.dumps(quota()))
+    monkeypatch.setattr(time, "time", lambda: 2801)
+    monkeypatch.setattr(time, "monotonic", lambda: 0)
+    monkeypatch.setattr(probe, "find_muse", lambda: "/fake/muse")
+    monkeypatch.setattr(probe, "latest_session_mtime", lambda: 1000)
+    monkeypatch.setattr(probe, "read_usage", _REAL_READ_USAGE)
+    process = Mock(returncode=0)
+    process.communicate.return_value = (stdout, "")
+    spawn = Mock(return_value=process)
+    thread = Mock()
+    monkeypatch.setattr(probe, "_spawn", spawn)
+    monkeypatch.setattr(threading, "Thread", thread)
+
+    assert probe.load_quota_snapshot() == (quota(), 1000)
+    assert probe.load_quota_snapshot() == (quota(), 1000)
+    thread.assert_called_once_with(
+        target=probe._usage_check_worker, args=("/fake/muse", 1000), daemon=True
+    )
+    thread.return_value.start.assert_called_once()
+    # Run the scheduled worker in this test before the temporary paths are restored.
+    probe._usage_check_worker("/fake/muse", 1000)
+
+    assert probe.read_cache() == expected
+    assert probe.CACHE_PATH.exists() is (expected is not None)
+    assert probe.load_quota_snapshot() == (expected, 1000)
+    thread.return_value.start.assert_called_once()
+    spawn.assert_called_once_with(["/fake/muse", "usage", "--json"])
+
+
+def test_usage_check_waits_past_stale_interval(monkeypatch: pytest.MonkeyPatch) -> None:
+    probe.CACHE_PATH.write_text(json.dumps(quota()))
+    clock = [0]
+    monkeypatch.setattr(time, "time", lambda: 2801)
+    monkeypatch.setattr(time, "monotonic", lambda: clock[0])
+    monkeypatch.setattr(probe, "find_muse", lambda: "/fake/muse")
+    monkeypatch.setattr(probe, "latest_session_mtime", lambda: 1000)
+    thread = Mock()
+    monkeypatch.setattr(threading, "Thread", thread)
+
+    probe.load_quota_snapshot()
+    probe._usage_check_worker("/fake/muse", 1000)
+    clock[0] = probe.STALE_SECONDS
+    probe.load_quota_snapshot()
+    thread.return_value.start.assert_called_once()
+
+    clock[0] += 1
+    probe.load_quota_snapshot()
+    assert thread.return_value.start.call_count == 2
+    assert [call.kwargs["target"] for call in thread.call_args_list] == [
+        probe._usage_check_worker,
+        probe._usage_check_worker,
+    ]
 
 
 def test_read_usage_is_stoppable_at_exit(monkeypatch: pytest.MonkeyPatch) -> None:
