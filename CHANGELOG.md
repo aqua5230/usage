@@ -7,9 +7,25 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.34.24] - 2026-11-20
+
+### Added
+- **New panel theme: Maple Dusk.** Maple leaves drift down over a gold-to-violet sunset, behind and in front of glass cards that let the sky show through, with a maple-forest silhouette along the bottom. Pick it from **⚙ Settings → Switch Panel**; there are now 17 themes. The leaves stop moving when macOS Reduce Motion is on.
+
 ### Fixed
 - **The Muse quota card disappears once the subscription ends.** Before this fix, usage kept showing the last saved Muse quota after a subscription lapsed. Once its reset times passed, the card, the Claude Code quota line and the notifications treated that quota as unused. usage rechecked only after a new Muse conversation, so it never noticed. It now reruns the model-free `muse usage --json` at most every 5 minutes, which also brings the card up to date within about 5 minutes of using Muse instead of 30. When Muse reports that the account has no subscription allowance, usage deletes the saved quota without falling back to a `muse exec` model call, and the card disappears. It comes back once Muse reports quota again.
 - **A Codex window past its reset time reads 0% and Reset.** Before this fix, both its usage and its reset time showed `--`, which looked like missing data. It now matches Claude Code and Antigravity until Codex reports a new reading.
+- **An Antigravity day that was counted too high can now be lowered in the year ledger.** Before this fix, when a fresh recount matched the daily snapshot, usage kept the snapshot's missing record of which counting version produced each day. A day saved before the token-counting fix therefore stayed too high after upgrading. Only days replayed from the snapshot now keep the stored versions.
+- **The year report no longer shows two totals for the same day.** The report read or built its cached year before saving the new snapshot, so the detail showed the corrected total while the heatmap showed the old one, and that old year stayed cached for 6 hours. The snapshot is now saved first, and a verified recount of an outdated ledger day skips the cache.
+- **The year report includes this run's activity even when the ledger is busy.** If another process held the ledger lock for too long, the report fell back to the ledger on disk without the days counted in this run, then cached that incomplete result. usage now adds those days in memory and does not cache the incomplete report.
+- **usage no longer stops with an error when it cannot create the ledger's lock folder.** It now handles this the same way as a lock file it cannot open.
+- **A Muse 5-hour limit shows up as a current reading.** When Muse refused a request because the 5-hour quota was used up, usage kept the previous reading's check time. The card looked stale, the "used up" notification was skipped, and usage checked again sooner than intended. The refusal now carries its own check time.
+- **A newer Codex Spark reading no longer replaces the general Codex reading.** When the Codex database held a newer reading for the dedicated Spark quota, it replaced the general reading from the session logs, and a general-quota rejection looked expired. Readings for different quotas are no longer merged.
+- **Repairing Token Saver no longer replaces a newer hook with an older one.** When a prompt file or settings entry was missing, usage overwrote the installed Token Saver hooks with the copies bundled in the app, even if the installed ones were newer. usage now replaces a script only when it is missing or older, and restores just the missing parts, the same way it repairs the resume hook.
+- **Quota-aware mode says when Claude Code's own quota was last read.** The "Claude Code's own quota" line left out the "(last updated ...; it may have reset since)" note that the same windows carry elsewhere, so an old reading could look current. The quota-aware hook updates to 1.20.
+- **CSV exports show "—" for a project whose cost is unknown.** They used to write 0.00, which read as free. Both the app's export and the export inside a saved report now write "—", the same as model rows.
+- **An exported report reopens with the same date shortcut.** A report exported from a shortcut such as All reopened as a manual date range, without the shortcut and its history note. A report exported with hidden project names reopened with empty date fields. The export now stores the shortcut and restores it.
+- **Reports show Gemini 4 Neon by its short name.** The model table listed Antigravity's new Gemini 4 Neon models by their full IDs; they now read "Neon 4", like the other models.
 
 ## [0.34.23] - 2026-11-19
 
