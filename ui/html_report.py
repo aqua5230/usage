@@ -1531,11 +1531,7 @@ def _build_csv_data(data: Mapping[str, Any], lang: str, *, mask_projects: bool =
             if "pct" in item
             else (int(item.get("tokens", 0)) / total * 100 if total else 0.0)
         )
-        cost_val = (
-            None
-            if item.get("is_unattributed") and not item.get("cost_known", True)
-            else float(item.get("cost", 0.0))
-        )
+        cost_val = None if not item.get("cost_known", True) else float(item.get("cost", 0.0))
         writer.writerow(
             [
                 "project",

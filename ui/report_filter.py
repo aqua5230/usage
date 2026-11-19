@@ -43,6 +43,7 @@ REPORT_FILTER_JS = r"""(() => {
     muse: '#d7ba62',
   };
   let activeBounds = null;
+  let activeShortcut = null;
 
   function rowTokens(row) {
     return Number(row[4]) + Number(row[5]) + Number(row[6]) + Number(row[7]);
@@ -322,6 +323,15 @@ REPORT_FILTER_JS = r"""(() => {
   liveModelGroups().forEach((group) => {
     bindModelGroup(group, savedModelIds.has(group.dataset.agentId));
   });
+  const {exportFrom, exportTo, exportShortcut, defaultRange} = document.body?.dataset || {};
+  const dateFilter = document.querySelector('[data-date-filter]');
+  const fromInput = dateFilter?.querySelector('[data-date-from]');
+  const toInput = dateFilter?.querySelector('[data-date-to]');
+  // Masked exports remove the cube, so restore their dates before the early return.
+  if (exportFrom && exportTo && fromInput && toInput) {
+    fromInput.value = exportFrom;
+    toInput.value = exportTo;
+  }
   if (!cube || !Array.isArray(cube.dates) || !Array.isArray(cube.rows)) return;
   const firstTokenRow = cube.rows.find((row) => rowTokens(row) > 0);
   const firstTokenDate = firstTokenRow ? cube.dates[Number(firstTokenRow[0])] : null;
@@ -1130,7 +1140,7 @@ REPORT_FILTER_JS = r"""(() => {
       const share = total ? project.tokens / total * 100 : 0;
       lines.push([
         'project', csvField(name), share.toFixed(1),
-        String(Math.round(project.tokens)), csvCost(project.cost, true),
+        String(Math.round(project.tokens)), csvCost(project.cost, project.costKnown),
       ].join(','));
     });
     if (unattributed.length) {
@@ -1232,10 +1242,11 @@ REPORT_FILTER_JS = r"""(() => {
     }
   }
 
-  function applyBounds(bounds) {
+  function applyBounds(bounds, shortcut = null) {
     const summary = summarizeRange(bounds.from, bounds.to);
     if (!summary) return null;
     activeBounds = summary.bounds;
+    activeShortcut = shortcut;
     updateSummary(summary);
     updateNarrative(summary);
     rebuildTools(summary);
@@ -1257,15 +1268,12 @@ REPORT_FILTER_JS = r"""(() => {
   window.usageReportFilter.currentBounds = () => activeBounds || normalizeBounds(
     cube.dates[0], cube.dates[cube.dates.length - 1]
   );
+  window.usageReportFilter.currentShortcut = () => activeShortcut;
 
-  const dateFilter = document.querySelector('[data-date-filter]');
   if (!dateFilter || !cube.dates.length) return;
-  const fromInput = dateFilter.querySelector('[data-date-from]');
-  const toInput = dateFilter.querySelector('[data-date-to]');
   const shortcutButtons = Array.from(dateFilter.querySelectorAll('[data-range]'));
 
-  function selectShortcut(key) {
-    const bounds = rangeBounds(key) || rangeBounds('all');
+  function selectShortcut(key, bounds = rangeBounds(key) || rangeBounds('all')) {
     if (!bounds) return;
     fromInput.value = bounds.from;
     toInput.value = bounds.to;
@@ -1274,7 +1282,7 @@ REPORT_FILTER_JS = r"""(() => {
     });
     const historyNote = document.querySelector('[data-history-note]');
     if (historyNote) historyNote.hidden = key !== 'all';
-    applyBounds(bounds);
+    applyBounds(bounds, key);
   }
 
   shortcutButtons.forEach((button) => {
@@ -1298,11 +1306,12 @@ REPORT_FILTER_JS = r"""(() => {
   fromInput.addEventListener('change', applyManualRange);
   toInput.addEventListener('change', applyManualRange);
 
-  const {exportFrom, exportTo, defaultRange} = document.body.dataset;
   if (exportFrom && exportTo) {
-    fromInput.value = exportFrom;
-    toInput.value = exportTo;
-    applyManualRange();
+    if (shortcutButtons.some((button) => button.dataset.range === exportShortcut)) {
+      selectShortcut(exportShortcut, normalizeBounds(exportFrom, exportTo));
+    } else {
+      applyManualRange();
+    }
   } else {
     selectShortcut(['today', 'last7', 'last30', 'month', 'all'].includes(defaultRange)
       ? defaultRange
