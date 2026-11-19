@@ -95,7 +95,7 @@ _TERSE_REMINDER_MARKER = "usage-terse-reminder"
 _TERSE_REMINDER_MARKERS = (_TERSE_REMINDER_MARKER, "usage_terse_reminder")
 # Independent, opt-in Claude Code UserPromptSubmit hook.
 QUOTA_AWARE_HOOK_TARGET = Path(os.path.expanduser("~/.claude/usage-quota-aware.py"))
-QUOTA_AWARE_HOOK_VERSION = "1.19"
+QUOTA_AWARE_HOOK_VERSION = "1.20"
 QUOTA_AWARE_MATCHER = ""
 _QUOTA_AWARE_MARKER = "usage-quota-aware"
 _QUOTA_AWARE_MARKERS = (_QUOTA_AWARE_MARKER, "usage_quota_aware")
@@ -527,7 +527,7 @@ def _copy_codex_terse_script() -> None:
     )
 
 
-def _setup_codex_terse() -> None:
+def _setup_codex_terse(*, copy_script: bool = True, register_entry: bool = True) -> None:
     """Install the terse hook into the user-global ~/.codex. No-op when config.toml can't be
     read — the [features] hooks flag is the gate, so without a readable config the hook
     wouldn't fire anyway. Stays silent: Codex is an opt-in add-on to the Claude toggle."""
@@ -539,7 +539,8 @@ def _setup_codex_terse() -> None:
     if data is None:
         print(_t("terse_codex_hooks_unreadable"))
         return
-    _copy_codex_terse_script()
+    if copy_script:
+        _copy_codex_terse_script()
 
     features = parsed.get("features")
     if not (isinstance(features, dict) and features.get("hooks") is True):
@@ -552,6 +553,8 @@ def _setup_codex_terse() -> None:
                 CODEX_CONFIG,
             )
 
+    if not register_entry:
+        return
     hooks = data.get("hooks")
     if not isinstance(hooks, dict):
         hooks = {}
@@ -622,14 +625,12 @@ def _self_heal_codex_terse() -> None:
     script_missing = not CODEX_TERSE_HOOK_TARGET.exists()
     entry_missing = not _is_codex_terse_installed()
     old_version = _installed_codex_terse_version()
-    version_stale = CODEX_TERSE_HOOK_TARGET.exists() and setup_hook.is_older(
-        old_version, TERSE_HOOK_VERSION
-    )
+    replace_script = script_missing or setup_hook.is_older(old_version, TERSE_HOOK_VERSION)
 
-    if not (script_missing or entry_missing or version_stale or not hooks_enabled):
+    if not (replace_script or entry_missing or not hooks_enabled):
         return
 
-    _setup_codex_terse()
+    _setup_codex_terse(copy_script=replace_script, register_entry=entry_missing or replace_script)
     if script_missing or entry_missing or not hooks_enabled:
         parts: list[str] = []
         if script_missing:
@@ -880,11 +881,11 @@ def _terse_sidecar_is_valid() -> bool:
     return isinstance(en, dict) and bool(en.get("instruction"))
 
 
-def _missing_terse_artifacts() -> list[str]:
+def _missing_terse_artifacts(*, validate_sidecar: bool = True) -> list[str]:
     missing: list[str] = []
     if not TERSE_HOOK_TARGET.exists():
         missing.append("script")
-    if not _terse_sidecar_is_valid():
+    if not TERSE_PROMPT_SIDECAR.exists() or (validate_sidecar and not _terse_sidecar_is_valid()):
         missing.append("sidecar")
     return missing
 
@@ -892,19 +893,20 @@ def _missing_terse_artifacts() -> list[str]:
 def _self_heal_terse_mode() -> None:
     if not is_terse_mode_enabled():
         return
-    missing = _missing_terse_artifacts()
-    if missing:
+    old = _installed_terse_version()
+    stale = setup_hook.is_older(old, TERSE_HOOK_VERSION)
+    newer = not stale and old is not None and setup_hook.is_older(TERSE_HOOK_VERSION, old)
+    # A newer hook may use a sidecar schema this installer cannot validate.
+    missing = _missing_terse_artifacts(validate_sidecar=not newer)
+    replace_script = "script" in missing or stale
+    if replace_script:
         _copy_terse_script()
+    if replace_script or "sidecar" in missing:
         _write_terse_sidecar()
+    if missing:
         _append_self_heal_log("restore_terse_hook", f"missing={','.join(missing)}")
-    else:
-        old = _installed_terse_version()
-        if setup_hook.is_older(old, TERSE_HOOK_VERSION):
-            _copy_terse_script()
-            _write_terse_sidecar()
-            _append_self_heal_log(
-                "update_terse_hook", f"{old or 'unknown'} -> {TERSE_HOOK_VERSION}"
-            )
+    elif replace_script:
+        _append_self_heal_log("update_terse_hook", f"{old or 'unknown'} -> {TERSE_HOOK_VERSION}")
     _self_heal_terse_reminder()
     _self_heal_codex_terse()
 
@@ -916,21 +918,22 @@ def _self_heal_terse_reminder() -> None:
     present but stale is replaced too, the same way the SessionStart hook is kept current."""
     script_missing = not TERSE_REMINDER_HOOK_TARGET.exists()
     entry_missing = not is_terse_reminder_enabled()
-    if script_missing or entry_missing:
+    old = _installed_terse_reminder_version()
+    replace_script = script_missing or setup_hook.is_older(old, TERSE_REMINDER_HOOK_VERSION)
+    if replace_script:
         _copy_terse_reminder_script()
+    if entry_missing:
         settings = _load_settings()
         _register_terse_reminder(settings)
         _save_settings(settings)
+    if script_missing or entry_missing:
         parts: list[str] = []
         if script_missing:
             parts.append("script")
         if entry_missing:
             parts.append("entry")
         _append_self_heal_log("restore_terse_reminder_hook", f"missing={','.join(parts)}")
-        return
-    old = _installed_terse_reminder_version()
-    if setup_hook.is_older(old, TERSE_REMINDER_HOOK_VERSION):
-        _copy_terse_reminder_script()
+    elif replace_script:
         _append_self_heal_log(
             "update_terse_reminder_hook",
             f"{old or 'unknown'} -> {TERSE_REMINDER_HOOK_VERSION}",

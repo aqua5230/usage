@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional, cast
 
-__version__ = "1.19"
+__version__ = "1.20"
 CLAUDE_STATUS = Path.home() / ".claude/usage-status.json"
 QUOTA_SNAPSHOT = Path.home() / ".usage/quota_snapshot.json"
 SERVICE_SNAPSHOT = Path.home() / ".usage/service_status_snapshot.json"
@@ -717,8 +717,8 @@ def _reminder(session_id: str, now: float) -> str:
             "those models is unaffected, so Antigravity as a whole is not used up."
         )
     own = {
-        window: _usage(used, reset, now)
-        for tool, window, used, reset, _suffix in windows
+        window: _usage(used, reset, now) + suffix
+        for tool, window, used, reset, suffix in windows
         if tool == "Claude Code"
     }
     own_status = (

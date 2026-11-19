@@ -869,6 +869,27 @@ def test_build_csv_data_shows_dash_for_unpriced_models() -> None:
     assert "model,glm-5.2,40.0,50000,—\r\n" in csv_text
 
 
+@pytest.mark.parametrize("mask_projects", [False, True])
+def test_build_csv_data_distinguishes_unpriced_projects_from_zero_cost(
+    mask_projects: bool,
+) -> None:
+    data = {
+        "summary": {"total_tokens": 200},
+        "by_project": [
+            {"project": "unpriced", "tokens": 100, "cost": 0.0, "cost_known": False},
+            {"project": "free", "tokens": 100, "cost": 0.0, "cost_known": True},
+        ],
+    }
+
+    raw = html_report._build_csv_data(data, "en", mask_projects=mask_projects)
+
+    rows = list(csv.DictReader(io.StringIO(raw)))
+    assert [(row["name"], row["cost_usd"]) for row in rows] == [
+        ("Project 1" if mask_projects else "unpriced", "—"),
+        ("Project 2" if mask_projects else "free", "0.00"),
+    ]
+
+
 def test_trend_ascii_marks_an_unfinished_final_week_without_a_delta() -> None:
     daily: list[DailyTrendPoint] = [
         {"date": "2026-08-17", "tokens": 100, "cost": 0.0},

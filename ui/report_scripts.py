@@ -249,12 +249,15 @@ async function withShareableReport(maskProjects, callback) {
 
 async function downloadHtml(maskProjects) {
   const bounds = window.usageReportFilter?.currentBounds?.() || null;
+  const shortcut = window.usageReportFilter?.currentShortcut?.();
   const html = await withShareableReport(maskProjects, async () => {
     const root = document.documentElement.cloneNode(true);
     if (bounds) {
       const {dataset} = root.querySelector('body');
       dataset.exportFrom = bounds.from;
       dataset.exportTo = bounds.to;
+      if (shortcut) dataset.exportShortcut = shortcut;
+      else delete dataset.exportShortcut;
     }
     return '<!doctype html>\\n' + root.outerHTML;
   });

@@ -1222,7 +1222,18 @@ assert.equal(tokenHint().includes(shareConfig.vsPrevious), true);
 
 
 @pytest.mark.skipif(NODE is None, reason="Node.js is unavailable")
-def test_exported_html_reopens_at_range_used_in_filename(tmp_path: Path) -> None:
+@pytest.mark.parametrize(
+    ("shortcut", "masked", "start_date", "end_date", "tokens"),
+    [
+        (None, False, "2026-10-08", "2026-10-14", 200),
+        ("all", False, "2026-10-01", "2026-10-31", 300),
+        ("last7", False, "2026-10-25", "2026-10-31", 0),
+        (None, True, "2026-10-08", "2026-10-14", 200),
+    ],
+)
+def test_exported_html_reopens_at_range_used_in_filename(
+    tmp_path: Path, shortcut: str | None, masked: bool, start_date: str, end_date: str, tokens: int
+) -> None:
     prefix = NODE_HARNESS.split("const cube = {", 1)[0]
     script = prefix.replace("__REPORT_DAILY_CHART_JS__", json.dumps(REPORT_DAILY_CHART_JS)).replace(
         "__REPORT_FILTER_JS__", json.dumps(REPORT_FILTER_JS)
@@ -1233,7 +1244,9 @@ def test_exported_html_reopens_at_range_used_in_filename(tmp_path: Path) -> None
     start = REPORT_JS_TEMPLATE.index("async function withShareableReport(")
     end = REPORT_JS_TEMPLATE.index("\nasync function downloadCsv(", start)
     share_js += REPORT_JS_TEMPLATE[start:end]
+    expected = json.dumps([shortcut, masked, start_date, end_date, tokens])
     script += r"""
+const [shortcut, masked, from, to, tokens] = __EXPECTED__;
 const cube = {
   today: '2026-10-31',
   dates: ['2026-10-01', '2026-10-07', '2026-10-14'],
@@ -1244,10 +1257,14 @@ const cube = {
 };
 const report = run(makeEnvironment(cube, {}, false, [], true));
 assert.equal(report.period.textContent, '2026-10-01 -> 2026-10-31');
-report.fromInput.value = '2026-10-08';
-report.toInput.value = '2026-10-14';
-report.toInput.fire('change');
-assert.equal(report.cards.tokens.querySelector('b').textContent, '≈ 200');
+if (shortcut) {
+  report.shortcutButtons.find((button) => button.dataset.range === shortcut).fire('click');
+} else {
+  report.fromInput.value = from;
+  report.toInput.value = to;
+  report.toInput.fire('change');
+}
+assert.equal(report.cards.tokens.querySelector('b').textContent, `≈ ${tokens}`);
 
 function documentElement(body) {
   return {
@@ -1269,23 +1286,71 @@ let download;
 function downloadBlob(blob, filename) { download = {blob, filename}; }
 
 (async () => {
-  await eval(__SHARE_JS__ + '\ndownloadHtml(false);');
-  assert.equal(download.filename, 'usage-report-2026-10-08_2026-10-14.html');
+  if (masked) {
+    // Stub the shareable DOM after masking. The filter's state is still live.
+    document.querySelector = () => null;
+    document.querySelectorAll = () => [];
+  }
+  await eval(__SHARE_JS__ + '\ndownloadHtml(masked);');
+  assert.equal(download.filename, `usage-report-${from}_${to}.html`);
   assert.deepEqual(document.body.dataset, {});
   const html = await download.blob.text();
   const reopened = makeEnvironment(cube, {}, false, [], true);
+  const note = {hidden: true};
+  const query = document.querySelector;
+  document.querySelector = (selector) => {
+    if (masked && selector === '#usage-cube-data') return null;
+    if (selector === '[data-history-note]') return note;
+    return query(selector);
+  };
   for (const [, key, value] of html.matchAll(/data-([a-z-]+)="([^"]*)"/g)) {
     const property = key.replace(/-([a-z])/g, (_match, letter) => letter.toUpperCase());
     document.body.dataset[property] = value;
   }
   run(reopened);
-  assert.equal(reopened.period.textContent, '2026-10-08 -> 2026-10-14');
-  assert.equal(reopened.cards.tokens.querySelector('b').textContent, '≈ 200');
-  assert.equal(reopened.fromInput.value, '2026-10-08');
-  assert.equal(reopened.toInput.value, '2026-10-14');
+  assert.equal(reopened.fromInput.value, from);
+  assert.equal(reopened.toInput.value, to);
+  if (!masked) {
+    assert.equal(reopened.period.textContent, `${from} -> ${to}`);
+    assert.equal(reopened.cards.tokens.querySelector('b').textContent, `≈ ${tokens}`);
+    assert.deepEqual(
+      reopened.shortcutButtons.filter((button) => button.getAttribute('aria-pressed') === 'true')
+        .map((button) => button.dataset.range),
+      shortcut ? [shortcut] : [],
+    );
+    assert.equal(note.hidden, shortcut !== 'all');
+  }
 })();
-""".replace("__SHARE_JS__", json.dumps(share_js))
+""".replace("__SHARE_JS__", json.dumps(share_js)).replace("__EXPECTED__", expected)
     path = tmp_path / "exported-report-range.cjs"
+    path.write_text(script, encoding="utf-8")
+    subprocess.run([NODE or "node", str(path)], check=True, capture_output=True, text=True)
+
+
+@pytest.mark.skipif(NODE is None, reason="Node.js is unavailable")
+def test_csv_distinguishes_unpriced_projects_from_zero_cost(tmp_path: Path) -> None:
+    prefix = NODE_HARNESS.split("const cube = {", 1)[0]
+    script = prefix.replace("__REPORT_DAILY_CHART_JS__", json.dumps(REPORT_DAILY_CHART_JS)).replace(
+        "__REPORT_FILTER_JS__", json.dumps(REPORT_FILTER_JS)
+    )
+    script += r"""
+const cube = {
+  dates: ['2026-10-01'],
+  agents: [{id: 'codex', name: 'Codex'}],
+  models: [{name: 'unpriced', cost_known: false}, {name: 'free', cost_known: true}],
+  projects: ['demo', 'sample'],
+  rows: [[0, 0, 0, 0, 100, 0, 0, 0, 0, 1], [0, 0, 1, 1, 100, 0, 0, 0, 0, 1]],
+};
+run(makeEnvironment(cube));
+for (const masked of [false, true]) {
+  const projects = window.usageReportFilter.buildCsv(masked).split('\r\n').slice(1, 3);
+  assert.deepEqual(projects, [
+    `project,${masked ? 'Project 1' : 'demo'},50.0,100,—`,
+    `project,${masked ? 'Project 2' : 'sample'},50.0,100,0.00`,
+  ]);
+}
+"""
+    path = tmp_path / "csv-project-prices.cjs"
     path.write_text(script, encoding="utf-8")
     subprocess.run([NODE or "node", str(path)], check=True, capture_output=True, text=True)
 

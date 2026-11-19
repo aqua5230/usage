@@ -935,7 +935,7 @@ def test_service_normal_without_record_is_silent(paths: Path) -> None:
 
 
 def test_service_hook_versions_match() -> None:
-    assert hook.__version__ == session_hooks.QUOTA_AWARE_HOOK_VERSION == "1.19"
+    assert hook.__version__ == session_hooks.QUOTA_AWARE_HOOK_VERSION == "1.20"
 
 
 @pytest.mark.parametrize("window,label", [("five_hour", "5-hour"), ("seven_day", "weekly")])
@@ -1544,6 +1544,24 @@ def test_claude_quota_reminder_uses_each_windows_observation_age(
     cached = next(line for line in lines if f"{labels[cached_window]} quota: 96% used" in line)
     assert "last updated" not in fresh
     assert "last updated 2h ago" in cached
+
+
+def test_claude_own_quota_footer_keeps_each_windows_observation_age(paths: Path) -> None:
+    claude(75, 60)
+    status = hook._read(hook.CLAUDE_STATUS)
+    status["_rate_limits_observed_at"] = {"five_hour": NOW - 4 * 3600, "seven_day": NOW}
+    hook.CLAUDE_STATUS.write_text(json.dumps(status), encoding="utf-8")
+    snapshot()
+
+    output = hook.reminder("one", NOW)
+
+    assert "Codex 5-hour quota: 91% used" in output
+    footer = next(
+        line for line in output.splitlines() if line.startswith("Claude Code's own quota:")
+    )
+    assert "5-hour 75% used" in footer
+    assert " (last updated 4h ago; it may have reset since); weekly 60% used" in footer
+    assert footer.count("last updated") == 1
 
 
 @pytest.mark.parametrize("new_session", ["one", "two"])

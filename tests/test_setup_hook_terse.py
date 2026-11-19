@@ -247,6 +247,43 @@ def test_self_heal_updates_old_version(terse_paths: TerseHookPaths) -> None:
     )
 
 
+@pytest.mark.parametrize("sidecar_exists", [False, True])
+def test_self_heal_repairs_terse_companions_without_downgrading(
+    terse_paths: TerseHookPaths, sidecar_exists: bool
+) -> None:
+    assert session_hooks.enable_terse_mode() == 0
+    settings = json.loads(terse_paths.settings.read_text(encoding="utf-8"))
+    del settings["hooks"]["UserPromptSubmit"]
+    terse_paths.settings.write_text(json.dumps(settings), encoding="utf-8")
+    terse_paths.codex_config.write_text("[features]\nhooks = false\n", encoding="utf-8")
+    scripts = (
+        terse_paths.terse_target,
+        terse_paths.terse_reminder_target,
+        terse_paths.codex_terse_target,
+    )
+    newer_script = b'__version__ = "99.0"\nprint("newer")\n'
+    for script in scripts:
+        script.write_bytes(newer_script)
+    newer_sidecar = b'{"schema": 2, "prompts": {"en": "newer instruction"}}\n'
+    if sidecar_exists:
+        terse_paths.sidecar.write_bytes(newer_sidecar)
+    else:
+        terse_paths.sidecar.unlink()
+
+    session_hooks._self_heal_terse_mode()
+
+    assert [script.read_bytes() for script in scripts] == [newer_script] * len(scripts)
+    if sidecar_exists:
+        assert terse_paths.sidecar.read_bytes() == newer_sidecar
+    else:
+        assert session_hooks._terse_sidecar_is_valid()
+    assert len(_reminder_entries(terse_paths.settings)) == 1
+    assert len(_codex_terse_entries(terse_paths.codex_hooks_json)) == 1
+    assert tomllib.loads(terse_paths.codex_config.read_text(encoding="utf-8"))["features"] == {
+        "hooks": True
+    }
+
+
 def test_installed_terse_version_returns_none_for_truncated_version(
     terse_paths: TerseHookPaths,
 ) -> None:
