@@ -67,11 +67,14 @@ def test_failed_probe_waits_for_new_session_and_cooldown(monkeypatch: pytest.Mon
     latest[0] = 2
     clock[0] = 1799
     probe.load_quota()
-    assert thread.call_count == 1
+    # Only the model-free check may run before the paid probe's cooldown ends.
+    assert thread.call_count == 2
+    assert thread.call_args_list[1].kwargs["target"] is probe._usage_check_worker
+    probe._usage_check_worker("/fake/muse", latest[0])
 
     clock[0] = 1800
     probe.load_quota()
-    assert thread.call_count == 2
+    assert thread.call_count == 3
     assert thread.call_args.kwargs["target"] is probe._probe_worker
     probe._probe_worker("/fake/muse")
 
@@ -80,6 +83,7 @@ def test_failed_probe_waits_for_new_session_and_cooldown(monkeypatch: pytest.Mon
         probe._usage_check_worker("/fake/muse", latest[0])
     assert [call.kwargs["target"] for call in thread.call_args_list] == [
         probe._probe_worker,
+        probe._usage_check_worker,
         probe._probe_worker,
         probe._usage_check_worker,
         probe._usage_check_worker,

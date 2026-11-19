@@ -192,7 +192,9 @@ def test_missing_weekly_is_rejected() -> None:
         (False, None, 1001, 2801, None),
         (True, None, None, 2801, None),
         (True, None, 1001, 2801, "full"),
-        (True, 1000, 1001, 2800, None),  # Exactly 30 minutes stays fresh.
+        (True, 1000, 1001, 1300, None),  # Exactly 5 minutes stays fresh.
+        (True, 1000, 1001, 1301, "usage"),
+        (True, 1000, 1001, 2800, "usage"),  # Exactly 30 minutes is too fresh for the paid probe.
         (True, 1000, 1001, 2801, "full"),
         (True, 1000, 1000, 2801, "usage"),
         (True, 1000, 999, 2801, "usage"),
@@ -272,7 +274,12 @@ def test_failure_cools_down_for_30_minutes(monkeypatch: pytest.MonkeyPatch, fail
     latest[0] = 1002
     clock[0] = 1899.999
     probe.load_quota()
-    thread.assert_not_called()
+    # Only the model-free check may run before the paid probe's cooldown ends.
+    thread.assert_called_once_with(
+        target=probe._usage_check_worker, args=("/fake/muse", 1002), daemon=True
+    )
+    probe._usage_check_worker("/fake/muse", 1002)
+    thread.reset_mock()
     clock[0] = 1900
     probe.load_quota()
     thread.assert_called_once_with(target=probe._probe_worker, args=("/fake/muse",), daemon=True)
@@ -553,7 +560,7 @@ def test_usage_check_refreshes_old_session_without_model_call(
     spawn.assert_called_once_with(["/fake/muse", "usage", "--json"])
 
 
-def test_usage_check_waits_past_stale_interval(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_usage_check_waits_past_recheck_interval(monkeypatch: pytest.MonkeyPatch) -> None:
     probe.CACHE_PATH.write_text(json.dumps(quota()))
     clock = [0]
     monkeypatch.setattr(time, "time", lambda: 2801)
@@ -565,7 +572,7 @@ def test_usage_check_waits_past_stale_interval(monkeypatch: pytest.MonkeyPatch) 
 
     probe.load_quota_snapshot()
     probe._usage_check_worker("/fake/muse", 1000)
-    clock[0] = probe.STALE_SECONDS
+    clock[0] = probe.USAGE_RECHECK_SECONDS
     probe.load_quota_snapshot()
     thread.return_value.start.assert_called_once()
 

@@ -30,6 +30,8 @@ CACHE_PATH = Path.home() / ".usage/muse_quota.json"
 PROBE_DIR = Path.home() / ".usage/muse-probe"
 MUSE_MODEL = "muse-spark-1.3"
 STALE_SECONDS = 30 * 60
+# `muse usage` runs no model, so it rechecks as often as Antigravity's model-free probe.
+USAGE_RECHECK_SECONDS = 5 * 60
 WINDOW_SECONDS = 5 * 3600
 _EXHAUSTED = re.compile(
     r"Subscription quota exhausted\. Your usage window resets at (\d{4}-\d\d-\d\dT[\d:.]+Z)"
@@ -399,7 +401,7 @@ def load_quota_snapshot(*, allow_probe: bool = True) -> tuple[MuseQuotaResult | 
         now = time.time()
         if _probe_running or _probe_shutdown:
             return cached, latest
-        if cached is not None and now - cached["checked_at"] <= STALE_SECONDS:
+        if cached is not None and now - cached["checked_at"] <= USAGE_RECHECK_SECONDS:
             return cached, latest
         monotonic_now = time.monotonic()
         full_probe = (
@@ -410,7 +412,7 @@ def load_quota_snapshot(*, allow_probe: bool = True) -> tuple[MuseQuotaResult | 
         if (
             not full_probe
             and _last_check_at is not None
-            and monotonic_now - _last_check_at <= STALE_SECONDS
+            and monotonic_now - _last_check_at <= USAGE_RECHECK_SECONDS
         ):
             return cached, latest
         _probe_running = True
