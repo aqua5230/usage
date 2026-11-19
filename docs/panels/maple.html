@@ -8,7 +8,7 @@
       --muse: #4aa3ff;
       color-scheme: dark;
       --bg: #3a2258;
-      --panel: rgba(34, 20, 52, 0.74);
+      --panel: rgba(44, 24, 84, 0.80);
       --panel-border: rgba(255, 214, 170, 0.18);
       --line: rgba(217, 196, 214, 0.16);
       --text: #fff6ee;
@@ -150,7 +150,7 @@
     .footer {
       position: relative;
       background:
-        linear-gradient(180deg, rgba(255, 170, 110, 0.06), transparent 65%),
+        linear-gradient(180deg, rgba(255, 160, 200, 0.05), transparent 65%),
         var(--panel);
       border: 1px solid var(--panel-border);
       border-radius: var(--radius);
@@ -161,13 +161,12 @@
     }
 
     .card {
-      --panel: rgba(34, 20, 52, 0.74);
+      --panel: rgba(44, 24, 84, 0.80);
       padding: 13px 15px 12px;
       isolation: isolate;
     }
 
-    .card::before,
-    .footer::before {
+    .card::before {
       content: "";
       position: absolute;
       z-index: -1;
@@ -180,7 +179,7 @@
       bottom: 13px;
       width: var(--watermark-size);
       height: min(var(--watermark-size), calc(100% - 26px));
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 104'%3E%3Cdefs%3E%3ClinearGradient id='wg' x1='15%25' y1='6%25' x2='85%25' y2='96%25'%3E%3Cstop offset='0%25' stop-color='%23ffb347'/%3E%3Cstop offset='100%25' stop-color='%23ff7a59'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath fill='url(%23wg)' d='M49 80C50 86 50 94 46 101L49 103C53 97 56 88 54 79Z'/%3E%3Cpath fill='url(%23wg)' d='M51 81C45 83 39 82 33 79L29 81L26 76L19 76L20 72L13 69L16 66L7 60L16 61L15 56L25 61L26 57L34 63C29 57 24 51 18 47L12 48L13 43L7 39L11 36L3 26L14 30L14 25L21 31L24 28L29 37L33 35L36 45Q40 51 43 48C42 40 39 35 37 30L32 26L36 25L35 17L39 19L41 10L45 13L50 2L55 14L59 11L60 21L65 19L63 29L67 28L61 35Q57 41 58 48Q62 48 66 42L69 33L73 35L78 27L80 31L88 25L89 30L98 27L92 37L96 39L88 43L89 47L82 47C74 53 69 59 66 65L75 59L78 62L86 55L86 60L95 58L88 65L92 68L84 70L85 74L77 75L76 80L69 78Q59 83 51 81Z'/%3E%3Cpath d='M51 80Q53 54 50 15M51 80Q43 55 14 33M51 80Q59 55 88 34M51 80Q36 73 19 65M51 80Q67 73 84 65' fill='none' stroke='%23ffe2a0' stroke-opacity='0.62' stroke-width='1.5' stroke-linecap='round'/%3E%3Cpath d='M51 58L44 41M52 47L58 31M34 53L22 47M69 52L78 47' fill='none' stroke='%23ffe2a0' stroke-opacity='0.44' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 104'%3E%3Cdefs%3E%3ClinearGradient id='wg' x1='15%25' y1='6%25' x2='85%25' y2='96%25'%3E%3Cstop offset='0%25' stop-color='%23ffe2b8'/%3E%3Cstop offset='100%25' stop-color='%23ffb8a8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath fill='url(%23wg)' d='M49 80C50 86 50 94 46 101L49 103C53 97 56 88 54 79Z'/%3E%3Cpath fill='url(%23wg)' d='M51 81C45 83 39 82 33 79L29 81L26 76L19 76L20 72L13 69L16 66L7 60L16 61L15 56L25 61L26 57L34 63C29 57 24 51 18 47L12 48L13 43L7 39L11 36L3 26L14 30L14 25L21 31L24 28L29 37L33 35L36 45Q40 51 43 48C42 40 39 35 37 30L32 26L36 25L35 17L39 19L41 10L45 13L50 2L55 14L59 11L60 21L65 19L63 29L67 28L61 35Q57 41 58 48Q62 48 66 42L69 33L73 35L78 27L80 31L88 25L89 30L98 27L92 37L96 39L88 43L89 47L82 47C74 53 69 59 66 65L75 59L78 62L86 55L86 60L95 58L88 65L92 68L84 70L85 74L77 75L76 80L69 78Q59 83 51 81Z'/%3E%3Cpath d='M51 80Q53 54 50 15M51 80Q43 55 14 33M51 80Q59 55 88 34M51 80Q36 73 19 65M51 80Q67 73 84 65' fill='none' stroke='%23ffe2a0' stroke-opacity='0.62' stroke-width='1.5' stroke-linecap='round'/%3E%3Cpath d='M51 58L44 41M52 47L58 31M34 53L22 47M69 52L78 47' fill='none' stroke='%23ffe2a0' stroke-opacity='0.44' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E");
       background-position: right bottom;
       background-size: contain;
       transform: rotate(var(--watermark-angle));
@@ -668,15 +667,6 @@
       isolation: isolate;
     }
 
-    .footer::before {
-      inset: auto 0 0;
-      height: 52px;
-      background-image:
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 420 84' preserveAspectRatio='none'%3E%3Cdefs%3E%3Cg id='mapleTree' fill='currentColor'%3E%3Cpath d='M44 82l2-25-9-13 2-4 9 9 2-24 3-1 1 23 11-11 4 2-14 17 1 27Z'/%3E%3Cpath d='M44 6c3-5 9-7 15-3l3 4c6-1 10 1 13 6 7-1 11 4 12 9 6 1 9 5 7 10 6 2 6 8 2 12l-8 2-3 6-9 1-7-3-8 4-9-5-8 3-6-4-10 2-5-4-9-1-1-5-8-2C0 38 0 33 5 29l6-3c0-6 7-10 14-8 1-7 10-11 19-12Z'/%3E%3Cpath d='M31 29l-7-5-6 1-4 5-9 1-4 5 4 3h6l3 5 8-2 4 3 8-4 6 2 4-7-5-7Zm48 5 7-4 8 2 2 6 6 2 1 5-5 1-4 5-7-1-3 3-8-3-6 1-3-6 4-6Z'/%3E%3C/g%3E%3C/defs%3E%3Cg%3E%3Cg color='%234a2a5e' opacity='0.76'%3E%3Cuse href='%23mapleTree' transform='translate%28-24 25%29 scale%28.78 .72%29'/%3E%3Cuse href='%23mapleTree' transform='translate%2849 30%29 scale%28.75 .66%29'/%3E%3Cuse href='%23mapleTree' transform='translate%28118 23%29 scale%28.8 .75%29'/%3E%3Cuse href='%23mapleTree' transform='translate%28199 25%29 scale%28.78 .72%29'/%3E%3Cuse href='%23mapleTree' transform='translate%28275 19%29 scale%28.85 .8%29'/%3E%3Cuse href='%23mapleTree' transform='translate%28357 30%29 scale%28.76 .66%29'/%3E%3C/g%3E%3Cg color='%234a2a5e'%3E%3Cuse href='%23mapleTree' transform='translate%28-30 5%29 scale%28.85 .97%29'/%3E%3Cuse href='%23mapleTree' transform='translate%2834 18%29 scale%28.69 .81%29'/%3E%3Cuse href='%23mapleTree' transform='translate%28106 30%29 scale%28.64 .66%29'/%3E%3Cuse href='%23mapleTree' transform='translate%28174 16%29 scale%28.86 .84%29'/%3E%3Cuse href='%23mapleTree' transform='translate%28264 22%29 scale%28.78 .76%29'/%3E%3Cuse href='%23mapleTree' transform='translate%28344 5%29 scale%28.96 .97%29'/%3E%3Cpath fill='currentColor' d='M0 73Q37 70 67 76T129 77Q175 72 220 76T305 76Q361 69 420 74V84H0Z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"),
-        linear-gradient(0deg, rgba(255, 140, 90, 0.35) 0%, rgba(255, 140, 90, 0.22) 55%, transparent 100%);
-      background-size: 100% 100%;
-      opacity: 0.94;
-    }
 
     .meta {
       display: flex;
@@ -1014,28 +1004,28 @@
       </div>
     </div>
     <div class="maple-ahead">
-      <div class="maple-fall" style="--x:24%;--size:26px;--cycle:16s;--phase:-1.7s;--turn:5.6s;--sway:40px;--angle:-15deg;color:#ff4d3d;--alpha:0.73">
+      <div class="maple-fall" style="--x:24%;--size:26px;--cycle:16s;--phase:-1.7s;--turn:5.6s;--sway:40px;--angle:-15deg;color:#ff4d3d;--alpha:0.47">
         <svg viewBox="0 0 100 104" focusable="false"><use href="#mapleLeaf-red" width="100" height="104"/></svg>
       </div>
-      <div class="maple-fall" style="--x:71%;--size:23px;--cycle:18s;--phase:-4s;--turn:6.2s;--sway:-46px;--angle:36deg;color:#ff7a2f;--alpha:0.68">
+      <div class="maple-fall" style="--x:71%;--size:23px;--cycle:18s;--phase:-4s;--turn:6.2s;--sway:-46px;--angle:36deg;color:#ff7a2f;--alpha:0.44">
         <svg viewBox="0 0 100 104" focusable="false"><use href="#mapleLeaf-orange" width="100" height="104"/></svg>
       </div>
-      <div class="maple-fall" style="--x:39%;--size:28px;--cycle:19s;--phase:-6s;--turn:7.3s;--sway:43px;--angle:65deg;color:#ffd04a;--alpha:0.77">
+      <div class="maple-fall" style="--x:39%;--size:28px;--cycle:19s;--phase:-6s;--turn:7.3s;--sway:43px;--angle:65deg;color:#ffd04a;--alpha:0.50">
         <svg viewBox="0 0 100 104" focusable="false"><use href="#mapleLeaf-gold" width="100" height="104"/></svg>
       </div>
-      <div class="maple-fall" style="--x:66%;--size:21px;--cycle:20s;--phase:-8.4s;--turn:7.1s;--sway:-46px;--angle:-22deg;color:#ff4d3d;--alpha:0.68">
+      <div class="maple-fall" style="--x:66%;--size:21px;--cycle:20s;--phase:-8.4s;--turn:7.1s;--sway:-46px;--angle:-22deg;color:#ff4d3d;--alpha:0.44">
         <svg viewBox="0 0 100 104" focusable="false"><use href="#mapleLeaf-red" width="100" height="104"/></svg>
       </div>
-      <div class="maple-fall" style="--x:29%;--size:27px;--cycle:22s;--phase:-11.6s;--turn:8.6s;--sway:-33px;--angle:16deg;color:#ffa834;--alpha:0.74">
+      <div class="maple-fall" style="--x:29%;--size:27px;--cycle:22s;--phase:-11.6s;--turn:8.6s;--sway:-33px;--angle:16deg;color:#ffa834;--alpha:0.48">
         <svg viewBox="0 0 100 104" focusable="false"><use href="#mapleLeaf-amber" width="100" height="104"/></svg>
       </div>
-      <div class="maple-fall" style="--x:68%;--size:24px;--cycle:23s;--phase:-14.5s;--turn:8.3s;--sway:42px;--angle:40deg;color:#ffd04a;--alpha:0.71">
+      <div class="maple-fall" style="--x:68%;--size:24px;--cycle:23s;--phase:-14.5s;--turn:8.3s;--sway:42px;--angle:40deg;color:#ffd04a;--alpha:0.46">
         <svg viewBox="0 0 100 104" focusable="false"><use href="#mapleLeaf-gold" width="100" height="104"/></svg>
       </div>
-      <div class="maple-fall" style="--x:34%;--size:30px;--cycle:24s;--phase:-17.8s;--turn:8.1s;--sway:36px;--angle:-12deg;color:#ff7a2f;--alpha:0.76">
+      <div class="maple-fall" style="--x:34%;--size:30px;--cycle:24s;--phase:-17.8s;--turn:8.1s;--sway:36px;--angle:-12deg;color:#ff7a2f;--alpha:0.49">
         <svg viewBox="0 0 100 104" focusable="false"><use href="#mapleLeaf-orange" width="100" height="104"/></svg>
       </div>
-      <div class="maple-fall" style="--x:73%;--size:22px;--cycle:26s;--phase:-22s;--turn:9.4s;--sway:-43px;--angle:73deg;color:#c2264b;--alpha:0.69">
+      <div class="maple-fall" style="--x:73%;--size:22px;--cycle:26s;--phase:-22s;--turn:9.4s;--sway:-43px;--angle:73deg;color:#c2264b;--alpha:0.45">
         <svg viewBox="0 0 100 104" focusable="false"><use href="#mapleLeaf-crimson" width="100" height="104"/></svg>
       </div>
       <div class="maple-mote" style="--x:16%;--y:26%;--size:4px;--cycle:9.5s;--phase:-1.8s;--drift:9px;--peak:0.56"></div>

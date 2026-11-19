@@ -10,7 +10,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ## [0.34.24] - 2026-11-20
 
 ### Added
-- **New panel theme: Maple Dusk.** Maple leaves drift down over a gold-to-violet sunset, behind and in front of glass cards that let the sky show through, with a maple-forest silhouette along the bottom. Pick it from **⚙ Settings → Switch Panel**; there are now 17 themes. The leaves stop moving when macOS Reduce Motion is on.
+- **New panel theme: Maple Dusk.** Maple leaves drift down over a gold-to-violet sunset, behind and in front of violet glass cards that let the sky show through, with small piles of fallen leaves in the bottom corners. Pick it from **⚙ Settings → Switch Panel**; there are now 17 themes. The leaves stop moving when macOS Reduce Motion is on.
 
 ### Fixed
 - **The Muse quota card disappears once the subscription ends.** Before this fix, usage kept showing the last saved Muse quota after a subscription lapsed. Once its reset times passed, the card, the Claude Code quota line and the notifications treated that quota as unused. usage rechecked only after a new Muse conversation, so it never noticed. It now reruns the model-free `muse usage --json` at most every 5 minutes, which also brings the card up to date within about 5 minutes of using Muse instead of 30. When Muse reports that the account has no subscription allowance, usage deletes the saved quota without falling back to a `muse exec` model call, and the card disappears. It comes back once Muse reports quota again.
