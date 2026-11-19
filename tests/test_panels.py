@@ -30,6 +30,7 @@ CARD_PANEL_FILENAMES = (
     "classic.html",
     "cloud_observation.html",
     "lepidoptera.html",
+    "maple.html",
     "matrix.html",
     "migration.html",
     "sketchbook.html",
@@ -77,6 +78,7 @@ def test_registered_panel_ids_are_unique() -> None:
         "lepidoptera",
         "world_cup",
         "catppuccin",
+        "maple",
     )
     assert len(ids) == len(set(ids))
 
@@ -101,6 +103,7 @@ def test_registered_panel_i18n_keys() -> None:
         "panel_lepidoptera",
         "panel_world_cup",
         "panel_catppuccin",
+        "panel_maple",
     ]
 
 

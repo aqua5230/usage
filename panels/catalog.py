@@ -238,4 +238,19 @@ PANEL_SPECS: tuple[PanelSpec, ...] = (
         status_wrap_extra_height=30.0,
         service_alert_height=32.0,
     ),
+    # Reuse classic's measured values because the DOM structure is identical;
+    # remeasure if a future render shows clipping.
+    PanelSpec(
+        "maple",
+        "panel_maple",
+        "maple.html",
+        height=1324.0,
+        claude_card_height=192.0,
+        codex_card_height=192.0,
+        agy_card_height=192.0,
+        muse_card_height=192.0,
+        grok_card_height=128.0,
+        status_wrap_extra_height=30.0,
+        service_alert_height=32.0,
+    ),
 )

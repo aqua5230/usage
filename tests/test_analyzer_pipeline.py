@@ -300,6 +300,7 @@ def test_html_panels_expose_analyze_action() -> None:
         "classic.html",
         "cloud_observation.html",
         "lepidoptera.html",
+        "maple.html",
         "matrix.html",
         "migration.html",
         "sketchbook.html",
