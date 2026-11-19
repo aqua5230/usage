@@ -170,7 +170,7 @@ def parse_exhausted_window(
     """Read the 429 Muse returns once a window is used up; it carries no allowance.
 
     The reply names only a reset time. Within 5 hours it is the 5-hour window, so the weekly
-    reading and its age stay from ``cached``. Further out it can only be the weekly allowance.
+    reading stays from ``cached``. Further out it can only be the weekly allowance.
     """
     match = _EXHAUSTED.search(stdout)
     if cached is None or match is None:
@@ -181,7 +181,9 @@ def parse_exhausted_window(
         return None
     used_up = MuseQuotaWindow(used_percent=100.0, resets_at=reset)
     if reset - now <= WINDOW_SECONDS:
-        return {**cached, "window": used_up}
+        return MuseQuotaResult(
+            checked_at=now, observed_at=now, window=used_up, weekly=cached["weekly"]
+        )
     window = cached["window"]
     # Nothing runs without weekly allowance, so a lapsed window is empty. One resetting past
     # 5 hours is a weekly 429 that v0.34.5 recorded as the 5-hour window.

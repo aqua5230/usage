@@ -3164,6 +3164,64 @@ def test_load_rate_limits_keeps_general_rejection_after_dedicated_rejection(
     assert result.limit_reached_at == (snapshot + timedelta(minutes=1)).isoformat()
 
 
+@pytest.mark.parametrize("general_refused", [False, True])
+def test_load_rate_limits_keeps_general_quota_with_newer_spark_sqlite_reading(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, general_refused: bool
+) -> None:
+    now = datetime(2026, 11, 18, 12, tzinfo=UTC)
+    observed_at = now - timedelta(minutes=2)
+    refused_at = now - timedelta(minutes=1)
+    _freeze_codex_time(monkeypatch, now)
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", tmp_path)
+    session = tmp_path / "quota.jsonl"
+    _write_rate_limit_session(
+        session,
+        observed_at.isoformat(),
+        {
+            "limit_id": "codex",
+            "primary": {"used_percent": 97, "resets_at": now.timestamp() + 3600},
+            "secondary": {"used_percent": 60, "resets_at": now.timestamp() + 86400},
+        },
+        now.timestamp(),
+    )
+    if general_refused:
+        with session.open("a", encoding="utf-8") as file:
+            file.write(
+                "\n"
+                + json.dumps(
+                    {
+                        "timestamp": refused_at.isoformat(),
+                        "type": "event_msg",
+                        "payload": {
+                            "type": "task_complete",
+                            "error": {"codex_error_info": "usage_limit_exceeded"},
+                        },
+                    }
+                )
+                + "\n"
+            )
+    logs_db = tmp_path / "logs.sqlite"
+    body = (
+        'websocket event: {"type":"codex.rate_limits","rate_limits":{"limit_id":"codex_spark",'
+        '"primary":{"used_percent":10,"window_minutes":300,"reset_at":9999999999},'
+        '"secondary":{"used_percent":20,"window_minutes":10080,"reset_at":9999999999}}}'
+    )
+    _create_logs_db(
+        logs_db,
+        [(1, int(now.timestamp()), body)],
+        target="codex_api::endpoint::responses_websocket",
+    )
+    monkeypatch.setattr(codex_loader, "LOGS_DB", logs_db)
+
+    result = codex_loader.load_rate_limits(jsonl_candidates=[(session, now.timestamp())])
+
+    assert result is not None
+    assert result.limit_id == "codex"
+    assert (result.five_hour_pct, result.seven_day_pct) == (100 if general_refused else 97, 60)
+    assert result.updated_at == (refused_at if general_refused else observed_at).isoformat()
+    assert result.limit_reached_at == (refused_at.isoformat() if general_refused else "")
+
+
 def test_load_rate_limits_uses_newer_snapshot_after_resumed_session_refusal(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:

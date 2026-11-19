@@ -9,6 +9,8 @@ from __future__ import annotations
 import os
 import time
 from collections.abc import Iterator
+from contextlib import contextmanager
+from dataclasses import replace
 from datetime import UTC, date, datetime, timedelta, tzinfo
 from pathlib import Path
 from typing import Any, Self
@@ -16,10 +18,20 @@ from typing import Any, Self
 import pytest
 
 from adapters.types import AgentInfo, UsageEntry
-from analyzer import ledger_legacy_backfill, persona_loader, reporter, subscription
+from analyzer import (
+    claude_activity,
+    ledger_legacy_backfill,
+    persona_loader,
+    reporter,
+    subscription,
+    usage_snapshot,
+)
 from analyzer.aggregator import aggregate_sessions
 from loaders import codex_loader, history_loader
 from usage_common import pricing
+from usage_common.file_lock import LockTimeout
+
+_LOAD_YEAR_DATA_CACHED = reporter._load_year_data_cached
 
 
 @pytest.mark.parametrize("mixed", [False, True])
@@ -168,7 +180,9 @@ def _sandbox_reporter_dependencies(
 
     monkeypatch.setattr(reporter, "YEAR_CACHE_PATH", tmp_path / ".usage" / "year_cache.json")
     monkeypatch.setattr(reporter, "YEAR_LEDGER_PATH", tmp_path / ".usage" / "year_ledger.json")
-    monkeypatch.setattr(reporter, "_load_year_data_cached", lambda _agents: _empty_year_payload())
+    monkeypatch.setattr(
+        reporter, "_load_year_data_cached", lambda _agents, **_kwargs: _empty_year_payload()
+    )
     monkeypatch.setattr(reporter, "_load_persona_for_period", lambda _period: None)
     monkeypatch.setattr(reporter, "is_model_priced", lambda model: model != "unknown")
     monkeypatch.setattr("analyzer.reporter.subscription.load_subscriptions", lambda: [])
@@ -199,6 +213,108 @@ def _sandbox_reporter_dependencies(
             os.environ["TZ"] = original_tz
         if hasattr(time, "tzset"):
             time.tzset()
+
+
+@pytest.mark.parametrize("warm_cache", [False, True])
+def test_report_uses_corrected_agy_day_in_both_details_and_year_cache(
+    monkeypatch: pytest.MonkeyPatch, warm_cache: bool
+) -> None:
+    today = datetime(2026, 11, 18, 12, tzinfo=UTC)
+    when = today - timedelta(days=6)
+    agent = AgentInfo("antigravity", "Antigravity", "", True)
+    old = _entry(
+        when=when,
+        session_id="agy",
+        model="gemini-3-pro",
+        project="work",
+        agent_id=agent.id,
+        input_tokens=80_000,
+    )
+    live = replace(old, input_tokens=20_000)
+    saved = usage_snapshot.record_entries([old], entry_dates={id(old): when.date()})
+    saved.pop("day_versions")
+    usage_snapshot._write_snapshot(saved)
+    days = reporter._aggregate_year_days([old])
+    days[when.date().isoformat()].pop("agent_versions")
+    reporter._write_year_ledger({"schema_version": reporter._YEAR_LEDGER_SCHEMA, "days": days})
+    monkeypatch.setattr(reporter, "datetime", _fixed_datetime(today))
+    monkeypatch.setattr(reporter, "_load_agent_entries", lambda *_: [live])
+    monkeypatch.setattr(reporter, "_load_year_data_cached", _LOAD_YEAR_DATA_CACHED)
+    monkeypatch.setattr(claude_activity, "activity_dates", frozenset)
+    if warm_cache:
+        _LOAD_YEAR_DATA_CACHED([agent])
+
+    for _ in range(2):
+        data = reporter.build_report_data([agent], "all")
+        assert data["summary"]["total_tokens"] == data["contribution"]["total_tokens"] == 20_000
+        assert data["wrapped"]["total_tokens"] == 20_000
+
+    cached = reporter._read_year_cache()
+    assert cached is not None and cached["wrapped"]["total_tokens"] == 20_000
+
+
+def test_year_report_timeout_merges_new_usage_without_caching(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    today = datetime(2026, 11, 18, 12, tzinfo=UTC)
+    agent = AgentInfo("codex", "Codex", "", True)
+    live = _entry(
+        when=today,
+        session_id="today",
+        model="gpt-5",
+        project="work",
+        agent_id=agent.id,
+        input_tokens=600,
+    )
+    yesterday = replace(
+        live, timestamp=today - timedelta(days=1), session_id="yesterday", input_tokens=200
+    )
+    reporter.persist_year_entries([yesterday, replace(live, input_tokens=300)], today.date())
+    ledger_bytes = reporter.YEAR_LEDGER_PATH.read_bytes()
+    monkeypatch.setattr(reporter, "datetime", _fixed_datetime(today))
+    monkeypatch.setattr(reporter, "_load_agent_entries", lambda *_: [live])
+    monkeypatch.setattr(claude_activity, "activity_dates", frozenset)
+
+    @contextmanager
+    def held(_path: Path) -> Iterator[None]:
+        raise LockTimeout("ledger lock held")
+        yield
+
+    with monkeypatch.context() as locked:
+        locked.setattr(reporter, "exclusive_file_lock", held)
+        during = _LOAD_YEAR_DATA_CACHED([agent])
+        assert during["wrapped"]["total_tokens"] == 800
+        assert reporter.YEAR_LEDGER_PATH.read_bytes() == ledger_bytes
+        assert not reporter.YEAR_CACHE_PATH.exists()
+
+    assert _LOAD_YEAR_DATA_CACHED([agent]) == during
+    assert reporter.YEAR_CACHE_PATH.exists()
+
+
+def test_report_uses_live_usage_when_lock_parent_is_a_file(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    today = datetime(2026, 11, 18, 12, tzinfo=UTC)
+    blocked = tmp_path / "blocked"
+    blocked.write_text("unavailable directory", encoding="utf-8")
+    monkeypatch.setattr(reporter, "YEAR_LEDGER_PATH", blocked / "year_ledger.json")
+    monkeypatch.setattr(reporter, "_load_year_data_cached", _LOAD_YEAR_DATA_CACHED)
+    monkeypatch.setattr(reporter, "datetime", _fixed_datetime(today))
+    monkeypatch.setattr(claude_activity, "activity_dates", frozenset)
+    agent = AgentInfo("codex", "Codex", "", True)
+    live = _entry(
+        when=today,
+        session_id="today",
+        model="gpt-5",
+        project="work",
+        agent_id=agent.id,
+        input_tokens=900,
+    )
+    monkeypatch.setattr(reporter, "_load_agent_entries", lambda *_: [live])
+
+    data = reporter.build_report_data([agent], "today")
+
+    assert data["summary"]["total_tokens"] == data["contribution"]["total_tokens"] == 900
 
 
 def test_build_report_data_calculates_each_entry_date_once(
@@ -1012,7 +1128,9 @@ def test_ledger_gap_preserves_composition_sessions_and_snapshot(
         cost_usd=1,
     )
     monkeypatch.setattr(reporter, "_load_agent_entries", lambda *_args: [live])
-    monkeypatch.setattr(reporter, "_load_year_data_cached", lambda _agents: _empty_year_payload())
+    monkeypatch.setattr(
+        reporter, "_load_year_data_cached", lambda _agents, **_kwargs: _empty_year_payload()
+    )
     agents = [AgentInfo(id="claude-code", name="Claude Code", installed=True, data_dir="")]
     baseline = reporter.build_report_data(agents)
     days = reporter._aggregate_year_days([live])
@@ -1242,7 +1360,7 @@ def test_year_ledger_timeout_uses_saved_data_without_writing(
         # The background writer must see the timeout so it does not record a success.
         with pytest.raises(file_lock.LockTimeout):
             reporter._merge_year_ledger(current, trim_before=day)
-        # The year view falls back to the saved ledger instead.
+        # The year view merges the available entries without writing the ledger.
         shown: list[dict[str, Any]] = []
         monkeypatch.setattr(reporter, "_aggregate_year_days", lambda _entries: current)
         monkeypatch.setattr(
@@ -1251,7 +1369,7 @@ def test_year_ledger_timeout_uses_saved_data_without_writing(
             lambda ledger, **_kwargs: shown.append(ledger["days"]),
         )
         reporter.build_year_data([])
-        assert shown == [{day_key: saved_day}]
+        assert shown == [{day_key: saved_day, **current}]
     assert not writes
 
 

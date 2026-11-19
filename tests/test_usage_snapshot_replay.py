@@ -145,7 +145,9 @@ def _sandbox_report(
     monkeypatch.setattr(usage_snapshot, "_local_tz", lambda: UTC)
     monkeypatch.setattr(reporter, "YEAR_CACHE_PATH", tmp_path / "year_cache.json")
     monkeypatch.setattr(reporter, "YEAR_LEDGER_PATH", tmp_path / "year_ledger.json")
-    monkeypatch.setattr(reporter, "_load_year_data_cached", lambda _agents: _empty_year_payload())
+    monkeypatch.setattr(
+        reporter, "_load_year_data_cached", lambda _agents, **_kwargs: _empty_year_payload()
+    )
     monkeypatch.setattr(reporter, "_load_persona_for_period", lambda _period: None)
     monkeypatch.setattr(reporter, "is_model_priced", lambda model: model != "unknown")
     monkeypatch.setattr("analyzer.reporter.subscription.load_subscriptions", lambda: [])
