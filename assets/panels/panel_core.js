@@ -251,6 +251,10 @@
     }
 
     function projectRangeLabel(range) {
+      return `${projectRangeName(range)} ⇄`;
+    }
+
+    function projectRangeName(range) {
       if (range === "yesterday") return t("project_range_yesterday");
       if (range === "7d") return t("project_range_7d");
       if (range === "30d") return t("project_range_30d");

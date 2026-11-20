@@ -8,7 +8,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Changed
-- **The Windows 95 panel shows that the project range button cycles.** The button reads `Today ⇄`, matching the Antigravity `Gemini ⇄` button, so it is clear that clicking it steps through Today, Yesterday, 7 days, Month and All.
+- **Every panel shows that the project range button cycles.** The button reads `Today ⇄`, matching the Antigravity `Gemini ⇄` button, so it is clear that clicking it steps through Today, Yesterday, 7 Days, Month and All Time.
+- **The Windows 95 panel uses three text sizes instead of six.** Card titles, row labels, percentages and the daily total are 15 px; project rows, the rate line and every button are 13 px; reset times, costs and the credit line are 11 px. Before this, card titles were smaller than the rows below them, and the `Gemini ⇄` button was smaller than the other title-bar buttons.
 - **Project bars in the Windows 95 panel are easier to compare.** They were 3 px tall, and the beveled border left about 1 px of green. They are now 8 px tall, 9 px for the top project.
 
 ### Fixed
