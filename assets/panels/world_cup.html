@@ -423,7 +423,7 @@
 
     .project-row {
       display: grid;
-      grid-template-columns: 20px minmax(0, 1fr) minmax(80px, auto) minmax(70px, auto);
+      grid-template-columns: 20px minmax(0, 1fr) minmax(56px, auto) minmax(70px, auto);
       align-items: center;
       gap: 8px;
       min-height: 28px;
@@ -456,7 +456,7 @@
     .project-meter {
       position: relative;
       height: 7px;
-      min-width: 80px;
+      min-width: 56px;
       overflow: hidden;
       border-radius: 999px;
       background: rgba(255, 255, 255, 0.14);
@@ -480,6 +480,12 @@
       text-align: right;
       white-space: nowrap;
       text-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
+    }
+
+    .project-unit {
+      font-size: 0.72em;
+      font-weight: 400;
+      opacity: 0.7;
     }
 
     .empty-state {
@@ -904,7 +910,15 @@
       tokens.className = "project-tokens";
       rank.textContent = `${index + 1}`;
       name.textContent = project.name || "";
-      tokens.textContent = project.tokensText || project.costText || "";
+      // This panel does not load panel_core.js, so it splits count and unit itself.
+      if (project.tokensCount) {
+        const unit = document.createElement("span");
+        unit.className = "project-unit";
+        unit.textContent = ` ${project.tokensUnit || ""}`;
+        tokens.replaceChildren(project.tokensCount, unit);
+      } else {
+        tokens.textContent = project.tokensText || project.costText || "";
+      }
       meterFill.style.width = `${maxMetric > 0 ? Math.min(100, (metric / maxMetric) * 100) : 0}%`;
       meter.append(meterFill);
       row.append(rank, name, meter, tokens);

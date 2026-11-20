@@ -828,9 +828,9 @@
     .fill::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(180deg, rgba(255,255,255,0.26), transparent 70%); opacity: 0.70; }
     .reset { margin-top: 4px; padding-right: 2px; color: var(--muted); font-family: var(--mono); font-size: 11px; line-height: 1.3; font-weight: 400; text-align: right; white-space: nowrap; }
 
-    .proj-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; padding: 6px 2px; font-size: 14px; line-height: 1.3; }
+    .proj-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; column-gap: 6px; padding: 6px 2px; font-size: 14px; line-height: 1.3; }
     .proj-rank { width: 18px; height: auto; color: var(--muted); font-family: var(--mono); font-weight: 700; flex: none; background: none; }
-    .proj-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .proj-name { flex: 1; min-width: 0; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .proj-tokens { color: var(--accent); font-family: var(--mono); font-weight: 700; white-space: nowrap; min-width: 0; }
     .proj-cost { color: var(--muted); font-family: var(--mono); font-size: 12px; white-space: nowrap; }
     .proj-bar { flex: 0 0 100%; width: 100%; height: 4px; margin-top: 6px; align-self: end; overflow: hidden; border-radius: 999px; background: rgba(29, 12, 42, 0.60); box-shadow: inset 0 0 0 1px rgba(255, 202, 163, 0.16); }

@@ -11,7 +11,7 @@ from functools import cache, lru_cache
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from usage_common.i18n import _load_i18n_bundle
+from usage_common.i18n import _load_i18n_bundle, _t
 
 if TYPE_CHECKING:
     from menubar.state import PeriodTotal, PopoverState, QuotaRowState
@@ -111,7 +111,7 @@ def _state_payload(
                 {
                     "name": name,
                     "tokens": tokens,
-                    "tokensText": _fmt_tokens(tokens),
+                    **_token_fields(tokens, state.language),
                     "costText": _fmt_cost(cost),
                 }
                 for name, tokens, cost in rows
@@ -161,8 +161,8 @@ def _state_payload(
         "footer": {
             "rate": state.rate_text,
             "status": state.status_text,
-            "today": _period_payload(state.today_total),
-            "yesterday": _period_payload(state.yesterday_total),
+            "today": _period_payload(state.today_total, state.language),
+            "yesterday": _period_payload(state.yesterday_total, state.language),
             "serviceAlerts": list(state.service_alerts),
             "showInstall": state.show_install_button,
         },
@@ -172,13 +172,17 @@ def _state_payload(
     return payload
 
 
-def _fmt_tokens(tokens: int) -> str:
-    return f"{tokens:,}"
+def _token_fields(tokens: int, language: str) -> dict[str, str]:
+    # Full count on purpose: users want the exact figure, never an abbreviation.
+    # Count and unit also travel apart so narrow panels can shrink just the unit.
+    count = f"{tokens:,}"
+    unit = _t(language, "panel_tokens_unit")
+    return {"tokensText": f"{count} {unit}", "tokensCount": count, "tokensUnit": unit}
 
 
 def _fmt_cost(cost: float | None) -> str:
     return "--" if cost is None else f"${cost:.2f}"
 
 
-def _period_payload(total: PeriodTotal) -> dict[str, str]:
-    return {"tokensText": _fmt_tokens(total.tokens), "costText": _fmt_cost(total.cost)}
+def _period_payload(total: PeriodTotal, language: str) -> dict[str, str]:
+    return {**_token_fields(total.tokens, language), "costText": _fmt_cost(total.cost)}

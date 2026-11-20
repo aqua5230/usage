@@ -58,7 +58,12 @@ def test_state_payload_includes_agy_card_data(monkeypatch: pytest.MonkeyPatch) -
     assert payload["cardOrder"] == ["claude", "codex", "agy", "grok", "muse"]
     assert payload["projectsYesterday"] == []
     footer = cast(dict[str, object], payload["footer"])
-    assert footer["yesterday"] == {"tokensText": "0", "costText": "$0.00"}
+    assert footer["yesterday"] == {
+        "tokensText": "0 tokens",
+        "tokensCount": "0",
+        "tokensUnit": "tokens",
+        "costText": "$0.00",
+    }
     assert payload["agy"] == {
         "session": {
             "percent": 25.0,
@@ -352,3 +357,21 @@ def test_bridge_switch_updates_argon_weekly_only(
         )
         assert state.agy_weekly_only is expected
         assert cast(dict[str, object], _state_payload(state)["agy"])["weeklyOnly"] is expected
+
+
+@pytest.mark.parametrize(
+    ("tokens", "count"),
+    [
+        (999, "999"),
+        (567_641, "567,641"),
+        (1_234_567_890, "1,234,567,890"),
+    ],
+)
+def test_panel_tokens_keep_full_count_with_separate_unit(tokens: int, count: str) -> None:
+    from panels.payload import _token_fields
+
+    assert _token_fields(tokens, "en") == {
+        "tokensText": f"{count} tokens",
+        "tokensCount": count,
+        "tokensUnit": "tokens",
+    }
