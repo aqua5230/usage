@@ -866,8 +866,13 @@ body {
 .card[data-card="projects"]::after { content: "SYS: PROJ" !important; }
 .footer::after { content: "SYS: META" !important; }
 
-.row-title, .switch, .action, .meta > div, .today, .proj-name {
+.row-title, .switch, .action, .meta > div, .today {
   text-transform: uppercase;
+}
+
+/* Project names and the tokens unit keep their real case. */
+.today .proj-unit {
+  text-transform: none;
 }
 
 h1 {
@@ -1084,35 +1089,50 @@ h1 {
 /* 底部 flavor 選色列：方形色票 + 製圖十字，配合圖紙語彙 */
 .ctp-flavors {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  align-items: flex-start;
+  gap: 14px;
   justify-content: center;
   padding: 12px 0 2px;
 }
 
 .ctp-flavors button {
-  width: 20px;
-  height: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
   padding: 0;
-  border-radius: 0;
-  border: 1px solid var(--panel-border);
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   cursor: pointer;
-  position: relative;
   -webkit-appearance: none;
   appearance: none;
+}
+
+.ctp-flavors button[aria-pressed="true"] { color: var(--blueprint-accent); }
+
+.ctp-swatch {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--panel-border);
+  position: relative;
   transition: transform 0.12s ease;
 }
 
-.ctp-flavors button:hover { transform: scale(1.15); }
+.ctp-flavors button:hover .ctp-swatch { transform: scale(1.15); }
 
-.ctp-flavors button[aria-pressed="true"]::after {
+.ctp-flavors button[aria-pressed="true"] .ctp-swatch::after {
   content: "";
   position: absolute;
   inset: -5px;
   border: 1px solid var(--blueprint-accent);
 }
 
-.ctp-flavors button[aria-pressed="true"]::before {
+.ctp-flavors button[aria-pressed="true"] .ctp-swatch::before {
   content: "";
   position: absolute;
   left: 50%;
@@ -1122,10 +1142,10 @@ h1 {
   background: var(--blueprint-accent);
 }
 
-.ctp-flavors button[data-flavor="latte"] { background: #eff1f5; }
-.ctp-flavors button[data-flavor="frappe"] { background: #303446; }
-.ctp-flavors button[data-flavor="macchiato"] { background: #24273a; }
-.ctp-flavors button[data-flavor="mocha"] { background: #1e1e2e; }
+.ctp-flavors button[data-flavor="latte"] .ctp-swatch { background: #eff1f5; }
+.ctp-flavors button[data-flavor="frappe"] .ctp-swatch { background: #303446; }
+.ctp-flavors button[data-flavor="macchiato"] .ctp-swatch { background: #24273a; }
+.ctp-flavors button[data-flavor="mocha"] .ctp-swatch { background: #1e1e2e; }
 
 
 
@@ -1288,10 +1308,10 @@ h1 {
       </div>
       <p class="attribution">based on <a href="https://github.com/aqua5230/usage" target="_blank">usage</a> by lollapalooza</p>
       <div class="ctp-flavors">
-        <button type="button" data-flavor="latte" title="Latte" aria-label="Latte" aria-pressed="false"></button>
-        <button type="button" data-flavor="frappe" title="Frappé" aria-label="Frappé" aria-pressed="false"></button>
-        <button type="button" data-flavor="macchiato" title="Macchiato" aria-label="Macchiato" aria-pressed="false"></button>
-        <button type="button" data-flavor="mocha" title="Mocha" aria-label="Mocha" aria-pressed="false"></button>
+        <button type="button" data-flavor="latte" title="Latte" aria-pressed="false"><span class="ctp-swatch" aria-hidden="true"></span>Latte</button>
+        <button type="button" data-flavor="frappe" title="Frappé" aria-pressed="false"><span class="ctp-swatch" aria-hidden="true"></span>Frappé</button>
+        <button type="button" data-flavor="macchiato" title="Macchiato" aria-pressed="false"><span class="ctp-swatch" aria-hidden="true"></span>Macchiato</button>
+        <button type="button" data-flavor="mocha" title="Mocha" aria-pressed="false"><span class="ctp-swatch" aria-hidden="true"></span>Mocha</button>
       </div>
     </section>
   </main>

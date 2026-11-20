@@ -58,7 +58,7 @@
     [hidden] { display: none !important; }
     .row {
       --pct: 0; display: grid; grid-template-columns: minmax(0,1fr) auto;
-      grid-template-rows: auto 34px auto 5px; align-items: center;
+      grid-template-rows: auto 34px auto 9px; align-items: center;
       column-gap: 8px; row-gap: 2px; min-width: 0; margin-top: 7px;
     }
     .row + .row { padding-top: 8px; border-top: 1px solid var(--line); }
@@ -97,7 +97,7 @@
       animation: monitor-blink 1.7s ease-in-out infinite;
     }
     .track {
-      grid-column: 1 / -1; grid-row: 4; position: relative; height: 5px;
+      grid-column: 1 / -1; grid-row: 4; position: relative; height: 5px; margin-top: 4px;
       border-radius: 3px; background: var(--track); overflow: visible;
     }
     .track::after {
