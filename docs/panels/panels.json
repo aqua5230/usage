@@ -190,5 +190,17 @@
       "ja": "Catppuccin",
       "ko": "Catppuccin"
     }
+  },
+  {
+    "id": "maple",
+    "width": 364.0,
+    "height": 1324.0,
+    "names": {
+      "en": "Maple Dusk",
+      "zh-TW": "楓紅暮色",
+      "zh-CN": "枫红暮色",
+      "ja": "紅葉の夕暮れ",
+      "ko": "단풍 노을"
+    }
   }
 ]

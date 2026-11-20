@@ -29,7 +29,7 @@
 - **讀你機器上本來就有的資料：** Claude Code、Codex、Grok CLI、Muse Code 的 token 與花費讀自本機紀錄檔。Antigravity 額度先問它自己的 CLI（不呼叫模型），不行再用該 CLI 本來就存著的登入身分向 Google 官方端點查。Muse 額度則先執行不呼叫模型的 `muse usage --json`（Muse 1.4.13 起支援），讀不到才退回在空資料夾用 `muse exec` 在背景送一次小模型呼叫。
 - **token 浪費前先提醒：** Claude Code 狀態列會在對話窗快膨脹、提示快取快冷掉時提醒你。Claude 或 Codex 故障時會跳警示橫幅。
 - **Claude Code 裡的小幫手：** 側邊面板、精簡回覆、開新對話自動接回進度、看額度規劃任務。全部可選。
-- **報表與 16 款主題：** token 趨勢與花費的 HTML 報表，還有 16 款面板主題可以挑。
+- **報表與 17 款主題：** token 趨勢與花費的 HTML 報表，還有 17 款面板主題可以挑。
 
 ## 安裝
 
@@ -110,7 +110,7 @@ uvx usage-cli
 - **HTML 報表：** 每日與每週 token 趨勢、專案排行、花費，以及附貢獻熱力圖的 Year in Review。全程離線另存 .html／.csv／.png，可選擇隱藏專案名稱。如果你從 Claude Code 把工作派給 Codex 或 Antigravity，報表會列出哪些對話用掉各家多少每週額度。
 - **終端機整合：** `usage status --json` 把 Claude Code、Codex、Antigravity、Grok 與 Muse 的額度交給 Starship、tmux 或你自己的腳本。[現成的設定片段](DEVELOPMENT.zh-TW.md#給其他工具讀的配額狀態usage-status)。
 - **AI 更新日報：** 每天更新的公開[網頁](https://aqua5230.github.io/ai-updates/)，整理 Claude Code、Codex、Antigravity、Grok Build、Muse Code、GitHub CLI 與 usage 本身的更新，附五種語言的白話摘要。
-- **照你的習慣擺：** 面板拖到哪都行，額度卡拖曳排序，16 款主題隨時從「⚙ 設定 → 更換面板」切換。介面跟隨系統語言：繁中、簡中、英、日、韓。同時顯示四張以上額度卡時，全部自動改用精簡版面；三張以下維持原樣。
+- **照你的習慣擺：** 面板拖到哪都行，額度卡拖曳排序，17 款主題隨時從「⚙ 設定 → 更換面板」切換。介面跟隨系統語言：繁中、簡中、英、日、韓。同時顯示四張以上額度卡時，全部自動改用精簡版面；三張以下維持原樣。
 
 <details>
 <summary>門檻、版本與細節</summary>
@@ -165,7 +165,7 @@ uvx usage-cli
 
 ## 主題展示
 
-內建 **16 款可切換的視覺主題**，可直接在 UI 中切換：
+內建 **17 款可切換的視覺主題**，可直接在 UI 中切換：
 
 <p align="center">
   <img src="classic.png" width="24%" alt="Classic 主題" />
@@ -175,7 +175,7 @@ uvx usage-cli
 </p>
 
 <details>
-<summary>看另外 12 款主題</summary>
+<summary>看另外 13 款主題</summary>
 
 <p align="center">
   <img src="cloud_observation.png" width="24%" alt="雲圖觀測主題" />
@@ -190,6 +190,7 @@ uvx usage-cli
   <img src="catppuccin.png" width="24%" alt="Catppuccin 主題" />
   <img src="sketchbook.png" width="24%" alt="手繪筆記主題" />
   <img src="heart_monitor.png" width="24%" alt="心電圖主題" />
+  <img src="maple.png" width="24%" alt="楓紅暮色主題" />
 </p>
 
 </details>
@@ -217,7 +218,7 @@ uvx usage-cli
 
 ## Windows 支援
 
-Windows 可完整使用核心功能：系統匣 UI（與 macOS 相同的 16 款主題）、Claude Code 狀態列 hook 與 Codex 記錄解析都原生支援。系統匣 UI 需要 Microsoft Edge WebView2 Runtime；Windows 10 與 11 通常已內建。
+Windows 可完整使用核心功能：系統匣 UI（與 macOS 相同的 17 款主題）、Claude Code 狀態列 hook 與 Codex 記錄解析都原生支援。系統匣 UI 需要 Microsoft Edge WebView2 Runtime；Windows 10 與 11 通常已內建。
 
 <details>
 <summary>系統匣圖示、工作列標籤與其他差異</summary>
