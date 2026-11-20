@@ -169,6 +169,11 @@
       justify-self: start;
     }
 
+    [data-action="toggle-project-range"]::after {
+      content: " ⇄";
+      white-space: pre;
+    }
+
     .card[data-card="projects"] .switch:nth-of-type(2) {
       justify-self: end;
     }
@@ -331,7 +336,7 @@
     .proj-bar {
       flex: 0 0 100%;
       width: 100%;
-      height: 3px;
+      height: 8px;
       margin-top: 6px;
       align-self: end;
       overflow: hidden;
@@ -350,7 +355,7 @@
     }
 
     .proj-row:first-child .proj-bar {
-      height: 3.5px;
+      height: 9px;
     }
 
     .proj-row:first-child .proj-bar-fill {

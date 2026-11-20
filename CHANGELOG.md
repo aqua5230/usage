@@ -7,6 +7,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Changed
+- **The Windows 95 panel shows that the project range button cycles.** The button reads `Today ⇄`, matching the Antigravity `Gemini ⇄` button, so it is clear that clicking it steps through Today, Yesterday, 7 days, Month and All.
+- **Project bars in the Windows 95 panel are easier to compare.** They were 3 px tall, and the beveled border left about 1 px of green. They are now 8 px tall, 9 px for the top project.
+
 ### Fixed
 - **Token counts in the panel show their unit again.** The `tokens` unit next to project and daily totals went missing when the panels moved to HTML in v0.5.0, so numbers like `567,641` had no label. Every panel now shows the full count followed by a smaller, quieter `tokens`, for example `567,641 tokens`. Counts stay exact and are never abbreviated. In the narrowest panels the project name is slightly smaller, so a 13-character name still fits beside a nine-digit count.
 - **The settings button stays at the right edge of the card.** Before this fix, hiding Claude Code moved the button to the next card but left it right after the card title, or right after the Gemini button on the Antigravity card. It now sits at the right edge, as it does on the Claude Code card.
