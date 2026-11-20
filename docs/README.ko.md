@@ -168,29 +168,29 @@ Claude Code를 떠나지 않고 사용량, 다른 대화, 백그라운드 작업
 UI에서 직접 **17가지 시각 테마**를 전환하세요.
 
 <p align="center">
-  <img src="classic.en.png" width="24%" alt="Classic 테마" />
-  <img src="matrix.en.png" width="24%" alt="Matrix 테마" />
-  <img src="win95.en.png" width="24%" alt="Windows 95 테마" />
-  <img src="newspaper.en.png" width="24%" alt="Newspaper 테마" />
+  <img src="classic.en.png" width="24%" align="top" alt="Classic 테마" />
+  <img src="matrix.en.png" width="24%" align="top" alt="Matrix 테마" />
+  <img src="win95.en.png" width="24%" align="top" alt="Windows 95 테마" />
+  <img src="newspaper.en.png" width="24%" align="top" alt="Newspaper 테마" />
 </p>
 
 <details>
 <summary>다른 13가지 테마 보기</summary>
 
 <p align="center">
-  <img src="cloud_observation.en.png" width="24%" alt="Cloud Observation 테마" />
-  <img src="aquarium.en.png" width="24%" alt="Aquarium 테마" />
-  <img src="prism_arcade.en.png" width="24%" alt="Prism Arcade 테마" />
-  <img src="stained_glass.en.png" width="24%" alt="Stained Glass 테마" />
-  <img src="origami.en.png" width="24%" alt="Origami 테마" />
-  <img src="black_hole.en.png" width="24%" alt="Black Hole 테마" />
-  <img src="world_cup.en.png" width="24%" alt="World Cup 2026 테마" />
-  <img src="lepidoptera.en.png" width="24%" alt="Lepidoptera 테마" />
-  <img src="migration.en.png" width="24%" alt="철새 이동 테마" />
-  <img src="catppuccin.en.png" width="24%" alt="Catppuccin 테마" />
-  <img src="sketchbook.en.png" width="24%" alt="손그림 노트 테마" />
-  <img src="heart_monitor.en.png" width="24%" alt="심전도 모니터 테마" />
-  <img src="maple.en.png" width="24%" alt="단풍 노을 테마" />
+  <img src="cloud_observation.en.png" width="24%" align="top" alt="Cloud Observation 테마" />
+  <img src="aquarium.en.png" width="24%" align="top" alt="Aquarium 테마" />
+  <img src="prism_arcade.en.png" width="24%" align="top" alt="Prism Arcade 테마" />
+  <img src="stained_glass.en.png" width="24%" align="top" alt="Stained Glass 테마" />
+  <img src="origami.en.png" width="24%" align="top" alt="Origami 테마" />
+  <img src="black_hole.en.png" width="24%" align="top" alt="Black Hole 테마" />
+  <img src="world_cup.en.png" width="24%" align="top" alt="World Cup 2026 테마" />
+  <img src="lepidoptera.en.png" width="24%" align="top" alt="Lepidoptera 테마" />
+  <img src="migration.en.png" width="24%" align="top" alt="철새 이동 테마" />
+  <img src="catppuccin.en.png" width="24%" align="top" alt="Catppuccin 테마" />
+  <img src="sketchbook.en.png" width="24%" align="top" alt="손그림 노트 테마" />
+  <img src="heart_monitor.en.png" width="24%" align="top" alt="심전도 모니터 테마" />
+  <img src="maple.en.png" width="24%" align="top" alt="단풍 노을 테마" />
 </p>
 
 </details>

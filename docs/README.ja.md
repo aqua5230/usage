@@ -168,29 +168,29 @@ Claude Code を離れずに、使用量、他の会話、バックグラウン�
 UIから直接 **17種類のビジュアルテーマ**を切り替えられます。
 
 <p align="center">
-  <img src="classic.en.png" width="24%" alt="Classicテーマ" />
-  <img src="matrix.en.png" width="24%" alt="Matrixテーマ" />
-  <img src="win95.en.png" width="24%" alt="Windows 95テーマ" />
-  <img src="newspaper.en.png" width="24%" alt="Newspaperテーマ" />
+  <img src="classic.en.png" width="24%" align="top" alt="Classicテーマ" />
+  <img src="matrix.en.png" width="24%" align="top" alt="Matrixテーマ" />
+  <img src="win95.en.png" width="24%" align="top" alt="Windows 95テーマ" />
+  <img src="newspaper.en.png" width="24%" align="top" alt="Newspaperテーマ" />
 </p>
 
 <details>
 <summary>他の13テーマを見る</summary>
 
 <p align="center">
-  <img src="cloud_observation.en.png" width="24%" alt="Cloud Observationテーマ" />
-  <img src="aquarium.en.png" width="24%" alt="Aquariumテーマ" />
-  <img src="prism_arcade.en.png" width="24%" alt="Prism Arcadeテーマ" />
-  <img src="stained_glass.en.png" width="24%" alt="Stained Glassテーマ" />
-  <img src="origami.en.png" width="24%" alt="Origamiテーマ" />
-  <img src="black_hole.en.png" width="24%" alt="Black Holeテーマ" />
-  <img src="world_cup.en.png" width="24%" alt="World Cup 2026テーマ" />
-  <img src="lepidoptera.en.png" width="24%" alt="Lepidopteraテーマ" />
-  <img src="migration.en.png" width="24%" alt="渡り鳥テーマ" />
-  <img src="catppuccin.en.png" width="24%" alt="Catppuccinテーマ" />
-  <img src="sketchbook.en.png" width="24%" alt="手描きノートテーマ" />
-  <img src="heart_monitor.en.png" width="24%" alt="心電図モニターテーマ" />
-  <img src="maple.en.png" width="24%" alt="紅葉の夕暮れテーマ" />
+  <img src="cloud_observation.en.png" width="24%" align="top" alt="Cloud Observationテーマ" />
+  <img src="aquarium.en.png" width="24%" align="top" alt="Aquariumテーマ" />
+  <img src="prism_arcade.en.png" width="24%" align="top" alt="Prism Arcadeテーマ" />
+  <img src="stained_glass.en.png" width="24%" align="top" alt="Stained Glassテーマ" />
+  <img src="origami.en.png" width="24%" align="top" alt="Origamiテーマ" />
+  <img src="black_hole.en.png" width="24%" align="top" alt="Black Holeテーマ" />
+  <img src="world_cup.en.png" width="24%" align="top" alt="World Cup 2026テーマ" />
+  <img src="lepidoptera.en.png" width="24%" align="top" alt="Lepidopteraテーマ" />
+  <img src="migration.en.png" width="24%" align="top" alt="渡り鳥テーマ" />
+  <img src="catppuccin.en.png" width="24%" align="top" alt="Catppuccinテーマ" />
+  <img src="sketchbook.en.png" width="24%" align="top" alt="手描きノートテーマ" />
+  <img src="heart_monitor.en.png" width="24%" align="top" alt="心電図モニターテーマ" />
+  <img src="maple.en.png" width="24%" align="top" alt="紅葉の夕暮れテーマ" />
 </p>
 
 </details>

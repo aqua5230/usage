@@ -142,35 +142,29 @@ def main() -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
     panels = json.loads(index_path.read_text(encoding="utf-8"))
 
-    # README 用 width="32%" 把截圖三張並排，高度不一就會錯位、留下大片空白
-    # （world_cup 812 對上 win95 1055 差了 243px）。全部截成最高的那個尺寸，
-    # 面板的 body 是 height: 100vh，拉高後自己的背景會填滿多出來的部分。
-    # 高度用瀏覽器實際量到的內容高度：panels.json 是五張完整卡的預設高度，
-    # 四張以上切成精簡卡後會在截圖底下多出一大片空白。
+    # 每張截成面板自己量到的內容高度，跟 app 裡開出來的視窗一樣高。
+    # 統一截成最高那張的高度，卡片不會伸長的面板（classic、maple）底下會多一截
+    # 空底；README 改用 align="top" 讓同一排頂端對齊。
+    # panels.json 是五張完整卡的預設高度，四張以上切成精簡卡後會比實際高，
+    # 只拿來量，不拿來截。
     with tempfile.TemporaryDirectory() as tmp:
         tmp_dir = Path(tmp)
-        measured = []
+        missing = []
         for panel in panels:
-            for language in LANGUAGE_SUFFIXES:
+            for language, suffix in LANGUAGE_SUFFIXES.items():
                 wrapper = _wrapper(tmp_dir, panel, language, int(panel["height"]), measure=True)
                 height = _measure(wrapper)
                 if height is None:
-                    # 無頭模式偶爾漏掉回報（每次漏的面板不同），另一種語言或
-                    # 其他面板通常有量到；截完要人工看最高那張有沒有被裁到。
-                    print(f"warning: {panel['id']} ({language}) did not report its height")
-                else:
-                    measured.append(height)
-        if not measured:
-            print("error: no panel reported its content height", file=sys.stderr)
-            return 1
-        shot_height = math.ceil(max(measured))
-        print(f"shot height: {shot_height}px")
-        for panel in panels:
-            for language, suffix in LANGUAGE_SUFFIXES.items():
+                    missing.append(f"{panel['id']} ({language})")
+                    continue
+                shot_height = math.ceil(height)
                 wrapper = _wrapper(tmp_dir, panel, language, shot_height, measure=False)
                 out = out_dir / f"{panel['id']}{suffix}.png"
                 _capture(wrapper, out, int(panel["width"]), shot_height)
-                print(f"{out.name}: {out.stat().st_size // 1024}KB")
+                print(f"{out.name}: {shot_height}px, {out.stat().st_size // 1024}KB")
+        if missing:
+            print(f"error: no height reported by {', '.join(missing)}", file=sys.stderr)
+            return 1
 
     print(f"{len(panels)} themes x {len(LANGUAGE_SUFFIXES)} languages")
     return 0
