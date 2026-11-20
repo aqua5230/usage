@@ -7,6 +7,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Changed
+- **Every panel shows that the project range button cycles.** The button reads `Today ⇄`, matching the Antigravity `Gemini ⇄` button, so it is clear that clicking it steps through Today, Yesterday, 7 Days, Month and All Time.
+- **The Windows 95 panel uses three text sizes instead of six.** Card titles, row labels, percentages and the daily total are 15 px; project rows, the rate line and every button are 13 px; reset times, costs and the credit line are 11 px. Before this, card titles were smaller than the rows below them, and the `Gemini ⇄` button was smaller than the other title-bar buttons.
+- **Project bars in the Windows 95 panel are easier to compare.** They were 3 px tall, and the beveled border left about 1 px of green. They are now 8 px tall, 9 px for the top project.
+- **The Newspaper panel looks like one design.** Project bars were thin rounded strips; they now use the same square, outlined track as the quota bars. The `Gemini ⇄` button is square like the settings button instead of pill-shaped, and the Antigravity icon sits on a gray square like the Claude Code icon.
+
 ### Fixed
 - **Token counts in the panel show their unit again.** The `tokens` unit next to project and daily totals went missing when the panels moved to HTML in v0.5.0, so numbers like `567,641` had no label. Every panel now shows the full count followed by a smaller, quieter `tokens`, for example `567,641 tokens`. Counts stay exact and are never abbreviated. In the narrowest panels the project name is slightly smaller, so a 13-character name still fits beside a nine-digit count.
 - **The settings button stays at the right edge of the card.** Before this fix, hiding Claude Code moved the button to the next card but left it right after the card title, or right after the Gemini button on the Antigravity card. It now sits at the right edge, as it does on the Claude Code card.
