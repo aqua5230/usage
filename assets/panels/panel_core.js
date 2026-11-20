@@ -102,6 +102,14 @@
       .usage-switch-host :is([data-agy-stale-age], [data-grok-stale-age], [data-muse-stale-age]) {
         display: none !important;
       }
+      /* The host's title no longer stretches, so push the button to the right edge
+         as it sits in the Claude header; a visible warning takes that role instead. */
+      .usage-switch-host > [data-action="switch"] {
+        margin-left: auto;
+      }
+      .usage-switch-host > :is([data-agy-stale], [data-grok-stale], [data-muse-stale]):not([hidden]) ~ [data-action="switch"] {
+        margin-left: 0;
+      }
       /* Antigravity also carries the quota-group button, so its title has to give way too. */
       [data-card="agy"] .usage-switch-host > :is(h1, .header-copy) {
         flex: 0 1 auto !important;
