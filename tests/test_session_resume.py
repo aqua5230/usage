@@ -540,6 +540,35 @@ def test_build_prompt_includes_pending_todos(
     assert "write changelog" in prompt and "tag the version" in prompt
 
 
+@pytest.mark.parametrize("todos", [None, ["write changelog"]])
+def test_build_prompt_default_template_shows_todo_line_only_when_recorded(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, todos: list[str] | None
+) -> None:
+    monkeypatch.setenv("USAGE_LANG", "en")
+    monkeypatch.setattr(mod, "PROMPT_SIDECAR", tmp_path / "does-not-exist.json")
+    monkeypatch.setattr(mod, "_git_dirty", lambda cwd: None)
+    project = _project_dir(tmp_path)
+    _write_session(
+        project / "prev.jsonl",
+        when=datetime.now().astimezone() - timedelta(hours=1),
+        request="ship the release",
+        commits=["feat: release"],
+        todos=todos,
+    )
+    current = project / "current.jsonl"
+    current.write_text("", encoding="utf-8")
+
+    prompt = mod._build_prompt(
+        {"transcript_path": str(current), "cwd": "/Users/me/Developer/myproj"}
+    )
+
+    assert "Progress made: feat: release" in prompt
+    if todos:
+        assert "Open to-dos: write changelog" in prompt
+    else:
+        assert "Open to-dos" not in prompt
+
+
 def test_build_prompt_todo_write_all_done_clears_stale_pending(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:

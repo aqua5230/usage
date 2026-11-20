@@ -173,7 +173,7 @@ def test_self_heal_restores_missing_sidecar_without_downgrading_script(
     assert "missing=sidecar" in log[-1]["detail"]
 
 
-def test_self_heal_upgrade_to_116_rewrites_existing_sidecar(
+def test_self_heal_upgrade_to_117_rewrites_existing_sidecar(
     patch_resume_hook_paths: Callable[..., ResumeHookPaths],
 ) -> None:
     from usage_hooks import usage_session_resume
@@ -181,13 +181,13 @@ def test_self_heal_upgrade_to_116_rewrites_existing_sidecar(
     source = Path(usage_session_resume.__file__).read_text(encoding="utf-8")
     paths = patch_resume_hook_paths(source_text=source)
     session_hooks.enable_session_resume()
-    paths.resume_target.write_text('__version__ = "1.15"\n', encoding="utf-8")
+    paths.resume_target.write_text('__version__ = "1.16"\n', encoding="utf-8")
     paths.sidecar.write_text('{"en": {"lead": "old version"}}', encoding="utf-8")
 
     session_hooks._self_heal_resume()
 
-    assert session_hooks.RESUME_HOOK_VERSION == usage_session_resume.__version__ == "1.16"
-    assert session_hooks._installed_resume_version() == "1.16"
+    assert session_hooks.RESUME_HOOK_VERSION == usage_session_resume.__version__ == "1.17"
+    assert session_hooks._installed_resume_version() == "1.17"
     bundle = json.loads(paths.sidecar.read_text(encoding="utf-8"))
     assert bundle["en"]["lead"] != "old version"
     assert bundle["en"]["summary"] == "Summary at the end of the last session: {text}"

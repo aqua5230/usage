@@ -47,7 +47,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, NamedTuple, TypedDict, cast
 
-__version__ = "1.16"
+__version__ = "1.17"
 
 
 class _HiddenConsoleKwargs(TypedDict, total=False):
@@ -537,7 +537,14 @@ def _build_report(
         return ""
     done_items = parsed.closeouts + parsed.commits[-_MAX_COMMITS:][::-1]
     done_items = done_items[:_MAX_DONE_ITEMS] or parsed.edited_files[:_MAX_FILES]
-    report = templates.lead + templates.prompt.format(
+    prompt = templates.prompt
+    if not parsed.todos:
+        # Recent Claude Code sessions record no TodoWrite at all, so an empty to-do
+        # line would read as "nothing left" when it only means "nothing recorded".
+        prompt = "\n".join(
+            line for line in prompt.split("\n") if "{todos}" not in line or line.count("{") > 1
+        )
+    report = templates.lead + prompt.format(
         project=project,
         when=_format_time(parsed.last_active),
         last_request=parsed.recent_requests or templates.none,
