@@ -168,29 +168,29 @@ See your quota, other conversations, and background jobs without leaving Claude 
 Switch between **17 visual themes** directly from the UI:
 
 <p align="center">
-  <img src="docs/classic.en.png" width="24%" alt="Classic theme" />
-  <img src="docs/matrix.en.png" width="24%" alt="Matrix theme" />
-  <img src="docs/win95.en.png" width="24%" alt="Windows 95 theme" />
-  <img src="docs/newspaper.en.png" width="24%" alt="Newspaper theme" />
+  <img src="docs/classic.en.png" width="24%" align="top" alt="Classic theme" />
+  <img src="docs/matrix.en.png" width="24%" align="top" alt="Matrix theme" />
+  <img src="docs/win95.en.png" width="24%" align="top" alt="Windows 95 theme" />
+  <img src="docs/newspaper.en.png" width="24%" align="top" alt="Newspaper theme" />
 </p>
 
 <details>
 <summary>See the other 13 themes</summary>
 
 <p align="center">
-  <img src="docs/cloud_observation.en.png" width="24%" alt="Cloud Observation theme" />
-  <img src="docs/aquarium.en.png" width="24%" alt="Midnight Aquarium theme" />
-  <img src="docs/prism_arcade.en.png" width="24%" alt="Prism Arcade theme" />
-  <img src="docs/stained_glass.en.png" width="24%" alt="Stained Glass theme" />
-  <img src="docs/origami.en.png" width="24%" alt="Origami theme" />
-  <img src="docs/black_hole.en.png" width="24%" alt="Black Hole theme" />
-  <img src="docs/world_cup.en.png" width="24%" alt="World Cup 2026 theme" />
-  <img src="docs/lepidoptera.en.png" width="24%" alt="Lepidoptera theme" />
-  <img src="docs/migration.en.png" width="24%" alt="Migration theme" />
-  <img src="docs/catppuccin.en.png" width="24%" alt="Catppuccin theme" />
-  <img src="docs/sketchbook.en.png" width="24%" alt="Sketchbook theme" />
-  <img src="docs/heart_monitor.en.png" width="24%" alt="Heart Monitor theme" />
-  <img src="docs/maple.en.png" width="24%" alt="Maple Dusk theme" />
+  <img src="docs/cloud_observation.en.png" width="24%" align="top" alt="Cloud Observation theme" />
+  <img src="docs/aquarium.en.png" width="24%" align="top" alt="Midnight Aquarium theme" />
+  <img src="docs/prism_arcade.en.png" width="24%" align="top" alt="Prism Arcade theme" />
+  <img src="docs/stained_glass.en.png" width="24%" align="top" alt="Stained Glass theme" />
+  <img src="docs/origami.en.png" width="24%" align="top" alt="Origami theme" />
+  <img src="docs/black_hole.en.png" width="24%" align="top" alt="Black Hole theme" />
+  <img src="docs/world_cup.en.png" width="24%" align="top" alt="World Cup 2026 theme" />
+  <img src="docs/lepidoptera.en.png" width="24%" align="top" alt="Lepidoptera theme" />
+  <img src="docs/migration.en.png" width="24%" align="top" alt="Migration theme" />
+  <img src="docs/catppuccin.en.png" width="24%" align="top" alt="Catppuccin theme" />
+  <img src="docs/sketchbook.en.png" width="24%" align="top" alt="Sketchbook theme" />
+  <img src="docs/heart_monitor.en.png" width="24%" align="top" alt="Heart Monitor theme" />
+  <img src="docs/maple.en.png" width="24%" align="top" alt="Maple Dusk theme" />
 </p>
 
 </details>

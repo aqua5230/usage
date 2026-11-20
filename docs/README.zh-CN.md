@@ -168,29 +168,29 @@ uvx usage-cli
 直接在界面中切换 **17 个视觉主题**：
 
 <p align="center">
-  <img src="classic.en.png" width="24%" alt="Classic 主题" />
-  <img src="matrix.en.png" width="24%" alt="Matrix 主题" />
-  <img src="win95.en.png" width="24%" alt="Windows 95 主题" />
-  <img src="newspaper.en.png" width="24%" alt="Newspaper 主题" />
+  <img src="classic.en.png" width="24%" align="top" alt="Classic 主题" />
+  <img src="matrix.en.png" width="24%" align="top" alt="Matrix 主题" />
+  <img src="win95.en.png" width="24%" align="top" alt="Windows 95 主题" />
+  <img src="newspaper.en.png" width="24%" align="top" alt="Newspaper 主题" />
 </p>
 
 <details>
 <summary>查看其余 13 款主题</summary>
 
 <p align="center">
-  <img src="cloud_observation.en.png" width="24%" alt="Cloud Observation 主题" />
-  <img src="aquarium.en.png" width="24%" alt="Aquarium 主题" />
-  <img src="prism_arcade.en.png" width="24%" alt="Prism Arcade 主题" />
-  <img src="stained_glass.en.png" width="24%" alt="Stained Glass 主题" />
-  <img src="origami.en.png" width="24%" alt="Origami 主题" />
-  <img src="black_hole.en.png" width="24%" alt="Black Hole 主题" />
-  <img src="world_cup.en.png" width="24%" alt="World Cup 2026 主题" />
-  <img src="lepidoptera.en.png" width="24%" alt="Lepidoptera 主题" />
-  <img src="migration.en.png" width="24%" alt="候鸟迁徙主题" />
-  <img src="catppuccin.en.png" width="24%" alt="Catppuccin 主题" />
-  <img src="sketchbook.en.png" width="24%" alt="手绘笔记主题" />
-  <img src="heart_monitor.en.png" width="24%" alt="心电图主题" />
-  <img src="maple.en.png" width="24%" alt="枫红暮色主题" />
+  <img src="cloud_observation.en.png" width="24%" align="top" alt="Cloud Observation 主题" />
+  <img src="aquarium.en.png" width="24%" align="top" alt="Aquarium 主题" />
+  <img src="prism_arcade.en.png" width="24%" align="top" alt="Prism Arcade 主题" />
+  <img src="stained_glass.en.png" width="24%" align="top" alt="Stained Glass 主题" />
+  <img src="origami.en.png" width="24%" align="top" alt="Origami 主题" />
+  <img src="black_hole.en.png" width="24%" align="top" alt="Black Hole 主题" />
+  <img src="world_cup.en.png" width="24%" align="top" alt="World Cup 2026 主题" />
+  <img src="lepidoptera.en.png" width="24%" align="top" alt="Lepidoptera 主题" />
+  <img src="migration.en.png" width="24%" align="top" alt="候鸟迁徙主题" />
+  <img src="catppuccin.en.png" width="24%" align="top" alt="Catppuccin 主题" />
+  <img src="sketchbook.en.png" width="24%" align="top" alt="手绘笔记主题" />
+  <img src="heart_monitor.en.png" width="24%" align="top" alt="心电图主题" />
+  <img src="maple.en.png" width="24%" align="top" alt="枫红暮色主题" />
 </p>
 
 </details>

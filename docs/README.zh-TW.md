@@ -168,29 +168,29 @@ uvx usage-cli
 內建 **17 款可切換的視覺主題**，可直接在 UI 中切換：
 
 <p align="center">
-  <img src="classic.png" width="24%" alt="Classic 主題" />
-  <img src="matrix.png" width="24%" alt="Matrix 主題" />
-  <img src="win95.png" width="24%" alt="Windows 95 主題" />
-  <img src="newspaper.png" width="24%" alt="復古報紙主題" />
+  <img src="classic.png" width="24%" align="top" alt="Classic 主題" />
+  <img src="matrix.png" width="24%" align="top" alt="Matrix 主題" />
+  <img src="win95.png" width="24%" align="top" alt="Windows 95 主題" />
+  <img src="newspaper.png" width="24%" align="top" alt="復古報紙主題" />
 </p>
 
 <details>
 <summary>看另外 13 款主題</summary>
 
 <p align="center">
-  <img src="cloud_observation.png" width="24%" alt="雲圖觀測主題" />
-  <img src="aquarium.png" width="24%" alt="深夜水族箱主題" />
-  <img src="prism_arcade.png" width="24%" alt="Prism Arcade 主題" />
-  <img src="stained_glass.png" width="24%" alt="彩繪玻璃主題" />
-  <img src="origami.png" width="24%" alt="摺紙主題" />
-  <img src="black_hole.png" width="24%" alt="黑洞主題" />
-  <img src="world_cup.png" width="24%" alt="World Cup 2026 主題" />
-  <img src="lepidoptera.png" width="24%" alt="Lepidoptera 主題" />
-  <img src="migration.png" width="24%" alt="候鳥遷徙主題" />
-  <img src="catppuccin.png" width="24%" alt="Catppuccin 主題" />
-  <img src="sketchbook.png" width="24%" alt="手繪筆記主題" />
-  <img src="heart_monitor.png" width="24%" alt="心電圖主題" />
-  <img src="maple.png" width="24%" alt="楓紅暮色主題" />
+  <img src="cloud_observation.png" width="24%" align="top" alt="雲圖觀測主題" />
+  <img src="aquarium.png" width="24%" align="top" alt="深夜水族箱主題" />
+  <img src="prism_arcade.png" width="24%" align="top" alt="Prism Arcade 主題" />
+  <img src="stained_glass.png" width="24%" align="top" alt="彩繪玻璃主題" />
+  <img src="origami.png" width="24%" align="top" alt="摺紙主題" />
+  <img src="black_hole.png" width="24%" align="top" alt="黑洞主題" />
+  <img src="world_cup.png" width="24%" align="top" alt="World Cup 2026 主題" />
+  <img src="lepidoptera.png" width="24%" align="top" alt="Lepidoptera 主題" />
+  <img src="migration.png" width="24%" align="top" alt="候鳥遷徙主題" />
+  <img src="catppuccin.png" width="24%" align="top" alt="Catppuccin 主題" />
+  <img src="sketchbook.png" width="24%" align="top" alt="手繪筆記主題" />
+  <img src="heart_monitor.png" width="24%" align="top" alt="心電圖主題" />
+  <img src="maple.png" width="24%" align="top" alt="楓紅暮色主題" />
 </p>
 
 </details>
