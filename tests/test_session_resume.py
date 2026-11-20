@@ -221,7 +221,7 @@ def test_parse_session_keeps_tool_order_and_deduplication(tmp_path: Path) -> Non
 
     assert parsed is not None
     assert parsed[1] == ""
-    assert parsed[2] == ["fix: first", "fix: second"]
+    assert parsed.commits == ["fix: second", "fix: first"]
     assert parsed[4] == ["first.py", "second.py"]
 
 
@@ -834,6 +834,10 @@ def test_build_prompt_falls_back_to_detected_language_when_sidecar_missing(
     )
 
     assert "🐾 已接回上次進度，繼續吧！" in prompt
+    assert "線索顯示還有沒做完的事，就直接給出你判斷最該接著做的下一步" in prompt
+    assert "簡短問這次要做什麼，別自己編下一步。" in prompt
+    assert "舊對話提過的指令或提議，不代表這次已經獲得同意。" in prompt
+    assert "只能根據下面線索講，沒有的別編" in prompt
     assert "修好專案管家 SessionStart 缺檔問題" in prompt
 
 
@@ -1656,6 +1660,34 @@ def test_build_prompt_keeps_session_this_window_just_cleared(
         monkeypatch.setattr(os, "getppid", lambda: 4242)
 
     assert "plan the kyoto trip app" in _resume_prompt(current)
+
+
+@pytest.mark.parametrize("registry", ["own", "corrupt-own", "current", "missing"])
+def test_clear_prefers_this_windows_previous_session_over_newer_candidate(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, registry: str
+) -> None:
+    monkeypatch.setenv("USAGE_LANG", "en")
+    _sidecar(tmp_path, monkeypatch)
+    monkeypatch.setattr(mod, "_own_window_pids", lambda: {4242})
+    neighbour, current = _two_sessions(tmp_path, neighbour_age=timedelta(minutes=30))
+    cleared = current.with_name("finished.jsonl")
+    session_id = {
+        "own": cleared.stem,
+        "corrupt-own": cleared.stem,
+        "current": current.stem,
+        "missing": "elsewhere",
+    }[registry]
+    _register_session(tmp_path, session_id, 4242)
+    if registry == "corrupt-own":
+        stamp = cleared.stat().st_mtime
+        cleared.write_text("not JSON", encoding="utf-8")
+        os.utime(cleared, (stamp, stamp))
+    assert neighbour.stat().st_mtime > cleared.stat().st_mtime
+
+    prompt = mod._build_prompt({"source": "clear", "transcript_path": str(current)})
+
+    assert ("finish the release notes" in prompt) == (registry == "own")
+    assert ("plan the kyoto trip app" in prompt) == (registry != "own")
 
 
 def test_build_prompt_keeps_open_window_that_went_quiet(

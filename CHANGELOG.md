@@ -7,6 +7,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+- **Pick Up Where You Left Off now hands over how the last session ended.** Before this fix, the note a new conversation received listed only commits Claude made, so merges, tags and pushes you ran yourself with `!` were missing, and Claude was always told to propose a next step even when the last round was finished. The note now adds Claude Code's own end-of-session recap, used only when nothing happened after it, or else the opening sentences of Claude's last reply. It lists merged PRs, created tags and pushes that succeeded, newest first, and tells Claude to say a finished round is finished instead of inventing a next step. Claude Code's compaction text is no longer shown as your latest request, messages you queued while Claude was busy are now included, a request you resent with more detail is listed once, and after `/clear` the note picks the conversation this window just cleared. The uncommitted-changes line now says it describes the current working directory, because it is checked when the new conversation starts.
+
 ## [0.34.24] - 2026-11-20
 
 ### Added

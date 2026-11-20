@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 from collections.abc import Callable
 from pathlib import Path
+from string import Formatter
 
 import pytest
 
@@ -59,6 +60,14 @@ def test_enable_registers_hook_and_writes_sidecar(
     assert "{tokens}" in bundle["en"]["resume_cost"]
     assert "diagnosis_reminder" in bundle["en"]
     assert "polluter_dirs" in bundle["en"]["diagnosis_causes"]
+    for template in bundle.values():
+        for key in ("summary", "last_reply"):
+            assert [part[1] for part in Formatter().parse(template[key]) if part[1]] == ["text"]
+        assert {part[1] for part in Formatter().parse(template["uncommitted"]) if part[1]} == {
+            "branch",
+            "count",
+            "files",
+        }
 
 
 def test_enable_is_idempotent(resume_paths: ResumeHookPaths) -> None:
@@ -162,6 +171,27 @@ def test_self_heal_restores_missing_sidecar_without_downgrading_script(
     log = json.loads(resume_paths.settings.read_text(encoding="utf-8"))["usage"]["selfHealLog"]
     assert log[-1]["action"] == "restore_resume_hook"
     assert "missing=sidecar" in log[-1]["detail"]
+
+
+def test_self_heal_upgrade_to_116_rewrites_existing_sidecar(
+    patch_resume_hook_paths: Callable[..., ResumeHookPaths],
+) -> None:
+    from usage_hooks import usage_session_resume
+
+    source = Path(usage_session_resume.__file__).read_text(encoding="utf-8")
+    paths = patch_resume_hook_paths(source_text=source)
+    session_hooks.enable_session_resume()
+    paths.resume_target.write_text('__version__ = "1.15"\n', encoding="utf-8")
+    paths.sidecar.write_text('{"en": {"lead": "old version"}}', encoding="utf-8")
+
+    session_hooks._self_heal_resume()
+
+    assert session_hooks.RESUME_HOOK_VERSION == usage_session_resume.__version__ == "1.16"
+    assert session_hooks._installed_resume_version() == "1.16"
+    bundle = json.loads(paths.sidecar.read_text(encoding="utf-8"))
+    assert bundle["en"]["lead"] != "old version"
+    assert bundle["en"]["summary"] == "Summary at the end of the last session: {text}"
+    assert bundle["en"]["last_reply"] == "Claude's last reply: {text}"
 
 
 def test_self_heal_normalizes_existing_target_command(
@@ -327,3 +357,40 @@ def test_hook_default_templates_match_written_sidecar(resume_paths: ResumeHookPa
     for lang, template in usage_session_resume._DEFAULT_TEMPLATES.items():
         for key, value in template.items():
             assert value == sidecar[lang][key], (lang, key)
+
+
+@pytest.mark.parametrize(
+    ("lang", "no_invent", "greeting", "working_directory"),
+    [
+        ("zh-TW", "沒有的別編", "🐾 已接回上次進度，繼續吧！", "目前工作目錄"),
+        (
+            "en",
+            "invent nothing",
+            "🐾 Picked up where you left off — let's keep going!",
+            "Current working directory",
+        ),
+        ("zh-CN", "没有的别编", "🐾 已接回上次进度，继续吧！", "当前工作目录"),
+        (
+            "ja",
+            "無いことは創作しないこと",
+            "🐾 前回の続きを引き継ぎました！そのまま続けましょう！",
+            "現在の作業ディレクトリ",
+        ),
+        (
+            "ko",
+            "없는 것은 지어내지 마세요",
+            "🐾 지난 작업을 불러왔어요! 이어서 가볼까요?",
+            "현재 작업 디렉터리",
+        ),
+    ],
+)
+def test_five_language_leads_keep_greeting_and_no_invent_rule_and_describe_workspace(
+    resume_paths: ResumeHookPaths, lang: str, no_invent: str, greeting: str, working_directory: str
+) -> None:
+    session_hooks._write_resume_sidecar()
+    template = json.loads(resume_paths.sidecar.read_text(encoding="utf-8"))[lang]
+
+    assert greeting in template["lead"]
+    # The "invent nothing" rule dates from ad5d2949; shortening the lead must keep it.
+    assert no_invent in template["lead"]
+    assert template["uncommitted"].startswith(working_directory)
