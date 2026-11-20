@@ -470,10 +470,10 @@
       z-index: 2;
     }
 
-    .fill::after {
+    .track::after {
       content: "";
       position: absolute;
-      inset: 0 auto 0 0;
+      inset: 1px auto 1px 0;
       width: 40%;
       border-radius: inherit;
       background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.68), transparent);
@@ -483,7 +483,6 @@
     }
 
     .fill {
-      overflow: hidden;
       position: relative;
       z-index: 1;
       width: var(--value, 0%);
@@ -965,7 +964,8 @@
     const particles = [];
     const starCount = 120;
     const particleCount = 16;
-    const twinkleCount = 8;
+    const twinkleCount = 40;
+    const glintCount = 6;
     let width = 0;
     let height = 0;
     let pixelRatio = 1;
@@ -976,10 +976,12 @@
         stars.push({
           x: Math.random() * width,
           y: Math.random() * height,
-          r: 0.5 + Math.random(),
+          r: i < glintCount ? 1.2 + Math.random() * 0.6 : 0.5 + Math.random(),
           alpha: 0.3 + Math.random() * 0.7,
           phase: Math.random() * Math.PI * 2,
+          speed: 0.0012 + Math.random() * 0.0028,
           twinkle: i < twinkleCount,
+          glint: i < glintCount,
         });
       }
     }
@@ -1010,12 +1012,23 @@
 
     function drawStars(time) {
       stars.forEach((star) => {
-        const wobble = star.twinkle ? Math.sin(time * 0.004 + star.phase) * 0.18 : 0;
-        const alpha = Math.max(0.18, Math.min(1, star.alpha + wobble));
+        const wave = star.twinkle ? 0.5 + 0.5 * Math.sin(time * star.speed + star.phase) : 1;
+        const alpha = star.twinkle ? 0.12 + 0.88 * wave : star.alpha;
         ctx.beginPath();
         ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
         ctx.fill();
+        if (star.glint && wave > 0.8) {
+          const reach = star.r * 5 * (wave - 0.8) / 0.2;
+          ctx.strokeStyle = `rgba(255, 236, 200, ${(wave - 0.8) * 3})`;
+          ctx.lineWidth = 0.6;
+          ctx.beginPath();
+          ctx.moveTo(star.x - reach, star.y);
+          ctx.lineTo(star.x + reach, star.y);
+          ctx.moveTo(star.x, star.y - reach);
+          ctx.lineTo(star.x, star.y + reach);
+          ctx.stroke();
+        }
       });
     }
 

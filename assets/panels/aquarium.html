@@ -433,10 +433,10 @@
       z-index: 2;
     }
 
-    .fill::after {
+    .track::after {
       content: "";
       position: absolute;
-      inset: 0 auto 0 0;
+      inset: 1px auto 1px 0;
       width: 40%;
       border-radius: inherit;
       background: linear-gradient(90deg, transparent, rgba(224, 244, 255, 0.48), transparent);
@@ -446,7 +446,6 @@
     }
 
     .fill {
-      overflow: hidden;
       position: relative;
       z-index: 1;
       width: 0%;
