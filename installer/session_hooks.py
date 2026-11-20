@@ -60,7 +60,7 @@ CODEX_CONFIG = setup_hook.CODEX_CONFIG
 # session. Off by default: enabled only via the menu toggle, never by self_heal.
 RESUME_HOOK_TARGET = Path(os.path.expanduser("~/.claude/usage-session-resume.py"))
 RESUME_PROMPT_SIDECAR = Path(os.path.expanduser("~/.claude/usage-resume-prompt.json"))
-RESUME_HOOK_VERSION = "1.15"
+RESUME_HOOK_VERSION = "1.16"
 RESUME_MATCHER = "startup|clear|resume"
 RESUME_LANGS = ("zh-TW", "zh-CN", "en", "ja", "ko")
 _RESUME_MARKER = "usage-session-resume"
@@ -306,6 +306,8 @@ def _write_resume_sidecar() -> None:
         lead = table.get("report_rw_inject_lead") or en.get("report_rw_inject_lead") or ""
         empty = table.get("report_rw_empty") or en.get("report_rw_empty") or ""
         uncommitted = table.get("report_rw_uncommitted") or en.get("report_rw_uncommitted") or ""
+        summary = table.get("report_rw_summary") or en.get("report_rw_summary") or ""
+        last_reply = table.get("report_rw_last_reply") or en.get("report_rw_last_reply") or ""
         resume_cost = table.get("report_rw_resume_cost") or en.get("report_rw_resume_cost") or ""
         diagnosis_reminder = (
             table.get("report_rw_diagnosis_reminder")
@@ -337,6 +339,8 @@ def _write_resume_sidecar() -> None:
                 "lead": lead,
                 "empty": empty,
                 "uncommitted": uncommitted,
+                "summary": summary,
+                "last_reply": last_reply,
                 "resume_cost": resume_cost,
                 "diagnosis_reminder": diagnosis_reminder,
                 "diagnosis_reminder_explain": diagnosis_reminder_explain,
