@@ -1,3 +1,15 @@
+    // Count, then the unit in its own span so a narrow panel can shrink only the unit.
+    function fillTokens(el, data, fallback) {
+      if (!data.tokensCount) {
+        el.textContent = data.tokensText || fallback;
+        return;
+      }
+      const unit = document.createElement("span");
+      unit.className = "proj-unit";
+      unit.textContent = ` ${data.tokensUnit || ""}`;
+      el.replaceChildren(data.tokensCount, unit);
+    }
+
     const defaultPanelHooks = {
       accentFallback(cardEl, computedAccent) {
         return computedAccent;
@@ -22,7 +34,7 @@
         name.textContent = p.name || "";
         const tok = document.createElement("span");
         tok.className = "proj-tokens";
-        tok.textContent = p.tokensText || "";
+        fillTokens(tok, p, "");
         const cost = document.createElement("span");
         cost.className = "proj-cost";
         cost.textContent = p.costText || "";
@@ -101,6 +113,14 @@
       }
       .usage-switch-host :is([data-agy-stale-age], [data-grok-stale-age], [data-muse-stale-age]) {
         display: none !important;
+      }
+      /* The host's title no longer stretches, so push the button to the right edge
+         as it sits in the Claude header; a visible warning takes that role instead. */
+      .usage-switch-host > [data-action="switch"] {
+        margin-left: auto;
+      }
+      .usage-switch-host > :is([data-agy-stale], [data-grok-stale], [data-muse-stale]):not([hidden]) ~ [data-action="switch"] {
+        margin-left: 0;
       }
       /* Antigravity also carries the quota-group button, so its title has to give way too. */
       [data-card="agy"] .usage-switch-host > :is(h1, .header-copy) {
@@ -202,6 +222,12 @@
         margin-left: 6px;
         text-align: left;
       }
+      /* A small, quiet unit keeps the full count readable and leaves room for the project name. */
+      .proj-unit {
+        font-size: 0.72em;
+        font-weight: 400;
+        opacity: 0.7;
+      }
     `;
     document.head.appendChild(periodTotalStyle);
     let currentLanguage = "en";
@@ -241,6 +267,8 @@
       const rangeButton = document.querySelector('[data-action="toggle-project-range"]');
       if (rangeButton) rangeButton.textContent = projectRangeLabel(projectRange);
     }
+
+    window.usageFillTokens = fillTokens;
 
     window.usageSetLanguage = function usageSetLanguage(language) {
       currentLanguage = I18N[language] ? language : FALLBACK_LANGUAGE;
@@ -495,7 +523,7 @@
       label.textContent = t(yesterday ? "yesterday_label" : "today_label");
       const tokens = document.createElement("span");
       tokens.className = "proj-tokens";
-      tokens.textContent = data.tokensText || "0";
+      fillTokens(tokens, data, "0");
       if (label.textContent.endsWith("：")) tokens.style.marginLeft = "0";
       const cost = document.createElement("span");
       cost.className = "proj-cost";

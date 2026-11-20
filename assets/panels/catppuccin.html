@@ -354,7 +354,8 @@
       display: grid;
       grid-template-columns: 16px minmax(0, 1fr) auto auto;
       align-items: baseline;
-      gap: 8px;
+      gap: 6px;
+      column-gap: 4px;
       padding: 8px 0 11px;
       font-size: 13.5px;
       line-height: 20px;
@@ -385,6 +386,7 @@
 
     .proj-name {
       min-width: 0;
+      font-size: 11px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -400,6 +402,11 @@
       white-space: nowrap;
       text-align: right;
       min-width: 84px;
+    }
+
+    /* Narrowest panel: the unit gives up a little more so the name fits. */
+    .proj-row .proj-unit {
+      font-size: 0.62em;
     }
 
     .proj-cost {

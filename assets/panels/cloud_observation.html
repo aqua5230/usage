@@ -959,7 +959,7 @@
         topline.append(rank, name);
         const tok = document.createElement("span");
         tok.className = "proj-tokens";
-        tok.textContent = project.tokensText || "";
+        window.usageFillTokens(tok, project, "");
         const cost = document.createElement("span");
         cost.className = "proj-cost";
         cost.textContent = project.costText || "";

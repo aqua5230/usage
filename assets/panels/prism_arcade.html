@@ -899,7 +899,7 @@
         cost.className = "proj-cost";
         rank.textContent = `${index + 1}`;
         name.textContent = project.name || "";
-        tokens.textContent = project.tokensText || "";
+        window.usageFillTokens(tokens, project, "");
         cost.textContent = project.costText || "";
         topline.append(rank, name);
         row.append(topline, tokens, cost);
