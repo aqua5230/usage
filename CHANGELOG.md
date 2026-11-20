@@ -7,6 +7,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.34.25] - 2026-11-21
+
 ### Changed
 - **Every panel shows that the project range button cycles.** The button reads `Today ⇄`, matching the Antigravity `Gemini ⇄` button, so it is clear that clicking it steps through Today, Yesterday, 7 Days, Month and All Time.
 - **The Windows 95 panel uses three text sizes instead of six.** Card titles, row labels, percentages and the daily total are 15 px; project rows, the rate line and every button are 13 px; reset times, costs and the credit line are 11 px. Before this, card titles were smaller than the rows below them, and the `Gemini ⇄` button was smaller than the other title-bar buttons.
@@ -21,6 +23,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 - **The Heart Monitor panel's quota bars no longer touch the reset time.** The bar sat 2 px below the reset line, and its 80% tick rose into the text. The gap is now 6 px.
 - **The Origami panel no longer hides text under its dark folds.** The first-place rank badge was half light and half dark, so its white `1` disappeared. The folded corner at the bottom right of each card was dark where the last reset time sat. The badge is now two shades of deep blue, and the corner fold is smaller and dark only at its tip, so reset times, percentages and costs stay on light paper.
 - **The stars in the Black Hole panel twinkle.** Only 8 of 120 stars changed brightness, and only slightly, so the background looked still while the black hole turned. Now 40 stars fade in and out, each at its own pace, and the six largest flash a small four-point glint at their brightest.
+- **The butterflies in the Lepidoptera panel no longer hide the text they fly over.** They drift above the cards and reached 85% opacity mid-flight, so their outlines covered reset times, the Settings button and the status line. They now peak at about 45%, so the text stays readable while they still fly over the cards.
 
 ### Fixed
 - **Token counts in the panel show their unit again.** The `tokens` unit next to project and daily totals went missing when the panels moved to HTML in v0.5.0, so numbers like `567,641` had no label. Every panel now shows the full count followed by a smaller, quieter `tokens`, for example `567,641 tokens`. Counts stay exact and are never abbreviated. In the narrowest panels the project name is slightly smaller, so a 13-character name still fits beside a nine-digit count.

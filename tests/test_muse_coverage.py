@@ -84,14 +84,14 @@ def test_quota_hook_python39() -> None:
 
 
 @pytest.mark.skipif(sys.platform != "darwin", reason="make_panel_demo imports PyObjC")
-def test_demo_contains_muse() -> None:
+def test_demo_shows_only_three_tools() -> None:
     import runpy
 
     demo = runpy.run_path("scripts/make_panel_demo.py")
     state = demo["_demo_state"]("en")
-    assert state.hide_muse is False
-    assert state.muse_session.available
-    assert state.muse_weekly.available
+    assert state.hide_agy is False
+    assert state.hide_grok is True
+    assert state.hide_muse is True
 
 
 def test_status_muse_uses_observation_time(muse_cache: dict[str, Any]) -> None:
