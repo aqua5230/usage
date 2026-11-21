@@ -191,7 +191,7 @@ Switch between **18 visual themes** directly from the UI:
   <img src="docs/sketchbook.en.png" width="24%" align="top" alt="Sketchbook theme" />
   <img src="docs/heart_monitor.en.png" width="24%" align="top" alt="Heart Monitor theme" />
   <img src="docs/maple.en.png" width="24%" align="top" alt="Maple Dusk theme" />
-  <img src="docs/felt.en.png" width="24%" align="top" alt="Felt Pals theme" />
+  <img src="docs/felt.en.png" width="24%" align="top" alt="Plush Pals theme" />
 </p>
 
 </details>

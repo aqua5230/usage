@@ -191,7 +191,7 @@ uvx usage-cli
   <img src="sketchbook.en.png" width="24%" align="top" alt="手绘笔记主题" />
   <img src="heart_monitor.en.png" width="24%" align="top" alt="心电图主题" />
   <img src="maple.en.png" width="24%" align="top" alt="枫红暮色主题" />
-  <img src="felt.en.png" width="24%" align="top" alt="羊毛毡小伙伴主题" />
+  <img src="felt.en.png" width="24%" align="top" alt="绒毛小伙伴主题" />
 </p>
 
 </details>

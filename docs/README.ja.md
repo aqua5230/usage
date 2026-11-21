@@ -191,7 +191,7 @@ UIから直接 **18種類のビジュアルテーマ**を切り替えられま�
   <img src="sketchbook.en.png" width="24%" align="top" alt="手描きノートテーマ" />
   <img src="heart_monitor.en.png" width="24%" align="top" alt="心電図モニターテーマ" />
   <img src="maple.en.png" width="24%" align="top" alt="紅葉の夕暮れテーマ" />
-  <img src="felt.en.png" width="24%" align="top" alt="フェルトのなかまテーマ" />
+  <img src="felt.en.png" width="24%" align="top" alt="ぬいぐるみのなかまテーマ" />
 </p>
 
 </details>

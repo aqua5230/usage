@@ -191,7 +191,7 @@ uvx usage-cli
   <img src="sketchbook.png" width="24%" align="top" alt="手繪筆記主題" />
   <img src="heart_monitor.png" width="24%" align="top" alt="心電圖主題" />
   <img src="maple.png" width="24%" align="top" alt="楓紅暮色主題" />
-  <img src="felt.png" width="24%" align="top" alt="羊毛氈小夥伴主題" />
+  <img src="felt.png" width="24%" align="top" alt="絨毛小夥伴主題" />
 </p>
 
 </details>

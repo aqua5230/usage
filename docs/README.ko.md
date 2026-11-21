@@ -191,7 +191,7 @@ UI에서 직접 **18가지 시각 테마**를 전환하세요.
   <img src="sketchbook.en.png" width="24%" align="top" alt="손그림 노트 테마" />
   <img src="heart_monitor.en.png" width="24%" align="top" alt="심전도 모니터 테마" />
   <img src="maple.en.png" width="24%" align="top" alt="단풍 노을 테마" />
-  <img src="felt.en.png" width="24%" align="top" alt="펠트 친구들 테마" />
+  <img src="felt.en.png" width="24%" align="top" alt="봉제 친구들 테마" />
 </p>
 
 </details>
