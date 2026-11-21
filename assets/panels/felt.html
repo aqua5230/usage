@@ -30,7 +30,7 @@
       --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
     }
 
-    @media (prefers-color-scheme: light) {
+    @media all { /* Felt is light-only: always take classic's light rules. */
       :root {
         --muse: #0064E0;
         --bg: #eef2f7;
@@ -75,7 +75,7 @@
         linear-gradient(180deg, #111b25 0%, #0b1118 44%, var(--bg) 100%);
     }
 
-    @media (prefers-color-scheme: light) {
+    @media all {
       body {
         background:
           linear-gradient(180deg, #f8fafc 0%, #eef3f8 48%, var(--bg) 100%);
@@ -723,7 +723,7 @@
       border-color: rgba(255, 255, 255, 0.28);
     }
 
-    @media (prefers-color-scheme: light) {
+    @media all {
       .switch:hover {
         background: rgba(12, 18, 26, 0.10);
         border-color: rgba(12, 18, 26, 0.22);
@@ -767,7 +767,7 @@
       text-decoration: none;
     }
 
-    @media (prefers-color-scheme: light) {
+    @media all {
       .attribution {
         color: rgba(12,18,26,0.30);
       }
@@ -883,10 +883,16 @@ body {
   font-family: ui-rounded, "SF Pro Rounded", -apple-system, "Noto Sans TC", sans-serif;
 }
 .card, .footer, .pals-line {
-  background: transparent !important; box-shadow: none !important;
+  position: relative; background: transparent !important; border-radius: 18px;
+  /* A brown rim and stitch line make the cream card edge readable on the cream background. */
+  box-shadow: 0 0 0 2.5px rgba(110, 80, 56, 0.75), 0 3px 8px rgba(90, 65, 45, 0.25) !important;
   border: 0 solid transparent !important;
   border-image: url("{{ASSET:panels/felt/card.webp}}") 57 fill / 22px / 4px stretch !important;
   overflow: visible;
+}
+.card::before, .footer::before, .pals-line::before {
+  content: ""; position: absolute; inset: 2px; border-radius: 15px; pointer-events: none;
+  border: 1.6px dashed rgba(120, 88, 62, 0.8);
 }
 .card { padding: 15px 17px 14px; }
 .brand h1 { color: var(--text); font-weight: 800; }
@@ -944,101 +950,6 @@ body {
 .proj-bar { height: 6px; box-shadow: inset 0 1.5px 2px rgba(60, 40, 25, 0.35), inset 0 -1px 0 rgba(255, 255, 255, 0.5) !important; }
 .proj-bar-fill { box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, 0.45), 0 1px 1.5px rgba(40, 25, 15, 0.3); }
 .pals-line { height: 58px; padding: 0; }
-
-  </style>
-  <style media="(prefers-color-scheme: dark)">
-:root, :root:not(#x) {
-  color-scheme: dark;
-  --bg: #2b2f3a; --text: #ece4d6; --muted: #a8a094;
-  --line: color-mix(in srgb, #ece4d6 16%, transparent);
-  --tick: color-mix(in srgb, #ece4d6 45%, transparent);
-  --button: #434957; --button-border: color-mix(in srgb, #ece4d6 18%, transparent);
-  --button-hover: #434957;
-  --claude: #e8734a; --codex: #2fa7b8; --agy: #5b7fe0; --grok: #6c6470; --muse: #2f7de0;
-  --projects: #5aa860; --warn: #e6a21f; --danger: #d9473a; --radius: 18px;
-}
-body {
-  background: #2b2f3a url("{{ASSET:panels/felt/bg_dark.webp}}") center top / cover no-repeat !important;
-  color: var(--text);
-  font-family: ui-rounded, "SF Pro Rounded", -apple-system, "Noto Sans TC", sans-serif;
-}
-.card, .footer, .pals-line {
-  background: transparent !important; box-shadow: none !important;
-  border: 0 solid transparent !important;
-  border-image: url("{{ASSET:panels/felt/card_dark.webp}}") 57 fill / 22px / 4px stretch !important;
-  overflow: visible;
-}
-.card { padding: 15px 17px 14px; }
-.brand h1 { color: var(--text); font-weight: 800; }
-.row-title, .reset { color: var(--muted); }
-.percent { font-size: 15px; font-weight: 900; color: color-mix(in srgb, var(--accent) 80%, #ece4d6); }
-.row + .row { border-top: 1px dashed var(--line); }
-.track {
-  height: 15px; border-radius: 0; overflow: visible; background: transparent; box-shadow: none;
-  border: 0 solid transparent;
-  border-image: url("{{ASSET:panels/felt/track_dark.webp}}") 0 60 fill / 0 9px / 0 stretch;
-  padding: 2px 3px; box-sizing: border-box;
-}
-.track::after { inset: 3px auto 3px calc(80% - 1px); border-radius: 2px; }
-.fill {
-  position: relative; min-width: 14px; height: 100%; border-radius: 0; box-shadow: none;
-  background: var(--fill-color, var(--accent)); background-image: none;
-  -webkit-mask-box-image: url("{{ASSET:panels/felt/fill.webp}}") 0 46 / 0 7px stretch;
-  filter: drop-shadow(0 1px 1px rgba(40, 30, 20, 0.25));
-}
-.fill::after {
-  content: ""; position: absolute; inset: 0; border: 0 solid transparent;
-  border-image: url("{{ASSET:panels/felt/fill_gray.webp}}") 0 46 fill / 0 7px / 0 stretch;
-  mix-blend-mode: overlay; opacity: 0.9;
-}
-.switch, .action, .meta > div {
-  background: #434957; border: 0; color: var(--text);
-  box-shadow: inset 0 1.5px 0 rgba(255,255,255,.85), inset 0 -2px 2px rgba(60,40,30,.14),
-    0 2px 3px rgba(60,40,30,.18);
-}
-.action { border-radius: 14px; }
-.action.primary { background: var(--claude); color: #fff; }
-.proj-bar { background: color-mix(in srgb, #ece4d6 14%, #2b2f3a); border-radius: 99px;
-  box-shadow: inset 0 1px 2px rgba(60,40,30,.25); }
-.proj-bar-fill { border-radius: 99px; }
-.attribution { color: var(--muted) !important; opacity: 0.8 !important; }
-/* Depth: slabs float above the backdrop, grooves sink, ropes and buttons puff up, text is pressed in. */
-.card, .footer, .pals-line { filter: drop-shadow(0 5px 7px rgba(70, 45, 25, 0.16)) drop-shadow(0 1px 1px rgba(70, 45, 25, 0.12)); }
-.brand h1, .percent, .row-title, .reset, .proj-name, .proj-tokens { text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75); }
-.brand-icon { filter: drop-shadow(0 2px 2px rgba(60, 40, 25, 0.28)); }
-.track { box-shadow: inset 0 2px 3px rgba(60, 40, 25, 0.28), inset 0 -1px 0 rgba(255, 255, 255, 0.5); border-radius: 99px; }
-.fill { filter: drop-shadow(0 2px 1.5px rgba(40, 25, 15, 0.35)); }
-.fill::before { content: ""; position: absolute; inset: 1px 3px 50% 3px; border-radius: 99px; z-index: 1;
-  background: linear-gradient(rgba(255, 255, 255, 0.38), rgba(255, 255, 255, 0)); }
-.switch, .action, .meta > div {
-  background: linear-gradient(#fbf4ea, #434957) !important;
-  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.9), inset 0 -3px 3px rgba(90, 60, 35, 0.16),
-    0 3px 0 rgba(150, 115, 85, 0.25), 0 5px 6px rgba(70, 45, 25, 0.2) !important;
-}
-.action.primary {
-  background: linear-gradient(#f08a62, #df6638) !important;
-  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.35), inset 0 -3px 3px rgba(120, 40, 15, 0.3),
-    0 3px 0 #b44e28, 0 5px 7px rgba(120, 50, 20, 0.3) !important;
-  text-shadow: 0 1px 0 rgba(120, 40, 15, 0.4);
-}
-.proj-bar { height: 6px; box-shadow: inset 0 1.5px 2px rgba(60, 40, 25, 0.35), inset 0 -1px 0 rgba(255, 255, 255, 0.5) !important; }
-.proj-bar-fill { box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, 0.45), 0 1px 1.5px rgba(40, 25, 15, 0.3); }
-
-.brand h1, .percent, .row-title, .reset, .proj-name, .proj-tokens { text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45); }
-.card, .footer, .pals-line { filter: drop-shadow(0 5px 8px rgba(0, 0, 0, 0.4)) drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3)); }
-.switch, .action, .meta > div {
-  background: linear-gradient(#4d5363, #3c4150) !important; color: var(--text) !important;
-  box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, 0.14), inset 0 -3px 3px rgba(0, 0, 0, 0.25),
-    0 3px 0 rgba(0, 0, 0, 0.35), 0 5px 6px rgba(0, 0, 0, 0.3) !important;
-}
-.track { background: rgba(255, 255, 255, 0.05); box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.16), 0 -1px 0 rgba(0, 0, 0, 0.25); }
-.proj-bar { box-shadow: inset 0 1.5px 2px rgba(0, 0, 0, 0.5) !important; }
-.pal-dust { background: #5a6070 !important; }
-.pal-z { color: #c9bde0 !important; }
-/* Night light: pals dim a little, and their shadows turn black so they still read on dark felt. */
-.pal-img:not(.pal-sil) { filter: brightness(0.86) saturate(0.9); }
-.pal-sil { opacity: 0.5 !important; }
-.pal-shadow { background: radial-gradient(closest-side, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.3) 55%, rgba(0, 0, 0, 0)) !important; }
 
   </style>
 </head>
