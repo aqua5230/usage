@@ -6,6 +6,7 @@ from __future__ import annotations
 import base64
 import json
 import os
+import re
 import sys
 from functools import cache, lru_cache
 from pathlib import Path
@@ -47,6 +48,7 @@ def _new_state_payload(view: Any, payload: dict[str, object]) -> str | None:
 @cache
 def _load_panel_html(filename: str) -> str:
     html = Path(resolve_resource(f"panels/{filename}")).read_text(encoding="utf-8")
+    html = re.sub(r"\{\{ASSET:([^{}]+)\}\}", lambda match: _encode_asset(match[1]), html)
     return (
         html.replace("{{CLAUDE_ICON}}", _data_uri("claude.webp"))
         .replace("{{CODEX_ICON}}", _data_uri("codex.webp"))
@@ -62,8 +64,14 @@ def _load_core_script() -> str:
 
 @lru_cache(maxsize=4)
 def _data_uri(asset_name: str) -> str:
+    return _encode_asset(asset_name)
+
+
+def _encode_asset(asset_name: str) -> str:
     path = Path(resolve_resource(asset_name))
-    mime = "image/png" if path.suffix.lower() == ".png" else "image/webp"
+    mime = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg"}.get(
+        path.suffix.lower(), "image/webp"
+    )
     data = base64.b64encode(path.read_bytes()).decode("ascii")
     return f"data:{mime};base64,{data}"
 

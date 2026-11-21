@@ -7,6 +7,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+- **New panel theme: Plush Pals.** Cream cards with a brown stitched rim, and eleven original plush animals that stroll along a row under the cards. One pal sits on each quota bar at its current percentage; it looks worried from 80%, falls asleep when the quota runs out, and wakes up cheering when it resets. Click a pal to see its name. Pick it from **⚙ Settings → Switch Panel**; there are now 18 themes. The panel always uses its light look, whatever the system appearance.
+
 ## [0.34.25] - 2026-11-21
 
 ### Changed

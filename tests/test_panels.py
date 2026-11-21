@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any, cast
 
@@ -31,6 +32,7 @@ CARD_PANEL_FILENAMES = (
     "cloud_observation.html",
     "lepidoptera.html",
     "maple.html",
+    "felt.html",
     "matrix.html",
     "migration.html",
     "sketchbook.html",
@@ -79,6 +81,7 @@ def test_registered_panel_ids_are_unique() -> None:
         "world_cup",
         "catppuccin",
         "maple",
+        "felt",
     )
     assert len(ids) == len(set(ids))
 
@@ -104,6 +107,7 @@ def test_registered_panel_i18n_keys() -> None:
         "panel_world_cup",
         "panel_catppuccin",
         "panel_maple",
+        "panel_felt",
     ]
 
 
@@ -304,6 +308,32 @@ def test_next_panel_eviction_id_skips_active_and_pending_panels() -> None:
 
     assert next_panel_eviction_id(panel_ids, "matrix", {"classic"}) == "win95"
     assert next_panel_eviction_id(panel_ids, "matrix", {"classic", "win95"}) is None
+
+
+def test_felt_panel_assets_are_embedded() -> None:
+    from panels.payload import _load_panel_html, resolve_resource
+
+    source = Path(resolve_resource("panels/felt.html")).read_text(encoding="utf-8")
+    paths = set(re.findall(r"\{\{ASSET:([^{}]+)\}\}", source)) - {"..."}
+    assert paths
+    for path in paths:
+        assert Path(resolve_resource(path)).is_file(), path
+    assert "{{ASSET:" not in _load_panel_html("felt.html")
+
+
+def test_load_panel_html_raises_for_missing_asset(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from panels import payload
+
+    (tmp_path / "panels").mkdir()
+    (tmp_path / "panels" / "missing_asset.html").write_text(
+        "{{ASSET:missing.webp}}", encoding="utf-8"
+    )
+    monkeypatch.setattr(payload, "resolve_resource", lambda name: str(tmp_path / name))
+
+    with pytest.raises(FileNotFoundError, match=r"missing\.webp"):
+        payload._load_panel_html("missing_asset.html")
 
 
 def test_load_panel_html_caches_assembled_markup(monkeypatch: pytest.MonkeyPatch) -> None:
