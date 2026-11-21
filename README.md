@@ -29,7 +29,7 @@
 - **Reads what's already on your machine:** Claude Code, Codex, Grok CLI, and Muse Code tokens and cost come from local logs. Antigravity quota comes from its own CLI (no model call), or from Google's official endpoint using the sign-in that CLI already stores. Muse quota comes from `muse usage --json` (no model call, Muse 1.4.13+), or from a small background model call through `muse exec` in an empty folder when that has no reading.
 - **Warns before tokens go to waste:** The Claude Code status line flags a bloating context window and a cold prompt cache. A banner shows Claude or Codex outages.
 - **Helpers inside Claude Code:** A side pane, shorter replies, a progress hand-off for new sessions, and quota-aware planning. All optional.
-- **Reports and 17 themes:** HTML reports of token trends and cost, and 17 panel themes to pick from.
+- **Reports and 18 themes:** HTML reports of token trends and cost, and 18 panel themes to pick from.
 
 ## Install
 
@@ -110,7 +110,7 @@ Once set up, the bottom of the Claude Code window will show a status line like t
 - **HTML reports:** Daily and weekly token trends, project rankings, cost, and a Year in Review with a contribution heatmap. Export .html, .csv, or .png fully offline, with optional project-name masking. If you hand work from Claude Code to Codex or Antigravity, the report shows which conversations used how much of each weekly quota.
 - **Terminal integration:** `usage status --json` hands your Claude Code, Codex, Antigravity, Grok, and Muse quota to Starship, tmux, or your own scripts. [Ready-made snippets](docs/DEVELOPMENT.md#quota-status-for-other-tools-usage-status).
 - **AI Update Daily:** A daily public [page](https://aqua5230.github.io/ai-updates/) of changes to Claude Code, Codex, Antigravity, Grok Build, Muse Code, GitHub CLI, and usage itself, with plain-language summaries in five languages.
-- **Your layout:** Drag the panel anywhere, drag quota cards to reorder them, and switch among 17 themes from **⚙ Settings → Switch Panel**. The UI follows your system language: Traditional Chinese, Simplified Chinese, English, Japanese, or Korean. With four or more quota cards visible, all cards switch to a compact layout; three or fewer keep the usual layout.
+- **Your layout:** Drag the panel anywhere, drag quota cards to reorder them, and switch among 18 themes from **⚙ Settings → Switch Panel**. The UI follows your system language: Traditional Chinese, Simplified Chinese, English, Japanese, or Korean. With four or more quota cards visible, all cards switch to a compact layout; three or fewer keep the usual layout.
 
 <details>
 <summary>Thresholds, versions, and fine print</summary>
@@ -165,7 +165,7 @@ See your quota, other conversations, and background jobs without leaving Claude 
 
 ## Theme Gallery
 
-Switch between **17 visual themes** directly from the UI:
+Switch between **18 visual themes** directly from the UI:
 
 <p align="center">
   <img src="docs/classic.en.png" width="24%" align="top" alt="Classic theme" />
@@ -175,7 +175,7 @@ Switch between **17 visual themes** directly from the UI:
 </p>
 
 <details>
-<summary>See the other 13 themes</summary>
+<summary>See the other 14 themes</summary>
 
 <p align="center">
   <img src="docs/cloud_observation.en.png" width="24%" align="top" alt="Cloud Observation theme" />
@@ -191,6 +191,7 @@ Switch between **17 visual themes** directly from the UI:
   <img src="docs/sketchbook.en.png" width="24%" align="top" alt="Sketchbook theme" />
   <img src="docs/heart_monitor.en.png" width="24%" align="top" alt="Heart Monitor theme" />
   <img src="docs/maple.en.png" width="24%" align="top" alt="Maple Dusk theme" />
+  <img src="docs/felt.en.png" width="24%" align="top" alt="Felt Pals theme" />
 </p>
 
 </details>
@@ -218,7 +219,7 @@ As of October 2026. ccusage and TokenTracker read many more AI tools; `usage` fo
 
 ## Windows Support
 
-Windows has the full core experience: the system-tray UI with the same 17 themes as macOS, the Claude Code status-line hook, and Codex history parsing all work natively. The tray UI requires Microsoft Edge WebView2 Runtime, which is normally included with Windows 10 and 11.
+Windows has the full core experience: the system-tray UI with the same 18 themes as macOS, the Claude Code status-line hook, and Codex history parsing all work natively. The tray UI requires Microsoft Edge WebView2 Runtime, which is normally included with Windows 10 and 11.
 
 <details>
 <summary>Tray icon, taskbar label, and other differences</summary>

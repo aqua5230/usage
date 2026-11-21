@@ -29,7 +29,7 @@
 - **マシン上の既存データを読み取り：** Claude Code、Codex、Grok CLI、Muse Code のトークンと費用はローカルログから読み取ります。Antigravity のクォータはまず自身の CLI から取得し（モデル呼び出しなし）、取得できないときはその CLI が保存しているサインイン情報を使って Google の公式エンドポイントから取得します。Muse のクォータはまずモデル呼び出しなしの `muse usage --json`（Muse 1.4.13 以降対応）で取得し、取得できない場合のみ空のフォルダーで `muse exec` による小さなバックグラウンドのモデル呼び出しにフォールバックします。
 - **tokenが無駄になる前に警告：** Claude Code のステータスラインがコンテキストウィンドウの膨張や prompt cache の冷えを警告します。バナーで Claude や Codex の障害も表示します。
 - **Claude Code 内の支援機能：** サイドペイン、簡潔な回答、新しいセッションへの進捗引き継ぎ、クォータを意識した計画立案。すべて任意です。
-- **レポートと17種類のテーマ：** token推移とコストのHTMLレポート、および選べる17種類のパネルテーマ。
+- **レポートと18種類のテーマ：** token推移とコストのHTMLレポート、および選べる18種類のパネルテーマ。
 
 ## インストール
 
@@ -110,7 +110,7 @@ Codexを使用したことがある場合、`usage` はその履歴を自動で�
 - **HTMLレポート：** 日次・週次のtoken推移、プロジェクトランキング、コスト、およびコントリビューションヒートマップ付きのYear in Review。完全オフラインで.html、.csv、または.pngとしてエクスポートでき、プロジェクト名のマスキングも任意で可能です。Claude Code から Codex や Antigravity に作業を任せている場合は、どの会話が各ツールの週クォータをどれだけ使ったかも表示します。
 - **ターミナル統合：** `usage status --json` は、Starship、tmux、または独自のスクリプトに Claude Code、Codex、Antigravity、Grok、Muse のクォータを渡します。[既製のスニペット](DEVELOPMENT.md#quota-status-for-other-tools-usage-status)。
 - **AI更新日報：** Claude Code、Codex、Antigravity、Grok Build、Muse Code、GitHub CLI、そして usage 自身の変更点を毎日更新する公開[ウェブページ](https://aqua5230.github.io/ai-updates/)。5言語の平易な要約付き。
-- **好みに合わせたレイアウト：** パネルを好きな場所にドラッグし、クォータカードをドラッグして並べ替え、「⚙ 設定 → パネル切替」から17種類のテーマを切り替えられます。UIはシステム言語（繁体字中国語、簡体字中国語、英語、日本語、韓国語）に自動的に追従します。クォータカードが4枚以上あると全カードがコンパクト表示に切り替わり、3枚以下なら通常表示のままです。
+- **好みに合わせたレイアウト：** パネルを好きな場所にドラッグし、クォータカードをドラッグして並べ替え、「⚙ 設定 → パネル切替」から18種類のテーマを切り替えられます。UIはシステム言語（繁体字中国語、簡体字中国語、英語、日本語、韓国語）に自動的に追従します。クォータカードが4枚以上あると全カードがコンパクト表示に切り替わり、3枚以下なら通常表示のままです。
 
 <details>
 <summary>しきい値、バージョン、詳細情報</summary>
@@ -165,7 +165,7 @@ Claude Code を離れずに、使用量、他の会話、バックグラウン�
 
 ## テーマギャラリー
 
-UIから直接 **17種類のビジュアルテーマ**を切り替えられます。
+UIから直接 **18種類のビジュアルテーマ**を切り替えられます。
 
 <p align="center">
   <img src="classic.en.png" width="24%" align="top" alt="Classicテーマ" />
@@ -175,7 +175,7 @@ UIから直接 **17種類のビジュアルテーマ**を切り替えられま�
 </p>
 
 <details>
-<summary>他の13テーマを見る</summary>
+<summary>他の14テーマを見る</summary>
 
 <p align="center">
   <img src="cloud_observation.en.png" width="24%" align="top" alt="Cloud Observationテーマ" />
@@ -191,6 +191,7 @@ UIから直接 **17種類のビジュアルテーマ**を切り替えられま�
   <img src="sketchbook.en.png" width="24%" align="top" alt="手描きノートテーマ" />
   <img src="heart_monitor.en.png" width="24%" align="top" alt="心電図モニターテーマ" />
   <img src="maple.en.png" width="24%" align="top" alt="紅葉の夕暮れテーマ" />
+  <img src="felt.en.png" width="24%" align="top" alt="フェルトのなかまテーマ" />
 </p>
 
 </details>
@@ -218,7 +219,7 @@ UIから直接 **17種類のビジュアルテーマ**を切り替えられま�
 
 ## Windows対応
 
-Windowsでも主要機能をすべてネイティブで利用できます：macOSと同じ17種類のテーマを備えたシステムトレイUI、Claude Codeのステータスラインhook、Codex履歴の解析に対応しています。システムトレイUIにはMicrosoft Edge WebView2 Runtimeが必要ですが、通常はWindows 10/11に含まれています。
+Windowsでも主要機能をすべてネイティブで利用できます：macOSと同じ18種類のテーマを備えたシステムトレイUI、Claude Codeのステータスラインhook、Codex履歴の解析に対応しています。システムトレイUIにはMicrosoft Edge WebView2 Runtimeが必要ですが、通常はWindows 10/11に含まれています。
 
 <details>
 <summary>トレイアイコン、タスクバーラベル、その他の相違点</summary>
