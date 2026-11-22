@@ -409,6 +409,8 @@ def test_project_quota_warns_when_session_will_empty_before_reset() -> None:
     assert projection is not None
     assert projection.session.warning is True
     assert projection.session.reset_text == ("⚠ At this pace, empty in 6m · resets in 1h 30m")
+    assert projection.session.empty_text == "6m"
+    assert projection.session.empty_seconds == 375
 
 
 def test_weekly_window_row_keeps_reset_text_when_whole_window_blocks_warning() -> None:
@@ -428,6 +430,8 @@ def test_weekly_window_row_keeps_reset_text_when_whole_window_blocks_warning() -
 
     assert row.warning is False
     assert row.reset_text == "重置 3天 1小時"
+    assert row.empty_text is None
+    assert row.empty_seconds is None
 
 
 def test_project_quota_deduplicates_identical_snapshot_timestamps() -> None:
@@ -560,6 +564,8 @@ def test_project_quota_warns_for_weekly_window_after_thirty_minute_span() -> Non
 
     assert projection is not None
     assert projection.weekly.warning is True
+    assert projection.weekly.empty_text is not None
+    assert projection.weekly.empty_seconds is not None
 
 
 @pytest.mark.parametrize(

@@ -1073,14 +1073,10 @@ body {
     };
   </script>
   <script>
-// Felt pals. One pal rides the tip of each service card's first quota bar and gets less lively as usage
-// rises; the rest wait in line in a felt strip at the bottom of the panel. Every so often the pal at the
-// front of the line flips up and takes over a bar, the rider hops down to the back, and the line moves up.
-// At the 80% warning line the rider looks worried and keeps signalling with a "!"; at 100% it dozes off;
-// when the quota resets everyone cheers. Clicking a pal makes it cheer and say its name.
-// A rider hurries and sweats when its card starts burning quota too fast, and the line greets the first
-// visit of the day (or urges bedtime after midnight).
-// Idle breathing is a CSS animation; script only runs during a move, and nothing moves while hidden.
+// Felt pals. Each service card has a rider; the rest wait in line and take turns riding.
+// Riders worry at 80%, doze at 100%, and celebrate when quota returns. Clicking a pal shows its name.
+// A shared speech queue shows one bubble at a time and pauses while the panel is hidden.
+// The line greets visitors, occasionally chats or naps, and gets a tree and snow in December.
 (() => {
   const NAMES = ["redpanda", "frog", "penguin", "rabbit", "raccoon", "piglet", "elephant", "bear", "puppy", "chick", "kitten"];
   const POSES = ["stand", "jump", "worried", "sleep", "cheer"];
@@ -1088,12 +1084,15 @@ body {
   const HEIGHT = { sleep: 0.82, cheer: 1.06 };
   const SIZE = 40;
   const QUEUE_SCALE = 0.88;
+  const LINE_GROUND = 13;
   const WARN = 0.8;
+  const CARD_IDS = ["claude", "codex", "agy", "grok", "muse"];
   const CONFETTI = ["#e8734a", "#5aa860", "#5b7fe0", "#e6a21f", "#ef7fa0", "#2fa7b8"];
   const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const hidden = () => document.hidden;
   const css = document.createElement("style");
   css.textContent = `
+    .pals-line{flex-shrink:0}
     .pal-img{position:absolute;bottom:0;height:${SIZE}px;width:auto;transform-origin:50% 100%}
     .pal-body.idle .pal-img{animation:pal-breathe 3.3s ease-in-out infinite,pal-sway 8.2s ease-in-out infinite;
       animation-delay:var(--ph),calc(var(--ph) * 2.5)}
@@ -1136,7 +1135,14 @@ body {
     .pal-sweat{position:absolute;width:7px;height:7px;background:#6fb7e0;border-radius:50% 0 50% 50%;
       rotate:45deg;opacity:0;animation:pal-sweat 1.2s ease-in forwards}
     @keyframes pal-sweat{0%{opacity:0;translate:0 0}20%{opacity:1}100%{opacity:0;translate:0 10px}}
-    .pal-hit{position:absolute;bottom:0;left:${-SIZE * 0.4}px;width:${SIZE * 0.8}px;height:${SIZE}px;pointer-events:auto;cursor:pointer}`;
+    .pal-hit{position:absolute;bottom:0;left:${-SIZE * 0.4}px;width:${SIZE * 0.8}px;height:${SIZE}px;pointer-events:auto;cursor:pointer}
+    .pal-say.paused{animation-play-state:paused}
+    .pal-tree{position:absolute;right:0;bottom:${LINE_GROUND}px;height:50px;pointer-events:none;z-index:1}
+    .pal-snow{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:4}
+    .pal-flake{position:absolute;top:-5px;border-radius:50%;background:#fff;opacity:.95;
+      box-shadow:0 0 0 .5px rgba(150,115,80,.35),0 1px 1.5px rgba(110,80,50,.3);animation:pal-fall linear infinite}
+    @keyframes pal-fall{to{translate:var(--dx) calc(100vh + 12px)}}
+    @media (prefers-reduced-motion: reduce){.pal-snow{display:none}}`;
   document.head.appendChild(css);
   const layer = document.createElement("div");
   layer.style.cssText = "position:absolute;left:0;top:0;width:0;height:0;pointer-events:none;z-index:5";
@@ -1205,9 +1211,9 @@ body {
   const clamp = (x, a, b) => Math.min(Math.max(x, a), b);
   const ease = (k) => k * k * (3 - 2 * k);
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-  // A panel_felt_* string, or "" when it is missing.
-  const tr = (key) => {
-    const text = typeof t === "function" ? t(`panel_felt_${key}`) : "";
+  // A panel_felt_* string, or "" when it is missing. t() fills {name} placeholders from params, blanking any left out.
+  const tr = (key, params) => {
+    const text = typeof t === "function" ? t(`panel_felt_${key}`, params) : "";
     return text && text !== `panel_felt_${key}` ? text : "";
   };
   const label = (name) => tr(`pal_${name}`) || name;
@@ -1220,19 +1226,61 @@ body {
   const lineEl = document.querySelector(".pals-line");
   if (!lineEl) return;
 
-  // How much of a quota row is used, 0 to 1: the percentage text, or the fill width when there is no number.
-  const share = (row) => {
-    const used = parseFloat(row.querySelector(".percent").textContent);
-    const fill = row.querySelector(".fill").getBoundingClientRect().width;
-    const track = row.querySelector(".track").getBoundingClientRect().width;
-    return clamp(Number.isFinite(used) ? used / 100 : fill / track, 0, 1);
-  };
+  const TREES = [
+    ["{{ASSET:panels/felt/xmas/tree_a.webp}}", 116],
+    ["{{ASSET:panels/felt/xmas/tree_b.webp}}", 108],
+    ["{{ASSET:panels/felt/xmas/tree_c.webp}}", 120],
+    ["{{ASSET:panels/felt/xmas/tree_d.webp}}", 122],
+  ];
+  let treeDay = "";
+  let tree = null;
+  let snow = null;
+  let treeSpace = 0;
+  let lineRight = Infinity;
+
+  function refreshChristmas(now = new Date()) {
+    const day = now.getMonth() === 11 ? dayKey(now) : "";
+    if (day === treeDay) return;
+    treeDay = day;
+    if (!day) {
+      tree?.remove();
+      snow?.remove();
+      tree = snow = null;
+      treeSpace = 0;
+      return;
+    }
+    if (!tree) {
+      tree = Object.assign(document.createElement("img"), { className: "pal-tree", alt: "" });
+      lineEl.appendChild(tree);
+    }
+    // The source images are all 176px tall. Reserve the rendered width before the image loads.
+    const [image, width] = TREES[(now.getDate() - 1) % TREES.length];
+    const renderedWidth = width * 50 / 176;
+    tree.src = image;
+    tree.style.width = `${renderedWidth}px`;
+    treeSpace = renderedWidth + 8;
+    if (still || snow) return;
+    snow = Object.assign(document.createElement("div"), { className: "pal-snow" });
+    // Snow covers the whole panel, under the pals; clicks pass through it.
+    for (let i = 0; i < 24; i++) {
+      const flake = Object.assign(document.createElement("div"), { className: "pal-flake" });
+      const size = 3 + i % 3;
+      const duration = 10 + (i * 2.3) % 8;
+      flake.style.cssText = `left:${(i * 41 + 7) % 100}%;width:${size}px;height:${size}px;--dx:${(i % 5 - 2) * 9}px;`
+        + `animation-duration:${duration}s;animation-delay:${-((i * 7.9) % duration)}s`;
+      snow.appendChild(flake);
+    }
+    document.body.appendChild(snow);
+  }
+
+  const visibleCards = () => [...document.querySelectorAll(".card[data-card]")].filter((card) =>
+    CARD_IDS.includes(card.dataset.card) && !card.hidden
+      && card.getBoundingClientRect().width && getComputedStyle(card).visibility === "visible");
 
   // Bar perches, one per visible service card, in page coordinates: x is the fill tip, y the top of the track.
   function bars() {
     const out = [];
-    for (const card of document.querySelectorAll(".card[data-card]")) {
-      if (!card.getBoundingClientRect().width) continue;
+    for (const card of visibleCards()) {
       const rows = [...card.querySelectorAll("[data-row]")].filter((el) => !el.hidden && el.querySelector(".fill"));
       const row = rows[0];
       if (!row) continue;
@@ -1244,11 +1292,12 @@ body {
       const half = SIZE * 0.5;
       const x = clamp(fill.right, labelBox.right + half + 4, pct.left - half - 4);
       // Which quota this bar shows, so reordering, hiding a card or switching the Antigravity group is not a change in usage.
-      const group = card.querySelector(".agy-group-toggle:not([hidden])")?.textContent || "";
-      out.push({ x: x + scrollX, y: track.top + 5 + scrollY, key: `${card.dataset.card}/${row.dataset.row}/${group}`,
+      const id = card.dataset.card;
+      out.push({ x: x + scrollX, y: track.top + 5 + scrollY, card: id,
+        key: quotaKey(id, row.dataset.row),
         // The pal stands on the first bar, but its mood follows the most-used quota on the card:
         // a nearly spent week should worry it even while the 5-hour bar is low.
-        pct: Math.max(...rows.map(share)) });
+        pct: cardShare(id) });
     }
     return out;
   }
@@ -1257,10 +1306,10 @@ body {
   const queue = [];
   function slot(i) {
     const r = lineEl.getBoundingClientRect();
-    const l = r.left + 30, w = r.width - 60;
+    const l = r.left + 30, w = Math.max(0, r.width - 60 - treeSpace);
     const step = queue.length > 1 ? Math.min(w / (queue.length - 1), SIZE * 1.1) : 0;
     const start = l + (w - step * (queue.length - 1)) / 2;
-    return { x: start + step * i + scrollX, y: r.bottom - 13 + scrollY };
+    return { x: start + step * i + scrollX, y: r.bottom - LINE_GROUND + scrollY };
   }
 
   // Width/height of each sprite, so a pose change re-centres from known sizes; missing poses fall back to stand.
@@ -1325,6 +1374,7 @@ body {
   // Draw a pal at (x, y) with squash/stretch and tilt; the shadow stays on `ground`.
   function draw(p, x, y, sx = 1, sy = 1, rot = 0, ground = y) {
     p.last = [x, y, sx, sy, rot, ground];
+    if (p.bar < 0) x = Math.min(x, lineRight);
     // shift moves a pal that is mid-action along with its strip (see settle()).
     p.wrap.style.translate = `${x}px ${y + p.shift}px`;
     p.body.style.transform = `rotate(${rot}deg) scale(${p.face * sx * p.scale}, ${sy * p.scale})`;
@@ -1337,11 +1387,12 @@ body {
   }
 
   // Run fn(k) for k in [0, 1] over dur ms. Idle CSS animation pauses while a pal is being animated.
-  const play = (dur, fn, p) =>
+  const play = (dur, fn, p, cancelled) =>
     new Promise((done) => {
       if (p) p.body.classList.remove("idle", "dozing");
       const t0 = performance.now();
       const tick = (now) => {
+        if (cancelled?.()) return done();
         const k = Math.min(1, (now - t0) / dur);
         fn(k);
         if (k < 1) requestAnimationFrame(tick);
@@ -1434,26 +1485,38 @@ body {
     el.style.bottom = `${bottom}px`;
     el.style.left = `${left}px`;
     p.wrap.appendChild(el);
-    setTimeout(() => el.remove(), 1900);
+    return el;
   }
 
-  // A pal says one of a few lines at a moment worth noticing: its bar crosses half, the warning line or the limit,
-  // the quota resets or is about to, the official service breaks or recovers, or today passes yesterday.
-  // It also speaks when its card starts burning too fast (pace), on the day's first visit (hello), and late at night (late).
-  // Not right after taking the bar: opening the panel or a shift change is not a crossing.
-  // Returns whether a bubble was shown.
+  // Queue service alerts, quota warnings and resets, tool suggestions, records, greetings, and rare events.
+  // say() draws only the line selected by the queue. New riders wait two seconds before speaking.
+  const PRIORITY = {
+    outage: 5, fixed: 5, out: 4, soon: 4, reset: 4, pace: 3, switch: 3, warn: 3,
+    record: 2, hello: 1, late: 1, xmas: 1, chat_a: 0, chat_b: 0, nap: 0,
+  };
+  const SPEECH_GAP = 400;
+  const QUIET_TIME = 2000;
   const lastLine = {};
-  function say(p, event) {
-    if (performance.now() - p.since < 2000) return false;
-    const n = [1, 2, 3].filter((i) => i !== lastLine[event]);
-    const i = n[Math.floor(Math.random() * n.length)];
-    const line = tr(`say_${event}_${i}`);
-    if (!line) return false;
-    lastLine[event] = i;
-    p.wrap.querySelector(".pal-say")?.remove();
-    const el = Object.assign(document.createElement("div"), { className: "pal-say", textContent: line });
-    el.style.bottom = `${SIZE * p.scale + (p.mood === "alert" ? 26 : 9)}px`;
-    p.wrap.appendChild(el);
+  const speech = [];
+  let speaking = null;
+  let nameBubble = null;
+  let speechTimer;
+  let speechReadyAt = 0;
+  let pausedAt = hidden() ? performance.now() : null;
+  let hiddenTime = 0;
+  const speechTime = () => (pausedAt ?? performance.now()) - hiddenTime;
+
+  function say(p, { event, text }) {
+    if (typeof text === "function") text = text();
+    if (text === undefined) {
+      const variants = [1, 2, 3].filter((i) => i !== lastLine[event]);
+      const i = variants[Math.floor(Math.random() * variants.length)];
+      text = tr(`say_${event}_${i}`);
+      if (!text) return null;
+      lastLine[event] = i;
+    }
+    if (!text) return null;
+    const el = bubble(p, "pal-say", text, SIZE * p.scale + (p.mood === "alert" ? 26 : 9), 0);
     p.wrap.style.zIndex = "3";
     // Keep the bubble inside the panel; the tail still points at the pal.
     const r = el.getBoundingClientRect();
@@ -1461,17 +1524,88 @@ body {
     const shift = clamp(0, 6 - (mid - w / 2), innerWidth - 6 - (mid + w / 2));
     el.style.marginLeft = `${shift}px`;
     el.style.setProperty("--tail", `${-shift}px`);
-    setTimeout(() => {
-      el.remove();
-      if (!p.wrap.querySelector(".pal-say")) p.wrap.style.zIndex = "1";
-    }, 3600);
-    return true;
+    return el;
+  }
+
+  function speak({ ttl = 20000, ...request }) {
+    const same = (item) => item?.event === request.event && item.card === request.card;
+    if (same(speaking?.item) || speech.some(same)) return;
+    speech.push({ ...request, ttl, expires: speechTime() + ttl });
+    schedule();
+  }
+
+  function endSpeech(finished = false) {
+    const { item, p, el } = speaking;
+    speaking = null;
+    el.remove();
+    p.wrap.style.zIndex = "1";
+    speechReadyAt = speechTime() + SPEECH_GAP;
+    if (finished) item.onFinished?.();
+    else if (PRIORITY[item.event] >= 3 && !item.replayed) {
+      speech.unshift({ ...item, replayed: true, expires: speechTime() + item.ttl });
+    }
+  }
+
+  function riderFor(card, b) {
+    // Compact layout may move the rider between rows while it is still busy on the same card.
+    const session = quotaKey(card, "session"), weekly = quotaKey(card, "weekly");
+    return pals.find((p) => b[p.bar]?.card === card && (p.key === session || p.key === weekly));
+  }
+
+  function playSpeech(b) {
+    clearTimeout(speechTimer);
+    if (hidden()) return;
+    const now = speechTime();
+    if (speaking && now >= speaking.until) endSpeech(true);
+    if (speaking?.item.card && riderFor(speaking.item.card, b) !== speaking.p) endSpeech();
+
+    let next = Infinity;
+    let item;
+    let p;
+    for (let i = 0; i < speech.length;) {
+      const queued = speech[i];
+      if (queued.expires <= now) {
+        speech.splice(i, 1);
+        continue;
+      }
+      const target = queued.card ? riderFor(queued.card, b)
+        : (queued.queue ? queue.find((o) => !o.busy) : null) || queued.speaker?.();
+      if (target && queued.valid && !queued.valid()) {
+        speech.splice(i, 1);
+        continue;
+      }
+      next = Math.min(next, queued.expires);
+      if (target && (!item || PRIORITY[queued.event] > PRIORITY[item.event])) {
+        item = queued;
+        p = target;
+      }
+      i++;
+    }
+
+    if (item && !nameBubble && (!speaking || PRIORITY[item.event] > PRIORITY[speaking.item.event])) {
+      const readyAt = Math.max(speechReadyAt, now + p.since + QUIET_TIME - performance.now());
+      if (now < readyAt) next = Math.min(next, readyAt);
+      else if (speaking) {
+        endSpeech();
+        next = Math.min(next, speechReadyAt);
+      } else {
+        speech.splice(speech.indexOf(item), 1);
+        const el = say(p, item);
+        if (el) {
+          speaking = { item, p, el, until: now + 3600 };
+          item.onShown?.();
+          item.onShown = undefined;
+          if (!still && !p.busy) item.motion?.(p);
+        } else schedule();
+      }
+    }
+    if (speaking) next = Math.min(next, speaking.until);
+    if (Number.isFinite(next)) speechTimer = setTimeout(schedule, Math.max(1, next - now));
   }
 
   // Alert: startle on crossing the line, then keep signalling with quick hops and a shake. Returns true when handled.
   async function react(p, bar) {
     const fresh = setMood(p);
-    if (fresh && p.mood !== "calm") say(p, p.mood === "asleep" ? "out" : "warn");
     if (p.mood === "asleep") {
       if (fresh) {
         // Settle down for a nap.
@@ -1487,7 +1621,7 @@ body {
       // The whole line hops in surprise.
       queue.filter((o) => !o.busy).forEach((o, i) => {
         o.busy = true;
-        wait(i * 60).then(() => jump(o, o.x, o.y, 12)).then(() => (o.busy = false));
+        wait(i * 60).then(() => jump(o, o.x, o.y, 12)).then(() => free(o));
       });
       await jump(p, bar.x, bar.y, 30, { flip: true });
     }
@@ -1507,7 +1641,7 @@ body {
         .then(() => wait(500))
         .then(() => {
           pose(o, "stand");
-          o.busy = false;
+          free(o);
         });
     }));
   }
@@ -1515,7 +1649,6 @@ body {
   // Quota reset: the rider wakes and cheers with confetti, and the line cheers in a wave.
   async function celebrate(p, bar) {
     setMood(p);
-    say(p, "reset");
     await turn(p, 1);
     puff(bar.x, bar.y, 10, CONFETTI);
     const line = wave();
@@ -1529,12 +1662,22 @@ body {
   // Click: cheer, hop and say its name.
   async function poke(p) {
     if (p.busy) return;
-    p.wrap.querySelector(".pal-say")?.remove();
-    if (still) return bubble(p, "pal-name", label(p.name), SIZE * p.scale + 6, 0);
+    if (speaking) endSpeech();
+    nameBubble?.remove();
+    const name = bubble(p, "pal-name", label(p.name), SIZE * p.scale + 6, 0);
+    nameBubble = name;
+    setTimeout(() => {
+      if (nameBubble !== name) return;
+      name.remove();
+      nameBubble = null;
+      speechReadyAt = speechTime() + SPEECH_GAP;
+      schedule();
+    }, 1900);
+    if (still) return;
     p.busy = true;
-    bubble(p, "pal-name", label(p.name), SIZE * p.scale + 6, 0);
     if (p.mood !== "asleep") {
-      bubble(p, "pal-heart", "♥", SIZE * p.scale + 24, -9);
+      const heart = bubble(p, "pal-heart", "♥", SIZE * p.scale + 24, -9);
+      setTimeout(() => heart.remove(), 1900);
       await jump(p, p.x, p.y, 14, { air: "cheer", land: "cheer" });
       await wait(450);
       pose(p, rest(p));
@@ -1543,7 +1686,7 @@ body {
       await play(420, (k) => draw(p, p.x, p.y, 1, 1, Math.sin(k * Math.PI * 4) * 5 * (1 - k)), p);
     }
     idle(p);
-    p.busy = false;
+    free(p);
   }
 
   // A pal in line turns to its neighbour, both hop, and a heart pops up.
@@ -1554,20 +1697,21 @@ body {
     mate.busy = true;
     const dir = mate.x > p.x ? 1 : -1;
     await Promise.all([turn(p, dir), turn(mate, -dir)]);
-    bubble(p, "pal-heart", "♥", SIZE * p.scale + 2, dir * 12 - 9);
+    const heart = bubble(p, "pal-heart", "♥", SIZE * p.scale + 2, dir * 12 - 9);
+    setTimeout(() => heart.remove(), 1900);
     await Promise.all([jump(p, p.x, p.y, 10), jump(mate, mate.x, mate.y, 10)]);
     await wait(500);
     await Promise.all([turn(p, -1), turn(mate, -1)]);
     idle(p);
     idle(mate);
-    mate.busy = false;
+    free(mate);
   }
 
   async function act(p) {
     if (p.bar >= 0) {
       // Rider: lively when there is quota left, sluggish near the limit.
       const bar = bars()[p.bar];
-      if (!bar) return;
+      if (bar?.key !== p.key) return;
       p.pct = bar.pct;
       if (await react(p, bar)) return;
       if (Math.random() < 0.4) await turn(p, -p.face);
@@ -1605,17 +1749,20 @@ body {
         });
     }));
     closing = false;
+    schedule();
   }
 
   // Shift change: the front of the line takes over a bar, the longest-serving rider goes to the back, the line moves up.
   async function swap() {
     const b = bars();
     // A rider at the warning line stays put so the signal is not lost in a shift change.
-    const riders = pals.filter((p) => p.bar >= 0 && !p.busy && b[p.bar] && b[p.bar].pct < WARN);
+    const riders = pals.filter((p) => p.bar >= 0 && (!p.busy || p.hurry?.moving)
+      && b[p.bar]?.key === p.key && b[p.bar].pct < WARN);
     const fresh = queue[0];
     if (!riders.length || !fresh || fresh.busy) return;
     const rider = riders.reduce((a, c) => (c.since < a.since ? c : a));
     const i = rider.bar;
+    stopHurry(rider);
     rider.busy = fresh.busy = true;
     // Hand the bar over in one step, so settle() never sees it empty and sends another pal.
     queue.shift();
@@ -1643,10 +1790,12 @@ body {
 
   function settle() {
     const b = bars();
+    lineRight = treeSpace ? lineEl.getBoundingClientRect().right + scrollX - treeSpace - 30 : Infinity;
     // One rider per bar: extras rejoin the line, empty bars (bars appear once the data renders) take the front.
     b.forEach((_, i) => {
       const on = pals.filter((p) => p.bar === i);
       on.slice(1).filter((p) => !p.busy).forEach((p) => {
+        stopHurry(p);
         p.bar = -1;
         setMood(p);
         queue.push(p);
@@ -1667,6 +1816,7 @@ body {
       jump(p, b[i].x, b[i].y, 30, { flip: true, scale: 1 }).then(() => free(p));
     });
     for (const p of pals) {
+      if (p.hurry && b[p.bar]?.key !== p.key) stopHurry(p);
       if (p.bar >= 0 && !b[p.bar]) p.bar = -1;
       if (p.bar < 0 && !queue.includes(p)) queue.push(p);
     }
@@ -1696,8 +1846,7 @@ body {
         const before = p.seen;
         p.pct = p.seen = bar.pct;
         // Quota came back (a reset, or relief from the limit).
-        const back = (before >= 0.5 && bar.pct <= before - 0.3) || (before >= 1 && bar.pct < 1);
-        if (p.x && before < 0.5 && bar.pct >= 0.5 && bar.pct < WARN) say(p, "half");
+        const back = quotaReturned(before, bar.pct);
         if (!still && p.x) {
           if (back) {
             p.busy = true;
@@ -1721,9 +1870,7 @@ body {
         p.y = bar.y;
         p.scale = 1;
         if (still) {
-          const changed = setMood(p);
-          if (back) say(p, "reset");
-          else if (changed && p.mood !== "calm") say(p, p.mood === "asleep" ? "out" : "warn");
+          setMood(p);
           pose(p, rest(p));
         }
       } else {
@@ -1734,12 +1881,14 @@ body {
         p.scale = QUEUE_SCALE;
         const s = slot(queue.indexOf(p));
         // Snap only on first placement or after a layout change; normal moves hop via closeUp().
-        if (!p.x || Math.abs(p.y - s.y) > 1) p.x = s.x;
+        if (still || !p.x || Math.abs(p.y - s.y) > 1) p.x = s.x;
         p.y = s.y;
       }
       draw(p, p.x, p.y);
     }
     if (!still && queue.some((p, i) => !p.busy && Math.abs(p.x - slot(i).x) > 1)) closeUp();
+    checkSoon(b);
+    playSpeech(b);
   }
 
   // A pal finished moving: re-check its place, since layout changes during a move are skipped.
@@ -1781,8 +1930,102 @@ body {
   let latest = null;
   const previousAlerts = new Map();
   let previousToday = null;
+  let previousVisible = new Set();
   const wakeNoted = new Map();
-  let previousPace = null;
+  const previousQuotas = new Map();
+  const paceNoted = new Map();
+  const switchNoted = new Map();
+  const quotaNames = (id) => latest?.[id]?.weeklyOnly ? ["weekly"] : ["session", "weekly"];
+  const quotaKey = (id, name = "") => `${id}/${name}/${latest?.[id]?.groupName ?? ""}`;
+  const quotaRows = (id) => quotaNames(id).map((name) => latest?.[id]?.[name]).filter(Boolean);
+  const available = (row) => row?.available === true && Number.isFinite(row.percent);
+  const readQuota = (id, name) => {
+    const row = latest?.[id]?.[name];
+    return available(row) ? row : undefined;
+  };
+  const quotaShare = (rows) => Math.max(0, ...rows.map((row) => row?.percent ?? 0)) / 100;
+  const cardShare = (id) => quotaShare(quotaNames(id).map((name) => previousQuotas.get(quotaKey(id, name))));
+  const quotaReturned = (before, after) => (before >= 0.5 && after <= before - 0.3) || (before >= 1 && after < 1);
+  const hasWarning = (rows) => rows.some((row) => row?.warning === true);
+
+  function observeQuotas(card, remainedVisible) {
+    const names = quotaNames(card);
+    const group = quotaKey(card);
+    const current = () => names.map((name) => readQuota(card, name));
+    const rows = current();
+    // Missing readings keep their last values. The first valid reading for each row is a baseline.
+    const beforeRows = names.map((name, i) => {
+      const key = quotaKey(card, name);
+      const before = previousQuotas.get(key) ?? rows[i];
+      if (rows[i]) previousQuotas.set(key, rows[i]);
+      return before;
+    });
+    const before = quotaShare(beforeRows);
+    const pct = cardShare(card);
+    const sameGroup = () => quotaKey(card) === group;
+    if (!hasWarning(beforeRows) && hasWarning(rows) && pct < 1 && !recent(paceNoted, card, 30000)) {
+      quotaSpeech("pace", card, () => sameGroup() && hasWarning(current()) && cardShare(card) < 1, {
+        text: () => paceText(card), motion: hurry, onShown: () => paceNoted.set(card, Date.now()),
+      });
+    }
+    if (!remainedVisible) return;
+    if (quotaReturned(before, pct)) {
+      // A missing reading cannot confirm the drop that caused this reminder.
+      speak({ event: "reset", card, valid: () => sameGroup() && quotaReturned(before, cardShare(card))
+        && quotaReturned(before, quotaShare(current().map((row, i) => row ?? beforeRows[i]))) });
+    } else if (before < 1 && pct >= 1) {
+      quotaSpeech("out", card, () => sameGroup() && quotaShare(current()) >= 1);
+    } else if (before < WARN && pct >= WARN) {
+      quotaSpeech("warn", card, () => sameGroup() && quotaShare(current()) >= WARN && cardShare(card) < 1);
+    }
+  }
+
+  function switchText(card) {
+    let best = 50;
+    let tool = "";
+    for (const el of visibleCards()) {
+      const id = el.dataset.card;
+      if (id === card) continue;
+      const rows = quotaRows(id);
+      if (!rows.length || !rows.every(available)) continue;
+      const used = Math.max(...rows.map((row) => row.percent));
+      const name = el.querySelector(".brand h1")?.textContent.trim();
+      if (used >= best || !name) continue;
+      best = used;
+      tool = name;
+    }
+    return tool ? tr("say_switch", { tool }) : "";
+  }
+
+  function recent(times, key, ms) {
+    return Date.now() - (times.get(key) ?? -Infinity) < ms;
+  }
+
+  function quotaSpeech(event, card, valid, { text, motion, onShown } = {}) {
+    const canSuggest = () => !recent(switchNoted, card, 30 * 60 * 1000);
+    speak({ event, card, valid, text, motion, onShown: () => {
+      onShown?.();
+      if (canSuggest() && switchText(card)) {
+        let shown = false;
+        speak({ event: "switch", card,
+          valid: () => valid() && (shown || canSuggest()) && !!switchText(card),
+          text: () => switchText(card),
+          onShown: () => {
+            shown = true;
+            switchNoted.set(card, Date.now());
+          },
+        });
+      }
+    } });
+  }
+
+  function paceText(card) {
+    const rows = quotaRows(card).filter((row) => available(row) && row.warning === true);
+    if (!rows.length) return undefined;
+    const seconds = (row) => Number.isFinite(row.emptySeconds) ? row.emptySeconds : Infinity;
+    const chosen = rows.reduce((best, row) => seconds(row) < seconds(best) ? row : best);
+    return chosen.emptyText ? tr("say_pace_time", { time: chosen.emptyText }) || undefined : undefined;
+  }
 
   async function startle(p) {
     p.busy = true;
@@ -1803,17 +2046,39 @@ body {
   }
 
   // Burning too fast: quick little steps on the spot, with a drop of sweat sliding off.
+  function stopHurry(p) {
+    const action = p.hurry;
+    if (!action) return;
+    p.hurry = null;
+    action.sweat.remove();
+    if (action.moving) {
+      pose(p, rest(p));
+      idle(p);
+      free(p);
+    }
+  }
+
   async function hurry(p) {
+    stopHurry(p);
     p.busy = true;
     const sweat = document.createElement("div");
     sweat.className = "pal-sweat";
     sweat.style.left = "10px";
     sweat.style.bottom = `${SIZE * p.scale + 2}px`;
     p.wrap.appendChild(sweat);
-    setTimeout(() => sweat.remove(), 1200);
+    const action = { sweat, moving: true };
+    const cancelled = () => p.hurry !== action;
+    p.hurry = action;
+    setTimeout(() => {
+      sweat.remove();
+      if (!cancelled() && !action.moving) p.hurry = null;
+    }, 1200);
     await play(900, (k) => {
       draw(p, p.x + Math.sin(k * Math.PI * 6) * 3, p.y - Math.abs(Math.sin(k * Math.PI * 3)) * 3);
-    }, p);
+    }, p, cancelled);
+    if (cancelled()) return;
+    action.moving = false;
+    if (!sweat.parentElement) p.hurry = null;
     pose(p, rest(p));
     idle(p);
     free(p);
@@ -1837,69 +2102,179 @@ body {
   };
   let helloDay = storedDay("usage-felt-hello");
   let lateDay = storedDay("usage-felt-late");
-  let helloPending = false;
+  let rareDay = storedDay("usage-felt-rare");
+  let greetingTimer = null;
+  let visitReady = false;
+  let lateOfferedDay = "";
 
-  function checkLate() {
-    const now = new Date();
-    if (!isLate(now)) return;
+  function checkLate(now = new Date()) {
+    if (hidden() || !visitReady || !isLate(now)) return false;
     const tonight = dayKey(now);
-    if (lateDay === tonight) return;
-    const p = queue.find((o) => !o.busy) || pals.find((o) => o.bar >= 0 && !o.busy && o.mood !== "asleep");
-    if (!p) return;
-    if (!say(p, "late")) return;
-    lateDay = tonight;
-    storeDay("usage-felt-late", tonight);
-    if (!still && !p.busy) stretch(p);
+    if (lateDay === tonight) return false;
+    if (lateOfferedDay === tonight) return true;
+    lateOfferedDay = tonight;
+    speak({ event: "late", queue: true, visit: true,
+      speaker: () => pals.find((o) => o.bar >= 0 && !o.busy && o.mood !== "asleep"),
+      valid: () => isLate() && dayKey() === tonight && lateDay !== tonight,
+      onShown: () => {
+        lateDay = tonight;
+        storeDay("usage-felt-late", tonight);
+      },
+      motion: stretch,
+    });
+    return true;
   }
 
-  // Wait out say()'s quiet time for pals that were just placed, then greet or urge bedtime.
-  function checkGreeting() {
-    if (hidden() || helloPending) return;
-    helloPending = true;
-    setTimeout(() => {
-      helloPending = false;
+  async function helloHop(front) {
+    front.busy = true;
+    await jump(front, front.x, front.y, 16, { air: "cheer", land: "cheer" });
+    await wait(500);
+    pose(front, "stand");
+    free(front);
+  }
+
+  async function nap(p, sleeper) {
+    const before = sleeper.pose;
+    sleeper.busy = true;
+    pose(sleeper, "sleep");
+    startle(p);
+    await wait(4000);
+    pose(sleeper, before);
+    free(sleeper);
+  }
+
+  function checkRare(today) {
+    if (rareDay === today || speaking || nameBubble || speech.length
+      || queue.filter((p) => !p.busy).length < 3 || Math.random() >= 1 / 6) return;
+    const pairs = queue.slice(0, -1).map((p, i) => [p, queue[i + 1]])
+      .filter(([p, mate]) => !p.busy && !mate.busy);
+    if (!pairs.length) return;
+    const [first, second] = pairs[Math.floor(Math.random() * pairs.length)];
+    const variant = Math.floor(Math.random() * 3) + 1;
+    const nearby = () => {
+      const i = queue.indexOf(first);
+      return dayKey() === today && i >= 0 && queue[i + 1] === second;
+    };
+    const ready = () => !first.busy && !second.busy;
+    const onShown = () => {
+      rareDay = today;
+      storeDay("usage-felt-rare", today);
+    };
+    if (Math.random() < 0.5) {
+      speak({ event: "chat_a", visit: true, text: tr(`say_chat_a_${variant}`),
+        speaker: () => ready() ? first : null, valid: nearby, onShown,
+        onFinished: () => speak({ event: "chat_b", visit: true, text: tr(`say_chat_b_${variant}`),
+          speaker: () => second.busy ? null : second, valid: nearby }),
+      });
+    } else {
+      speak({ event: "nap", visit: true, text: tr(`say_nap_${variant}`),
+        speaker: () => ready() ? first : null, valid: nearby, onShown, motion: (p) => nap(p, second),
+      });
+    }
+  }
+
+  // The day's greeting fits the visit, in this order: a weekly quota that reset since the last greeting, three or
+  // more days away, Monday or Friday, then a time-of-day or general hello. usage-felt-week keeps each weekly reset
+  // time seen at the last greeting, so a new week is noticed once.
+  let greetedWeeks = {};
+  try {
+    greetedWeeks = JSON.parse(localStorage.getItem("usage-felt-week") || "{}") || {};
+  } catch {}
+  const pickLine = (keys, params) => tr(keys[Math.floor(Math.random() * keys.length)], params);
+  function greeting(now) {
+    const weeks = {};
+    let freshTool = "";
+    for (const el of visibleCards()) {
+      const key = quotaKey(el.dataset.card, "weekly");
+      const row = latest?.[el.dataset.card]?.weekly;
+      if (!available(row) || !Number.isFinite(row.resetsAt)) continue;
+      weeks[key] = row.resetsAt;
+      const before = greetedWeeks[key];
+      // Antigravity reset times drift by a minute between probes, so only a jump of over an hour is a new week.
+      if (!freshTool && Number.isFinite(before) && Math.abs(row.resetsAt - before) > 3600 && row.percent <= 5) {
+        freshTool = el.querySelector(".brand h1")?.textContent.trim() ?? "";
+      }
+    }
+    const remember = () => {
+      greetedWeeks = { ...greetedWeeks, ...weeks };
+      try {
+        localStorage.setItem("usage-felt-week", JSON.stringify(greetedWeeks));
+      } catch {}
+    };
+    const last = helloDay ? new Date(`${helloDay}T00:00`) : null;
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const away = last && !Number.isNaN(last.getTime()) ? Math.round((today - last) / 864e5) : 0;
+    const hour = now.getHours();
+    const time = hour < 12 ? "morning" : hour < 18 ? "afternoon" : "evening";
+    let text;
+    if (freshTool) text = pickLine(["say_week_1", "say_week_2"], { tool: freshTool });
+    else if (away >= 3) text = pickLine(["say_back_1", "say_back_2"]);
+    else if (now.getDay() === 1) text = pickLine(["say_monday_1", "say_monday_2"]);
+    else if (now.getDay() === 5) text = pickLine(["say_friday_1", "say_friday_2"]);
+    else text = pickLine([`say_${time}_1`, `say_${time}_2`, "say_hello_1", "say_hello_2", "say_hello_3"]);
+    return { text, remember };
+  }
+
+  // Give each visible visit 2.5 seconds before offering a greeting.
+  function beginVisit() {
+    if (greetingTimer !== null || visitReady) return;
+    greetingTimer = setTimeout(() => {
+      greetingTimer = null;
       if (hidden()) return;
-      const then = new Date();
-      if (isLate(then)) {
-        checkLate();
+      visitReady = true;
+      const now = new Date();
+      const today = dayKey(now);
+      if (isLate(now)) {
+        if (!checkLate(now)) checkRare(today);
         return;
       }
-      const today = dayKey(then);
-      if (helloDay === today) return;
-      const front = queue.find((o) => !o.busy);
-      if (!front) return;
-      if (!say(front, "hello")) return;
-      helloDay = today;
-      storeDay("usage-felt-hello", today);
-      if (!still) {
-        front.busy = true;
-        jump(front, front.x, front.y, 16, { air: "cheer", land: "cheer" })
-          .then(() => wait(500))
-          .then(() => {
-            pose(front, "stand");
-            front.busy = false;
-          });
-      }
+      if (helloDay === today) return checkRare(today);
+      const christmas = now.getMonth() === 11 && (now.getDate() === 24 || now.getDate() === 25);
+      const hello = christmas ? null : greeting(now);
+      speak({ event: christmas ? "xmas" : "hello", queue: true, visit: true, text: hello?.text || undefined,
+        valid: () => !isLate() && dayKey() === today && helloDay !== today,
+        onShown: () => {
+          hello?.remember();
+          helloDay = today;
+          storeDay("usage-felt-hello", today);
+        },
+        motion: helloHop,
+      });
     }, 2500);
   }
 
-  function checkSoon() {
-    if (!latest) return;
-    const now = Date.now() / 1000;
-    for (const p of pals) {
-      if (p.bar < 0 || p.mood !== "asleep") continue;
-      const card = latest[p.key.split("/")[0]];
-      // The pal can only wake once all spent quotas have reset.
-      const spent = [card?.session, card?.weekly].filter((row) => row?.percent >= 100);
-      if (spent.some((row) => !Number.isFinite(row.resetsAt))) continue;
-      const resetsAt = Math.max(...spent.map((row) => row.resetsAt));
-      const remaining = resetsAt - now;
-      const lastNoted = wakeNoted.get(p.key);
-      if (lastNoted !== undefined && Math.abs(resetsAt - lastNoted) <= 180) continue;
-      if (remaining > 0 && remaining <= 600 && say(p, "soon")) {
-        wakeNoted.set(p.key, resetsAt);
-        if (!still && !p.busy) stretch(p);
-      }
+  function nextWake(card) {
+    // The pal can only wake once all spent quotas have reset.
+    let wake;
+    for (const name of quotaNames(card)) {
+      const key = quotaKey(card, name);
+      if ((previousQuotas.get(key)?.percent ?? 0) < 100) continue;
+      const resetsAt = readQuota(card, name)?.resetsAt;
+      if (!Number.isFinite(resetsAt)) return undefined;
+      if (!wake || resetsAt > wake.resetsAt) wake = { key, resetsAt };
+    }
+    return wake;
+  }
+
+  function wakesSoon(resetsAt) {
+    const remaining = resetsAt - Date.now() / 1000;
+    return remaining > 0 && remaining <= 600;
+  }
+
+  function checkSoon(b) {
+    for (const { card } of b) {
+      const wake = nextWake(card);
+      if (!wake || !wakesSoon(wake.resetsAt)) continue;
+      const lastNoted = wakeNoted.get(wake.key);
+      if (lastNoted !== undefined && Math.abs(wake.resetsAt - lastNoted) <= 180) continue;
+      speak({ event: "soon", card,
+        valid: () => {
+          const current = nextWake(card);
+          return current?.key === wake.key && wakesSoon(current.resetsAt);
+        },
+        onShown: () => wakeNoted.set(wake.key, nextWake(card).resetsAt),
+        motion: stretch,
+      });
     }
   }
 
@@ -1910,39 +2285,27 @@ body {
       const previous = previousAlerts.get(id);
       previousAlerts.set(id, active);
       if (previous === undefined || active === previous) continue;
-      const p = pals.find((pal) => pal.bar >= 0 && pal.key.split("/")[0] === id);
-      if (!p) continue;
-      say(p, active ? "outage" : "fixed");
-      if (active && !still && !p.busy) startle(p);
+      speak({ event: active ? "outage" : "fixed", card: id,
+        valid: () => previousAlerts.get(id) === active, motion: active ? startle : undefined });
     }
 
     if (state.footer?.totalsReady !== false) {
       const today = Number((state.footer?.today?.tokensCount ?? "").replace(/\D/g, ""));
       const yesterday = Number((state.footer?.yesterday?.tokensCount ?? "").replace(/\D/g, ""));
       if (previousToday !== null && yesterday > 0 && previousToday <= yesterday && today > yesterday) {
-        const front = queue.find((p) => !p.busy);
-        if (front) say(front, "record");
+        speak({ event: "record", queue: true });
         if (!still) wave();
       }
       previousToday = today;
     }
 
-    // Read every card, not just ridden ones: a card briefly without a rider during a shift change must not
-    // look newly fast when the next rider arrives.
-    const pace = new Set(["claude", "codex", "agy", "grok", "muse"]
-      .filter((id) => state[id]?.session?.warning === true || state[id]?.weekly?.warning === true));
-    if (previousPace !== null) {
-      for (const p of pals) {
-        if (p.bar < 0) continue;
-        const id = p.key.split("/")[0];
-        if (!pace.has(id) || previousPace.has(id)) continue;
-        if (p.mood === "asleep") continue;
-        say(p, "pace");
-        if (!still && !p.busy) hurry(p);
-      }
+    const visible = new Set(visibleCards().map((el) => quotaKey(el.dataset.card)));
+    for (const id of CARD_IDS) {
+      const key = quotaKey(id);
+      observeQuotas(id, visible.has(key) && previousVisible.has(key));
     }
-    previousPace = pace;
-    checkSoon();
+    previousVisible = visible;
+    schedule();
   }
 
   const start = () => {
@@ -1955,9 +2318,10 @@ body {
         return result;
       };
     }
-    setInterval(() => { if (!hidden()) { checkSoon(); checkLate(); } }, 30000);
+    setInterval(() => { if (!hidden()) { refreshChristmas(); schedule(); checkLate(); } }, 30000);
+    refreshChristmas();
     settle();
-    checkGreeting();
+    if (!hidden()) beginVisit();
     if (still) {
       pals.forEach((p) => p.body.classList.remove("idle", "dozing"));
       return;
@@ -1978,9 +2342,26 @@ body {
   if (footer) new MutationObserver(schedule).observe(footer, { subtree: true, childList: true, attributes: true, attributeFilter: ["hidden"] });
   // Catch up on anything that changed while the panel was hidden.
   document.addEventListener("visibilitychange", () => {
-    if (hidden()) return;
+    if (hidden()) {
+      pausedAt = performance.now();
+      clearTimeout(speechTimer);
+      clearTimeout(greetingTimer);
+      greetingTimer = null;
+      visitReady = false;
+      lateOfferedDay = "";
+      if (speaking?.item.visit) endSpeech();
+      else speaking?.el.classList.add("paused");
+      for (let i = speech.length - 1; i >= 0; i--) {
+        if (speech[i].visit) speech.splice(i, 1);
+      }
+      return;
+    }
+    if (pausedAt !== null) hiddenTime += performance.now() - pausedAt;
+    pausedAt = null;
+    speaking?.el.classList.remove("paused");
+    refreshChristmas();
     schedule();
-    checkGreeting();
+    beginVisit();
   });
   if (document.readyState === "complete") start();
   else addEventListener("load", start);

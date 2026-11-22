@@ -75,6 +75,8 @@ def test_state_payload_includes_agy_card_data(monkeypatch: pytest.MonkeyPatch) -
             "resetTextCompact": "Resets in 1h 0m",
             "resetsAt": 1_767_229_200.0,
             "warning": False,
+            "emptyText": None,
+            "emptySeconds": None,
             "available": True,
             "title": "Session",
         },
@@ -86,6 +88,8 @@ def test_state_payload_includes_agy_card_data(monkeypatch: pytest.MonkeyPatch) -
             "resetTextCompact": "Resets in 1d 0h",
             "resetsAt": 1_767_312_000.0,
             "warning": False,
+            "emptyText": None,
+            "emptySeconds": None,
             "available": True,
             "title": "Weekly",
         },
@@ -132,6 +136,8 @@ def test_state_payload_includes_available_grok_card_data() -> None:
         "resetTextCompact",
         "resetsAt",
         "warning",
+        "emptyText",
+        "emptySeconds",
         "available",
         "title",
     }
@@ -159,6 +165,20 @@ def test_row_payload_uses_full_reset_text_without_warning() -> None:
 
     assert state.claude_session.reset_text_compact == ""
     assert payload["resetTextCompact"] == payload["resetText"]
+    assert payload["emptyText"] is None
+    assert payload["emptySeconds"] is None
+
+
+def test_row_payload_includes_expected_time_to_empty_with_warning() -> None:
+    row = menubar._quota_row(
+        "Session", 82.0, 4_000.0, 1_000.0, menubar.CLAUDE_COLOR, forecast_seconds=18 * 60
+    )
+
+    payload = _row_payload(row)
+
+    assert payload["warning"] is True
+    assert payload["emptyText"] == "18m"
+    assert payload["emptySeconds"] == 18 * 60
 
 
 def test_state_payload_includes_stale_grok_card_data() -> None:
