@@ -9,6 +9,18 @@ export type Glossary = { version: 1; terms: Record<string, Entry>; quizzed_at?: 
 export type Quiz = { key: string; term: string; options: string[]; answer: number }
 export const keyOf = (term: string): string => term.trim().toLowerCase()
 
+// "分支（branch）" and "PR (pull request)" name one idea twice, so each half is another name for it.
+const TWO_NAMES = /^(.+?)(?:\s*（\s*|\s+\(\s*)([^（）()]+?)\s*[）)]$/u
+export function namesOf(term: string): string[] {
+  const key = keyOf(term), parts = TWO_NAMES.exec(key)
+  return parts ? [key, ...[parts[1]!, parts[2]!].filter(part => !isIdentifier(part))] : [key]
+}
+// Entries sharing a name with the term. One step only: "orchestrator (argon)" must not tie argon to neon.
+export function sameIdea(data: Glossary, term: string): string[] {
+  const names = new Set(namesOf(term))
+  return Object.keys(data.terms).filter(key => namesOf(key).some(name => names.has(name)))
+}
+
 const asciiWord = /[A-Za-z0-9_]/, asciiLetterOrDigit = /[A-Za-z0-9]/
 export function userTyped(term: string, text: string): boolean {
   if (text.length > 500) return false
@@ -59,10 +71,10 @@ export function quizOf(data: Glossary, now: number, random: () => number): Quiz 
     .filter(([, row]) => row.known && row.user_typed_at === undefined && row.review_at !== undefined && row.review_at <= now)
     .sort(([, a], [, b]) => a.review_at! - b.review_at!)[0]
   if (!due) return undefined
-  const [key, row] = due
+  const [key, row] = due, same = new Set(sameIdea(data, key))
   // Overlapping names ("branch", "分支 (branch)") are the same idea; an explanation naming the term gives it away.
   const others = [...new Set(Object.entries(data.terms)
-    .filter(([other, o]) => !other.includes(key) && !key.includes(other) && !o.plain.toLowerCase().includes(key) && o.plain !== row.plain)
+    .filter(([other, o]) => !same.has(other) && !other.includes(key) && !key.includes(other) && !o.plain.toLowerCase().includes(key) && o.plain !== row.plain)
     .map(([, o]) => o.plain))]
   if (!others.length) return undefined
   const mask = new RegExp(escape(row.term.trim()), 'gi')
@@ -74,7 +86,8 @@ export function termOf(value: unknown): Term | null {
   if (!value || typeof value !== 'object') return null
   const row = value as Record<string, unknown>
   if (typeof row.term !== 'string' || typeof row.plain !== 'string' || typeof row.example !== 'string') return null
-  const term = clean(row.term, 40), plain = clean(row.plain, 40), example = clean(row.example, 80)
+  // The prompt asks for 30 characters; the caps only stop a runaway reply.
+  const term = clean(row.term, 40), plain = clean(row.plain, 80), example = clean(row.example, 120)
   return term && plain && example ? { term, plain, example } : null
 }
 

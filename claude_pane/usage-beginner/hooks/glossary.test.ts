@@ -1,7 +1,7 @@
 import { expect, test } from 'claude-code/testing'
 import type { EngineInterface, ModelCompleteRequest } from 'claude-code'
 import { clean } from './clean'
-import { graded, hidden, isIdentifier, keyOf, parseTerms, quizOf, quotaPaused, userTyped, withKnown } from './glossary'
+import { graded, hidden, isIdentifier, keyOf, namesOf, parseTerms, quizOf, quotaPaused, sameIdea, userTyped, withKnown } from './glossary'
 import type { Glossary } from './glossary'
 import { extract, grade, record, setKnown } from './register'
 import { readGlossary, updateGlossary } from './storage'
@@ -151,7 +151,8 @@ test('clean removes escapes and invisible text, rejects tags and caps code point
   expect(clean('😀'.repeat(50), 40)).toBe('😀'.repeat(39) + '…')
   expect(parseTerms(JSON.stringify([{ term: 'T', plain: 'P', example: 'bad\u{E0061}' }]))).toEqual([])
   const sourceTerm = '😀'.repeat(50)
-  expect(parseTerms(JSON.stringify([{ term: sourceTerm, plain: 'P'.repeat(50), example: 'E'.repeat(90) }]))[0]).toEqual({ sourceTerm, term: '😀'.repeat(39) + '…', plain: 'P'.repeat(39) + '…', example: 'E'.repeat(79) + '…' })
+  expect(parseTerms(JSON.stringify([{ term: sourceTerm, plain: 'P'.repeat(80), example: 'E'.repeat(120) }]))[0]).toEqual({ sourceTerm, term: '😀'.repeat(39) + '…', plain: 'P'.repeat(80), example: 'E'.repeat(120) })
+  expect(parseTerms(JSON.stringify([{ term: 'T', plain: 'P'.repeat(81), example: 'E'.repeat(121) }]))[0]).toEqual({ sourceTerm: 'T', term: 'T', plain: 'P'.repeat(79) + '…', example: 'E'.repeat(119) + '…' })
   expect(keyOf(' SQLite ')).toBe('sqlite')
 })
 test('parseTerms reads a whole JSON array and caps it at eight terms', () => {
@@ -337,4 +338,56 @@ test('quiz fields survive other writers, the history toggle schedules a quiz, an
   expect(JSON.parse(f.files.get(PATH)!).terms.push).toEqual(entry('push'))
   f.files.set(PATH, JSON.stringify({ version: 1, quizzed_at: -1, terms: {} }))
   await expect(readGlossary(f.$, PATH)).rejects.toThrow()
+})
+
+test('both halves of "X（Y）" name one idea; identifiers and calls do not', () => {
+  expect(namesOf('PR（Pull Request）')).toEqual(['pr（pull request）', 'pr', 'pull request'])
+  expect(namesOf('分支 (branch)')).toEqual(['分支 (branch)', '分支', 'branch'])
+  expect(namesOf('分支（release/v0.34.21）')).toEqual(['分支（release/v0.34.21）', '分支'])
+  expect(namesOf('版本號（v0.32.0）')).toEqual(['版本號（v0.32.0）', '版本號'])
+  for (const call of ['usage(main)', 'bash(git add:*)', 'PR']) expect(namesOf(call)).toEqual([keyOf(call)])
+  const data = { version: 1 as const, terms: { pr: entry('PR'), 'pr（pull request）': entry('PR（Pull Request）'), 'pull request': entry('pull request'),
+    'orchestrator (argon)': entry('orchestrator (argon)'), 'orchestrator (neon)': entry('orchestrator (neon)'), neon: entry('neon') } }
+  expect(sameIdea(data, 'PR (pull request)')).toEqual(['pr', 'pr（pull request）', 'pull request'])
+  // One step only: argon and neon are not tied through "orchestrator".
+  expect(sameIdea(data, 'argon')).toEqual(['orchestrator (argon)'])
+  expect(sameIdea(data, 'neon')).toEqual(['orchestrator (neon)', 'neon'])
+})
+test('another name of a marked idea stays hidden; an unmarked one reuses its entry and repairs a cut explanation', async () => {
+  const f = fake()
+  f.$.clock.now = async () => 2 * DAY
+  f.files.set(PATH, JSON.stringify({ version: 1, terms: {
+    'pr（pull request）': entry('PR（Pull Request）', true),
+    '分支（branch）': { ...entry('分支（branch）'), first_seen: 0, plain: 'A line of wo…' },
+  } }))
+  const found = await record(f.$, PATH, ['PR', 'pull request', 'branch'].map(term))
+  expect(found).toEqual([{ ...term('branch'), term: '分支（branch）' }])
+  const saved = JSON.parse(f.files.get(PATH)!).terms
+  expect(Object.keys(saved)).toEqual(['pr（pull request）', '分支（branch）'])
+  expect(saved['分支（branch）']).toMatchObject({ term: '分支（branch）', plain: 'A simple explanation', seen_count: 2, last_seen: 2 * DAY })
+  // The hint's mark button finds the entry by the term it shows.
+  await setKnown(f.$, PATH, [keyOf(found[0]!.term)], true)
+  expect(JSON.parse(f.files.get(PATH)!).terms['分支（branch）'].known).toBe(true)
+  expect(await record(f.$, PATH, [term('分支')])).toEqual([])
+})
+test('typing either name of a term counts as knowing it', async () => {
+  const f = fake()
+  const excerpt = 'PR（Pull Request） '.repeat(20)
+  expect(await record(f.$, PATH, [term('PR（Pull Request）')], { lowerExcerpt: excerpt.toLowerCase(), userText: 'open a PR' })).toEqual([])
+  expect(await record(f.$, PATH, [term('PR（Pull Request）')], { lowerExcerpt: excerpt.toLowerCase(), userText: 'open it' })).toHaveLength(1)
+})
+test('a wrong quiz answer brings back every marked name of the idea; other names are not distractors', async () => {
+  const f = fake()
+  f.files.set(PATH, JSON.stringify({ version: 1, terms: {
+    branch: { ...entry('branch', true), review_at: 1, reviews: 0 }, '分支（branch）': entry('分支（branch）', true), tag: entry('tag', true),
+  } }))
+  await grade(f.$, PATH, 'branch', false)
+  const saved = JSON.parse(f.files.get(PATH)!).terms
+  expect([saved.branch.known, saved['分支（branch）'].known, saved.tag.known]).toEqual([false, false, true])
+  const quiz = quizOf({ version: 1, terms: {
+    'pr (pull request)': learned('PR (pull request)', 'Asks to merge', 1),
+    'pr（pull request）': { ...entry('PR（Pull Request）'), plain: 'A merge request' },
+    tag: { ...entry('tag'), plain: 'A commit label' },
+  } }, 2, () => 0)!
+  expect(quiz.options.sort()).toEqual(['A commit label', 'Asks to merge'])
 })

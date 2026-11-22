@@ -12,9 +12,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 - **Beginner Mode lets you mark terms one at a time and skips project names.** Press 4–6 to mark a single term understood; 9 still marks all three. Branch names, PR numbers, file names, paths and bare numbers no longer take the three hint slots, and every hint must appear in Claude's answer.
+- **Beginner Mode treats two names for one idea as one term.** Once you mark "分支（branch）" or "PR（Pull Request）" understood, "branch", "分支", "PR" and "pull request" stop appearing as new hints, and typing either name counts as knowing it.
 
 ### Fixed
 - **Beginner Mode loses fewer "understood" marks when two conversations save at once.** Each change now re-reads the term list right before saving. It also stops asking Haiku for terms while the term list is unreadable, and the 5-hour pause now follows that quota's own reading time and reset.
+- **Beginner Mode explanations are no longer cut off mid-sentence.** Haiku is asked for a complete short phrase, and the length limit doubles to 80 characters. An explanation saved half-finished is replaced the next time its term comes up.
 
 ## [0.34.25] - 2026-11-21
 
