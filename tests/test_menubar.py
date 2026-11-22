@@ -777,10 +777,13 @@ def test_switch_panel_menu_contains_update_items(
         _t("en", "terse_mode_menu"),
         "---",
         "Claude Code",
+        "---",
+        _t("en", "report_issue"),
     ]
     assert settings[1].submenu is notification_submenu
     assert settings[1].state == 1
     assert settings[7].submenu is claude_submenu
+    assert settings[9].action == "reportIssue:"
     assert [item.title for item in claude_submenu.items] == [
         "Sync quota via status line",
         "Side pane",

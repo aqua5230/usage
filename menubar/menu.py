@@ -256,6 +256,8 @@ def build_switch_menu(app: _SwitchMenuApp, sender: Any) -> None:
     )
     claude_parent.setSubmenu_(claude_submenu)
     menu.addItem_(claude_parent)
+    menu.addItem_(NSMenuItem.separatorItem())
+    menu.addItem_(build_menu_item(app.language, "report_issue", "reportIssue:", target=app))
     app._switch_menu_action_taken = False
     menu.popUpMenuPositioningItem_atLocation_inView_(None, NSMakePoint(0, 0), sender)
     # Dismissing the menu without picking anything used to close the panel:

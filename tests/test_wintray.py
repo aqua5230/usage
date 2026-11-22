@@ -1596,6 +1596,7 @@ def test_panel_menu_data_is_localized_and_reads_current_checks(
         "claude_code_section",
         "separator",
         "check_update",
+        "report_issue",
     ]
     panels = cast(list[dict[str, object]], menu[2]["children"])
     hidden_sections = cast(list[dict[str, object]], menu[3]["children"])
@@ -1672,6 +1673,7 @@ def test_panel_and_tray_menus_render_the_shared_model(
         "tray_provider_menu",
         "quota_label_menu",
         "quota_notifications_menu",
+        "report_issue",
         "reset_panel_position",
         "separator",
         "quit",
@@ -3471,6 +3473,7 @@ def test_menu_actions_pass_real_pystray_signature_validation() -> None:
         toggle_session_resume=lambda: None,
         toggle_terse_mode=lambda: None,
         check_update=lambda: None,
+        report_issue=lambda: None,
         quit=lambda: None,
     )
 

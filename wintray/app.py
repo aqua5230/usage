@@ -1963,6 +1963,11 @@ class _WindowsTrayController:
     def open_ai_daily(self, _icon: Any = None, _item: Any = None) -> None:
         webbrowser.open("https://aqua5230.github.io/ai-updates/")
 
+    def report_issue(self, _icon: Any = None, _item: Any = None) -> None:
+        from usage_common.issue_report import open_issue_report
+
+        open_issue_report(self.language, self.active_panel_id)
+
     def toggle_hide_section(self, preference_key: str) -> None:
         preferences = _load_preferences()
         preferences[preference_key] = preferences.get(preference_key) is not True
@@ -2454,6 +2459,8 @@ class _WindowsTrayController:
                 threading.Thread(target=self._toggle_statusline, daemon=True).start()
             elif action == "check_update":
                 self.check_update()
+            elif action == "report_issue":
+                self.report_issue()
             elif action == "quit":
                 self.quit()
             return None
