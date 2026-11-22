@@ -888,19 +888,26 @@ body {
   border-color: color-mix(in srgb, var(--danger) 45%, transparent);
   color: #a8342a;
 }
-.card, .footer, .pals-line {
+.wrap { gap: 6px; }
+.card, .footer {
   position: relative; background: transparent !important; border-radius: 18px;
   /* A brown rim and stitch line make the cream card edge readable on the cream background. */
-  box-shadow: 0 0 0 2.5px rgba(110, 80, 56, 0.75), 0 3px 8px rgba(90, 65, 45, 0.25) !important;
+  box-shadow: 0 0 0 1.5px rgba(110, 80, 56, 0.5), 0 2px 4px rgba(90, 65, 45, 0.16) !important;
   border: 0 solid transparent !important;
-  border-image: url("{{ASSET:panels/felt/card.webp}}") 57 fill / 22px / 4px stretch !important;
+  border-image: url("{{ASSET:panels/felt/card.webp}}") 57 fill / 12px / 1px stretch !important;
   overflow: visible;
 }
 .card::before, .footer::before, .pals-line::before {
-  content: ""; position: absolute; inset: 2px; border-radius: 15px; pointer-events: none;
-  border: 1.6px dashed rgba(120, 88, 62, 0.8);
+  content: ""; position: absolute; inset: 3px; border-radius: 14px; pointer-events: none;
+  border: 1.3px dashed rgba(120, 88, 62, 0.6);
 }
-.card { padding: 15px 17px 14px; }
+/* The pals stand on a stitched ground line, not on a card of their own. */
+.pals-line { position: relative; }
+.pals-line::before {
+  inset: auto 10px 12px 10px; height: 0; border: 0; border-radius: 0;
+  border-top: 1.6px dashed rgba(120, 88, 62, 0.55);
+}
+.card { padding: 12px 15px 11px; }
 .brand h1 { color: var(--text); font-weight: 800; }
 .row-title, .reset { color: var(--muted); }
 .percent { font-size: 15px; font-weight: 900; color: color-mix(in srgb, var(--accent) 80%, #4a3a2e); }
@@ -935,7 +942,7 @@ body {
 .proj-bar-fill { border-radius: 99px; }
 .attribution { color: var(--muted) !important; opacity: 0.8 !important; }
 /* Depth: slabs float above the backdrop, grooves sink, ropes and buttons puff up, text is pressed in. */
-.card, .footer, .pals-line { filter: drop-shadow(0 5px 7px rgba(70, 45, 25, 0.16)) drop-shadow(0 1px 1px rgba(70, 45, 25, 0.12)); }
+.card, .footer { filter: drop-shadow(0 2px 3px rgba(70, 45, 25, 0.12)); }
 .brand h1, .percent, .row-title, .reset, .proj-name, .proj-tokens { text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75); }
 .brand-icon { filter: drop-shadow(0 2px 2px rgba(60, 40, 25, 0.28)); }
 .track { box-shadow: inset 0 2px 3px rgba(60, 40, 25, 0.28), inset 0 -1px 0 rgba(255, 255, 255, 0.5); border-radius: 99px; }
@@ -955,7 +962,7 @@ body {
 }
 .proj-bar { height: 6px; box-shadow: inset 0 1.5px 2px rgba(60, 40, 25, 0.35), inset 0 -1px 0 rgba(255, 255, 255, 0.5) !important; }
 .proj-bar-fill { box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, 0.45), 0 1px 1.5px rgba(40, 25, 15, 0.3); }
-.pals-line { height: 72px; padding: 0; }
+.pals-line { height: 58px; padding: 0; }
 
   </style>
 </head>
