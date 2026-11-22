@@ -1109,6 +1109,15 @@ body {
       background:var(--button,#f7efe4);box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 2px 4px rgba(60,40,25,.25);
       animation:pal-pop 1.8s ease-out forwards}
     @keyframes pal-pop{0%{opacity:0;scale:.3}15%{opacity:1;scale:1.08}25%{scale:1}75%{opacity:1}100%{opacity:0;translate:-50% -14px}}
+    .pal-say{position:absolute;white-space:nowrap;translate:-50% 0;padding:3px 9px;border-radius:11px;transform-origin:50% 100%;
+      font:800 12px/16px ui-rounded,-apple-system,"PingFang TC",sans-serif;color:var(--text,#4a3a2e);background:#fbf4ea;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 0 0 1.5px rgba(110,80,56,.7),0 2px 4px rgba(60,40,25,.25);
+      animation:pal-say 3.6s ease-out forwards}
+    .pal-say::after{content:"";position:absolute;left:calc(50% + var(--tail,0px));bottom:-5px;width:7px;height:7px;margin-left:-3.5px;
+      rotate:45deg;background:#fbf4ea;box-shadow:1.5px 1.5px 0 0 rgba(110,80,56,.7)}
+    @media (prefers-reduced-motion: reduce){.pal-badge.on,.pal-say,.pal-name{animation:none}
+      .pal-z.on{animation:none;opacity:1}.pal-z.on+.pal-z.on{display:none}}
+    @keyframes pal-say{0%{opacity:0;scale:.4}8%{opacity:1;scale:1.06}14%,88%{opacity:1;scale:1}100%{opacity:0;scale:.9}}
     .pal-z{position:absolute;left:6px;bottom:${SIZE * 0.7}px;font:800 12px ui-rounded,-apple-system,sans-serif;color:#8a7aa0;opacity:0}
     .pal-z.on{animation:pal-z 2.4s ease-out infinite}
     .pal-z.on+.pal-z.on{animation-delay:1.2s}
@@ -1185,11 +1194,12 @@ body {
   const clamp = (x, a, b) => Math.min(Math.max(x, a), b);
   const ease = (k) => k * k * (3 - 2 * k);
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-  const label = (name) => {
-    const key = `panel_felt_pal_${name}`;
-    const text = typeof t === "function" ? t(key) : key;
-    return text && text !== key ? text : name;
+  // A panel_felt_* string, or "" when it is missing.
+  const tr = (key) => {
+    const text = typeof t === "function" ? t(`panel_felt_${key}`) : "";
+    return text && text !== `panel_felt_${key}` ? text : "";
   };
+  const label = (name) => tr(`pal_${name}`) || name;
   const textRect = (el) => {
     const range = document.createRange();
     range.selectNodeContents(el);
@@ -1199,24 +1209,35 @@ body {
   const lineEl = document.querySelector(".pals-line");
   if (!lineEl) return;
 
+  // How much of a quota row is used, 0 to 1: the percentage text, or the fill width when there is no number.
+  const share = (row) => {
+    const used = parseFloat(row.querySelector(".percent").textContent);
+    const fill = row.querySelector(".fill").getBoundingClientRect().width;
+    const track = row.querySelector(".track").getBoundingClientRect().width;
+    return clamp(Number.isFinite(used) ? used / 100 : fill / track, 0, 1);
+  };
+
   // Bar perches, one per visible service card, in page coordinates: x is the fill tip, y the top of the track.
   function bars() {
     const out = [];
     for (const card of document.querySelectorAll(".card[data-card]")) {
       if (!card.getBoundingClientRect().width) continue;
-      const row = [...card.querySelectorAll("[data-row]")].find((el) => !el.hidden && el.querySelector(".fill"));
+      const rows = [...card.querySelectorAll("[data-row]")].filter((el) => !el.hidden && el.querySelector(".fill"));
+      const row = rows[0];
       if (!row) continue;
       const track = row.querySelector(".track").getBoundingClientRect();
       const fill = row.querySelector(".fill").getBoundingClientRect();
       const labelBox = textRect(row.querySelector(".row-title"));
-      const pctEl = row.querySelector(".percent");
-      const pct = textRect(pctEl);
-      const used = parseFloat(pctEl.textContent);
+      const pct = textRect(row.querySelector(".percent"));
       // Stand on the fill tip, but never on top of the label or the percentage.
       const half = SIZE * 0.5;
       const x = clamp(fill.right, labelBox.right + half + 4, pct.left - half - 4);
-      out.push({ x: x + scrollX, y: track.top + 5 + scrollY,
-        pct: clamp(Number.isFinite(used) ? used / 100 : fill.width / track.width, 0, 1) });
+      // Which quota this bar shows, so reordering, hiding a card or switching the Antigravity group is not a change in usage.
+      const group = card.querySelector(".agy-group-toggle:not([hidden])")?.textContent || "";
+      out.push({ x: x + scrollX, y: track.top + 5 + scrollY, key: `${card.dataset.card}/${row.dataset.row}/${group}`,
+        // The pal stands on the first bar, but its mood follows the most-used quota on the card:
+        // a nearly spent week should worry it even while the 5-hour bar is low.
+        pct: Math.max(...rows.map(share)) });
     }
     return out;
   }
@@ -1265,7 +1286,7 @@ body {
     layer.append(shadow, wrap);
     body.append(sil, img);
     wrap.append(body, hit, badge, ...zs);
-    const p = { name, img, sil, body, wrap, shadow, badge, zs, mood: "calm", pose: "", bar: -1, x: 0, y: 0,
+    const p = { name, img, sil, body, wrap, shadow, badge, zs, mood: "calm", pose: "", bar: -1, key: "", seen: 0, x: 0, y: 0,
       scale: QUEUE_SCALE, face: -1, busy: false, pct: 0, since: 0 };
     hit.addEventListener("click", () => poke(p));
     return p;
@@ -1398,9 +1419,37 @@ body {
     setTimeout(() => el.remove(), 1900);
   }
 
+  // A rider says one of a few lines when its bar crosses half, the warning line, the limit, or resets.
+  // Not right after taking the bar: opening the panel or a shift change is not a crossing.
+  const lastLine = {};
+  function say(p, event) {
+    if (performance.now() - p.since < 2000) return;
+    const n = [1, 2, 3].filter((i) => i !== lastLine[event]);
+    const i = n[Math.floor(Math.random() * n.length)];
+    const line = tr(`say_${event}_${i}`);
+    if (!line) return;
+    lastLine[event] = i;
+    p.wrap.querySelector(".pal-say")?.remove();
+    const el = Object.assign(document.createElement("div"), { className: "pal-say", textContent: line });
+    el.style.bottom = `${SIZE * p.scale + (p.mood === "alert" ? 26 : 9)}px`;
+    p.wrap.appendChild(el);
+    p.wrap.style.zIndex = "3";
+    // Keep the bubble inside the panel; the tail still points at the pal.
+    const r = el.getBoundingClientRect();
+    const mid = (r.left + r.right) / 2, w = el.offsetWidth;
+    const shift = clamp(0, 6 - (mid - w / 2), innerWidth - 6 - (mid + w / 2));
+    el.style.marginLeft = `${shift}px`;
+    el.style.setProperty("--tail", `${-shift}px`);
+    setTimeout(() => {
+      el.remove();
+      if (!p.wrap.querySelector(".pal-say")) p.wrap.style.zIndex = "1";
+    }, 3600);
+  }
+
   // Alert: startle on crossing the line, then keep signalling with quick hops and a shake. Returns true when handled.
   async function react(p, bar) {
     const fresh = setMood(p);
+    if (fresh && p.mood !== "calm") say(p, p.mood === "asleep" ? "out" : "warn");
     if (p.mood === "asleep") {
       if (fresh) {
         // Settle down for a nap.
@@ -1431,6 +1480,7 @@ body {
   // Quota reset: the rider wakes and cheers with confetti, and the line cheers in a wave.
   async function celebrate(p, bar) {
     setMood(p);
+    say(p, "reset");
     await turn(p, 1);
     puff(bar.x, bar.y, 10, CONFETTI);
     const wave = queue.filter((o) => !o.busy).map((o, i) => {
@@ -1452,7 +1502,9 @@ body {
 
   // Click: cheer, hop and say its name.
   async function poke(p) {
-    if (p.busy || still) return;
+    if (p.busy) return;
+    p.wrap.querySelector(".pal-say")?.remove();
+    if (still) return bubble(p, "pal-name", label(p.name), SIZE * p.scale + 6, 0);
     p.busy = true;
     bubble(p, "pal-name", label(p.name), SIZE * p.scale + 6, 0);
     if (p.mood !== "asleep") {
@@ -1543,7 +1595,8 @@ body {
     queue.shift();
     queue.push(rider);
     fresh.bar = i;
-    fresh.pct = b[i].pct;
+    fresh.key = b[i].key;
+    fresh.pct = fresh.seen = b[i].pct;
     fresh.since = performance.now();
     rider.bar = -1;
     setMood(rider);
@@ -1575,7 +1628,8 @@ body {
       if (!p) return;
       queue.splice(queue.indexOf(p), 1);
       p.bar = i;
-      p.pct = b[i].pct;
+      p.key = b[i].key;
+      p.pct = p.seen = b[i].pct;
       p.since = performance.now();
       if (!p.x || still) {
         p.scale = 1;
@@ -1592,11 +1646,20 @@ body {
       if (p.busy) continue;
       if (p.bar >= 0) {
         const bar = b[p.bar];
-        const before = p.pct;
-        p.pct = bar.pct;
+        // The bar now shows another card or quota: take its reading as the new baseline, without celebrating or talking.
+        if (bar.key !== p.key) {
+          p.key = bar.key;
+          p.seen = bar.pct;
+          p.since = performance.now();
+        }
+        // p.seen is only written here, so an action that already read the new value cannot hide a crossing.
+        const before = p.seen;
+        p.pct = p.seen = bar.pct;
+        // Quota came back (a reset, or relief from the limit).
+        const back = (before >= 0.5 && bar.pct <= before - 0.3) || (before >= 1 && bar.pct < 1);
+        if (p.x && before < 0.5 && bar.pct >= 0.5 && bar.pct < WARN) say(p, "half");
         if (!still && p.x) {
-          // Quota came back (a reset, or relief from the limit): celebrate.
-          if ((before >= 0.5 && bar.pct <= before - 0.3) || (before >= 1 && bar.pct < 1)) {
+          if (back) {
             p.busy = true;
             celebrate(p, bar).then(() => free(p));
             continue;
@@ -1618,7 +1681,9 @@ body {
         p.y = bar.y;
         p.scale = 1;
         if (still) {
-          setMood(p);
+          const changed = setMood(p);
+          if (back) say(p, "reset");
+          else if (changed && p.mood !== "calm") say(p, p.mood === "asleep" ? "out" : "warn");
           pose(p, rest(p));
         }
       } else {
@@ -1626,6 +1691,7 @@ body {
           setMood(p);
           pose(p, "stand");
         }
+        p.scale = QUEUE_SCALE;
         const s = slot(queue.indexOf(p));
         // Snap only on first placement or after a layout change; normal moves hop via closeUp().
         if (!p.x || Math.abs(p.y - s.y) > 1) p.x = s.x;
