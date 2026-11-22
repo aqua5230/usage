@@ -168,6 +168,8 @@ def _build_popover_state(
     outcome: PollOutcome,
     codex_rows: tuple[menubar_state.QuotaRowState, menubar_state.QuotaRowState],
     service_statuses: tuple[ServiceStatus, ...] = (),
+    *,
+    history_error: menubar_state.HistoryLoadErrorState | None = None,
 ) -> menubar_state.PopoverState:
     hide_claude = menubar._hide_claude_enabled()
     return menubar_state.build_popover_state(
@@ -201,6 +203,7 @@ def _build_popover_state(
         codex_stale=None,
         agy_stale=None,
         grok_stale=None,
+        history_error=history_error,
         service_statuses=service_statuses,
     )
 
@@ -684,6 +687,8 @@ def test_empty_state() -> None:
     assert state.projects_all == []
     assert state.show_install_button is False
     assert state.yesterday_total == menubar_state.PeriodTotal()
+    assert state.totals_ready is False
+    assert state.service_known_cards == ()
 
 
 @pytest.mark.parametrize("quota_enabled", [True, False])
@@ -3132,16 +3137,40 @@ def test_state_from_outcome_translates_awaiting_rate_limits_message(
     assert state.status_text == "狀態：請對 Claude Code 發送一句訊息以同步配額"
 
 
-def test_popover_state_has_no_service_alerts_without_status(
+def test_popover_state_only_knows_services_with_a_status(
+    monkeypatch: pytest.MonkeyPatch,
     state_delegate: menubar.AppDelegate,
+) -> None:
+    monkeypatch.setattr(menubar, "_hide_claude_enabled", lambda: False)
+    monkeypatch.setattr(menubar, "_hide_codex_enabled", lambda: False)
+    state = _build_popover_state(
+        state_delegate,
+        PollOutcome(state=PollState.LOADING),
+        _codex_rows(state_delegate)[0],
+        (
+            ServiceStatus("Claude", False, "unknown", "", "fetched"),
+            ServiceStatus("Codex", False, "operational", "", "fetched"),
+        ),
+    )
+
+    assert state.service_alerts == ()
+    assert state.service_alert_cards == ()
+    assert state.service_known_cards == ("codex",)
+
+
+@pytest.mark.parametrize("history_error", [None, {"reasonText": "Can't read history"}])
+def test_popover_state_marks_totals_ready_only_without_history_error(
+    state_delegate: menubar.AppDelegate,
+    history_error: menubar_state.HistoryLoadErrorState | None,
 ) -> None:
     state = _build_popover_state(
         state_delegate,
         PollOutcome(state=PollState.LOADING),
         _codex_rows(state_delegate)[0],
+        history_error=history_error,
     )
 
-    assert state.service_alerts == ()
+    assert state.totals_ready is (history_error is None)
 
 
 def test_popover_state_translates_multiple_service_alerts(
@@ -3174,6 +3203,8 @@ def test_popover_state_translates_multiple_service_alerts(
         "⚠ Claude service issue: Degraded performance",
         "⚠ Codex service issue: Partial outage",
     )
+    assert state.service_alert_cards == ("claude", "codex")
+    assert state.service_known_cards == ("claude", "codex")
 
 
 def test_popover_state_hides_service_alert_for_hidden_tool(
@@ -3194,6 +3225,8 @@ def test_popover_state_hides_service_alert_for_hidden_tool(
     )
 
     assert state.service_alerts == ("⚠ Codex service issue: Major outage",)
+    assert state.service_alert_cards == ("codex",)
+    assert state.service_known_cards == ("codex",)
 
 
 def test_state_from_outcome_translates_hook_broken_message(
