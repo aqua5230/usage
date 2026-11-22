@@ -37,7 +37,7 @@ AGY_SESSIONS_DIR = Path(os.path.expanduser("~/.gemini/antigravity-cli/conversati
 # Must comfortably exceed a real user's total *.db conversation count. A cap
 # below that count evicts databases parsed during the prior refresh, causing a
 # permanent full SQLite/protobuf reparse on every load (LRU thrashing).
-_FILE_CACHE_MAXSIZE = 4096
+_FILE_CACHE_MAXSIZE = 16384
 _AGY_DB_CACHE_SCHEMA = 5
 AGY_CACHE_PATH = Path(os.path.expanduser("~/.usage/agy_db_cache.json"))
 _disk_cache_seeded = False

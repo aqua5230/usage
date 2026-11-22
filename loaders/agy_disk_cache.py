@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any
 
 from loaders.cache_quarantine import quarantine
+from loaders.disk_cache_common import _USAGE_COUNT_FIELDS, _share_fields
 
 logger = logging.getLogger(__name__)
 
@@ -39,9 +40,10 @@ def _serialize_entry(entry: Any) -> dict[str, Any]:
     }
 
 
-def _deserialize_entry(data: dict[str, Any]) -> Any:
+def _deserialize_entry(data: dict[str, Any], values: dict[Any, Any] | None = None) -> Any:
     from loaders.agy_loader import AgyUsageEntry
 
+    _share_fields(data, values, _USAGE_COUNT_FIELDS + ("session_id", "model", "project"))
     return AgyUsageEntry(
         timestamp=datetime.fromisoformat(data["timestamp"]),
         model=str(data["model"]),
@@ -64,6 +66,7 @@ def seed_caches(
     """Seed the given in-memory cache from disk. Silently fails on any error."""
     from loaders.agy_loader import _FileCacheEntry
 
+    values: dict[Any, Any] = {}
     try:
         with cache_path.open(encoding="utf-8") as f:
             cache = json.load(f)
@@ -95,7 +98,7 @@ def seed_caches(
             file_cache[Path(path_str)] = _FileCacheEntry(
                 mtime=float(file_data["mtime"]),
                 size=int(file_data["size"]),
-                entries=[_deserialize_entry(entry) for entry in entries_data],
+                entries=[_deserialize_entry(entry, values) for entry in entries_data],
                 skipped_missing_dedup_key=int(file_data["skipped_missing_dedup_key"]),
                 wal=None if wal is None else (int(wal[0]), int(wal[1])),
             )

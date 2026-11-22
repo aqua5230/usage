@@ -53,6 +53,7 @@ def seed_caches(
     from loaders.history_loader import _dedup_key, _FileCacheEntry
 
     dirty_shards: set[int] = set()
+    values: dict[Any, Any] = {}
     _remove_legacy_cache(cache_path)
     for index in range(_SHARD_COUNT):
         files = _load_shard(_shard_path(cache_path, index), schema_version)
@@ -73,7 +74,7 @@ def seed_caches(
                 entries_data = file_data["entries"]
                 if not isinstance(entries_data, list):
                     continue
-                entries = [_deserialize_usage_entry(entry) for entry in entries_data]
+                entries = [_deserialize_usage_entry(entry, values) for entry in entries_data]
                 unique_entries = []
                 seen: set[str] = set()
                 for entry in entries:

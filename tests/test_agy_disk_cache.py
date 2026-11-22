@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 from collections import OrderedDict
+from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -48,6 +49,40 @@ def test_roundtrip_flush_then_seed(tmp_path: Path) -> None:
     assert path in seeded
     assert seeded[path] == cache[path]
     assert seeded[path].entries[0].project == "test-project"
+
+
+def test_seed_shares_fields(tmp_path: Path) -> None:
+    cache_path = tmp_path / "agy.json"
+    paths = [tmp_path / "first.db", tmp_path / "second.db"]
+    cache = OrderedDict((path, _file_cache_entry("same-session")) for path in paths)
+    for item in cache.values():
+        item.entries[0] = replace(
+            item.entries[0],
+            input_tokens=123456789,
+            output_tokens=123456789,
+            cache_read_tokens=123456789,
+            thinking_tokens=123456789,
+        )
+    agy_disk_cache.flush_caches(cache_path, 1, cache)
+    seeded: OrderedDict[Path, agy_loader._FileCacheEntry] = OrderedDict()
+    agy_disk_cache.seed_caches(cache_path, 1, 4096, seeded)
+    loaded = [seeded[path].entries[0] for path in paths]
+    assert loaded == [cache[path].entries[0] for path in paths]
+    payload = json.loads(cache_path.read_text(encoding="utf-8"))
+    assert loaded == [
+        agy_disk_cache._deserialize_entry(payload["files"][str(path)]["entries"][0])
+        for path in paths
+    ]
+    for field in (
+        "input_tokens",
+        "output_tokens",
+        "cache_read_tokens",
+        "thinking_tokens",
+        "session_id",
+        "model",
+        "project",
+    ):
+        assert getattr(loaded[0], field) is getattr(loaded[1], field)
 
 
 def test_schema_version_mismatch_is_miss_not_quarantined(

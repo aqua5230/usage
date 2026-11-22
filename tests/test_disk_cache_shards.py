@@ -50,6 +50,52 @@ def test_usage_entry_round_trip_keeps_1h_cache_writes() -> None:
     assert disk_cache_common._deserialize_usage_entry(data).cache_creation_1h_tokens == 0
 
 
+def test_share_fields_preserves_other_types() -> None:
+    values: dict[object, object] = {}
+    data = {"input_tokens": True, "output_tokens": None, "cache_read_tokens": 1}
+    disk_cache_common._share_fields(data, values, disk_cache_common._USAGE_COUNT_FIELDS)
+    assert data["input_tokens"] is True
+    assert data["output_tokens"] is None
+    assert values == {1: 1}
+
+
+@pytest.mark.parametrize("provider", ["history", "codex"])
+def test_seed_shares_token_values(tmp_path: Path, provider: str) -> None:
+    cache_path = tmp_path / "cache.json"
+    source = tmp_path / "session.jsonl"
+    source.write_text("", encoding="utf-8")
+    entries = [_usage_entry("first"), _usage_entry("second")]
+    for entry in entries:
+        for field in disk_cache_common._USAGE_COUNT_FIELDS:
+            if hasattr(entry, field):
+                setattr(entry, field, 123456789)
+    if provider == "history":
+        cached = _history_entry(source)
+        cached.entries = entries
+        history_disk_cache.flush_caches(cache_path, 2, OrderedDict([(source, cached)]))
+        seeded: OrderedDict[Path, history_loader._FileCacheEntry] = OrderedDict()
+        history_disk_cache.seed_caches(cache_path, 2, 4096, seeded)
+        loaded = seeded[source].entries
+    else:
+        codex_cached = _codex_entry(source)
+        codex_cached.entries = entries
+        sqlite = codex_loader._SqliteLogCache()
+        codex_disk_cache.flush_caches(
+            cache_path, 4, OrderedDict([(source, codex_cached)]), OrderedDict(), sqlite
+        )
+        codex_seeded: OrderedDict[Path, codex_loader._JsonlCacheEntry] = OrderedDict()
+        codex_disk_cache.seed_caches(cache_path, 4, 4096, codex_seeded, OrderedDict(), sqlite)
+        loaded = codex_seeded[source].entries
+    assert loaded == entries
+    assert loaded == [
+        disk_cache_common._deserialize_usage_entry(disk_cache_common._serialize_usage_entry(entry))
+        for entry in entries
+    ]
+    for field in disk_cache_common._USAGE_COUNT_FIELDS:
+        if hasattr(loaded[0], field):
+            assert getattr(loaded[0], field) is getattr(loaded[1], field)
+
+
 def _distinct_paths(indexer: object, parent: Path = Path("/sessions")) -> tuple[Path, Path]:
     first = parent / "session-0.jsonl"
     first_index = indexer(first)  # type: ignore[operator]

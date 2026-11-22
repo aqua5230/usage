@@ -21,6 +21,25 @@ from typing import Any
 from loaders.cache_quarantine import quarantine
 
 _SHARD_COUNT = 32
+_USAGE_COUNT_FIELDS = (
+    "input_tokens",
+    "output_tokens",
+    "cache_creation_tokens",
+    "cache_read_tokens",
+    "cache_creation_1h_tokens",
+    "thinking_tokens",
+)
+
+
+def _share_fields(
+    data: dict[str, Any], values: dict[Any, Any] | None, fields: tuple[str, ...]
+) -> None:
+    if values is None:
+        return
+    for field in fields:
+        value = data.get(field)
+        if type(value) in (int, str):
+            data[field] = values.setdefault(value, value)
 
 
 def _serialize_usage_entry(entry: Any) -> dict[str, Any]:
@@ -40,9 +59,10 @@ def _serialize_usage_entry(entry: Any) -> dict[str, Any]:
     }
 
 
-def _deserialize_usage_entry(data: dict[str, Any]) -> Any:
+def _deserialize_usage_entry(data: dict[str, Any], values: dict[Any, Any] | None = None) -> Any:
     from loaders.history_loader import UsageEntry
 
+    _share_fields(data, values, _USAGE_COUNT_FIELDS)
     return UsageEntry(
         timestamp=datetime.fromisoformat(data["timestamp"]),
         session_id=sys.intern(data["session_id"]),
