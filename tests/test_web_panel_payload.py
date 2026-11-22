@@ -76,7 +76,7 @@ def test_state_payload_includes_agy_card_data(monkeypatch: pytest.MonkeyPatch) -
             "resetsAt": 1_767_229_200.0,
             "warning": False,
             "emptyText": None,
-            "emptySeconds": None,
+            "emptyAt": None,
             "available": True,
             "title": "Session",
         },
@@ -89,7 +89,7 @@ def test_state_payload_includes_agy_card_data(monkeypatch: pytest.MonkeyPatch) -
             "resetsAt": 1_767_312_000.0,
             "warning": False,
             "emptyText": None,
-            "emptySeconds": None,
+            "emptyAt": None,
             "available": True,
             "title": "Weekly",
         },
@@ -137,7 +137,7 @@ def test_state_payload_includes_available_grok_card_data() -> None:
         "resetsAt",
         "warning",
         "emptyText",
-        "emptySeconds",
+        "emptyAt",
         "available",
         "title",
     }
@@ -148,6 +148,7 @@ def test_state_payload_names_the_cards_behind_service_alerts() -> None:
     state.service_alerts = ("Codex: Major outage",)
     state.service_alert_cards = ("codex",)
     state.service_known_cards = ("claude", "codex")
+    state.service_operational_cards = ("claude",)
     state.totals_ready = True
 
     footer = cast(dict[str, object], _state_payload(state)["footer"])
@@ -155,6 +156,7 @@ def test_state_payload_names_the_cards_behind_service_alerts() -> None:
     assert footer["serviceAlerts"] == ["Codex: Major outage"]
     assert footer["serviceAlertCards"] == ["codex"]
     assert footer["serviceKnownCards"] == ["claude", "codex"]
+    assert footer["serviceOperationalCards"] == ["claude"]
     assert footer["totalsReady"] is True
 
 
@@ -166,7 +168,7 @@ def test_row_payload_uses_full_reset_text_without_warning() -> None:
     assert state.claude_session.reset_text_compact == ""
     assert payload["resetTextCompact"] == payload["resetText"]
     assert payload["emptyText"] is None
-    assert payload["emptySeconds"] is None
+    assert payload["emptyAt"] is None
 
 
 def test_row_payload_includes_expected_time_to_empty_with_warning() -> None:
@@ -178,7 +180,55 @@ def test_row_payload_includes_expected_time_to_empty_with_warning() -> None:
 
     assert payload["warning"] is True
     assert payload["emptyText"] == "18m"
-    assert payload["emptySeconds"] == 18 * 60
+    assert payload["emptyAt"] == 1800
+
+
+def test_row_payload_rounds_empty_at_to_deduplicate_minor_forecast_drift(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from menubar import state as menubar_state
+    from panels.payload import _new_state_payload
+
+    before = _row_payload(
+        menubar_state._quota_row(
+            "Weekly",
+            80.0,
+            300_000.0,
+            1_000.0,
+            menubar_state.CLAUDE_COLOR,
+            forecast_seconds=20_000.0,
+            window_seconds=7 * 86_400,
+        )
+    )
+    after = _row_payload(
+        menubar_state._quota_row(
+            "Weekly",
+            80.0,
+            300_000.0,
+            1_060.0,
+            menubar_state.CLAUDE_COLOR,
+            forecast_seconds=20_000.0,
+            window_seconds=7 * 86_400,
+        )
+    )
+
+    assert before["emptyAt"] == after["emptyAt"] == 77_400
+    view = SimpleNamespace(_last_injected_payload=None)
+    assert _new_state_payload(view, before) is not None
+    assert _new_state_payload(view, after) is None
+
+    monkeypatch.setattr("panels.payload.time.time", lambda: 1_000.0)
+    fallback_row = menubar_state.QuotaRowState(
+        title="Session",
+        percent=82.0,
+        percent_text="82% used",
+        reset_text="warn",
+        color=menubar_state.CLAUDE_COLOR,
+        warning=True,
+        empty_text="18m",
+        empty_seconds=18 * 60,
+    )
+    assert _row_payload(fallback_row)["emptyAt"] == 1_800
 
 
 def test_state_payload_includes_stale_grok_card_data() -> None:

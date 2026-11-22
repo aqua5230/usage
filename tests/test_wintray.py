@@ -4328,3 +4328,11 @@ def test_hidden_poll_refreshes_soon_after_countdown_starts(
     controller._poll_loop()
 
     assert waits == [60]
+
+
+def test_windows_empty_state_marks_totals_not_ready() -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+
+    state = controller._empty_state()
+
+    assert state.totals_ready is False

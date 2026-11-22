@@ -434,6 +434,7 @@ def test_quota_row_uses_burn_warning_when_forecast_exceeds_risk_threshold() -> N
     assert row.reset_text_compact == "⚠ 18分鐘後用完"
     assert row.empty_text == "18分鐘"
     assert row.empty_seconds == 18 * 60
+    assert row.empty_at == 1800
 
 
 def test_quota_row_keeps_reset_text_when_forecast_is_not_before_reset() -> None:
@@ -3162,6 +3163,46 @@ def test_popover_state_only_knows_services_with_a_status(
     assert state.service_alerts == ()
     assert state.service_alert_cards == ()
     assert state.service_known_cards == ("codex",)
+    assert state.service_operational_cards == ("codex",)
+
+
+def test_popover_state_excludes_suppressed_degraded_service_from_operational_cards(
+    monkeypatch: pytest.MonkeyPatch, state_delegate: menubar.AppDelegate
+) -> None:
+    monkeypatch.setattr(menubar, "_hide_claude_enabled", lambda: False)
+    monkeypatch.setattr(menubar, "_hide_codex_enabled", lambda: False)
+    state = _build_popover_state(
+        state_delegate,
+        PollOutcome(state=PollState.LOADING),
+        _codex_rows(state_delegate)[0],
+        (
+            ServiceStatus("Claude", False, "degraded_performance", "suppressed", "cache"),
+            ServiceStatus("Codex", False, "operational", "", "fetched"),
+        ),
+    )
+
+    assert state.service_alerts == ()
+    assert state.service_alert_cards == ()
+    assert state.service_known_cards == ("claude", "codex")
+    assert state.service_operational_cards == ("codex",)
+
+
+def test_popover_state_excludes_hidden_operational_service_from_operational_cards(
+    monkeypatch: pytest.MonkeyPatch, state_delegate: menubar.AppDelegate
+) -> None:
+    monkeypatch.setattr(menubar, "_hide_claude_enabled", lambda: True)
+    monkeypatch.setattr(menubar, "_hide_codex_enabled", lambda: False)
+    state = _build_popover_state(
+        state_delegate,
+        PollOutcome(state=PollState.LOADING),
+        _codex_rows(state_delegate)[0],
+        (
+            ServiceStatus("Claude", False, "operational", "", "fetched"),
+            ServiceStatus("Codex", False, "operational", "", "fetched"),
+        ),
+    )
+
+    assert state.service_operational_cards == ("codex",)
 
 
 @pytest.mark.parametrize("history_error", [None, {"reasonText": "Can't read history"}])

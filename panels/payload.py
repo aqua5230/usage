@@ -8,6 +8,7 @@ import json
 import os
 import re
 import sys
+import time
 from functools import cache, lru_cache
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -80,6 +81,9 @@ def _row_payload(row: QuotaRowState) -> dict[str, object]:
     from menubar.state import _format_percent
 
     percent = row.display_percent
+    empty_at = row.empty_at
+    if empty_at is None and row.empty_seconds is not None:
+        empty_at = round((time.time() + row.empty_seconds) / 600) * 600
     return {
         "percent": row.display_percent,
         "percentText": row.percent_text,
@@ -94,7 +98,7 @@ def _row_payload(row: QuotaRowState) -> dict[str, object]:
         "resetsAt": row.resets_at,
         "warning": row.warning,
         "emptyText": row.empty_text,
-        "emptySeconds": row.empty_seconds,
+        "emptyAt": empty_at,
         "available": row.available,
         "title": row.title,
     }
@@ -179,6 +183,7 @@ def _state_payload(
             "serviceAlerts": list(state.service_alerts),
             "serviceAlertCards": list(state.service_alert_cards),
             "serviceKnownCards": list(state.service_known_cards),
+            "serviceOperationalCards": list(state.service_operational_cards),
             "showInstall": state.show_install_button,
         },
     }

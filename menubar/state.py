@@ -109,6 +109,7 @@ class QuotaRowState:
     resets_at: float | None = None
     empty_text: str | None = None
     empty_seconds: float | None = None
+    empty_at: float | None = None
 
     # Keep percent unchanged for quota notifications; renderers use display_percent.
 
@@ -191,6 +192,7 @@ class PopoverState:
     refresh_status: tuple[str, bool] | None = None
     refresh_queued: bool = False
     service_known_cards: tuple[str, ...] = ()
+    service_operational_cards: tuple[str, ...] = ()
     totals_ready: bool = True
 
 
@@ -994,6 +996,12 @@ def build_popover_state(
         if service_status.status != "unknown"
         and not hidden_services.get(service_status.service_name, False)
     )
+    service_operational_cards = tuple(
+        service_status.service_name.lower()
+        for service_status in service_statuses
+        if service_status.status == "operational"
+        and not hidden_services.get(service_status.service_name, False)
+    )
 
     return PopoverState(
         language=language,
@@ -1032,6 +1040,7 @@ def build_popover_state(
         service_alerts=service_alerts,
         service_alert_cards=service_alert_cards,
         service_known_cards=service_known_cards,
+        service_operational_cards=service_operational_cards,
         show_install_button=show_install_button,
         status_long=status_long,
         hide_claude=hide_claude,
@@ -1123,6 +1132,9 @@ def _quota_row(
         resets_at=resets_at,
         empty_text=empty_text,
         empty_seconds=warning_seconds,
+        empty_at=(
+            round((now + warning_seconds) / 600) * 600 if warning_seconds is not None else None
+        ),
     )
     if empty_text is not None:
         row.reset_text_compact = _t(language, "burn_warning_compact", empty=empty_text)

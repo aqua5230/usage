@@ -1095,7 +1095,8 @@ body {
   const WARN = 0.8;
   const CARD_IDS = ["claude", "codex", "agy", "grok", "muse"];
   const CONFETTI = ["#e8734a", "#5aa860", "#5b7fe0", "#e6a21f", "#ef7fa0", "#2fa7b8"];
-  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+  let still = reducedMotion.matches;
   const hidden = () => document.hidden;
   const css = document.createElement("style");
   css.textContent = `
@@ -1129,8 +1130,6 @@ body {
       animation:pal-say 3.6s ease-out forwards}
     .pal-say::after{content:"";position:absolute;left:calc(50% + var(--tail,0px));bottom:-5px;width:7px;height:7px;margin-left:-3.5px;
       rotate:45deg;background:#fbf4ea;box-shadow:1.5px 1.5px 0 0 rgba(110,80,56,.7)}
-    @media (prefers-reduced-motion: reduce){.pal-badge.on,.pal-say,.pal-name{animation:none}
-      .pal-z.on{animation:none;opacity:1}.pal-z.on+.pal-z.on{display:none}}
     @keyframes pal-say{0%{opacity:0;scale:.4}8%{opacity:1;scale:1.06}14%,88%{opacity:1;scale:1}100%{opacity:0;scale:.9}}
     .pal-z{position:absolute;left:6px;bottom:${SIZE * 0.7}px;font:800 12px ui-rounded,-apple-system,sans-serif;color:#8a7aa0;opacity:0}
     .pal-z.on{animation:pal-z 2.4s ease-out infinite}
@@ -1149,11 +1148,34 @@ body {
     .pal-flake{position:absolute;top:-5px;border-radius:50%;background:#fff;opacity:.95;
       box-shadow:0 0 0 .5px rgba(150,115,80,.35),0 1px 1.5px rgba(110,80,50,.3);animation:pal-fall linear infinite}
     @keyframes pal-fall{to{translate:var(--dx) calc(100vh + 12px)}}
-    @media (prefers-reduced-motion: reduce){.pal-snow{display:none}}`;
+    html.pal-paused .pal-body .pal-img,html.pal-paused .pal-badge.on,html.pal-paused .pal-heart,
+    html.pal-paused .pal-name,html.pal-paused .pal-say,html.pal-paused .pal-z.on,
+    html.pal-paused .pal-dust,html.pal-paused .pal-sweat,html.pal-paused .pal-flake,
+    html.pal-paused .card[data-critical="true"]::after{animation-play-state:paused}
+    @media (prefers-reduced-motion: reduce){
+      .pal-body.idle .pal-img,.pal-body.dozing .pal-img,.pal-badge.on,.pal-say,.pal-name,.pal-heart,.pal-dust,.pal-sweat{animation:none}
+      .pal-z.on{animation:none;opacity:1}.pal-z.on+.pal-z.on{display:none}
+      .pal-snow{display:none}}`;
   document.head.appendChild(css);
   const layer = document.createElement("div");
   layer.style.cssText = "position:absolute;left:0;top:0;width:0;height:0;pointer-events:none;z-index:5";
   document.body.appendChild(layer);
+  const zoomScale = () => {
+    const z = Number(getComputedStyle(document.documentElement).zoom);
+    return Number.isFinite(z) && z > 0 ? z : 1;
+  };
+  const localOrigin = () => {
+    const r = layer.getBoundingClientRect();
+    return { left: r.left, top: r.top, zoom: zoomScale() };
+  };
+  const toLocal = (rect, origin = localOrigin()) => ({
+    left: (rect.left - origin.left) / origin.zoom,
+    right: (rect.right - origin.left) / origin.zoom,
+    top: (rect.top - origin.top) / origin.zoom,
+    bottom: (rect.bottom - origin.top) / origin.zoom,
+    width: rect.width / origin.zoom,
+    height: rect.height / origin.zoom,
+  });
   // Sprites arrive as data URIs: panels/payload.py replaces each ASSET placeholder at load.
   const PAL_IMG = {
     redpanda_stand: "{{ASSET:panels/felt/pals/redpanda_stand.webp}}",
@@ -1284,23 +1306,27 @@ body {
     CARD_IDS.includes(card.dataset.card) && !card.hidden
       && card.getBoundingClientRect().width && getComputedStyle(card).visibility === "visible");
 
-  // Bar perches, one per visible service card, in page coordinates: x is the fill tip, y the top of the track.
+  // Bar perches, one per visible service card, in local layer coordinates: x is the fill tip, y the top of the track.
   function bars() {
     const out = [];
+    const origin = localOrigin();
     for (const card of visibleCards()) {
+      const id = card.dataset.card;
       const rows = [...card.querySelectorAll("[data-row]")].filter((el) => !el.hidden && el.querySelector(".fill"));
-      const row = rows[0];
+      const candidates = latest?.[id]?.weeklyOnly
+        ? rows.filter((el) => el.dataset.row === "weekly")
+        : rows;
+      const row = candidates.find((el) => el.dataset.available === "true") ?? candidates[0] ?? rows[0];
       if (!row) continue;
-      const track = row.querySelector(".track").getBoundingClientRect();
-      const fill = row.querySelector(".fill").getBoundingClientRect();
-      const labelBox = textRect(row.querySelector(".row-title"));
-      const pct = textRect(row.querySelector(".percent"));
+      const track = toLocal(row.querySelector(".track").getBoundingClientRect(), origin);
+      const fill = toLocal(row.querySelector(".fill").getBoundingClientRect(), origin);
+      const labelBox = toLocal(textRect(row.querySelector(".row-title")), origin);
+      const pct = toLocal(textRect(row.querySelector(".percent")), origin);
       // Stand on the fill tip, but never on top of the label or the percentage.
       const half = SIZE * 0.5;
       const x = clamp(fill.right, labelBox.right + half + 4, pct.left - half - 4);
       // Which quota this bar shows, so reordering, hiding a card or switching the Antigravity group is not a change in usage.
-      const id = card.dataset.card;
-      out.push({ x: x + scrollX, y: track.top + 5 + scrollY, card: id,
+      out.push({ x, y: track.top + 5, card: id,
         key: quotaKey(id, row.dataset.row),
         // The pal stands on the first bar, but its mood follows the most-used quota on the card:
         // a nearly spent week should worry it even while the 5-hour bar is low.
@@ -1312,11 +1338,11 @@ body {
   // The waiting line: evenly spaced slots, front (index 0) on the left.
   const queue = [];
   function slot(i) {
-    const r = lineEl.getBoundingClientRect();
+    const r = toLocal(lineEl.getBoundingClientRect());
     const l = r.left + 30, w = Math.max(0, r.width - 60 - treeSpace);
     const step = queue.length > 1 ? Math.min(w / (queue.length - 1), SIZE * 1.1) : 0;
     const start = l + (w - step * (queue.length - 1)) / 2;
-    return { x: start + step * i + scrollX, y: r.bottom - LINE_GROUND + scrollY };
+    return { x: start + step * i, y: r.bottom - LINE_GROUND };
   }
 
   // Width/height of each sprite, so a pose change re-centres from known sizes; missing poses fall back to stand.
@@ -1341,7 +1367,7 @@ body {
     wrap.style.cssText = "position:absolute;left:0;top:0;width:0;height:0;z-index:1";
     // body is a zero-size box at the feet: squash and spin pivot there, and the cast shadow follows the pose.
     const body = document.createElement("div");
-    body.className = "pal-body idle";
+    body.className = still ? "pal-body" : "pal-body idle";
     body.style.cssText = `position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0;--ph:${-rand(0, 3)}s`;
     // Cast shadow: a soft silhouette falling down-right onto the card, matching the panel's top-left light.
     const sil = Object.assign(document.createElement("img"), { className: "pal-img pal-sil", alt: "" });
@@ -1354,7 +1380,7 @@ body {
     body.append(sil, img);
     wrap.append(body, hit, badge, ...zs);
     const p = { name, img, sil, body, wrap, shadow, badge, zs, mood: "calm", pose: "", bar: -1, key: "", seen: 0, x: 0, y: 0, shift: 0,
-      scale: QUEUE_SCALE, face: -1, busy: false, pct: 0, since: 0 };
+      scale: QUEUE_SCALE, face: -1, busy: false, pct: 0, since: 0, loopTimer: null };
     hit.addEventListener("click", () => poke(p));
     return p;
   });
@@ -1409,6 +1435,10 @@ body {
     });
 
   function idle(p) {
+    if (still) {
+      p.body.classList.remove("idle", "dozing");
+      return;
+    }
     p.body.classList.toggle("idle", p.mood !== "asleep");
     p.body.classList.toggle("dozing", p.mood === "asleep");
   }
@@ -1440,7 +1470,7 @@ body {
     const x0 = p.x, y0 = p.y, s0 = p.scale;
     // A hop within the line stays inside the felt strip, so a pal never pops out over the footer card.
     if (p.bar < 0 && Math.abs(ty - y0) < 2) {
-      const top = lineEl.getBoundingClientRect().top + scrollY;
+      const top = toLocal(lineEl.getBoundingClientRect()).top;
       height = Math.min(height, Math.max(0, y0 + p.shift - SIZE * p.scale * 1.06 - top - 4));
     }
     if (Math.abs(tx - x0) > 2) await turn(p, tx > x0 ? 1 : -1);
@@ -1526,9 +1556,12 @@ body {
     const el = bubble(p, "pal-say", text, SIZE * p.scale + (p.mood === "alert" ? 26 : 9), 0);
     p.wrap.style.zIndex = "3";
     // Keep the bubble inside the panel; the tail still points at the pal.
-    const r = el.getBoundingClientRect();
+    const origin = localOrigin();
+    const r = toLocal(el.getBoundingClientRect(), origin);
     const mid = (r.left + r.right) / 2, w = el.offsetWidth;
-    const shift = clamp(0, 6 - (mid - w / 2), innerWidth - 6 - (mid + w / 2));
+    const minX = -origin.left / origin.zoom + 6;
+    const maxX = (innerWidth - origin.left) / origin.zoom - 6;
+    const shift = clamp(0, minX - (mid - w / 2), maxX - (mid + w / 2));
     el.style.marginLeft = `${shift}px`;
     el.style.setProperty("--tail", `${-shift}px`);
     return el;
@@ -1541,14 +1574,14 @@ body {
     schedule();
   }
 
-  function endSpeech(finished = false) {
+  function endSpeech(finished = false, requeue = true) {
     const { item, p, el } = speaking;
     speaking = null;
     el.remove();
     p.wrap.style.zIndex = "1";
     speechReadyAt = speechTime() + SPEECH_GAP;
     if (finished) item.onFinished?.();
-    else if (PRIORITY[item.event] >= 3 && !item.replayed) {
+    else if (requeue && PRIORITY[item.event] >= 3 && !item.replayed) {
       speech.unshift({ ...item, replayed: true, expires: speechTime() + item.ttl });
     }
   }
@@ -1564,6 +1597,7 @@ body {
     if (hidden()) return;
     const now = speechTime();
     if (speaking && now >= speaking.until) endSpeech(true);
+    if (speaking?.item.valid && !speaking.item.valid()) endSpeech(false, false);
     if (speaking?.item.card && riderFor(speaking.item.card, b) !== speaking.p) endSpeech();
 
     let next = Infinity;
@@ -1797,7 +1831,7 @@ body {
 
   function settle() {
     const b = bars();
-    lineRight = treeSpace ? lineEl.getBoundingClientRect().right + scrollX - treeSpace - 30 : Infinity;
+    lineRight = treeSpace ? toLocal(lineEl.getBoundingClientRect()).right - treeSpace - 30 : Infinity;
     // One rider per bar: extras rejoin the line, empty bars (bars appear once the data renders) take the front.
     b.forEach((_, i) => {
       const on = pals.filter((p) => p.bar === i);
@@ -1915,10 +1949,22 @@ body {
     });
   };
 
+  const motionActive = () => !hidden() && !still;
+  let shiftTimer = null;
+
+  function stopPalLoop(p) {
+    clearTimeout(p.loopTimer);
+    p.loopTimer = null;
+  }
+
   function loop(p) {
+    stopPalLoop(p);
+    if (!motionActive()) return;
     const ms = p.mood === "alert" ? 2600 : p.bar >= 0 ? lerp(1200, 5200, Math.min(p.pct, WARN)) : rand(3000, 7000);
-    setTimeout(async () => {
-      if (!hidden() && !p.busy) {
+    p.loopTimer = setTimeout(async () => {
+      p.loopTimer = null;
+      if (!motionActive()) return;
+      if (!p.busy) {
         p.busy = true;
         await act(p);
         free(p);
@@ -1928,10 +1974,33 @@ body {
   }
 
   function shifts() {
-    setTimeout(async () => {
-      if (!hidden()) await swap();
+    clearTimeout(shiftTimer);
+    shiftTimer = null;
+    if (!motionActive()) return;
+    shiftTimer = setTimeout(async () => {
+      shiftTimer = null;
+      if (!motionActive()) return;
+      await swap();
       shifts();
     }, rand(20000, 40000));
+  }
+
+  function startMotion() {
+    if (!motionActive()) return;
+    pals.forEach((p, i) => {
+      if (p.loopTimer) return;
+      p.loopTimer = setTimeout(() => {
+        p.loopTimer = null;
+        loop(p);
+      }, i * 350);
+    });
+    if (!shiftTimer) shifts();
+  }
+
+  function stopMotion() {
+    clearTimeout(shiftTimer);
+    shiftTimer = null;
+    pals.forEach(stopPalLoop);
   }
 
   let latest = null;
@@ -2029,7 +2098,7 @@ body {
   function paceText(card) {
     const rows = quotaRows(card).filter((row) => available(row) && row.warning === true);
     if (!rows.length) return undefined;
-    const seconds = (row) => Number.isFinite(row.emptySeconds) ? row.emptySeconds : Infinity;
+    const seconds = (row) => Number.isFinite(row.emptyAt) ? row.emptyAt - Date.now() / 1000 : Infinity;
     const chosen = rows.reduce((best, row) => seconds(row) < seconds(best) ? row : best);
     return chosen.emptyText ? tr("say_pace_time", { time: chosen.emptyText }) || undefined : undefined;
   }
@@ -2287,13 +2356,17 @@ body {
 
   function onState(state) {
     const alerts = new Set(state.footer?.serviceAlertCards);
+    const operational = new Set(state.footer?.serviceOperationalCards);
     for (const id of state.footer?.serviceKnownCards ?? []) {
       const active = alerts.has(id);
       const previous = previousAlerts.get(id);
       previousAlerts.set(id, active);
       if (previous === undefined || active === previous) continue;
+      if (!active && !operational.has(id)) continue;
       speak({ event: active ? "outage" : "fixed", card: id,
-        valid: () => previousAlerts.get(id) === active, motion: active ? startle : undefined });
+        valid: () => previousAlerts.get(id) === active
+          && (active || (latest?.footer?.serviceOperationalCards ?? []).includes(id)),
+        motion: active ? startle : undefined });
     }
 
     if (state.footer?.totalsReady !== false) {
@@ -2312,6 +2385,7 @@ body {
       observeQuotas(id, visible.has(key) && previousVisible.has(key));
     }
     previousVisible = visible;
+    if (speaking?.item.valid && !speaking.item.valid()) endSpeech(false, false);
     schedule();
   }
 
@@ -2325,6 +2399,7 @@ body {
         return result;
       };
     }
+    document.documentElement.classList.toggle("pal-paused", hidden());
     setInterval(() => { if (!hidden()) { refreshChristmas(); schedule(); checkLate(); } }, 30000);
     refreshChristmas();
     settle();
@@ -2333,8 +2408,7 @@ body {
       pals.forEach((p) => p.body.classList.remove("idle", "dozing"));
       return;
     }
-    pals.forEach((p, i) => setTimeout(() => loop(p), i * 350));
-    shifts();
+    startMotion();
   };
   new ResizeObserver(schedule).observe(document.body);
   const cards = document.querySelector(".card")?.parentElement;
@@ -2349,7 +2423,9 @@ body {
   if (footer) new MutationObserver(schedule).observe(footer, { subtree: true, childList: true, attributes: true, attributeFilter: ["hidden"] });
   // Catch up on anything that changed while the panel was hidden.
   document.addEventListener("visibilitychange", () => {
+    document.documentElement.classList.toggle("pal-paused", hidden());
     if (hidden()) {
+      stopMotion();
       pausedAt = performance.now();
       clearTimeout(speechTimer);
       clearTimeout(greetingTimer);
@@ -2369,6 +2445,22 @@ body {
     refreshChristmas();
     schedule();
     beginVisit();
+    startMotion();
+  });
+  reducedMotion.addEventListener("change", () => {
+    still = reducedMotion.matches;
+    if (still) {
+      stopMotion();
+      pals.forEach((p) => p.body.classList.remove("idle", "dozing"));
+      snow?.remove();
+      snow = null;
+    } else {
+      pals.forEach((p) => { if (!p.busy) idle(p); });
+      treeDay = "";
+      refreshChristmas();
+      startMotion();
+    }
+    schedule();
   });
   if (document.readyState === "complete") start();
   else addEventListener("load", start);
