@@ -7,6 +7,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.35.0] - 2026-11-22
+
 ### Added
 - **New panel theme: Plush Pals.** Cream cards with a brown stitched rim, and eleven original plush animals that stroll along a row under the cards. One pal sits on each quota bar at its current percentage; it looks worried from 80% and falls asleep when the quota runs out (whichever of the 5-hour and weekly quotas is closer to the limit), and wakes up cheering when it resets. The pals speak up only when it matters, one speech bubble at a time: when a quota reaches 80%, runs out or resets; when a sleeping pal's quota is about 10 minutes from resetting (it stretches); when the current pace would empty a quota early (saying how long is left, and which other tool still has room); when Claude or Codex reports an outage and when it recovers; when today's usage passes yesterday's (the line cheers); on the day's first visit, with a greeting that fits (a weekly quota that just reset, a return after a few days, Monday or Friday, or the time of day); and after midnight. Now and then two pals in line chat or one dozes off. In December snow falls across the panel and a felt Christmas tree, a different one each day, stands at its end. Click a pal to see its name. Pick it from **⚙ Settings → Switch Panel**; there are now 18 themes. The panel always uses its light look, whatever the system appearance.
 
