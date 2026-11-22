@@ -73,7 +73,7 @@ logger = logging.getLogger(__name__)
 # single call, even with per-file incremental caching working correctly in
 # isolation. Also backs _file_info_cache and _fork_replay_cache below, which
 # share the same real-world file count.
-_JSONL_CACHE_MAXSIZE = 4096
+_JSONL_CACHE_MAXSIZE = 16384
 _RECENT_JSONL_SCAN_LIMIT = 30
 _RateLimitWindows = tuple[
     float | None, float | None, float | None, float | None, float | None, float | None

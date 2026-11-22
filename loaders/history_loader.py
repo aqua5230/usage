@@ -40,7 +40,7 @@ logger = logging.getLogger(__name__)
 # that were just cached last refresh (LRU thrashing) — measured 512 capped at
 # 640 real project files into a permanent 3+ second full-reparse every single
 # call, even with per-file incremental caching working correctly in isolation.
-_FILE_CACHE_MAXSIZE = 4096
+_FILE_CACHE_MAXSIZE = 16384
 
 
 @dataclass(slots=True)
