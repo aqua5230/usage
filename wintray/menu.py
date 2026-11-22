@@ -186,6 +186,7 @@ def windows_menu_model(panels: tuple[Panel, ...]) -> tuple[MenuEntry, ...]:
         ),
         MenuSeparator(_PANEL_ONLY),
         MenuCommand("check_update", "check_update"),
+        MenuCommand("report_issue", "report_issue", surfaces=_BOTH),
         MenuCommand(
             "reset_panel_position",
             "reset_panel_position",

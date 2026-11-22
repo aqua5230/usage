@@ -349,6 +349,13 @@ class QuotaAwareMenuTarget(NSObject):  # type: ignore[misc]
         self.app._refresh()
 
 
+def open_report_issue(app: Any) -> None:
+    from usage_common.issue_report import open_issue_report
+
+    panel = getattr(app, "active_panel", None)
+    open_issue_report(app.language, str(getattr(panel, "id", "unknown")))
+
+
 def toggle_launch_at_login(app: Any) -> None:
     app._mark_switch_menu_action()
     try:

@@ -425,6 +425,10 @@ class AppDelegate(NSObject):
         )
         thread.start()
 
+    def reportIssue_(self, sender: Any) -> None:
+        self._mark_switch_menu_action()
+        menubar_actions.open_report_issue(self)
+
     def quitApp_(self, sender: Any) -> None:
         self._stop_poll_timer()
         NSApp.terminate_(sender)
