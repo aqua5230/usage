@@ -1773,8 +1773,9 @@ body {
   }
 
   let latest = null;
-  let previousAlerts = null;
+  const previousAlerts = new Map();
   let previousToday = null;
+  const wakeNoted = new Map();
 
   async function startle(p) {
     p.busy = true;
@@ -1801,12 +1802,14 @@ body {
       if (p.bar < 0 || p.mood !== "asleep") continue;
       const card = latest[p.key.split("/")[0]];
       // The pal can only wake once all spent quotas have reset.
-      const spent = [card?.session, card?.weekly]
-        .filter((row) => row?.percent >= 100 && Number.isFinite(row.resetsAt));
+      const spent = [card?.session, card?.weekly].filter((row) => row?.percent >= 100);
+      if (spent.some((row) => !Number.isFinite(row.resetsAt))) continue;
       const resetsAt = Math.max(...spent.map((row) => row.resetsAt));
       const remaining = resetsAt - now;
-      if (remaining > 0 && remaining <= 600 && p.wakeNoted !== resetsAt && say(p, "soon")) {
-        p.wakeNoted = resetsAt;
+      const lastNoted = wakeNoted.get(p.key);
+      if (lastNoted !== undefined && Math.abs(resetsAt - lastNoted) <= 180) continue;
+      if (remaining > 0 && remaining <= 600 && say(p, "soon")) {
+        wakeNoted.set(p.key, resetsAt);
         if (!still && !p.busy) stretch(p);
       }
     }
@@ -1814,26 +1817,27 @@ body {
 
   function onState(state) {
     const alerts = new Set(state.footer?.serviceAlertCards);
-    if (previousAlerts !== null) {
-      for (const p of pals) {
-        if (p.bar < 0) continue;
-        const id = p.key.split("/")[0];
-        const active = alerts.has(id);
-        if (active === previousAlerts.has(id)) continue;
-        say(p, active ? "outage" : "fixed");
-        if (active && !still && !p.busy) startle(p);
-      }
+    for (const id of state.footer?.serviceKnownCards ?? []) {
+      const active = alerts.has(id);
+      const previous = previousAlerts.get(id);
+      previousAlerts.set(id, active);
+      if (previous === undefined || active === previous) continue;
+      const p = pals.find((pal) => pal.bar >= 0 && pal.key.split("/")[0] === id);
+      if (!p) continue;
+      say(p, active ? "outage" : "fixed");
+      if (active && !still && !p.busy) startle(p);
     }
-    previousAlerts = alerts;
 
-    const today = Number((state.footer?.today?.tokensCount ?? "").replace(/\D/g, ""));
-    const yesterday = Number((state.footer?.yesterday?.tokensCount ?? "").replace(/\D/g, ""));
-    if (previousToday !== null && yesterday > 0 && previousToday <= yesterday && today > yesterday) {
-      const front = queue.find((p) => !p.busy);
-      if (front) say(front, "record");
-      if (!still) wave();
+    if (state.footer?.totalsReady !== false) {
+      const today = Number((state.footer?.today?.tokensCount ?? "").replace(/\D/g, ""));
+      const yesterday = Number((state.footer?.yesterday?.tokensCount ?? "").replace(/\D/g, ""));
+      if (previousToday !== null && yesterday > 0 && previousToday <= yesterday && today > yesterday) {
+        const front = queue.find((p) => !p.busy);
+        if (front) say(front, "record");
+        if (!still) wave();
+      }
+      previousToday = today;
     }
-    previousToday = today;
     checkSoon();
   }
 

@@ -173,8 +173,10 @@ def _state_payload(
             "status": state.status_text,
             "today": _period_payload(state.today_total, state.language),
             "yesterday": _period_payload(state.yesterday_total, state.language),
+            "totalsReady": state.totals_ready,
             "serviceAlerts": list(state.service_alerts),
             "serviceAlertCards": list(state.service_alert_cards),
+            "serviceKnownCards": list(state.service_known_cards),
             "showInstall": state.show_install_button,
         },
     }

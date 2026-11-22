@@ -188,6 +188,8 @@ class PopoverState:
     history_error: HistoryLoadErrorState | None = None
     refresh_status: tuple[str, bool] | None = None
     refresh_queued: bool = False
+    service_known_cards: tuple[str, ...] = ()
+    totals_ready: bool = True
 
 
 @dataclass(frozen=True, slots=True)
@@ -984,6 +986,12 @@ def build_popover_state(
         and not hidden_services.get(service_status.service_name, False)
         and service_status.status in service_alert_keys
     )
+    service_known_cards = tuple(
+        service_status.service_name.lower()
+        for service_status in service_statuses
+        if service_status.status != "unknown"
+        and not hidden_services.get(service_status.service_name, False)
+    )
 
     return PopoverState(
         language=language,
@@ -1018,8 +1026,10 @@ def build_popover_state(
         status_text=status_text,
         today_total=today_total,
         yesterday_total=yesterday_total,
+        totals_ready=history_error is None,
         service_alerts=service_alerts,
         service_alert_cards=service_alert_cards,
+        service_known_cards=service_known_cards,
         show_install_button=show_install_button,
         status_long=status_long,
         hide_claude=hide_claude,
@@ -1252,6 +1262,7 @@ def _empty_state(language: str = "en") -> PopoverState:
         status_text=_t(language, "status_text", value=_t(language, "status_loading")),
         today_total=PeriodTotal(),
         yesterday_total=PeriodTotal(),
+        totals_ready=False,
         service_alerts=(),
         show_install_button=False,
         hide_claude=_hide_claude_enabled(),

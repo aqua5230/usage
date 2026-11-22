@@ -58,6 +58,8 @@ def test_state_payload_includes_agy_card_data(monkeypatch: pytest.MonkeyPatch) -
     assert payload["cardOrder"] == ["claude", "codex", "agy", "grok", "muse"]
     assert payload["projectsYesterday"] == []
     footer = cast(dict[str, object], payload["footer"])
+    assert footer["totalsReady"] is False
+    assert footer["serviceKnownCards"] == []
     assert footer["yesterday"] == {
         "tokensText": "0 tokens",
         "tokensCount": "0",
@@ -139,11 +141,15 @@ def test_state_payload_names_the_cards_behind_service_alerts() -> None:
     state = menubar._empty_state("en")
     state.service_alerts = ("Codex: Major outage",)
     state.service_alert_cards = ("codex",)
+    state.service_known_cards = ("claude", "codex")
+    state.totals_ready = True
 
     footer = cast(dict[str, object], _state_payload(state)["footer"])
 
     assert footer["serviceAlerts"] == ["Codex: Major outage"]
     assert footer["serviceAlertCards"] == ["codex"]
+    assert footer["serviceKnownCards"] == ["claude", "codex"]
+    assert footer["totalsReady"] is True
 
 
 def test_row_payload_uses_full_reset_text_without_warning() -> None:
