@@ -1,8 +1,10 @@
 import { expect, test } from 'claude-code/testing'
 import type { EngineInterface, ModelCompleteRequest } from 'claude-code'
 import { clean } from './clean'
-import { graded, hidden, keyOf, parseTerms, quizOf, quotaPaused, userTyped, withKnown } from './glossary'
-import { extract, grade, readGlossary, record, setKnown } from './register'
+import { graded, hidden, isIdentifier, keyOf, parseTerms, quizOf, quotaPaused, userTyped, withKnown } from './glossary'
+import type { Glossary } from './glossary'
+import { extract, grade, record, setKnown } from './register'
+import { readGlossary, updateGlossary } from './storage'
 
 const ANSWER = 'SQLite mode=ro '.repeat(30)
 const PATH = '/test/.usage/glossary.json'
@@ -96,7 +98,7 @@ test('eight candidates exclude understood and cooling terms, bring back cooled o
     sqlite: entry('SQLite', true), 'mode=ro': entry('mode=ro'), json: { ...entry('JSON'), last_seen: DAY + 1 },
   } }))
   f.reply({ isAnswered: true, text: JSON.stringify([' SQLite ', 'MODE=RO', 'JSON', 'API', 'SDK', 'CLI', 'RPC', 'MCP'].map(term)) })
-  expect((await extract(f.$, ANSWER, 'en')).map(row => row.term)).toEqual(['MODE=RO', 'API', 'SDK'])
+  expect((await extract(f.$, ANSWER + 'JSON API SDK CLI RPC MCP', 'en')).map(row => row.term)).toEqual(['MODE=RO', 'API', 'SDK'])
   const saved = JSON.parse(f.files.get(PATH)!)
   expect(saved.terms.api).toEqual({ ...term('API'), first_seen: now, last_seen: now, seen_count: 1, known: false })
   expect(saved.terms['mode=ro']).toEqual({ ...entry('mode=ro'), last_seen: now, seen_count: 2 })
@@ -108,6 +110,30 @@ test('understood and cooling candidates stay hidden', async () => {
   expect(await extract(f.$, ANSWER, 'en')).toEqual([])
   f.files.set(PATH, JSON.stringify({ version: 1, terms: { sqlite: entry('SQLite') } }))
   expect(await extract(f.$, ANSWER, 'en')).toEqual([])
+})
+test('identifier filtering keeps terms with context and key=value parameters', () => {
+  for (const name of ['feat/example', 'origin/main', 'app.js', 'hooks/', '/tmp/settings', '#395', '８５９１ ± ½', 'register.tsx', 'v2.1.330-rc.1', 'deadBEEF', 'https://example.com/a?q=1']) {
+    expect(isIdentifier(name)).toBe(true)
+  }
+  for (const name of ['HTTP 404', 'mode=ro', '--config=src/settings.json', '合併請求', '/compact', 'CI/CD', 'I/O', 'async/await', 'Node.js']) {
+    expect(isIdentifier(name)).toBe(false)
+  }
+})
+test('only terms in the excerpt sent to Haiku fill the three slots', async () => {
+  const f = fake()
+  const excerpt = 'Use feat/example, #395, 8591, a 分支, HTTP 404 and mode=ro. '.padEnd(6000, 'x')
+  const candidates = ['feat/example', '#395', '8591', 'SQLite', 'SDK', '分支', 'http 404', 'MODE=RO', 'HTTP']
+  f.reply({ isAnswered: true, text: JSON.stringify(candidates.map(term)) })
+  expect((await extract(f.$, excerpt + ' SDK', 'en')).map(row => row.term)).toEqual(['分支', 'http 404', 'MODE=RO'])
+  expect(Object.keys(JSON.parse(f.files.get(PATH)!).terms)).toEqual(['分支', 'http 404', 'mode=ro'])
+})
+test('grounding checks the original term before truncating it for display and storage', async () => {
+  const f = fake()
+  const name = '複'.repeat(40) + '雜'
+  const shortened = '複'.repeat(39) + '…'
+  f.reply({ isAnswered: true, text: JSON.stringify([term(name)]) })
+  expect(await extract(f.$, shortened.repeat(10), 'en')).toEqual([])
+  expect(await extract(f.$, name.repeat(10), 'en')).toEqual([term(shortened)])
 })
 test('cooldown grows from 1 to 3 to 7 days and never ends for understood terms', () => {
   const row = (seen_count: number, last_seen?: number) => ({ ...entry('T'), first_seen: 0, seen_count, ...(last_seen === undefined ? {} : { last_seen }) })
@@ -124,15 +150,28 @@ test('clean removes escapes and invisible text, rejects tags and caps code point
   expect(clean('safe\u{E0061}hidden', 40)).toBe('')
   expect(clean('😀'.repeat(50), 40)).toBe('😀'.repeat(39) + '…')
   expect(parseTerms(JSON.stringify([{ term: 'T', plain: 'P', example: 'bad\u{E0061}' }]))).toEqual([])
-  expect(parseTerms(JSON.stringify([{ term: '😀'.repeat(50), plain: 'P'.repeat(50), example: 'E'.repeat(90) }]))[0]).toEqual({ term: '😀'.repeat(39) + '…', plain: 'P'.repeat(39) + '…', example: 'E'.repeat(79) + '…' })
+  const sourceTerm = '😀'.repeat(50)
+  expect(parseTerms(JSON.stringify([{ term: sourceTerm, plain: 'P'.repeat(50), example: 'E'.repeat(90) }]))[0]).toEqual({ sourceTerm, term: '😀'.repeat(39) + '…', plain: 'P'.repeat(39) + '…', example: 'E'.repeat(79) + '…' })
   expect(keyOf(' SQLite ')).toBe('sqlite')
 })
-test('parseTerms reads an array wrapped in a code fence or a sentence', () => {
-  const row = { term: 'SQLite', plain: 'P', example: 'E' }
-  expect(parseTerms('```json\n' + JSON.stringify([row]) + '\n```')).toEqual([row])
-  expect(parseTerms('Here you go: ' + JSON.stringify([row]))).toEqual([row])
+test('parseTerms reads a whole JSON array and caps it at eight terms', () => {
+  const rows = Array.from({ length: 9 }, (_, index) => term('Term ' + index))
+  expect(parseTerms(JSON.stringify(rows))).toEqual(rows.slice(0, 8).map(row => ({ ...row, sourceTerm: row.term })))
+  expect(parseTerms('[]')).toEqual([])
+})
+test('parseTerms prefers a JSON code block to an array in the surrounding prose', () => {
+  const row = term('SQLite')
+  const prose = JSON.stringify([term('Other')])
+  expect(parseTerms(prose + '\n```json\n' + JSON.stringify([row]) + '\n```')).toEqual([{ ...row, sourceTerm: row.term }])
+})
+test('parseTerms finds a complete validated array among other brackets', () => {
+  const row = { ...term('SQLite'), example: 'Use "[x]" with \\[ and \\" ]' }
+  const list = JSON.stringify([{ ...row, extra: [1, [2]] }])
+  expect(parseTerms('note [not JSON] ["not a term"] [] [unclosed ' + list + '\n[appendix]')).toEqual([{ ...row, sourceTerm: row.term }])
+  expect(parseTerms('no terms: []')).toEqual([])
   expect(() => parseTerms('no array here')).toThrow()
   expect(() => parseTerms('[{"term":"SQLite","plain":"P","exam')).toThrow()
+  expect(() => parseTerms('note [{"term":"missing fields"}]')).toThrow()
 })
 test('marking all displayed terms known preserves other records; history toggles', async () => {
   const f = fake()
@@ -143,17 +182,41 @@ test('marking all displayed terms known preserves other records; history toggles
   expect(JSON.parse(f.files.get(PATH)!).terms.api.known).toBe(false)
   expect(JSON.parse(f.files.get(PATH)!).terms.sqlite.known).toBe(true)
 })
-test('re-read merges a term another conversation wrote after the initial read', async () => {
+test('extraction filters and merges using changes made after the preflight read', async () => {
   const f = fake()
   let reads = 0
-  f.files.set(PATH, JSON.stringify({ version: 1, terms: {} }))
+  const sqlite = { ...entry('SQLite', true), reviews: 1, review_at: 1000 }
+  f.files.set(PATH, JSON.stringify({ version: 1, terms: { sqlite: entry('SQLite') } }))
+  f.reply({ isAnswered: true, text: JSON.stringify(['SQLite', 'mode=ro'].map(term)) })
   const original = f.$.fs.read
   f.$.fs.read = (async (path: string) => {
-    if (path === PATH && ++reads === 2) f.files.set(PATH, JSON.stringify({ version: 1, terms: { concurrent: entry('Concurrent') } }))
+    if (path === PATH && ++reads === 2) {
+      f.files.set(PATH, JSON.stringify({ version: 1, terms: { sqlite, concurrent: entry('Concurrent') } }))
+    }
     return original(path)
   }) as EngineInterface['fs']['read']
-  await extract(f.$, ANSWER, 'en')
-  expect(Object.keys(JSON.parse(f.files.get(PATH)!).terms)).toEqual(['concurrent', 'sqlite'])
+  expect(await extract(f.$, ANSWER, 'en')).toEqual([term('mode=ro')])
+  const saved = JSON.parse(f.files.get(PATH)!).terms
+  expect(Object.keys(saved)).toEqual(['sqlite', 'concurrent', 'mode=ro'])
+  expect(saved.sqlite).toEqual(sqlite)
+})
+test('two writers apply their prepared changes to the latest glossary in sequence', async () => {
+  const f = fake(), other = { ...f.$ }
+  f.files.set(PATH, JSON.stringify({ version: 1, terms: { api: entry('API') } }))
+  const markApi = (data: Glossary) => {
+    data.terms.api = withKnown(data.terms.api!, true, 0)
+    return true
+  }
+  const ci = entry('CI')
+  const addCi = (data: Glossary) => {
+    data.terms.ci = ci
+    return true
+  }
+  await updateGlossary(f.$, PATH, markApi)
+  await updateGlossary(other, PATH, addCi)
+  const saved = JSON.parse(f.files.get(PATH)!)
+  expect(saved.terms.api.known).toBe(true)
+  expect(saved.terms.ci).toEqual(ci)
 })
 test('short answers never call the model; prompt frames only the truncated answer', async () => {
   const f = fake()
@@ -163,21 +226,59 @@ test('short answers never call the model; prompt frames only the truncated answe
   expect(f.calls[0]!.model).toBe('haiku')
   expect(f.calls[0]!.prompt).toBe(`<answer>\n${'x'.repeat(6000)}\n</answer>\n\nList the terms from the answer above. Return ONLY the JSON array.`)
   expect(f.calls[0]!.system).toContain('Use Japanese')
+  expect(f.calls[0]!.system).toContain('at most 8 objects')
+  expect(f.calls[0]!.system).toContain('concepts that also apply to other projects')
 })
-test('stale detached results are dropped, corrupt glossary is preserved', async () => {
+test('stale detached results are dropped', async () => {
   const f = fake()
   f.$.model.complete = async () => { active = false; return { isAnswered: true, text: JSON.stringify([term('API')]) } as never }
   let active = true
   expect(await extract(f.$, ANSWER, 'en', () => active)).toEqual([])
   expect(f.files.has(PATH)).toBe(false)
-  const other = fake(); other.files.set(PATH, 'broken')
-  expect(await extract(other.$, ANSWER, 'en')).toEqual([])
-  expect(other.files.get(PATH)).toBe('broken')
-  expect(other.logs.length).toBe(1)
+})
+test('a corrupt glossary blocks Haiku, caches its validation error and recovers after a repair', async () => {
+  const f = fake(), valid = '{"version":1,"terms":{}}', broken = 'x'.repeat(valid.length)
+  f.files.set(PATH, broken)
+  const error = await readGlossary(f.$, PATH).catch((error: unknown) => error)
+  expect(error).toBeInstanceOf(SyntaxError)
+  expect(await readGlossary(f.$, PATH).catch((error: unknown) => error)).toBe(error)
+  for (let i = 0; i < 2; i++) expect(await extract(f.$, ANSWER, 'en')).toEqual([])
+  expect(f.calls.length).toBe(0)
+  expect(f.files.get(PATH)).toBe(broken)
+  expect(f.logs.length).toBeGreaterThan(0)
+  await expect(setKnown(f.$, PATH, ['sqlite'], true)).rejects.toThrow()
+  expect(f.files.get(PATH)).toBe(broken)
+  f.files.set(PATH, valid)
+  expect(await extract(f.$, ANSWER, 'en')).toEqual([term('SQLite')])
+  expect(f.calls.length).toBe(1)
+})
+test('an unreadable glossary blocks Haiku and only logs the failure', async () => {
+  const f = fake()
+  f.$.fs.exists = async path => path === PATH
+  expect(await extract(f.$, ANSWER, 'en')).toEqual([])
+  expect(f.calls.length).toBe(0)
+  expect(f.files.has(PATH)).toBe(false)
+  expect(f.logs[0]).toContain('Missing file')
 })
 test('quota rejects future timestamps and non-number fields', () => {
   expect(quotaPaused(JSON.stringify({ rate_limits: { five_hour: { used_percentage: '90' } }, _received_at_ts: 1000 }), 1000000)).toBe(false)
   expect(quotaPaused(JSON.stringify({ rate_limits: { five_hour: { used_percentage: 90 } }, _received_at_ts: 1001 }), 1000000)).toBe(false)
+})
+test('five-hour quota uses its observation time and pauses only until its reset', () => {
+  const now = 10_000
+  const paused = (used: number, observed?: number, reset?: number, received = now) => quotaPaused(JSON.stringify({
+    rate_limits: { five_hour: { used_percentage: used, resets_at: reset } },
+    _received_at_ts: received,
+    _rate_limits_observed_at: { five_hour: observed, seven_day: now },
+  }), now * 1000)
+  expect(paused(95, now - 1200, now + 300, now - 1200)).toBe(true)
+  expect(paused(95, now - 1200, now + 300)).toBe(true)
+  expect(paused(95, now - 1200)).toBe(false)
+  expect(paused(95, now - 1200, now)).toBe(false)
+  expect(paused(95, now - 1200, now - 20)).toBe(false)
+  expect(paused(89, now - 1, now + 300)).toBe(false)
+  expect(paused(95, now + 1, now + 300)).toBe(false)
+  expect(paused(95, undefined, now + 300)).toBe(false)
 })
 
 const learned = (name: string, plain: string, review_at?: number) =>

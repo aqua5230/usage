@@ -173,6 +173,55 @@ test('turn completion returns before a slow model reply', async ($, on) => {
   await stored
 })
 
+test('4, 5 and 6 mark one term each and leave the other examples in place', async ($, on) => {
+  const path = '/test/.usage/glossary.json'
+  const settings = 'usage-beginner.json'
+  const files = new Map([[settings, JSON.stringify({
+    lang: 'zh-TW', strings: { claude_beginner_mark_known: '{key} 懂了' },
+  })]])
+  const fileKey = (value: string) => value.endsWith(settings) ? settings : normalizePath(value)
+  on('env.get', () => ({ value: '/test' }))
+  on('clock.now', () => ({ value: 1000000 }))
+  on('fs.exists', (_$, e) => ({ value: files.has(fileKey(e.path)) }))
+  on('fs.read', (_$, e) => ({ value: files.get(fileKey(e.path)) ?? '{}' }))
+  on('fs.write', (_$, e) => { files.set(normalizePath(e.path), e.text); return { value: undefined } })
+  on('command.register', (_$, e) => ({ value: { command: e.name } }))
+  on('session.start', (_$, e) => ({ cwd: e.cwd }))
+  on('turn.complete', () => ({ text: 'finished' }))
+  on('ui.render', () => ({ type: 'Box', props: {}, children: [] }))
+  on('model.complete', () => ({ value: {
+    isAnswered: true, text: JSON.stringify(['API', 'CI', 'SDK'].map(term => ({ term, plain: 'p', example: term + ' example' }))),
+    usage: { input_tokens: 0, output_tokens: 0, cache_creation_input_tokens: 0, cache_read_input_tokens: 0 },
+  } }))
+  await $.session.start({ cwd: '/test', surface: 'terminal', isInteractive: false })
+  await $.turn.complete({ reason: 'answer', answer: 'API CI SDK '.repeat(25), durationMs: 1, isAborted: false, turnId: 'one' })
+  const ui = await $.ui.mount({ plugin: 'usage-beginner', surface: 'terminal', component: 'AbovePrompt', props: band })
+  for (let i = 0; i < 30 && !(await ui.find({ key: 'mark-known-2' })); i++) await ui.redraw()
+  for (const [index, key] of ['4', '5', '6'].entries()) {
+    const button = await ui.find({ key: 'mark-known-' + index })
+    expect(button?.props.hotkey).toBe(key)
+    expect(button?.text).toBe(key + ' 懂了')
+  }
+  await ui.press({ key: 'example-2' })
+  await ui.press({ key: 'mark-known-1' })
+  expect(await ui.find({ key: 'example-1' })).toBeUndefined()
+  expect(await ui.find({ key: 'example-0' })).toBeDefined()
+  expect((await ui.find({ key: 'example-2' }))?.props.hotkey).toBe('3')
+  expect(await ui.find({ text: 'SDK example' })).toBeDefined()
+  const data = JSON.parse(files.get(path)!)
+  expect([data.terms.api.known, data.terms.ci.known, data.terms.sdk.known]).toEqual([false, true, false])
+  // Another conversation marked API as understood and already graded its first review.
+  data.terms.api = { ...data.terms.api, known: true, reviews: 1, review_at: 123456 }
+  files.set(path, JSON.stringify(data))
+  await ui.press({ key: 'mark-known-0' })
+  expect(JSON.parse(files.get(path)!).terms.api).toEqual(data.terms.api)
+  expect(await ui.find({ key: 'mark-known-2' })).toBeDefined()
+  await ui.press({ key: 'mark-known-2' })
+  expect(JSON.parse(files.get(path)!).terms.sdk.known).toBe(true)
+  expect(await ui.find({ key: 'all-known' })).toBeUndefined()
+  expect(await ui.find({ key: 'dismiss' })).toBeUndefined()
+})
+
 test('the answer is framed as data, and a reply with no array logs what Haiku said', async ($, on) => {
   const logs: string[] = []
   let logged: () => void = () => {}

@@ -10,6 +10,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ### Added
 - **New panel theme: Plush Pals.** Cream cards with a brown stitched rim, and eleven original plush animals that stroll along a row under the cards. One pal sits on each quota bar at its current percentage; it looks worried from 80% and falls asleep when the quota runs out (whichever of the 5-hour and weekly quotas is closer to the limit), and wakes up cheering when it resets. At each of those moments, and when usage passes half, it says a short line in a speech bubble. Click a pal to see its name. Pick it from **⚙ Settings → Switch Panel**; there are now 18 themes. The panel always uses its light look, whatever the system appearance.
 
+### Changed
+- **Beginner Mode lets you mark terms one at a time and skips project names.** Press 4–6 to mark a single term understood; 9 still marks all three. Branch names, PR numbers, file names, paths and bare numbers no longer take the three hint slots, and every hint must appear in Claude's answer.
+
+### Fixed
+- **Beginner Mode loses fewer "understood" marks when two conversations save at once.** Each change now re-reads the term list right before saving. It also stops asking Haiku for terms while the term list is unreadable, and the 5-hour pause now follows that quota's own reading time and reset.
+
 ## [0.34.25] - 2026-11-21
 
 ### Changed
