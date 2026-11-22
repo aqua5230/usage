@@ -2200,10 +2200,13 @@ body {
     if (lateDay === tonight) return false;
     if (lateOfferedDay === tonight) return true;
     lateOfferedDay = tonight;
+    // Showing the line marks the night as done; `shown` keeps that from cutting this bubble short.
+    let shown = false;
     speak({ event: "late", queue: true, visit: true,
       speaker: () => pals.find((o) => o.bar >= 0 && !o.busy && o.mood !== "asleep"),
-      valid: () => isLate() && dayKey() === tonight && lateDay !== tonight,
+      valid: () => isLate() && dayKey() === tonight && (shown || lateDay !== tonight),
       onShown: () => {
+        shown = true;
         lateDay = tonight;
         storeDay("usage-felt-late", tonight);
       },
@@ -2318,9 +2321,12 @@ body {
       if (helloDay === today) return checkRare(today);
       const christmas = now.getMonth() === 11 && (now.getDate() === 24 || now.getDate() === 25);
       const hello = christmas ? null : greeting(now);
+      // Showing the greeting marks the day as greeted; `shown` keeps that from cutting this bubble short.
+      let shown = false;
       speak({ event: christmas ? "xmas" : "hello", queue: true, visit: true, text: hello?.text || undefined,
-        valid: () => !isLate() && dayKey() === today && helloDay !== today,
+        valid: () => !isLate() && dayKey() === today && (shown || helloDay !== today),
         onShown: () => {
+          shown = true;
           hello?.remember();
           helloDay = today;
           storeDay("usage-felt-hello", today);
