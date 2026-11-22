@@ -3473,6 +3473,7 @@ def test_menu_actions_pass_real_pystray_signature_validation() -> None:
         toggle_session_resume=lambda: None,
         toggle_terse_mode=lambda: None,
         check_update=lambda: None,
+        report_issue=lambda: None,
         quit=lambda: None,
     )
 
