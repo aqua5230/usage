@@ -164,7 +164,7 @@ class PopoverState:
     today_total: PeriodTotal
     yesterday_total: PeriodTotal
     service_alerts: tuple[str, ...] = ()
-    # Card ids ("claude", "codex") of the services behind service_alerts, for panels that react per card.
+    # Card ids ("claude", "codex") behind service_alerts, for panels that react per card.
     service_alert_cards: tuple[str, ...] = ()
     show_install_button: bool = False
     status_long: bool = False

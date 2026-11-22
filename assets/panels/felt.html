@@ -882,6 +882,12 @@ body {
   color: var(--text);
   font-family: ui-rounded, "SF Pro Rounded", -apple-system, "Noto Sans TC", sans-serif;
 }
+/* Classic's alert pink is tuned for its dark look; on cream it washes out, so use a deep red. */
+.service-alert {
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  border-color: color-mix(in srgb, var(--danger) 45%, transparent);
+  color: #a8342a;
+}
 .card, .footer, .pals-line {
   position: relative; background: transparent !important; border-radius: 18px;
   /* A brown rim and stitch line make the cream card edge readable on the cream background. */
@@ -949,7 +955,7 @@ body {
 }
 .proj-bar { height: 6px; box-shadow: inset 0 1.5px 2px rgba(60, 40, 25, 0.35), inset 0 -1px 0 rgba(255, 255, 255, 0.5) !important; }
 .proj-bar-fill { box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, 0.45), 0 1px 1.5px rgba(40, 25, 15, 0.3); }
-.pals-line { height: 58px; padding: 0; }
+.pals-line { height: 72px; padding: 0; }
 
   </style>
 </head>
@@ -1286,7 +1292,7 @@ body {
     layer.append(shadow, wrap);
     body.append(sil, img);
     wrap.append(body, hit, badge, ...zs);
-    const p = { name, img, sil, body, wrap, shadow, badge, zs, mood: "calm", pose: "", bar: -1, key: "", seen: 0, x: 0, y: 0,
+    const p = { name, img, sil, body, wrap, shadow, badge, zs, mood: "calm", pose: "", bar: -1, key: "", seen: 0, x: 0, y: 0, shift: 0,
       scale: QUEUE_SCALE, face: -1, busy: false, pct: 0, since: 0 };
     hit.addEventListener("click", () => poke(p));
     return p;
@@ -1313,12 +1319,14 @@ body {
 
   // Draw a pal at (x, y) with squash/stretch and tilt; the shadow stays on `ground`.
   function draw(p, x, y, sx = 1, sy = 1, rot = 0, ground = y) {
-    p.wrap.style.translate = `${x}px ${y}px`;
+    p.last = [x, y, sx, sy, rot, ground];
+    // shift moves a pal that is mid-action along with its strip (see settle()).
+    p.wrap.style.translate = `${x}px ${y + p.shift}px`;
     p.body.style.transform = `rotate(${rot}deg) scale(${p.face * sx * p.scale}, ${sy * p.scale})`;
     // Keep the cast shadow down-right whichever way the pal faces (the body's scale mirrors it).
     p.sil.style.translate = `${p.face < 0 ? -3 : 3}px 2px`;
     const k = Math.max(0.35, 1 - Math.max(0, ground - y) / 70) * p.scale;
-    p.shadow.style.translate = `${x}px ${ground}px`;
+    p.shadow.style.translate = `${x}px ${ground + p.shift}px`;
     p.shadow.style.transform = `scale(${k})`;
     p.shadow.style.opacity = String(k);
   }
@@ -1367,6 +1375,11 @@ body {
 
   async function jump(p, tx, ty, height, { flip = false, scale = p.scale, air = "jump", land } = {}) {
     const x0 = p.x, y0 = p.y, s0 = p.scale;
+    // A hop within the line stays inside the felt strip, so a pal never pops out over the footer card.
+    if (p.bar < 0 && Math.abs(ty - y0) < 2) {
+      const top = lineEl.getBoundingClientRect().top + scrollY;
+      height = Math.min(height, Math.max(0, y0 + p.shift - SIZE * p.scale * 1.06 - top - 4));
+    }
     if (Math.abs(tx - x0) > 2) await turn(p, tx > x0 ? 1 : -1);
     // Crouch, deeper before a big jump.
     const crouch = height > 20 ? 0.28 : 0.18;
@@ -1419,15 +1432,17 @@ body {
     setTimeout(() => el.remove(), 1900);
   }
 
-  // A rider says one of a few lines when its bar crosses half, the warning line, the limit, or resets.
+  // A pal says one of a few lines at a moment worth noticing: its bar crosses half, the warning line or the limit,
+  // the quota resets or is about to, the official service breaks or recovers, or today passes yesterday.
   // Not right after taking the bar: opening the panel or a shift change is not a crossing.
+  // Returns whether a bubble was shown.
   const lastLine = {};
   function say(p, event) {
-    if (performance.now() - p.since < 2000) return;
+    if (performance.now() - p.since < 2000) return false;
     const n = [1, 2, 3].filter((i) => i !== lastLine[event]);
     const i = n[Math.floor(Math.random() * n.length)];
     const line = tr(`say_${event}_${i}`);
-    if (!line) return;
+    if (!line) return false;
     lastLine[event] = i;
     p.wrap.querySelector(".pal-say")?.remove();
     const el = Object.assign(document.createElement("div"), { className: "pal-say", textContent: line });
@@ -1444,6 +1459,7 @@ body {
       el.remove();
       if (!p.wrap.querySelector(".pal-say")) p.wrap.style.zIndex = "1";
     }, 3600);
+    return true;
   }
 
   // Alert: startle on crossing the line, then keep signalling with quick hops and a shake. Returns true when handled.
@@ -1477,13 +1493,8 @@ body {
     return true;
   }
 
-  // Quota reset: the rider wakes and cheers with confetti, and the line cheers in a wave.
-  async function celebrate(p, bar) {
-    setMood(p);
-    say(p, "reset");
-    await turn(p, 1);
-    puff(bar.x, bar.y, 10, CONFETTI);
-    const wave = queue.filter((o) => !o.busy).map((o, i) => {
+  function wave() {
+    return Promise.all(queue.filter((o) => !o.busy).map((o, i) => {
       o.busy = true;
       return wait(150 + i * 90)
         .then(() => jump(o, o.x, o.y, 16, { air: "cheer", land: "cheer" }))
@@ -1492,12 +1503,21 @@ body {
           pose(o, "stand");
           o.busy = false;
         });
-    });
+    }));
+  }
+
+  // Quota reset: the rider wakes and cheers with confetti, and the line cheers in a wave.
+  async function celebrate(p, bar) {
+    setMood(p);
+    say(p, "reset");
+    await turn(p, 1);
+    puff(bar.x, bar.y, 10, CONFETTI);
+    const line = wave();
     await jump(p, bar.x, bar.y, 28, { flip: true, air: "cheer", land: "cheer" });
     await jump(p, bar.x, bar.y, 18, { air: "cheer", land: "cheer" });
     await wait(700);
     pose(p, rest(p));
-    await Promise.all(wave);
+    await line;
   }
 
   // Click: cheer, hop and say its name.
@@ -1594,6 +1614,8 @@ body {
     // Hand the bar over in one step, so settle() never sees it empty and sends another pal.
     queue.shift();
     queue.push(rider);
+    fresh.y += fresh.shift;
+    fresh.shift = 0;
     fresh.bar = i;
     fresh.key = b[i].key;
     fresh.pct = fresh.seen = b[i].pct;
@@ -1643,7 +1665,19 @@ body {
       if (p.bar < 0 && !queue.includes(p)) queue.push(p);
     }
     for (const p of pals) {
-      if (p.busy) continue;
+      if (p.busy) {
+        // A pal busy hopping in line finishes its action, but moves with the strip when the footer grows or shrinks.
+        const i = p.bar < 0 ? queue.indexOf(p) : -1;
+        const off = i >= 0 ? slot(i).y - (p.y + p.shift) : 0;
+        if (Math.abs(off) > 1 && Math.abs(off) < 80) {
+          p.shift += off;
+          // Redraw now: during a pause in its action nothing else would.
+          if (p.last) draw(p, ...p.last);
+        }
+        continue;
+      }
+      p.y += p.shift;
+      p.shift = 0;
       if (p.bar >= 0) {
         const bar = b[p.bar];
         // The bar now shows another card or quota: take its reading as the new baseline, without celebrating or talking.
@@ -1738,7 +1772,82 @@ body {
     }, rand(20000, 40000));
   }
 
+  let latest = null;
+  let previousAlerts = null;
+  let previousToday = null;
+
+  async function startle(p) {
+    p.busy = true;
+    await jump(p, p.x, p.y, 14);
+    free(p);
+  }
+
+  async function stretch(p) {
+    p.busy = true;
+    pose(p, "stand");
+    await play(600, (k) => {
+      const s = Math.sin(2 * Math.PI * k) * Math.sin(Math.PI * k);
+      draw(p, p.x, p.y, 1 - 0.07 * s, 1 + 0.12 * s);
+    }, p);
+    pose(p, rest(p));
+    idle(p);
+    free(p);
+  }
+
+  function checkSoon() {
+    if (!latest) return;
+    const now = Date.now() / 1000;
+    for (const p of pals) {
+      if (p.bar < 0 || p.mood !== "asleep") continue;
+      const card = latest[p.key.split("/")[0]];
+      // The pal can only wake once all spent quotas have reset.
+      const spent = [card?.session, card?.weekly]
+        .filter((row) => row?.percent >= 100 && Number.isFinite(row.resetsAt));
+      const resetsAt = Math.max(...spent.map((row) => row.resetsAt));
+      const remaining = resetsAt - now;
+      if (remaining > 0 && remaining <= 600 && p.wakeNoted !== resetsAt && say(p, "soon")) {
+        p.wakeNoted = resetsAt;
+        if (!still && !p.busy) stretch(p);
+      }
+    }
+  }
+
+  function onState(state) {
+    const alerts = new Set(state.footer?.serviceAlertCards);
+    if (previousAlerts !== null) {
+      for (const p of pals) {
+        if (p.bar < 0) continue;
+        const id = p.key.split("/")[0];
+        const active = alerts.has(id);
+        if (active === previousAlerts.has(id)) continue;
+        say(p, active ? "outage" : "fixed");
+        if (active && !still && !p.busy) startle(p);
+      }
+    }
+    previousAlerts = alerts;
+
+    const today = Number((state.footer?.today?.tokensCount ?? "").replace(/\D/g, ""));
+    const yesterday = Number((state.footer?.yesterday?.tokensCount ?? "").replace(/\D/g, ""));
+    if (previousToday !== null && yesterday > 0 && previousToday <= yesterday && today > yesterday) {
+      const front = queue.find((p) => !p.busy);
+      if (front) say(front, "record");
+      if (!still) wave();
+    }
+    previousToday = today;
+    checkSoon();
+  }
+
   const start = () => {
+    const applyState = window.usageApplyState;
+    if (typeof applyState === "function") {
+      window.usageApplyState = function (state) {
+        const result = applyState.apply(this, arguments);
+        latest = state;
+        onState(state);
+        return result;
+      };
+    }
+    setInterval(() => { if (!hidden()) checkSoon(); }, 30000);
     settle();
     if (still) {
       pals.forEach((p) => p.body.classList.remove("idle", "dozing"));
@@ -1754,6 +1863,10 @@ body {
       subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["style", "hidden", "class"],
     });
   }
+  // Service alerts grow the footer and push the line down; re-place the pals in line at once instead of leaving
+  // them floating where the strip used to be.
+  const footer = document.querySelector(".footer");
+  if (footer) new MutationObserver(schedule).observe(footer, { subtree: true, childList: true, attributes: true, attributeFilter: ["hidden"] });
   // Catch up on anything that changed while the panel was hidden.
   document.addEventListener("visibilitychange", () => !hidden() && schedule());
   if (document.readyState === "complete") start();

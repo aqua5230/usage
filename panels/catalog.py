@@ -253,12 +253,12 @@ PANEL_SPECS: tuple[PanelSpec, ...] = (
         status_wrap_extra_height=30.0,
         service_alert_height=32.0,
     ),
-    # Classic's height plus 58px for the pals row and 10px for the gap.
+    # Classic's height plus 72px for the pals row and 10px for the gap.
     PanelSpec(
         "felt",
         "panel_felt",
         "felt.html",
-        height=1392.0,
+        height=1406.0,
         claude_card_height=192.0,
         codex_card_height=192.0,
         agy_card_height=192.0,
