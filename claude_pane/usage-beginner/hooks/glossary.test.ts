@@ -112,12 +112,21 @@ test('understood and cooling candidates stay hidden', async () => {
   expect(await extract(f.$, ANSWER, 'en')).toEqual([])
 })
 test('identifier filtering keeps terms with context and key=value parameters', () => {
-  for (const name of ['feat/example', 'origin/main', 'app.js', 'hooks/', '/tmp/settings', '#395', '８５９１ ± ½', 'register.tsx', 'v2.1.330-rc.1', 'deadBEEF', 'https://example.com/a?q=1']) {
+  for (const name of ['feat/example', 'origin/main', 'app.js', 'hooks/', '/tmp/settings', '#395', '８５９１ ± ½', 'register.tsx', 'v2.1.330-rc.1', 'deadBEEF', 'https://example.com/a?q=1',
+    'PR #42', 'PR#42', 'Issue #12', String.raw`C:\repo\src\main.py`, String.raw`src\main.py`,
+    'fix/test', 'feat/ui', 'chore/ci', 'docs/api', 'refactor/core', 'test/unit', 'release/v1.0', 'hotfix/login']) {
     expect(isIdentifier(name)).toBe(true)
   }
-  for (const name of ['HTTP 404', 'mode=ro', '--config=src/settings.json', '合併請求', '/compact', 'CI/CD', 'I/O', 'async/await', 'Node.js']) {
+  for (const name of ['HTTP 404', 'mode=ro', '--config=src/settings.json', '合併請求', '/compact', 'CI/CD', 'I/O', 'TCP/IP', 'async/await', 'Node.js']) {
     expect(isIdentifier(name)).toBe(false)
   }
+})
+test('answer grounding uses ASCII word boundaries for English words while keeping Chinese and parameters', async () => {
+  const f = fake()
+  f.reply({ isAnswered: true, text: JSON.stringify(['API'].map(term)) })
+  expect(await extract(f.$, 'RAPID '.repeat(50), 'en')).toEqual([])
+  f.reply({ isAnswered: true, text: JSON.stringify(['API', 'MODE=RO', '分支'].map(term)) })
+  expect((await extract(f.$, 'Use API with mode=ro and 分支合併. '.repeat(15), 'en')).map(row => row.term)).toEqual(['API', 'MODE=RO', '分支'])
 })
 test('only terms in the excerpt sent to Haiku fill the three slots', async () => {
   const f = fake()
@@ -173,6 +182,8 @@ test('parseTerms finds a complete validated array among other brackets', () => {
   expect(() => parseTerms('no array here')).toThrow()
   expect(() => parseTerms('[{"term":"SQLite","plain":"P","exam')).toThrow()
   expect(() => parseTerms('note [{"term":"missing fields"}]')).toThrow()
+  expect(parseTerms('Here are the terms: ' + JSON.stringify([term('branch'), { term: 'invalid' }, term('merge')])).map(row => row.term)).toEqual(['branch', 'merge'])
+  expect(() => parseTerms('Here are the terms: [{"term":"missing fields"},{"plain":"no term"}]')).toThrow()
 })
 test('marking all displayed terms known preserves other records; history toggles', async () => {
   const f = fake()
@@ -390,4 +401,40 @@ test('a wrong quiz answer brings back every marked name of the idea; other names
     tag: { ...entry('tag'), plain: 'A commit label' },
   } }, 2, () => 0)!
   expect(quiz.options.sort()).toEqual(['A commit label', 'Asks to merge'])
+})
+test('learning a single name first saves composite synonyms as aliases and keeps status and progress', async () => {
+  for (const alreadyKnown of [true, false]) {
+    const f = fake()
+    f.$.clock.now = async () => 2 * DAY
+    const initial = alreadyKnown ? { ...entry('branch', true), review_at: 7 * DAY, reviews: 0 } : { ...entry('branch'), first_seen: 0 }
+    f.files.set(PATH, JSON.stringify({ version: 1, terms: { branch: initial } }))
+    const first = await record(f.$, PATH, [term('分支（branch）')])
+    expect(first.map(row => row.term)).toEqual(alreadyKnown ? [] : ['branch'])
+    if (!alreadyKnown) await setKnown(f.$, PATH, ['branch'], true)
+    const second = await record(f.$, PATH, [term('分支')])
+    expect(second).toEqual([])
+    const saved = JSON.parse(f.files.get(PATH)!).terms
+    expect(Object.keys(saved)).toEqual(['branch'])
+    expect(saved.branch.known).toBe(true)
+    expect(saved.branch.aliases).toEqual(['分支（branch）'])
+    if (alreadyKnown) {
+      expect(saved.branch.review_at).toBe(7 * DAY)
+      expect(saved.branch.reviews).toBe(0)
+    }
+    expect(sameIdea({ version: 1, terms: saved }, '分支')).toEqual(['branch'])
+  }
+})
+test('extract skips write-path re-read when all candidates are already known and keeps cached reads isolated', async () => {
+  const f = fake()
+  let reads = 0
+  const originalRead = f.$.fs.read
+  f.$.fs.read = (async (path: string) => { if (path === PATH) reads++; return originalRead(path) }) as EngineInterface['fs']['read']
+  f.files.set(PATH, JSON.stringify({ version: 1, terms: { sqlite: entry('SQLite', true), api: entry('API', true) } }))
+  f.reply({ isAnswered: true, text: JSON.stringify(['SQLite', 'API'].map(term)) })
+  expect(await extract(f.$, ANSWER + ' API', 'en')).toEqual([])
+  expect(reads).toBe(1)
+  const a = await readGlossary(f.$, PATH)
+  const b = await readGlossary(f.$, PATH)
+  a.terms.sqlite!.known = false
+  expect(b.terms.sqlite!.known).toBe(true)
 })

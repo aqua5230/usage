@@ -17,6 +17,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ### Fixed
 - **Beginner Mode loses fewer "understood" marks when two conversations save at once.** Each change now re-reads the term list right before saving. It also stops asking Haiku for terms while the term list is unreadable, and the 5-hour pause now follows that quota's own reading time and reset.
 - **Beginner Mode explanations are no longer cut off mid-sentence.** Haiku is asked for a complete short phrase, and the length limit doubles to 80 characters. An explanation saved half-finished is replaced the next time its term comes up.
+- **Beginner Mode hints only what the answer really uses.** A term learned under one name no longer comes back under its other name, whichever came first. `API` no longer counts as appearing just because the answer says `RAPID`. PR numbers like `PR #42`, Windows paths and branch names such as `fix/test` no longer take hint slots, and one malformed term after a line of preamble no longer drops the others. Each reply also reads the term list fewer times.
 
 ## [0.34.25] - 2026-11-21
 
