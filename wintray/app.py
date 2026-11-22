@@ -859,6 +859,7 @@ class _WindowsTrayController:
             status_text=_t(self.language, "status_text", value=_t(self.language, "status_loading")),
             today_total=menubar_state.PeriodTotal(),
             yesterday_total=menubar_state.PeriodTotal(),
+            totals_ready=False,
             hide_claude=_hide_claude_enabled(),
             hide_codex=_hide_codex_enabled(),
             hide_agy=_hide_agy_enabled(),
