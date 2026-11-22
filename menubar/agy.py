@@ -321,7 +321,7 @@ def _window_row(
         )
     remaining = _remaining_percent(window)
     used = 100.0 - remaining
-    warning = False
+    empty_text: str | None = None
     warning_seconds: float | None = None
     reset_done = window.resets_in_minutes is not None and window.resets_in_minutes <= max(
         0, age_minutes
@@ -354,12 +354,12 @@ def _window_row(
                 forecast_seconds,
                 warning_max_seconds,
             )
-        warning = warning_seconds is not None
         if warning_seconds is not None:
+            empty_text = format_human_time(warning_seconds, language)
             reset_text = _t(
                 language,
                 "burn_warning",
-                empty=format_human_time(warning_seconds, language),
+                empty=empty_text,
                 reset=format_human_time(time_to_reset, language),
             )
         else:
@@ -374,7 +374,7 @@ def _window_row(
         percent_text=_t(language, "percent_used", value=_format_percent(used)),
         reset_text=reset_text,
         color=_bar_color(used, AGY_COLOR),
-        warning=warning,
+        warning=empty_text is not None,
         available=True,
         reset_done=reset_done,
         resets_at=(
@@ -383,6 +383,8 @@ def _window_row(
             if window.resets_in_minutes is not None
             else None
         ),
+        empty_text=empty_text,
+        empty_seconds=warning_seconds,
     )
 
 

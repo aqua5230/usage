@@ -93,6 +93,8 @@ def _row_payload(row: QuotaRowState) -> dict[str, object]:
         # Epoch seconds, or None when unknown; lets a panel react to an upcoming reset.
         "resetsAt": row.resets_at,
         "warning": row.warning,
+        "emptyText": row.empty_text,
+        "emptySeconds": row.empty_seconds,
         "available": row.available,
         "title": row.title,
     }

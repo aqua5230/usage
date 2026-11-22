@@ -107,6 +107,8 @@ class QuotaRowState:
     reset_text_compact: str = ""
     reset_done: bool = False
     resets_at: float | None = None
+    empty_text: str | None = None
+    empty_seconds: float | None = None
 
     # Keep percent unchanged for quota notifications; renderers use display_percent.
 
@@ -1070,13 +1072,12 @@ def _quota_row(
             color=_bar_color(pct, color),
         )
     time_to_reset = resets_at - now
+    empty_text: str | None = None
     warning_seconds: float | None = None
     if time_to_reset <= 0:
         reset_text = _t(language, "reset_done")
-        warning = False
     elif time_to_reset < 60:
         reset_text = _t(language, "reset_imminent")
-        warning = False
     else:
         if window_seconds is None:
             if (
@@ -1094,12 +1095,12 @@ def _quota_row(
                 forecast_seconds,
                 warning_max_seconds,
             )
-        warning = warning_seconds is not None
         if warning_seconds is not None:
+            empty_text = format_human_time(warning_seconds, language)
             reset_text = _t(
                 language,
                 "burn_warning",
-                empty=format_human_time(warning_seconds, language),
+                empty=empty_text,
                 reset=format_human_time(time_to_reset, language),
             )
         else:
@@ -1116,17 +1117,15 @@ def _quota_row(
         ),
         reset_text=reset_text,
         color=_bar_color(0.0 if time_to_reset <= 0 else pct, color),
-        warning=warning,
+        warning=empty_text is not None,
         available=True,
         reset_done=time_to_reset <= 0,
         resets_at=resets_at,
+        empty_text=empty_text,
+        empty_seconds=warning_seconds,
     )
-    if warning_seconds is not None:
-        row.reset_text_compact = _t(
-            language,
-            "burn_warning_compact",
-            empty=format_human_time(warning_seconds, language),
-        )
+    if empty_text is not None:
+        row.reset_text_compact = _t(language, "burn_warning_compact", empty=empty_text)
     return row
 
 

@@ -157,7 +157,11 @@ def test_html_panels_place_analyze_in_project_header() -> None:
         assert 'data-action="toggle-statusline"' not in html, panel_path.name
         assert html.count('data-action="analyze"') == 1, panel_path.name
         assert "data-cli-panel" not in html
-        assert "localStorage" not in html
+        storage_scope = html
+        if panel_path.name == "felt.html":
+            # Felt pals keep their daily speech dates locally.
+            storage_scope = re.sub(r"// Felt pals\.[\s\S]*?(?=</script>)", "", html, count=1)
+        assert "localStorage" not in storage_scope, panel_path.name
         assert "renderCliStatus" not in html
         assert "cli-status" not in html
         assert 'class="action" data-action="analyze"' not in html

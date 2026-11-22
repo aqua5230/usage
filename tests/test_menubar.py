@@ -432,6 +432,8 @@ def test_quota_row_uses_burn_warning_when_forecast_exceeds_risk_threshold() -> N
     assert row.warning is True
     assert row.reset_text == "⚠ 照目前速度 18分鐘後用完 · 重置 51分鐘"
     assert row.reset_text_compact == "⚠ 18分鐘後用完"
+    assert row.empty_text == "18分鐘"
+    assert row.empty_seconds == 18 * 60
 
 
 def test_quota_row_keeps_reset_text_when_forecast_is_not_before_reset() -> None:
@@ -448,6 +450,8 @@ def test_quota_row_keeps_reset_text_when_forecast_is_not_before_reset() -> None:
     assert row.warning is False
     assert row.reset_text == "重置 18分鐘"
     assert row.reset_text_compact == ""
+    assert row.empty_text is None
+    assert row.empty_seconds is None
 
 
 def test_quota_row_keeps_reset_text_when_forecast_exceeds_warning_max() -> None:
@@ -515,6 +519,8 @@ def test_weekly_quota_row_warns_when_both_speeds_predict_exhaustion() -> None:
 
     assert row.warning is True
     assert "照目前速度 23小時 45分鐘後用完" in row.reset_text
+    assert row.empty_text == "23小時 45分鐘"
+    assert row.empty_seconds == 23 * 3_600 + 45 * 60
 
 
 def test_weekly_quota_row_omits_pace_for_invalid_time_or_small_delta() -> None:
