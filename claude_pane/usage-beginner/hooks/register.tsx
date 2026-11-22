@@ -3,34 +3,61 @@
 /* @jsxFrag Fragment */
 import type { EngineInterface, Register, RenderElement } from 'claude-code'
 import { configure, lang, t } from './strings'
-import { graded, hidden, isIdentifier, keyOf, languageName, MAX_CANDIDATES, namesOf, parseTerms, quizOf, quotaPaused, REVIEW_DAYS, sameIdea, userTyped, withKnown } from './glossary'
-import type { Candidate, Term, Entry, Quiz } from './glossary'
+import { entryNames, graded, hidden, ideasFor, indexEntry, indexIdeas, inExcerpt, isIdentifier, keyOf, languageName, MAX_CANDIDATES, namesOf, parseTerms, quizOf, quotaPaused, REVIEW_DAYS, sameIdea, userTyped, withKnown } from './glossary'
+import type { Candidate, Glossary, IdeaIndex, Term, Entry, Quiz } from './glossary'
 import { readGlossary, updateGlossary } from './storage'
+
+function addAlias(data: Glossary, key: string, term: string, index: IdeaIndex): boolean {
+  const old = data.terms[key]
+  if (!old) return false
+  const own = keyOf(term)
+  if (own === key || entryNames(old).includes(own)) return false
+  const updated = { ...old, aliases: [...(old.aliases ?? []), term.trim()] }
+  data.terms[key] = updated
+  indexEntry(index, key, updated)
+  return true
+}
+
+function mergeCandidates(
+  data: Glossary,
+  candidates: (Term & { sourceTerm?: string })[],
+  now: number,
+  context?: { lowerExcerpt: string; userText: string },
+): { shown: Term[]; changed: boolean } {
+  const index = indexIdeas(data), shown: Term[] = []
+  let changed = false
+  for (const { sourceTerm, ...item } of candidates) {
+    if (context) {
+      const source = sourceTerm ?? item.term
+      if (isIdentifier(source) || !inExcerpt(source, context.lowerExcerpt)) continue
+    }
+    // "PR", "pull request" and "PR（Pull Request）" are one entry to mark.
+    const keys = ideasFor(index, item.term)
+    const own = keyOf(item.term), key = keys.includes(own) ? own : keys[0] ?? own
+    if (data.terms[key] && addAlias(data, key, item.term, index)) changed = true
+    if (keys.some(k => hidden(data.terms[k]!, now))) continue
+    const old = data.terms[key]
+    if (context && (old ? entryNames(old) : namesOf(item.term)).some(name => userTyped(name, context.userText))) continue
+    if (context && shown.length === 3) break
+    // A dismissed term comes back after its cooldown; history keeps its first explanation unless that was cut short.
+    const entry = old
+      ? { ...old, ...(old.plain.endsWith('…') && !item.plain.endsWith('…') ? { plain: item.plain } : {}), seen_count: old.seen_count + 1, last_seen: now }
+      : { ...item, known: false, seen_count: 1, first_seen: now, last_seen: now }
+    data.terms[key] = entry
+    indexEntry(index, key, entry)
+    changed = true
+    // The hint's mark button saves under this term's key.
+    shown.push(key === own ? item : { ...item, term: old!.term })
+  }
+  return { shown, changed }
+}
 
 export async function record($: EngineInterface, path: string, candidates: (Term & { sourceTerm?: string })[],
   context?: { lowerExcerpt: string; userText: string }): Promise<Term[]> {
   const now = await $.clock.now()
   return await updateGlossary($, path, data => {
-    const shown: Term[] = []
-    for (const { sourceTerm, ...item } of candidates) {
-      // "PR", "pull request" and "PR（Pull Request）" are one entry to mark.
-      const keys = sameIdea(data, item.term)
-      if (keys.some(key => hidden(data.terms[key]!, now))) continue
-      if (context) {
-        const source = sourceTerm ?? item.term
-        if (isIdentifier(source) || !context.lowerExcerpt.includes(source.toLowerCase()) ||
-            namesOf(item.term).some(name => userTyped(name, context.userText))) continue
-      }
-      const own = keyOf(item.term), key = keys.includes(own) ? own : keys[0] ?? own, old = data.terms[key]
-      // A dismissed term comes back after its cooldown; history keeps its first explanation unless that was cut short.
-      data.terms[key] = old
-        ? { ...old, ...(old.plain.endsWith('…') && !item.plain.endsWith('…') ? { plain: item.plain } : {}), seen_count: old.seen_count + 1, last_seen: now }
-        : { ...item, known: false, seen_count: 1, first_seen: now, last_seen: now }
-      // The hint's mark button saves under this term's key.
-      shown.push(key === own ? item : { ...item, term: old!.term })
-      if (context && shown.length === 3) break
-    }
-    return shown.length ? shown : undefined
+    const { shown, changed } = mergeCandidates(data, candidates, now, context)
+    return changed ? shown : undefined
   }) ?? []
 }
 
@@ -86,7 +113,7 @@ export async function extract($: EngineInterface, answer: string, lang: string, 
     try { status = await $.fs.read(`${home}/.claude/usage-status.json`) } catch { /* unavailable quota permits extraction */ }
     const now = await $.clock.now()
     if (quotaPaused(status, now) || !current()) return []
-    await readGlossary($, path)
+    const preflight = await readGlossary($, path)
     if (!current()) return []
     const reply = await $.model.complete({
       model: 'haiku',
@@ -105,7 +132,9 @@ export async function extract($: EngineInterface, answer: string, lang: string, 
       throw new Error(`${String(error)} (${text.length} chars, ${reply.usage?.output_tokens} tokens): ${JSON.stringify(text.slice(0, 80))} … ${JSON.stringify(text.slice(-80))}`)
     }
     if (!candidates.length || !current()) return []
-    return await record($, path, candidates, { lowerExcerpt: excerpt.toLowerCase(), userText: text })
+    const context = { lowerExcerpt: excerpt.toLowerCase(), userText: text }
+    if (!mergeCandidates(preflight, candidates, await $.clock.now(), context).changed) return []
+    return await record($, path, candidates, context)
   } catch (error) {
     await $.ui.log(t('error', { error: String(error) }))
     return []
@@ -188,9 +217,9 @@ export const register: Register = on => {
           const path = await glossaryPath($), now = await $.clock.now()
           await updateGlossary($, path, data => {
             let changed = false
-            for (const row of Object.values(data.terms)) {
-              if (row.user_typed_at === undefined && namesOf(row.term).some(name => userTyped(name, text))) {
-                row.user_typed_at = now
+            for (const [key, row] of Object.entries(data.terms)) {
+              if (row.user_typed_at === undefined && entryNames(row).some(name => userTyped(name, text))) {
+                data.terms[key] = { ...row, user_typed_at: now }
                 changed = true
               }
             }

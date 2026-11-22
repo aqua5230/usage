@@ -269,3 +269,32 @@ test('a new conversation draws the day\'s quiz once and grades the answer', asyn
   await ui.press({ key: 'quiz-close' })
   expect(await ui.find({ key: 'quiz-close' })).toBeUndefined()
 })
+
+test('a single message avoids redundant write-path read when nothing changes and recognizes typed aliases', async ($, on) => {
+  const path = '/test/.usage/glossary.json'
+  let data = JSON.stringify({
+    version: 1,
+    terms: {
+      branch: { term: 'branch', plain: 'p', example: 'e', known: false, first_seen: 0, seen_count: 1, aliases: ['分支（branch）'] },
+      sqlite: { term: 'SQLite', plain: 'p', example: 'e', known: true, first_seen: 0, seen_count: 1 },
+    },
+  })
+  let reads = 0, writes = 0
+  on('env.get', () => ({ value: '/test' }))
+  on('clock.now', () => ({ value: 123 }))
+  on('fs.exists', (_$, e) => ({ value: normalizePath(e.path) === path }))
+  on('fs.read', (_$, e) => { if (normalizePath(e.path) === path) reads++; return { value: normalizePath(e.path) === path ? data : '{}' } })
+  on('fs.write', (_$, e) => { writes++; data = e.text; return { value: undefined } })
+  on('model.complete', () => ({ value: { isAnswered: true, text: JSON.stringify([{ term: 'SQLite', plain: 'p', example: 'e' }]), usage: { input_tokens: 0, output_tokens: 0, cache_creation_input_tokens: 0, cache_read_input_tokens: 0 } } }))
+  on('turn.start', (_$, e) => ({ turnId: e.turnId }))
+  on('turn.complete', () => ({ text: 'finished' }))
+  await $.turn.start({ text: '我看懂分支了', turnId: 'one' })
+  await settle()
+  expect(reads).toBe(1)
+  expect(writes).toBe(1)
+  expect(JSON.parse(data).terms.branch.user_typed_at).toBe(123)
+  await $.turn.complete({ reason: 'answer', answer: 'SQLite '.repeat(40), durationMs: 1, isAborted: false, turnId: 'one' })
+  await settle()
+  expect(reads).toBe(2)
+  expect(writes).toBe(1)
+})

@@ -3,10 +3,11 @@ import { clean } from './clean'
 export type Term = { term: string; plain: string; example: string }
 export type Candidate = Term & { sourceTerm: string }
 export type Entry = Term & {
-  first_seen: number; last_seen?: number; seen_count: number; known: boolean; review_at?: number; reviews?: number; user_typed_at?: number
+  first_seen: number; last_seen?: number; seen_count: number; known: boolean; review_at?: number; reviews?: number; user_typed_at?: number; aliases?: string[]
 }
 export type Glossary = { version: 1; terms: Record<string, Entry>; quizzed_at?: number }
 export type Quiz = { key: string; term: string; options: string[]; answer: number }
+export type IdeaIndex = Map<string, string[]>
 export const keyOf = (term: string): string => term.trim().toLowerCase()
 
 // "分支（branch）" and "PR (pull request)" name one idea twice, so each half is another name for it.
@@ -15,22 +16,54 @@ export function namesOf(term: string): string[] {
   const key = keyOf(term), parts = TWO_NAMES.exec(key)
   return parts ? [key, ...[parts[1]!, parts[2]!].filter(part => !isIdentifier(part))] : [key]
 }
+export function entryNames(row: Pick<Entry, 'term' | 'aliases'>): string[] {
+  if (!row.aliases?.length) return namesOf(row.term)
+  const names = new Set(namesOf(row.term))
+  for (const alias of row.aliases) for (const name of namesOf(alias)) names.add(name)
+  return [...names]
+}
+export function indexEntry(index: IdeaIndex, key: string, row: Pick<Entry, 'term' | 'aliases'>): void {
+  for (const name of entryNames(row)) {
+    let keys = index.get(name)
+    if (!keys) { keys = []; index.set(name, keys) }
+    if (!keys.includes(key)) keys.push(key)
+  }
+}
+export function indexIdeas(data: Glossary): IdeaIndex {
+  const index: IdeaIndex = new Map()
+  for (const [key, row] of Object.entries(data.terms)) indexEntry(index, key, row)
+  return index
+}
+export function ideasFor(index: IdeaIndex, term: string): string[] {
+  const found = new Set<string>()
+  for (const name of namesOf(term)) for (const key of index.get(name) ?? []) found.add(key)
+  return [...found]
+}
 // Entries sharing a name with the term. One step only: "orchestrator (argon)" must not tie argon to neon.
 export function sameIdea(data: Glossary, term: string): string[] {
-  const names = new Set(namesOf(term))
-  return Object.keys(data.terms).filter(key => namesOf(key).some(name => names.has(name)))
+  const target = data.terms[keyOf(term)]
+  const names = new Set(target ? entryNames(target) : namesOf(term))
+  return Object.keys(data.terms).filter(key => entryNames(data.terms[key]!).some(name => names.has(name)))
 }
 
-const asciiWord = /[A-Za-z0-9_]/, asciiLetterOrDigit = /[A-Za-z0-9]/
+const asciiWord = /[A-Za-z0-9_]/, asciiLetterOrDigit = /[A-Za-z0-9]/, commandParam = /^(?:--?)?[\p{L}_][\p{L}\p{N}_.-]*=\S+$/u
+function hasAsciiBoundary(key: string, lowerText: string): boolean {
+  for (let at = lowerText.indexOf(key); at !== -1; at = lowerText.indexOf(key, at + 1)) {
+    if (!asciiWord.test(lowerText[at - 1] ?? '') && !asciiWord.test(lowerText[at + key.length] ?? '')) return true
+  }
+  return false
+}
 export function userTyped(term: string, text: string): boolean {
   if (text.length > 500) return false
   const key = keyOf(term), prompt = keyOf(text)
   if (key.length < 2) return false
-  if (!asciiLetterOrDigit.test(key)) return prompt.includes(key)
-  for (let at = prompt.indexOf(key); at !== -1; at = prompt.indexOf(key, at + 1)) {
-    if (!asciiWord.test(prompt[at - 1] ?? '') && !asciiWord.test(prompt[at + key.length] ?? '')) return true
-  }
-  return false
+  return asciiLetterOrDigit.test(key) ? hasAsciiBoundary(key, prompt) : prompt.includes(key)
+}
+export function inExcerpt(term: string, lowerExcerpt: string): boolean {
+  const key = keyOf(term)
+  if (!key) return false
+  if (!asciiLetterOrDigit.test(key) || commandParam.test(key)) return lowerExcerpt.includes(key)
+  return hasAsciiBoundary(key, lowerExcerpt)
 }
 
 export const DAY = 86_400_000
@@ -93,7 +126,7 @@ export function termOf(value: unknown): Term | null {
 
 export const MAX_CANDIDATES = 8
 
-function parseArray(text: string, requireValidFields = false): Candidate[] | undefined {
+function parseArray(text: string, requireAnyValid = false): Candidate[] | undefined {
   let rows: unknown
   try { rows = JSON.parse(text) } catch { return undefined }
   if (!Array.isArray(rows)) return undefined
@@ -101,8 +134,8 @@ function parseArray(text: string, requireValidFields = false): Candidate[] | und
   for (const raw of rows.slice(0, MAX_CANDIDATES)) {
     const term = termOf(raw)
     if (term) terms.push({ ...term, sourceTerm: raw.term.trim() })
-    else if (requireValidFields) return undefined
   }
+  if (requireAnyValid && rows.length > 0 && terms.length === 0) return undefined
   return terms
 }
 
@@ -139,8 +172,13 @@ export function parseTerms(text: string): Candidate[] {
   throw new Error('Expected a JSON array')
 }
 
+const BRANCH_PREFIX = /^(?:fix|feat|chore|docs|refactor|test|release|hotfix)\/[\p{L}\p{N}._~@%+/-]+$/iu
+const PR_NUMBER = /^(?:(?:pull\s+request|pr|mr|issue|bug|ticket)\s*#\s*\d+|[\p{L}\p{N}_-]+\s+#\d+)$/iu
+const WINDOWS_PATH = /^(?:[a-z]:\\[^\r\n]*|\\\\[^\s\\]+\\[^\r\n]*|\.\.?\\[\p{L}\p{N}._~@%+\\-]*(?::\d+)?|[\p{L}\p{N}._~@%+-]+\\[\p{L}\p{N}._~@%+\\-]*(?::\d+)?)$/iu
+
 export function isIdentifier(term: string): boolean {
-  if ((/\s/.test(term) && /\p{L}/u.test(term)) || /^(?:--?)?[\p{L}_][\p{L}\p{N}_.-]*=\S+$/u.test(term)) return false
+  if (BRANCH_PREFIX.test(term) || PR_NUMBER.test(term) || WINDOWS_PATH.test(term)) return true
+  if ((/\s/.test(term) && /\p{L}/u.test(term)) || commandParam.test(term)) return false
   // Concepts that look like paths or file names: slash commands (/compact), short letter pairs (CI/CD, I/O,
   // async/await; feat/example stays out) and framework names (Node.js, Next.js).
   if (/^\/[a-z][a-z-]*$/i.test(term) || /^[a-z]{1,5}(?:\/[a-z]{1,5})+$/i.test(term) || /^[A-Z][a-z]+\.js$/.test(term)) return false
