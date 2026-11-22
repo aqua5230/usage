@@ -10,6 +10,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ### Added
 - **New panel theme: Plush Pals.** Cream cards with a brown stitched rim, and eleven original plush animals that stroll along a row under the cards. One pal sits on each quota bar at its current percentage; it looks worried from 80% and falls asleep when the quota runs out (whichever of the 5-hour and weekly quotas is closer to the limit), and wakes up cheering when it resets. The pals speak up only when it matters, one speech bubble at a time: when a quota reaches 80%, runs out or resets; when a sleeping pal's quota is about 10 minutes from resetting (it stretches); when the current pace would empty a quota early (saying how long is left, and which other tool still has room); when Claude or Codex reports an outage and when it recovers; when today's usage passes yesterday's (the line cheers); on the day's first visit, with a greeting that fits (a weekly quota that just reset, a return after a few days, Monday or Friday, or the time of day); and after midnight. Now and then two pals in line chat or one dozes off. In December snow falls across the panel and a felt Christmas tree, a different one each day, stands at its end. Click a pal to see its name. Pick it from **⚙ Settings → Switch Panel**; there are now 18 themes. The panel always uses its light look, whatever the system appearance.
 
+### Changed
+- **Beginner Mode lets you mark terms one at a time and skips project names.** Press 4–6 to mark a single term understood; 9 still marks all three. Branch names, PR numbers, file names, paths and bare numbers no longer take the three hint slots, and every hint must appear in Claude's answer.
+- **Beginner Mode treats two names for one idea as one term.** Once you mark "分支（branch）" or "PR（Pull Request）" understood, "branch", "分支", "PR" and "pull request" stop appearing as new hints, and typing either name counts as knowing it.
+
+### Fixed
+- **Beginner Mode loses fewer "understood" marks when two conversations save at once.** Each change now re-reads the term list right before saving. It also stops asking Haiku for terms while the term list is unreadable, and the 5-hour pause now follows that quota's own reading time and reset.
+- **Beginner Mode explanations are no longer cut off mid-sentence.** Haiku is asked for a complete short phrase, and the length limit doubles to 80 characters. An explanation saved half-finished is replaced the next time its term comes up.
+
 ## [0.34.25] - 2026-11-21
 
 ### Changed
