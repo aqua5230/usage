@@ -164,6 +164,8 @@ class PopoverState:
     today_total: PeriodTotal
     yesterday_total: PeriodTotal
     service_alerts: tuple[str, ...] = ()
+    # Card ids ("claude", "codex") of the services behind service_alerts, for panels that react per card.
+    service_alert_cards: tuple[str, ...] = ()
     show_install_button: bool = False
     status_long: bool = False
     hide_claude: bool = False
@@ -975,6 +977,13 @@ def build_popover_state(
         and not hidden_services.get(service_status.service_name, False)
         and (service_alert_key := service_alert_keys.get(service_status.status)) is not None
     )
+    service_alert_cards = tuple(
+        service_status.service_name.lower()
+        for service_status in service_statuses
+        if service_status.is_abnormal
+        and not hidden_services.get(service_status.service_name, False)
+        and service_status.status in service_alert_keys
+    )
 
     return PopoverState(
         language=language,
@@ -1010,6 +1019,7 @@ def build_popover_state(
         today_total=today_total,
         yesterday_total=yesterday_total,
         service_alerts=service_alerts,
+        service_alert_cards=service_alert_cards,
         show_install_button=show_install_button,
         status_long=status_long,
         hide_claude=hide_claude,

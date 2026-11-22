@@ -71,6 +71,7 @@ def test_state_payload_includes_agy_card_data(monkeypatch: pytest.MonkeyPatch) -
             "percentTextCompact": "25%",
             "resetText": "Resets in 1h 0m",
             "resetTextCompact": "Resets in 1h 0m",
+            "resetsAt": 1_767_229_200.0,
             "warning": False,
             "available": True,
             "title": "Session",
@@ -81,6 +82,7 @@ def test_state_payload_includes_agy_card_data(monkeypatch: pytest.MonkeyPatch) -
             "percentTextCompact": "50%",
             "resetText": "Resets in 1d 0h",
             "resetTextCompact": "Resets in 1d 0h",
+            "resetsAt": 1_767_312_000.0,
             "warning": False,
             "available": True,
             "title": "Weekly",
@@ -126,10 +128,22 @@ def test_state_payload_includes_available_grok_card_data() -> None:
         "percentTextCompact",
         "resetText",
         "resetTextCompact",
+        "resetsAt",
         "warning",
         "available",
         "title",
     }
+
+
+def test_state_payload_names_the_cards_behind_service_alerts() -> None:
+    state = menubar._empty_state("en")
+    state.service_alerts = ("Codex: Major outage",)
+    state.service_alert_cards = ("codex",)
+
+    footer = cast(dict[str, object], _state_payload(state)["footer"])
+
+    assert footer["serviceAlerts"] == ["Codex: Major outage"]
+    assert footer["serviceAlertCards"] == ["codex"]
 
 
 def test_row_payload_uses_full_reset_text_without_warning() -> None:

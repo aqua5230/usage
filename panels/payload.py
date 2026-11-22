@@ -90,6 +90,8 @@ def _row_payload(row: QuotaRowState) -> dict[str, object]:
         ),
         "resetText": row.reset_text,
         "resetTextCompact": row.reset_text_compact or row.reset_text,
+        # Epoch seconds, or None when unknown; lets a panel react to an upcoming reset.
+        "resetsAt": row.resets_at,
         "warning": row.warning,
         "available": row.available,
         "title": row.title,
@@ -172,6 +174,7 @@ def _state_payload(
             "today": _period_payload(state.today_total, state.language),
             "yesterday": _period_payload(state.yesterday_total, state.language),
             "serviceAlerts": list(state.service_alerts),
+            "serviceAlertCards": list(state.service_alert_cards),
             "showInstall": state.show_install_button,
         },
     }

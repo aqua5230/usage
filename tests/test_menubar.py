@@ -3174,6 +3174,7 @@ def test_popover_state_translates_multiple_service_alerts(
         "⚠ Claude service issue: Degraded performance",
         "⚠ Codex service issue: Partial outage",
     )
+    assert state.service_alert_cards == ("claude", "codex")
 
 
 def test_popover_state_hides_service_alert_for_hidden_tool(
@@ -3194,6 +3195,7 @@ def test_popover_state_hides_service_alert_for_hidden_tool(
     )
 
     assert state.service_alerts == ("⚠ Codex service issue: Major outage",)
+    assert state.service_alert_cards == ("codex",)
 
 
 def test_state_from_outcome_translates_hook_broken_message(
