@@ -75,6 +75,7 @@ def seed_caches(
     from loaders.codex_loader import _JsonlCacheEntry, _JsonlParseState
 
     dirty_shards: set[int] = set()
+    values: dict[Any, Any] = {}
     _remove_legacy_cache(cache_path)
     sqlite_payload = _load_payload(_sqlite_log_path(cache_path), schema_version)
     if sqlite_payload is not None:
@@ -88,7 +89,7 @@ def seed_caches(
             ):
                 sqlite_log_cache.watermark = tuple(int(item) for item in watermark)
                 sqlite_log_cache.entries = [
-                    _deserialize_usage_entry(entry) for entry in entries_data
+                    _deserialize_usage_entry(entry, values) for entry in entries_data
                 ]
         except (KeyError, TypeError, ValueError):
             pass
@@ -165,7 +166,7 @@ def seed_caches(
                     mtime=mtime,
                     size=size,
                     replay_cache_key=None,
-                    entries=[_deserialize_usage_entry(entry) for entry in entries_data],
+                    entries=[_deserialize_usage_entry(entry, values) for entry in entries_data],
                     confirmed_offset=confirmed_offset,
                     confirmed_prefix_digest=bytes.fromhex(digest_hex)
                     if isinstance(digest_hex, str)
