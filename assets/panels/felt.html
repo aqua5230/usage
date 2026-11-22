@@ -1078,6 +1078,8 @@ body {
 // front of the line flips up and takes over a bar, the rider hops down to the back, and the line moves up.
 // At the 80% warning line the rider looks worried and keeps signalling with a "!"; at 100% it dozes off;
 // when the quota resets everyone cheers. Clicking a pal makes it cheer and say its name.
+// A rider hurries and sweats when its card starts burning quota too fast, and the line greets the first
+// visit of the day (or urges bedtime after midnight).
 // Idle breathing is a CSS animation; script only runs during a move, and nothing moves while hidden.
 (() => {
   const NAMES = ["redpanda", "frog", "penguin", "rabbit", "raccoon", "piglet", "elephant", "bear", "puppy", "chick", "kitten"];
@@ -1131,6 +1133,9 @@ body {
     .pal-dust{position:absolute;width:6px;height:6px;margin:-3px;border-radius:50%;background:#efe2cf;
       box-shadow:0 0 2px rgba(120,90,60,.35);animation:pal-dust .55s ease-out forwards}
     @keyframes pal-dust{to{opacity:0;translate:var(--dx) var(--dy,-6px);scale:1.6}}
+    .pal-sweat{position:absolute;width:7px;height:7px;background:#6fb7e0;border-radius:50% 0 50% 50%;
+      rotate:45deg;opacity:0;animation:pal-sweat 1.2s ease-in forwards}
+    @keyframes pal-sweat{0%{opacity:0;translate:0 0}20%{opacity:1}100%{opacity:0;translate:0 10px}}
     .pal-hit{position:absolute;bottom:0;left:${-SIZE * 0.4}px;width:${SIZE * 0.8}px;height:${SIZE}px;pointer-events:auto;cursor:pointer}`;
   document.head.appendChild(css);
   const layer = document.createElement("div");
@@ -1434,6 +1439,7 @@ body {
 
   // A pal says one of a few lines at a moment worth noticing: its bar crosses half, the warning line or the limit,
   // the quota resets or is about to, the official service breaks or recovers, or today passes yesterday.
+  // It also speaks when its card starts burning too fast (pace), on the day's first visit (hello), and late at night (late).
   // Not right after taking the bar: opening the panel or a shift change is not a crossing.
   // Returns whether a bubble was shown.
   const lastLine = {};
@@ -1776,6 +1782,7 @@ body {
   const previousAlerts = new Map();
   let previousToday = null;
   const wakeNoted = new Map();
+  let previousPace = null;
 
   async function startle(p) {
     p.busy = true;
@@ -1793,6 +1800,87 @@ body {
     pose(p, rest(p));
     idle(p);
     free(p);
+  }
+
+  // Burning too fast: quick little steps on the spot, with a drop of sweat sliding off.
+  async function hurry(p) {
+    p.busy = true;
+    const sweat = document.createElement("div");
+    sweat.className = "pal-sweat";
+    sweat.style.left = "10px";
+    sweat.style.bottom = `${SIZE * p.scale + 2}px`;
+    p.wrap.appendChild(sweat);
+    setTimeout(() => sweat.remove(), 1200);
+    await play(900, (k) => {
+      draw(p, p.x + Math.sin(k * Math.PI * 6) * 3, p.y - Math.abs(Math.sin(k * Math.PI * 3)) * 3);
+    }, p);
+    pose(p, rest(p));
+    idle(p);
+    free(p);
+  }
+
+  // Local calendar day (YYYY-MM-DD), and whether it is the small hours.
+  const dayKey = (d = new Date()) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const isLate = (d = new Date()) => d.getHours() < 5;
+  const storedDay = (key) => {
+    try {
+      return localStorage.getItem(key) || "";
+    } catch {
+      return "";
+    }
+  };
+  const storeDay = (key, day) => {
+    try {
+      localStorage.setItem(key, day);
+    } catch {}
+  };
+  let helloDay = storedDay("usage-felt-hello");
+  let lateDay = storedDay("usage-felt-late");
+  let helloPending = false;
+
+  function checkLate() {
+    const now = new Date();
+    if (!isLate(now)) return;
+    const tonight = dayKey(now);
+    if (lateDay === tonight) return;
+    const p = queue.find((o) => !o.busy) || pals.find((o) => o.bar >= 0 && !o.busy && o.mood !== "asleep");
+    if (!p) return;
+    if (!say(p, "late")) return;
+    lateDay = tonight;
+    storeDay("usage-felt-late", tonight);
+    if (!still && !p.busy) stretch(p);
+  }
+
+  // Wait out say()'s quiet time for pals that were just placed, then greet or urge bedtime.
+  function checkGreeting() {
+    if (hidden() || helloPending) return;
+    helloPending = true;
+    setTimeout(() => {
+      helloPending = false;
+      if (hidden()) return;
+      const then = new Date();
+      if (isLate(then)) {
+        checkLate();
+        return;
+      }
+      const today = dayKey(then);
+      if (helloDay === today) return;
+      const front = queue.find((o) => !o.busy);
+      if (!front) return;
+      if (!say(front, "hello")) return;
+      helloDay = today;
+      storeDay("usage-felt-hello", today);
+      if (!still) {
+        front.busy = true;
+        jump(front, front.x, front.y, 16, { air: "cheer", land: "cheer" })
+          .then(() => wait(500))
+          .then(() => {
+            pose(front, "stand");
+            front.busy = false;
+          });
+      }
+    }, 2500);
   }
 
   function checkSoon() {
@@ -1838,6 +1926,22 @@ body {
       }
       previousToday = today;
     }
+
+    // Read every card, not just ridden ones: a card briefly without a rider during a shift change must not
+    // look newly fast when the next rider arrives.
+    const pace = new Set(["claude", "codex", "agy", "grok", "muse"]
+      .filter((id) => state[id]?.session?.warning === true || state[id]?.weekly?.warning === true));
+    if (previousPace !== null) {
+      for (const p of pals) {
+        if (p.bar < 0) continue;
+        const id = p.key.split("/")[0];
+        if (!pace.has(id) || previousPace.has(id)) continue;
+        if (p.mood === "asleep") continue;
+        say(p, "pace");
+        if (!still && !p.busy) hurry(p);
+      }
+    }
+    previousPace = pace;
     checkSoon();
   }
 
@@ -1851,8 +1955,9 @@ body {
         return result;
       };
     }
-    setInterval(() => { if (!hidden()) checkSoon(); }, 30000);
+    setInterval(() => { if (!hidden()) { checkSoon(); checkLate(); } }, 30000);
     settle();
+    checkGreeting();
     if (still) {
       pals.forEach((p) => p.body.classList.remove("idle", "dozing"));
       return;
@@ -1872,7 +1977,11 @@ body {
   const footer = document.querySelector(".footer");
   if (footer) new MutationObserver(schedule).observe(footer, { subtree: true, childList: true, attributes: true, attributeFilter: ["hidden"] });
   // Catch up on anything that changed while the panel was hidden.
-  document.addEventListener("visibilitychange", () => !hidden() && schedule());
+  document.addEventListener("visibilitychange", () => {
+    if (hidden()) return;
+    schedule();
+    checkGreeting();
+  });
   if (document.readyState === "complete") start();
   else addEventListener("load", start);
 })();
