@@ -1266,6 +1266,8 @@ body {
   let snow = null;
   let treeSpace = 0;
   let lineRight = Infinity;
+  // Where the line stood at the last settle(), so pals busy in line can move with it.
+  let lineY = null;
 
   function refreshChristmas(now = new Date()) {
     const day = now.getMonth() === 11 ? dayKey(now) : "";
@@ -1324,7 +1326,14 @@ body {
       const pct = toLocal(textRect(row.querySelector(".percent")), origin);
       // Stand on the fill tip, but never on top of the label or the percentage.
       const half = SIZE * 0.5;
-      const x = clamp(fill.right, labelBox.right + half + 4, pct.left - half - 4);
+      let right = pct.left - half - 4;
+      // Nor in front of Codex's "updated N min ago" note when the pal's head and alert badge reach up to it.
+      const note = card.querySelector("[data-codex-stale]");
+      if (note && !note.hidden) {
+        const n = toLocal(note.getBoundingClientRect(), origin);
+        if (n.bottom > track.top + 5 - SIZE - 20) right = Math.min(right, n.left - half - 4);
+      }
+      const x = clamp(fill.right, labelBox.right + half + 4, right);
       // Which quota this bar shows, so reordering, hiding a card or switching the Antigravity group is not a change in usage.
       out.push({ x, y: track.top + 5, card: id,
         key: quotaKey(id, row.dataset.row),
@@ -1832,6 +1841,9 @@ body {
   function settle() {
     const b = bars();
     lineRight = treeSpace ? toLocal(lineEl.getBoundingClientRect()).right - treeSpace - 30 : Infinity;
+    const ground = slot(0).y;
+    const moved = lineY === null ? 0 : ground - lineY;
+    lineY = ground;
     // One rider per bar: extras rejoin the line, empty bars (bars appear once the data renders) take the front.
     b.forEach((_, i) => {
       const on = pals.filter((p) => p.bar === i);
@@ -1863,11 +1875,10 @@ body {
     }
     for (const p of pals) {
       if (p.busy) {
-        // A pal busy hopping in line finishes its action, but moves with the strip when the footer grows or shrinks.
-        const i = p.bar < 0 ? queue.indexOf(p) : -1;
-        const off = i >= 0 ? slot(i).y - (p.y + p.shift) : 0;
-        if (Math.abs(off) > 1 && Math.abs(off) < 80) {
-          p.shift += off;
+        // A pal busy hopping in line, or on its way back to it, finishes its action but moves as far as the line
+        // moved: the footer grew or shrank, or the panel was first laid out, which can move it hundreds of pixels.
+        if (p.bar < 0 && Math.abs(moved) > 1) {
+          p.shift += moved;
           // Redraw now: during a pause in its action nothing else would.
           if (p.last) draw(p, ...p.last);
         }
