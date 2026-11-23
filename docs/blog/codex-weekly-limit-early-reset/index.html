@@ -372,6 +372,147 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   transition: border-color 140ms ease;
 }
 .related-list a:hover { border-color: rgba(255, 140, 66, 0.45); color: var(--accent); }
+.prose h2[id] { scroll-margin-top: 76px; }
+.article-layout { display: block; }
+.toc-rail, .news-rail { display: none; }
+.toc-mobile {
+  margin-bottom: 28px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+}
+.toc-mobile summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fg);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.toc-mobile summary::-webkit-details-marker { display: none; }
+.toc-mobile summary::after {
+  content: "▾";
+  font-size: 12px;
+  color: var(--fg-dimmer);
+  transition: transform 150ms ease;
+}
+.toc-mobile[open] summary::after { transform: rotate(180deg); }
+.toc-mobile .toc-list {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.toc-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fg-dimmer);
+  margin-bottom: 10px;
+}
+.toc-list { list-style: none; display: grid; gap: 6px; }
+.toc-list a {
+  display: block;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--fg-dim);
+  padding: 2px 0;
+  transition: color 140ms ease;
+  overflow-wrap: anywhere;
+}
+.toc-list a:hover { color: var(--fg); }
+.toc-list a[aria-current="location"] { color: var(--accent); font-weight: 600; }
+.news-card {
+  padding: 18px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+}
+.news-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg);
+  margin-bottom: 12px;
+}
+.news-list { display: grid; gap: 10px; }
+.news-item {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+  transition: border-color 140ms ease;
+}
+.news-item:hover { border-color: rgba(255, 140, 66, 0.45); }
+.news-item-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.news-item-name { font-size: 12.5px; font-weight: 600; color: var(--fg); }
+.news-item-date {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--fg-dimmer);
+  white-space: nowrap;
+}
+.news-item-title {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--fg-dim);
+  overflow-wrap: anywhere;
+}
+.news-all {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+}
+.news-all:hover { color: var(--accent-hover); }
+@media (min-width: 1300px) {
+  .wrap-article { max-width: 1300px; }
+  .article-layout {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 772px) 200px;
+    justify-content: center;
+    align-items: start;
+    column-gap: 40px;
+  }
+  .article-main { grid-column: 2; min-width: 0; }
+  .toc-rail {
+    grid-column: 1;
+    display: block;
+    position: sticky;
+    top: 76px;
+    max-height: calc(100vh - 96px);
+    overflow-y: auto;
+  }
+  .toc-mobile { display: none; }
+}
+@media (min-width: 1440px) {
+  .wrap-article { max-width: 1440px; }
+  .article-layout {
+    grid-template-columns: 200px 40px minmax(0, 772px) 32px 280px;
+    column-gap: 0;
+    justify-content: center;
+  }
+  .toc-rail { grid-column: 1; }
+  .article-main { grid-column: 3; }
+  .news-rail:not([hidden]) {
+    grid-column: 5;
+    display: block;
+    position: sticky;
+    top: 76px;
+    max-height: calc(100vh - 96px);
+    overflow-y: auto;
+  }
+}
 footer {
   padding: 36px 0 28px;
   border-top: 1px solid var(--border);
@@ -407,16 +548,45 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
   </div>
 </header>
 <main id="main-content">
-  <div class="wrap">
-    <article>
-      <header class="post-header">
-        <div class="post-meta">
-          <span>Published <time datetime="2026-11-23">2026-11-23</time></span>
-        </div>
-        <h1>Why Did My Codex Weekly Limit Reset Early?</h1>
-        <p class="post-desc">Codex weekly limits often reset days before resets_at because OpenAI runs global resets. Ten weeks of data from one Plus account, the official reset rules, and how to check.</p>
-      </header>
-      <div class="prose">
+  <div class="wrap wrap-article">
+    <div class="article-layout">
+      <aside class="toc-rail">
+        <nav aria-label="In this article">
+          <p class="toc-title">In this article</p>
+        <ol class="toc-list">
+          <li><a href="#why-does-the-codex-weekly-limit-reset-before-the-scheduled-time">Why does the Codex weekly limit reset before the scheduled time?</a></li>
+          <li><a href="#how-often-does-an-early-reset-happen">How often does an early reset happen?</a></li>
+          <li><a href="#what-is-the-difference-between-a-global-reset-and-a-banked-reset">What is the difference between a global reset and a banked reset?</a></li>
+          <li><a href="#what-does-resets_at-mean-if-resets-can-happen-early">What does resets_at mean if resets can happen early?</a></li>
+          <li><a href="#how-can-you-check-your-codex-limit-and-countdown">How can you check your Codex limit and countdown?</a></li>
+          <li><a href="#key-takeaways">Key takeaways</a></li>
+          <li><a href="#sources">Sources</a></li>
+        </ol>
+        </nav>
+      </aside>
+      <article class="article-main">
+        <header class="post-header">
+          <div class="post-meta">
+            <span>Published <time datetime="2026-11-23">2026-11-23</time></span>
+          </div>
+          <h1>Why Did My Codex Weekly Limit Reset Early?</h1>
+          <p class="post-desc">Codex weekly limits often reset days before resets_at because OpenAI runs global resets. Ten weeks of data from one Plus account, the official reset rules, and how to check.</p>
+        </header>
+        <details class="toc-mobile">
+          <summary>In this article</summary>
+          <nav aria-label="In this article">
+        <ol class="toc-list">
+          <li><a href="#why-does-the-codex-weekly-limit-reset-before-the-scheduled-time">Why does the Codex weekly limit reset before the scheduled time?</a></li>
+          <li><a href="#how-often-does-an-early-reset-happen">How often does an early reset happen?</a></li>
+          <li><a href="#what-is-the-difference-between-a-global-reset-and-a-banked-reset">What is the difference between a global reset and a banked reset?</a></li>
+          <li><a href="#what-does-resets_at-mean-if-resets-can-happen-early">What does resets_at mean if resets can happen early?</a></li>
+          <li><a href="#how-can-you-check-your-codex-limit-and-countdown">How can you check your Codex limit and countdown?</a></li>
+          <li><a href="#key-takeaways">Key takeaways</a></li>
+          <li><a href="#sources">Sources</a></li>
+        </ol>
+          </nav>
+        </details>
+        <div class="prose">
 <p><strong>Your Codex weekly limit resets early when OpenAI runs a global reset on eligible accounts.</strong> OpenAI refills your limit to 100% and starts a new weekly period on the spot. You lose nothing, so an early reset works like extra quota. The <code>resets_at</code> time that Codex reports is the latest moment your limit will refill. Checked on 2026-11-23.</p>
 <aside class="blog-cta-card">
   <h2>Track your AI coding quotas in the menu bar</h2>
@@ -431,18 +601,18 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <li>On the author's own ChatGPT Plus account, all 10 weekly periods between 2026-08-29 and 2026-10-06 ended 1 to 5 days before <code>resets_at</code>. In 3 of them, the author had already used 100%.</li>
 <li>After a reset, your next refresh date moves. The new date replaces the old one.</li>
 </ul>
-<h2>Why does the Codex weekly limit reset before the scheduled time?</h2>
+<h2 id="why-does-the-codex-weekly-limit-reset-before-the-scheduled-time">Why does the Codex weekly limit reset before the scheduled time?</h2>
 <p>ChatGPT Work and Codex share the same pricing, credits, and usage limits. On ChatGPT Plus and Business Standard, Codex has a 5-hour limit and a weekly limit. The Pro plans (<code>Pro 100</code>, <code>Pro 200</code>, and <code>Pro 500</code>) have a weekly limit only, with no 5-hour limit for now.</p>
 <p>Normally the weekly limit refills at <code>resets_at</code>. But OpenAI often applies what its help center calls an &quot;OpenAI-granted automatic reset&quot;, also known as a global reset. OpenAI applies it to selected accounts directly, and you don't have to claim anything. Tibo usually announces these resets on X. His posts give reasons such as fixing usage problems, reaching a user milestone, or launching a new model.</p>
 <p>A global reset does not show up in your reset <strong>History</strong>. So what you notice is this: your used percentage drops to zero, and your next refresh date moves later.</p>
-<h2>How often does an early reset happen?</h2>
+<h2 id="how-often-does-an-early-reset-happen">How often does an early reset happen?</h2>
 <p>The author tracked their own ChatGPT Plus account from 2026-08-29 to 2026-10-06. That period covered 10 weekly periods, and none of them lasted until <code>resets_at</code>:</p>
 <ul>
 <li>All 10 ended <strong>1 to 5 days early</strong>, and a new period started right away.</li>
 <li>In <strong>3</strong> of the 10, the author had already used <strong>100%</strong>. The early reset let them keep working.</li>
 </ul>
 <p>An unofficial site, <a href="https://codex-resets.com/">codex-resets.com</a>, follows <code>@thsottiaux</code> on X and logs each reset. As of 2026-11-23 it had logged 72 resets. The average wait between them was 5.9 days, and the longest was 67.7 days. The site notes that an AI sorts its entries, and that nothing on it is a promise from OpenAI. OpenAI also says that free resets are promotional and have no fixed schedule.</p>
-<h2>What is the difference between a global reset and a banked reset?</h2>
+<h2 id="what-is-the-difference-between-a-global-reset-and-a-banked-reset">What is the difference between a global reset and a banked reset?</h2>
 <p>OpenAI's help center describes three kinds of one-time reset:</p>
 <table>
 <thead>
@@ -475,23 +645,23 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 </tbody>
 </table>
 <p>Suppose you use a banked reset, and a global reset arrives later. The global reset brings you back to 100%, not 200%. Banked resets that you haven't used stay in your account.</p>
-<h2>What does resets_at mean if resets can happen early?</h2>
+<h2 id="what-does-resets_at-mean-if-resets-can-happen-early">What does resets_at mean if resets can happen early?</h2>
 <p>Think of <code>resets_at</code> as the latest time your limit will refill. If no global reset comes first, that is when your week ends.</p>
 <p>When a reset does come early, your schedule moves with it. OpenAI gives an example: a weekly period was due to end on Friday, but a reset restarted it on Tuesday. The next refresh is then the following Tuesday, and the Friday date no longer applies.</p>
-<h2>How can you check your Codex limit and countdown?</h2>
+<h2 id="how-can-you-check-your-codex-limit-and-countdown">How can you check your Codex limit and countdown?</h2>
 <p>There are two free official ways, and a third option if you want the number on screen all the time:</p>
 <ul>
 <li><strong>The usage dashboard.</strong> Open the <a href="https://chatgpt.com/codex/settings/usage">usage dashboard</a> on the web, or <strong>Settings &gt; Usage &amp; billing</strong> in the desktop app. It shows how much you have left, when the limit refills, and any banked resets under <strong>Available</strong>.</li>
 <li><strong>Codex CLI.</strong> Run <code>/status</code> to see how much you have left. To use a banked reset, run <code>/usage</code> and choose <strong>Redeem reset</strong>.</li>
 <li><strong>The <code>usage</code> app.</strong> <code>usage</code> is free and open source. It reads your local Codex logs and shows your 5-hour and weekly limits, with countdowns, in the macOS menu bar or the Windows system tray. A limit turns red as it gets close, and you can get a notification at 50%, 70%, 80%, 90%, or 95%. The default is 90%. When a global reset lands, you see the new countdown without opening anything.</li>
 </ul>
-<h2>Key takeaways</h2>
+<h2 id="key-takeaways">Key takeaways</h2>
 <ul>
 <li>A Codex weekly limit resets early because OpenAI ran a global reset. You get a full limit back and a new weekly period.</li>
 <li>On the author's own Plus account, all 10 weekly periods from 2026-08-29 to 2026-10-06 ended 1 to 5 days before <code>resets_at</code>. In 3 of them, the author had used 100%.</li>
 <li><code>resets_at</code> is the latest time your limit will refill. To see the current number, use the usage dashboard, <code>/status</code>, or the <code>usage</code> app.</li>
 </ul>
-<h2>Sources</h2>
+<h2 id="sources">Sources</h2>
 <ul>
 <li><a href="https://help.openai.com/en/articles/20001498-how-resets-work-in-codex">How resets work in Codex</a></li>
 <li><a href="https://learn.chatgpt.com/docs/pricing">Pricing | ChatGPT Learn</a></li>
@@ -506,7 +676,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
     <a class="btn btn-secondary" href="https://github.com/aqua5230/usage" target="_blank" rel="noopener">GitHub</a>
   </div>
 </aside>
-      </div>
+        </div>
     <section class="related-section">
       <h2>Related Articles</h2>
       <ul class="related-list">
@@ -514,7 +684,15 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
       <li><a href="../../blog/how-to-check-antigravity-quota/">How to Check Your Antigravity (agy) Quota</a></li>
       </ul>
     </section>
-    </article>
+      </article>
+      <aside class="news-rail" aria-label="AI Update Daily" hidden>
+        <div class="news-card">
+          <h2 class="news-title">AI Update Daily</h2>
+          <div class="news-list"></div>
+          <a class="news-all" href="https://aqua5230.github.io/ai-updates/" target="_blank" rel="noopener">See all updates →</a>
+        </div>
+      </aside>
+    </div>
   </div>
 </main>
 <footer>
@@ -522,5 +700,175 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
     <p>Built by <a href="https://github.com/aqua5230" target="_blank" rel="noopener">@aqua5230</a> · AGPL-3.0 · No uploads. No tracking. Just yours.</p>
   </div>
 </footer>
+<script>
+(function () {
+  var tocLinks = Array.prototype.slice.call(
+    document.querySelectorAll('.toc-rail a[href^="#"]')
+  );
+  var mobileLinks = Array.prototype.slice.call(
+    document.querySelectorAll('.toc-mobile a[href^="#"]')
+  );
+  if (tocLinks.length) {
+    var targets = [];
+    tocLinks.forEach(function (link) {
+      var el = document.getElementById(link.getAttribute("href").slice(1));
+      if (el) targets.push(el);
+    });
+
+    function setActive(activeId) {
+      tocLinks.concat(mobileLinks).forEach(function (link) {
+        if (link.getAttribute("href") === "#" + activeId) {
+          link.setAttribute("aria-current", "location");
+        } else {
+          link.removeAttribute("aria-current");
+        }
+      });
+    }
+
+    // The current section is the last heading that has scrolled past the sticky top bar.
+    // Recomputed on every scroll frame, so jumps (TOC clicks, Page Down) cannot skip it.
+    function pickActive() {
+      var root = document.documentElement;
+      if (window.innerHeight + window.scrollY >= root.scrollHeight - 2) {
+        setActive(targets[targets.length - 1].id);
+        return;
+      }
+      var current = targets[0];
+      for (var i = 0; i < targets.length; i++) {
+        if (targets[i].getBoundingClientRect().top > 120) break;
+        current = targets[i];
+      }
+      if (current) setActive(current.id);
+    }
+
+    var queued = false;
+    window.addEventListener(
+      "scroll",
+      function () {
+        if (queued) return;
+        queued = true;
+        window.requestAnimationFrame(function () {
+          queued = false;
+          pickActive();
+        });
+      },
+      { passive: true }
+    );
+    pickActive();
+  }
+
+  var rail = document.querySelector(".news-rail");
+  var listEl = rail && rail.querySelector(".news-list");
+  if (!rail || !listEl || !window.matchMedia || !window.fetch) return;
+
+  var mq = window.matchMedia("(min-width: 1440px)");
+  var started = false;
+  var pageLang = document.documentElement.lang || "en";
+
+  function getPeriod(tool) {
+    return (tool && tool.latest && tool.latest.raw && tool.latest.raw.period) || "";
+  }
+
+  function renderNews(tools) {
+    var sorted = tools
+      .filter(function (t) {
+        return t && t.id && t.name && t.latest;
+      })
+      .slice()
+      .sort(function (a, b) {
+        var pa = getPeriod(a);
+        var pb = getPeriod(b);
+        if (pb > pa) return 1;
+        if (pb < pa) return -1;
+        return 0;
+      })
+      .slice(0, 4);
+
+    if (!sorted.length) return;
+
+    while (listEl.firstChild) {
+      listEl.removeChild(listEl.firstChild);
+    }
+
+    sorted.forEach(function (tool) {
+      var version = (tool.latest && tool.latest.version) || "";
+      var period = getPeriod(tool);
+
+      var a = document.createElement("a");
+      a.className = "news-item";
+      a.href =
+        "https://aqua5230.github.io/ai-updates/#" +
+        encodeURIComponent(tool.id) +
+        "/" +
+        encodeURIComponent(version);
+      a.target = "_blank";
+      a.rel = "noopener";
+
+      var head = document.createElement("div");
+      head.className = "news-item-head";
+
+      var nameEl = document.createElement("span");
+      nameEl.className = "news-item-name";
+      nameEl.textContent = version ? tool.name + " " + version : tool.name;
+      head.appendChild(nameEl);
+
+      if (period) {
+        var dateEl = document.createElement("time");
+        dateEl.className = "news-item-date";
+        dateEl.dateTime = period;
+        dateEl.textContent = period;
+        head.appendChild(dateEl);
+      }
+
+      a.appendChild(head);
+
+      var curated = tool.latest && tool.latest.curated;
+      var items = curated && curated.items;
+      var firstItem = Array.isArray(items) && items.length > 0 ? items[0] : null;
+      var titleObj = firstItem && firstItem.title;
+      var headline = titleObj && (titleObj[pageLang] || titleObj.en);
+      if (headline) {
+        var titleEl = document.createElement("p");
+        titleEl.className = "news-item-title";
+        titleEl.textContent = headline;
+        a.appendChild(titleEl);
+      }
+
+      listEl.appendChild(a);
+    });
+
+    rail.hidden = false;
+  }
+
+  function loadNews() {
+    if (started || !mq.matches) return;
+    started = true;
+    if (typeof mq.removeEventListener === "function") {
+      mq.removeEventListener("change", loadNews);
+    } else if (typeof mq.removeListener === "function") {
+      mq.removeListener(loadNews);
+    }
+    fetch("https://aqua5230.github.io/ai-updates/data.json")
+      .then(function (res) {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.json();
+      })
+      .then(function (data) {
+        if (data && Array.isArray(data.tools)) {
+          renderNews(data.tools);
+        }
+      })
+      .catch(function () {});
+  }
+
+  if (mq.matches) {
+    loadNews();
+  } else if (typeof mq.addEventListener === "function") {
+    mq.addEventListener("change", loadNews);
+  } else if (typeof mq.addListener === "function") {
+    mq.addListener(loadNews);
+  }
+})();
+</script>
 </body>
 </html>

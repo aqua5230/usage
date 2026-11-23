@@ -372,6 +372,147 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   transition: border-color 140ms ease;
 }
 .related-list a:hover { border-color: rgba(255, 140, 66, 0.45); color: var(--accent); }
+.prose h2[id] { scroll-margin-top: 76px; }
+.article-layout { display: block; }
+.toc-rail, .news-rail { display: none; }
+.toc-mobile {
+  margin-bottom: 28px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+}
+.toc-mobile summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fg);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.toc-mobile summary::-webkit-details-marker { display: none; }
+.toc-mobile summary::after {
+  content: "▾";
+  font-size: 12px;
+  color: var(--fg-dimmer);
+  transition: transform 150ms ease;
+}
+.toc-mobile[open] summary::after { transform: rotate(180deg); }
+.toc-mobile .toc-list {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.toc-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fg-dimmer);
+  margin-bottom: 10px;
+}
+.toc-list { list-style: none; display: grid; gap: 6px; }
+.toc-list a {
+  display: block;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--fg-dim);
+  padding: 2px 0;
+  transition: color 140ms ease;
+  overflow-wrap: anywhere;
+}
+.toc-list a:hover { color: var(--fg); }
+.toc-list a[aria-current="location"] { color: var(--accent); font-weight: 600; }
+.news-card {
+  padding: 18px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+}
+.news-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg);
+  margin-bottom: 12px;
+}
+.news-list { display: grid; gap: 10px; }
+.news-item {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+  transition: border-color 140ms ease;
+}
+.news-item:hover { border-color: rgba(255, 140, 66, 0.45); }
+.news-item-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.news-item-name { font-size: 12.5px; font-weight: 600; color: var(--fg); }
+.news-item-date {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--fg-dimmer);
+  white-space: nowrap;
+}
+.news-item-title {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--fg-dim);
+  overflow-wrap: anywhere;
+}
+.news-all {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+}
+.news-all:hover { color: var(--accent-hover); }
+@media (min-width: 1300px) {
+  .wrap-article { max-width: 1300px; }
+  .article-layout {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 772px) 200px;
+    justify-content: center;
+    align-items: start;
+    column-gap: 40px;
+  }
+  .article-main { grid-column: 2; min-width: 0; }
+  .toc-rail {
+    grid-column: 1;
+    display: block;
+    position: sticky;
+    top: 76px;
+    max-height: calc(100vh - 96px);
+    overflow-y: auto;
+  }
+  .toc-mobile { display: none; }
+}
+@media (min-width: 1440px) {
+  .wrap-article { max-width: 1440px; }
+  .article-layout {
+    grid-template-columns: 200px 40px minmax(0, 772px) 32px 280px;
+    column-gap: 0;
+    justify-content: center;
+  }
+  .toc-rail { grid-column: 1; }
+  .article-main { grid-column: 3; }
+  .news-rail:not([hidden]) {
+    grid-column: 5;
+    display: block;
+    position: sticky;
+    top: 76px;
+    max-height: calc(100vh - 96px);
+    overflow-y: auto;
+  }
+}
 footer {
   padding: 36px 0 28px;
   border-top: 1px solid var(--border);
@@ -407,16 +548,45 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
   </div>
 </header>
 <main id="main-content">
-  <div class="wrap">
-    <article>
-      <header class="post-header">
-        <div class="post-meta">
-          <span>Published <time datetime="2026-11-23">2026-11-23</time></span>
-        </div>
-        <h1>How to Check Your Antigravity (agy) Quota</h1>
-        <p class="post-desc">Type /usage in the Antigravity CLI, or run agy -p /usage --output-format json to get your quota without calling a model. Here are the three quota pools and when they reset.</p>
-      </header>
-      <div class="prose">
+  <div class="wrap wrap-article">
+    <div class="article-layout">
+      <aside class="toc-rail">
+        <nav aria-label="In this article">
+          <p class="toc-title">In this article</p>
+        <ol class="toc-list">
+          <li><a href="#how-do-you-check-your-quota-in-the-cli-or-the-app">How do you check your quota in the CLI or the app?</a></li>
+          <li><a href="#how-do-you-get-your-quota-as-json-without-calling-a-model">How do you get your quota as JSON without calling a model?</a></li>
+          <li><a href="#what-are-the-three-quota-pools-and-do-they-share-a-timer">What are the three quota pools, and do they share a timer?</a></li>
+          <li><a href="#when-do-the-5-hour-and-weekly-limits-reset">When do the 5-hour and weekly limits reset?</a></li>
+          <li><a href="#how-can-you-keep-your-antigravity-quota-on-screen">How can you keep your Antigravity quota on screen?</a></li>
+          <li><a href="#key-takeaways">Key takeaways</a></li>
+          <li><a href="#sources">Sources</a></li>
+        </ol>
+        </nav>
+      </aside>
+      <article class="article-main">
+        <header class="post-header">
+          <div class="post-meta">
+            <span>Published <time datetime="2026-11-23">2026-11-23</time></span>
+          </div>
+          <h1>How to Check Your Antigravity (agy) Quota</h1>
+          <p class="post-desc">Type /usage in the Antigravity CLI, or run agy -p /usage --output-format json to get your quota without calling a model. Here are the three quota pools and when they reset.</p>
+        </header>
+        <details class="toc-mobile">
+          <summary>In this article</summary>
+          <nav aria-label="In this article">
+        <ol class="toc-list">
+          <li><a href="#how-do-you-check-your-quota-in-the-cli-or-the-app">How do you check your quota in the CLI or the app?</a></li>
+          <li><a href="#how-do-you-get-your-quota-as-json-without-calling-a-model">How do you get your quota as JSON without calling a model?</a></li>
+          <li><a href="#what-are-the-three-quota-pools-and-do-they-share-a-timer">What are the three quota pools, and do they share a timer?</a></li>
+          <li><a href="#when-do-the-5-hour-and-weekly-limits-reset">When do the 5-hour and weekly limits reset?</a></li>
+          <li><a href="#how-can-you-keep-your-antigravity-quota-on-screen">How can you keep your Antigravity quota on screen?</a></li>
+          <li><a href="#key-takeaways">Key takeaways</a></li>
+          <li><a href="#sources">Sources</a></li>
+        </ol>
+          </nav>
+        </details>
+        <div class="prose">
 <p><strong>To check your Antigravity (<code>agy</code>) quota, type <code>/usage</code> in the CLI, or run <code>agy -p /usage --output-format json</code> in your terminal.</strong> The second command does not call a model, and it returns in about 6 seconds. Your quota is split into three pools: Gemini Models, Claude and GPT models, and Gemini 4 Argon. Each pool keeps its own timer. Checked on 2026-11-23.</p>
 <aside class="blog-cta-card">
   <h2>Track your AI coding quotas in the menu bar</h2>
@@ -431,16 +601,16 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <li>Gemini Models and Claude and GPT models each have a weekly limit and a 5-hour limit. Gemini 4 Argon has a weekly limit only.</li>
 <li>In our testing, the 5-hour window starts with your first use of the day. Google's docs don't say this.</li>
 </ul>
-<h2>How do you check your quota in the CLI or the app?</h2>
+<h2 id="how-do-you-check-your-quota-in-the-cli-or-the-app">How do you check your quota in the CLI or the app?</h2>
 <p>Google documents two built-in ways to see your baseline quota and your AI credits.</p>
 <p>The first is the CLI. In an interactive session, type <code>/usage</code> (or <code>/quota</code>) and press Enter. Google's CLI docs say this refreshes your quota from the backend and opens a <strong>Models &amp; Quota</strong> panel. You can scroll with the arrow keys or <code>J</code> and <code>K</code>, jump with <code>G</code> and <code>Shift + G</code>, and close the panel with <code>Esc</code> or <code>Q</code>. The right side of the status line also shows how many AI credits you have left, and it highlights the number when you are running low. To open a separate credits panel, type <code>/credits</code>.</p>
 <p>The second is the app. Google's <strong>Plans</strong> page says you can see your baseline quota on the <strong>Settings</strong> page. If you are on Google AI Pro or Ultra, you can also set <strong>AI Credit Overages</strong> there. <strong>Never</strong> means you wait for your quota to refill. <strong>Always</strong> means Antigravity uses your AI credits once the quota runs out.</p>
-<h2>How do you get your quota as JSON without calling a model?</h2>
+<h2 id="how-do-you-get-your-quota-as-json-without-calling-a-model">How do you get your quota as JSON without calling a model?</h2>
 <p>If you want the numbers for a script or a status line, run the CLI in headless mode (<code>-p</code>) with JSON output:</p>
 <pre><code class="language-bash">agy -p /usage --output-format json
 </code></pre>
 <p>In our testing, this command makes no model call and returns in about 6 seconds. Google documents <code>/usage</code> as an interactive command, and it documents <code>agy -p</code> with <code>--output-format json</code>. It does not document using the two together, and it does not describe the <code>command.data.groups</code> field that holds the pools.</p>
-<h2>What are the three quota pools, and do they share a timer?</h2>
+<h2 id="what-are-the-three-quota-pools-and-do-they-share-a-timer">What are the three quota pools, and do they share a timer?</h2>
 <p>The <code>command.data.groups</code> field lists three pools. Each one keeps its own timer:</p>
 <table>
 <thead>
@@ -473,7 +643,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 </tbody>
 </table>
 <p>So if you use up the 5-hour limit on Gemini Models, your Claude and GPT models pool and your Gemini 4 Argon pool are still full.</p>
-<h2>When do the 5-hour and weekly limits reset?</h2>
+<h2 id="when-do-the-5-hour-and-weekly-limits-reset">When do the 5-hour and weekly limits reset?</h2>
 <p>Google's <strong>Plans</strong> page says the refresh schedule depends on your Google AI plan:</p>
 <ul>
 <li><strong>Google AI Ultra:</strong> the highest quota, refreshed every five hours, plus the highest weekly rate limit and access to third-party models.</li>
@@ -481,20 +651,20 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <li><strong>Other plans:</strong> a baseline quota that refreshes weekly, plus a weekly rate limit.</li>
 </ul>
 <p>Google also says that how fast you use quota depends on how much work the agent does. Simple tasks let you send more prompts, and complex tasks use more. The docs don't say when the 5-hour window starts. In our testing, it starts with your first use of the day.</p>
-<h2>How can you keep your Antigravity quota on screen?</h2>
+<h2 id="how-can-you-keep-your-antigravity-quota-on-screen">How can you keep your Antigravity quota on screen?</h2>
 <p>There are two free official ways, and a third option if you want the number on screen all the time:</p>
 <ul>
 <li><strong><code>/usage</code> or Settings.</strong> Type <code>/usage</code> in <code>agy</code> to open the Models &amp; Quota panel, or open the Settings page in the app.</li>
 <li><strong><code>agy -p /usage --output-format json</code>.</strong> Read the three pools from <code>command.data.groups</code>.</li>
 <li><strong>The <code>usage</code> app.</strong> <code>usage</code> is free and open source. It reads your quota with <code>agy -p /usage</code>. If that fails, it falls back to Google's quota endpoint, using the sign-in that the Antigravity CLI already saved. It shows your 5-hour and weekly limits, with countdowns, in the macOS menu bar or the Windows system tray. The Antigravity card shows the Gemini pool first. Tap the <code>Gemini ⇄</code> tag to switch to the Claude / GPT pool or the Gemini 4 Argon pool, and the card remembers your choice. A limit turns red as it gets close, and you can get a notification at 50%, 70%, 80%, 90%, or 95%. The default is 90%.</li>
 </ul>
-<h2>Key takeaways</h2>
+<h2 id="key-takeaways">Key takeaways</h2>
 <ul>
 <li>Type <code>/usage</code> in the Antigravity CLI to open the quota panel. Run <code>agy -p /usage --output-format json</code> to get the same data as JSON without calling a model.</li>
 <li>There are three pools. Gemini Models and Claude and GPT models have weekly and 5-hour limits. Gemini 4 Argon has a weekly limit only. Each pool keeps its own timer.</li>
 <li>In our testing, the 5-hour window starts with your first use of the day. <code>usage</code> shows all three pools, with countdowns, in your menu bar or tray.</li>
 </ul>
-<h2>Sources</h2>
+<h2 id="sources">Sources</h2>
 <ul>
 <li><a href="https://antigravity.google/docs/cli/commands/usage">Model quotas (/usage)</a></li>
 <li><a href="https://antigravity.google/docs/plans">Plans</a></li>
@@ -510,7 +680,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
     <a class="btn btn-secondary" href="https://github.com/aqua5230/usage" target="_blank" rel="noopener">GitHub</a>
   </div>
 </aside>
-      </div>
+        </div>
     <section class="related-section">
       <h2>Related Articles</h2>
       <ul class="related-list">
@@ -518,7 +688,15 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
       <li><a href="../../blog/codex-weekly-limit-early-reset/">Why Did My Codex Weekly Limit Reset Early?</a></li>
       </ul>
     </section>
-    </article>
+      </article>
+      <aside class="news-rail" aria-label="AI Update Daily" hidden>
+        <div class="news-card">
+          <h2 class="news-title">AI Update Daily</h2>
+          <div class="news-list"></div>
+          <a class="news-all" href="https://aqua5230.github.io/ai-updates/" target="_blank" rel="noopener">See all updates →</a>
+        </div>
+      </aside>
+    </div>
   </div>
 </main>
 <footer>
@@ -526,5 +704,175 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
     <p>Built by <a href="https://github.com/aqua5230" target="_blank" rel="noopener">@aqua5230</a> · AGPL-3.0 · No uploads. No tracking. Just yours.</p>
   </div>
 </footer>
+<script>
+(function () {
+  var tocLinks = Array.prototype.slice.call(
+    document.querySelectorAll('.toc-rail a[href^="#"]')
+  );
+  var mobileLinks = Array.prototype.slice.call(
+    document.querySelectorAll('.toc-mobile a[href^="#"]')
+  );
+  if (tocLinks.length) {
+    var targets = [];
+    tocLinks.forEach(function (link) {
+      var el = document.getElementById(link.getAttribute("href").slice(1));
+      if (el) targets.push(el);
+    });
+
+    function setActive(activeId) {
+      tocLinks.concat(mobileLinks).forEach(function (link) {
+        if (link.getAttribute("href") === "#" + activeId) {
+          link.setAttribute("aria-current", "location");
+        } else {
+          link.removeAttribute("aria-current");
+        }
+      });
+    }
+
+    // The current section is the last heading that has scrolled past the sticky top bar.
+    // Recomputed on every scroll frame, so jumps (TOC clicks, Page Down) cannot skip it.
+    function pickActive() {
+      var root = document.documentElement;
+      if (window.innerHeight + window.scrollY >= root.scrollHeight - 2) {
+        setActive(targets[targets.length - 1].id);
+        return;
+      }
+      var current = targets[0];
+      for (var i = 0; i < targets.length; i++) {
+        if (targets[i].getBoundingClientRect().top > 120) break;
+        current = targets[i];
+      }
+      if (current) setActive(current.id);
+    }
+
+    var queued = false;
+    window.addEventListener(
+      "scroll",
+      function () {
+        if (queued) return;
+        queued = true;
+        window.requestAnimationFrame(function () {
+          queued = false;
+          pickActive();
+        });
+      },
+      { passive: true }
+    );
+    pickActive();
+  }
+
+  var rail = document.querySelector(".news-rail");
+  var listEl = rail && rail.querySelector(".news-list");
+  if (!rail || !listEl || !window.matchMedia || !window.fetch) return;
+
+  var mq = window.matchMedia("(min-width: 1440px)");
+  var started = false;
+  var pageLang = document.documentElement.lang || "en";
+
+  function getPeriod(tool) {
+    return (tool && tool.latest && tool.latest.raw && tool.latest.raw.period) || "";
+  }
+
+  function renderNews(tools) {
+    var sorted = tools
+      .filter(function (t) {
+        return t && t.id && t.name && t.latest;
+      })
+      .slice()
+      .sort(function (a, b) {
+        var pa = getPeriod(a);
+        var pb = getPeriod(b);
+        if (pb > pa) return 1;
+        if (pb < pa) return -1;
+        return 0;
+      })
+      .slice(0, 4);
+
+    if (!sorted.length) return;
+
+    while (listEl.firstChild) {
+      listEl.removeChild(listEl.firstChild);
+    }
+
+    sorted.forEach(function (tool) {
+      var version = (tool.latest && tool.latest.version) || "";
+      var period = getPeriod(tool);
+
+      var a = document.createElement("a");
+      a.className = "news-item";
+      a.href =
+        "https://aqua5230.github.io/ai-updates/#" +
+        encodeURIComponent(tool.id) +
+        "/" +
+        encodeURIComponent(version);
+      a.target = "_blank";
+      a.rel = "noopener";
+
+      var head = document.createElement("div");
+      head.className = "news-item-head";
+
+      var nameEl = document.createElement("span");
+      nameEl.className = "news-item-name";
+      nameEl.textContent = version ? tool.name + " " + version : tool.name;
+      head.appendChild(nameEl);
+
+      if (period) {
+        var dateEl = document.createElement("time");
+        dateEl.className = "news-item-date";
+        dateEl.dateTime = period;
+        dateEl.textContent = period;
+        head.appendChild(dateEl);
+      }
+
+      a.appendChild(head);
+
+      var curated = tool.latest && tool.latest.curated;
+      var items = curated && curated.items;
+      var firstItem = Array.isArray(items) && items.length > 0 ? items[0] : null;
+      var titleObj = firstItem && firstItem.title;
+      var headline = titleObj && (titleObj[pageLang] || titleObj.en);
+      if (headline) {
+        var titleEl = document.createElement("p");
+        titleEl.className = "news-item-title";
+        titleEl.textContent = headline;
+        a.appendChild(titleEl);
+      }
+
+      listEl.appendChild(a);
+    });
+
+    rail.hidden = false;
+  }
+
+  function loadNews() {
+    if (started || !mq.matches) return;
+    started = true;
+    if (typeof mq.removeEventListener === "function") {
+      mq.removeEventListener("change", loadNews);
+    } else if (typeof mq.removeListener === "function") {
+      mq.removeListener(loadNews);
+    }
+    fetch("https://aqua5230.github.io/ai-updates/data.json")
+      .then(function (res) {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.json();
+      })
+      .then(function (data) {
+        if (data && Array.isArray(data.tools)) {
+          renderNews(data.tools);
+        }
+      })
+      .catch(function () {});
+  }
+
+  if (mq.matches) {
+    loadNews();
+  } else if (typeof mq.addEventListener === "function") {
+    mq.addEventListener("change", loadNews);
+  } else if (typeof mq.addListener === "function") {
+    mq.addListener(loadNews);
+  }
+})();
+</script>
 </body>
 </html>

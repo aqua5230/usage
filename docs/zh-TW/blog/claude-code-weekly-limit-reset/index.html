@@ -372,6 +372,147 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   transition: border-color 140ms ease;
 }
 .related-list a:hover { border-color: rgba(255, 140, 66, 0.45); color: var(--accent); }
+.prose h2[id] { scroll-margin-top: 76px; }
+.article-layout { display: block; }
+.toc-rail, .news-rail { display: none; }
+.toc-mobile {
+  margin-bottom: 28px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+}
+.toc-mobile summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fg);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.toc-mobile summary::-webkit-details-marker { display: none; }
+.toc-mobile summary::after {
+  content: "▾";
+  font-size: 12px;
+  color: var(--fg-dimmer);
+  transition: transform 150ms ease;
+}
+.toc-mobile[open] summary::after { transform: rotate(180deg); }
+.toc-mobile .toc-list {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.toc-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fg-dimmer);
+  margin-bottom: 10px;
+}
+.toc-list { list-style: none; display: grid; gap: 6px; }
+.toc-list a {
+  display: block;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--fg-dim);
+  padding: 2px 0;
+  transition: color 140ms ease;
+  overflow-wrap: anywhere;
+}
+.toc-list a:hover { color: var(--fg); }
+.toc-list a[aria-current="location"] { color: var(--accent); font-weight: 600; }
+.news-card {
+  padding: 18px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+}
+.news-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg);
+  margin-bottom: 12px;
+}
+.news-list { display: grid; gap: 10px; }
+.news-item {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+  transition: border-color 140ms ease;
+}
+.news-item:hover { border-color: rgba(255, 140, 66, 0.45); }
+.news-item-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.news-item-name { font-size: 12.5px; font-weight: 600; color: var(--fg); }
+.news-item-date {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--fg-dimmer);
+  white-space: nowrap;
+}
+.news-item-title {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--fg-dim);
+  overflow-wrap: anywhere;
+}
+.news-all {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+}
+.news-all:hover { color: var(--accent-hover); }
+@media (min-width: 1300px) {
+  .wrap-article { max-width: 1300px; }
+  .article-layout {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 772px) 200px;
+    justify-content: center;
+    align-items: start;
+    column-gap: 40px;
+  }
+  .article-main { grid-column: 2; min-width: 0; }
+  .toc-rail {
+    grid-column: 1;
+    display: block;
+    position: sticky;
+    top: 76px;
+    max-height: calc(100vh - 96px);
+    overflow-y: auto;
+  }
+  .toc-mobile { display: none; }
+}
+@media (min-width: 1440px) {
+  .wrap-article { max-width: 1440px; }
+  .article-layout {
+    grid-template-columns: 200px 40px minmax(0, 772px) 32px 280px;
+    column-gap: 0;
+    justify-content: center;
+  }
+  .toc-rail { grid-column: 1; }
+  .article-main { grid-column: 3; }
+  .news-rail:not([hidden]) {
+    grid-column: 5;
+    display: block;
+    position: sticky;
+    top: 76px;
+    max-height: calc(100vh - 96px);
+    overflow-y: auto;
+  }
+}
 footer {
   padding: 36px 0 28px;
   border-top: 1px solid var(--border);
@@ -407,16 +548,45 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
   </div>
 </header>
 <main id="main-content">
-  <div class="wrap">
-    <article>
-      <header class="post-header">
-        <div class="post-meta">
-          <span>發布於 <time datetime="2026-11-23">2026-11-23</time></span>
-        </div>
-        <h1>Claude Code 每週額度什麼時候重置？</h1>
-        <p class="post-desc">Claude Code 的每週額度在帳號固定的星期與時間重置。這篇說明它和 5 小時額度的差別，以及怎麼看重置倒數。</p>
-      </header>
-      <div class="prose">
+  <div class="wrap wrap-article">
+    <div class="article-layout">
+      <aside class="toc-rail">
+        <nav aria-label="本文目錄">
+          <p class="toc-title">本文目錄</p>
+        <ol class="toc-list">
+          <li><a href="#5-小時額度和每週額度差在哪">5 小時額度和每週額度差在哪？</a></li>
+          <li><a href="#claude-code-和網頁版桌面版共用額度嗎">Claude Code 和網頁版、桌面版共用額度嗎？</a></li>
+          <li><a href="#pro-和-max-的額度差多少">Pro 和 Max 的額度差多少？</a></li>
+          <li><a href="#任務做到一半用完額度會怎樣">任務做到一半用完額度會怎樣？</a></li>
+          <li><a href="#怎麼查每週額度還剩多少什麼時候重置">怎麼查每週額度還剩多少、什麼時候重置？</a></li>
+          <li><a href="#重點整理">重點整理</a></li>
+          <li><a href="#資料來源">資料來源</a></li>
+        </ol>
+        </nav>
+      </aside>
+      <article class="article-main">
+        <header class="post-header">
+          <div class="post-meta">
+            <span>發布於 <time datetime="2026-11-23">2026-11-23</time></span>
+          </div>
+          <h1>Claude Code 每週額度什麼時候重置？</h1>
+          <p class="post-desc">Claude Code 的每週額度在帳號固定的星期與時間重置。這篇說明它和 5 小時額度的差別，以及怎麼看重置倒數。</p>
+        </header>
+        <details class="toc-mobile">
+          <summary>本文目錄</summary>
+          <nav aria-label="本文目錄">
+        <ol class="toc-list">
+          <li><a href="#5-小時額度和每週額度差在哪">5 小時額度和每週額度差在哪？</a></li>
+          <li><a href="#claude-code-和網頁版桌面版共用額度嗎">Claude Code 和網頁版、桌面版共用額度嗎？</a></li>
+          <li><a href="#pro-和-max-的額度差多少">Pro 和 Max 的額度差多少？</a></li>
+          <li><a href="#任務做到一半用完額度會怎樣">任務做到一半用完額度會怎樣？</a></li>
+          <li><a href="#怎麼查每週額度還剩多少什麼時候重置">怎麼查每週額度還剩多少、什麼時候重置？</a></li>
+          <li><a href="#重點整理">重點整理</a></li>
+          <li><a href="#資料來源">資料來源</a></li>
+        </ol>
+          </nav>
+        </details>
+        <div class="prose">
 <p><strong>Claude Code 的每週額度每週重置一次，時間是 Anthropic 指定給你帳號的固定星期和時刻</strong>。它不是從你最後一次送出訊息往後算。不管你哪天開始寫程式、哪天訂閱，這個時間都不會變；每到這個時間，整週的額度就會補滿。2026-11-23 查證。</p>
 <aside class="blog-cta-card">
   <h2>在選單列掌握你的 AI 開發配額</h2>
@@ -431,14 +601,14 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <li>Pro 和 Max 方案另外還有 5 小時額度。你送出第一則訊息時開始計時，5 小時後補滿。</li>
 <li>Claude Code 會把這兩種額度的用量和重置時間，一起交給狀態列。</li>
 </ul>
-<h2>5 小時額度和每週額度差在哪？</h2>
+<h2 id="5-小時額度和每週額度差在哪">5 小時額度和每週額度差在哪？</h2>
 <p>Claude 的付費方案有兩種額度。一種是每 5 小時重置的對話額度，另一種是每週重置一次的每週額度。你聊天或跑程式任務時，兩種額度會同時減少。</p>
 <p>5 小時額度從你送出第一則訊息開始算，滿 5 小時後完整補滿。如果你提早用完，有三個選擇：等它重置、開啟額外用量（usage credits），或升級方案。</p>
 <p>每週額度照固定時間表走。Anthropic 會給每個帳號一個固定的重置星期和時間，之後就不會再變。Max 和 Ultra 方案的 Fable 模型，另外還有一份獨立的每週額度。</p>
-<h2>Claude Code 和網頁版、桌面版共用額度嗎？</h2>
+<h2 id="claude-code-和網頁版桌面版共用額度嗎">Claude Code 和網頁版、桌面版共用額度嗎？</h2>
 <p>共用。你在 claude.ai、Claude Desktop、手機 App 和 Claude Code 用掉的量，都算在同一份額度裡。Claude Code 不管是在終端機跑，還是在 VS Code、Cursor、IntelliJ、PyCharm 這些 IDE 裡跑，都一樣。</p>
 <p>Claude Code 用掉額度的速度通常比聊天快。原因是 Claude Code 每一輪都會把整段對話重新送出去，所以對話越長，每則訊息就越貴。模型也有差：Opus 一輪的用量是 Sonnet 的好幾倍，Sonnet 又比 Haiku 多。Anthropic 建議換新任務時先跑 <code>/clear</code>，繼續長對話時用 <code>/compact</code>。放在 Projects 裡重複使用的內容會被快取，算的量也比較少。</p>
-<h2>Pro 和 Max 的額度差多少？</h2>
+<h2 id="pro-和-max-的額度差多少">Pro 和 Max 的額度差多少？</h2>
 <p>Pro、Max 和 Ultra 都可以用同一個訂閱登入 Claude 和 Claude Code。三者的差別如下：</p>
 <table>
 <thead>
@@ -479,23 +649,23 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 </tbody>
 </table>
 <p>如果你用完額度後才升級，新方案的額度會立刻生效。</p>
-<h2>任務做到一半用完額度會怎樣？</h2>
+<h2 id="任務做到一半用完額度會怎樣">任務做到一半用完額度會怎樣？</h2>
 <p>假設 Claude Code 回答到一半，你剛好用完 5 小時額度。這時 Anthropic 會給一小段「收尾緩衝」（wrap-up allowance），讓 Claude Code 把手上這一步做完。收尾的時候，畫面會顯示 <code>&quot;Usage limit reached · wrapping up&quot;</code>。收尾緩衝有上限，用掉的量會算進每週額度，而且不能拿來開始新的工作。</p>
 <p>Anthropic 也會不定期發「免費重置」（limit reset）給符合資格的方案。用了之後，5 小時或每週額度會馬上補滿，原本每週的重置時間不會改變。免費重置不能在終端機或 IDE 裡領，要到網頁版、Claude Desktop 或手機 App 的 <strong>Settings &gt; Usage</strong> 領。</p>
-<h2>怎麼查每週額度還剩多少、什麼時候重置？</h2>
+<h2 id="怎麼查每週額度還剩多少什麼時候重置">怎麼查每週額度還剩多少、什麼時候重置？</h2>
 <p>有兩種官方的免費查法。想讓數字一直顯示在畫面上，還有第三種做法：</p>
 <ul>
 <li><strong>Settings &gt; Usage</strong>：在 claude.ai 或 Claude Desktop 打開這一頁，會看到目前 5 小時額度和每週額度的進度條。</li>
 <li><strong>Claude Code 的狀態列資料</strong>：Claude Code 會把 <code>rate_limits.five_hour</code> 和 <code>rate_limits.seven_day</code> 交給狀態列，裡面有已用百分比和重置時間。</li>
 <li><strong>usage</strong>：<code>usage</code> 是免費開源的 app。它讀的是同一份狀態列資料，把 5 小時和每週額度連同倒數，顯示在 macOS 選單列或 Windows 系統匣。沒開 Claude Code 的時候，它也能讀正在執行的 Claude Desktop 留在電腦上的用量紀錄。額度快用完時數字會變紅；你也可以在用到 50%、70%、80%、90% 或 95% 時收到通知，預設是 90%。</li>
 </ul>
-<h2>重點整理</h2>
+<h2 id="重點整理">重點整理</h2>
 <ul>
 <li>每週額度在帳號固定的星期和時間重置；5 小時額度在第一則訊息送出 5 小時後補滿。</li>
 <li>claude.ai、Claude Desktop、手機 App 和 Claude Code 共用同一份額度。</li>
 <li>Claude Code 會把 <code>rate_limits.five_hour</code> 和 <code>rate_limits.seven_day</code> 交給狀態列；<code>usage</code> 讀這份資料，在選單列或系統匣顯示倒數。</li>
 </ul>
-<h2>資料來源</h2>
+<h2 id="資料來源">資料來源</h2>
 <ul>
 <li><a href="https://support.claude.com/en/articles/11647753-how-do-usage-and-length-limits-work">How do usage and length limits work?</a></li>
 <li><a href="https://support.claude.com/en/articles/9797557-usage-limit-best-practices">Usage limit best practices</a></li>
@@ -513,7 +683,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
     <a class="btn btn-secondary" href="https://github.com/aqua5230/usage" target="_blank" rel="noopener">GitHub</a>
   </div>
 </aside>
-      </div>
+        </div>
     <section class="related-section">
       <h2>相關文章</h2>
       <ul class="related-list">
@@ -521,7 +691,15 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
       <li><a href="../../../zh-TW/blog/how-to-check-antigravity-quota/">怎麼查 Antigravity（agy）剩多少額度？</a></li>
       </ul>
     </section>
-    </article>
+      </article>
+      <aside class="news-rail" aria-label="AI 更新日報" hidden>
+        <div class="news-card">
+          <h2 class="news-title">AI 更新日報</h2>
+          <div class="news-list"></div>
+          <a class="news-all" href="https://aqua5230.github.io/ai-updates/" target="_blank" rel="noopener">看全部更新 →</a>
+        </div>
+      </aside>
+    </div>
   </div>
 </main>
 <footer>
@@ -529,5 +707,175 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
     <p>作者： <a href="https://github.com/aqua5230" target="_blank" rel="noopener">@aqua5230</a> · AGPL-3.0 · 不上傳、不追蹤，只屬於你。</p>
   </div>
 </footer>
+<script>
+(function () {
+  var tocLinks = Array.prototype.slice.call(
+    document.querySelectorAll('.toc-rail a[href^="#"]')
+  );
+  var mobileLinks = Array.prototype.slice.call(
+    document.querySelectorAll('.toc-mobile a[href^="#"]')
+  );
+  if (tocLinks.length) {
+    var targets = [];
+    tocLinks.forEach(function (link) {
+      var el = document.getElementById(link.getAttribute("href").slice(1));
+      if (el) targets.push(el);
+    });
+
+    function setActive(activeId) {
+      tocLinks.concat(mobileLinks).forEach(function (link) {
+        if (link.getAttribute("href") === "#" + activeId) {
+          link.setAttribute("aria-current", "location");
+        } else {
+          link.removeAttribute("aria-current");
+        }
+      });
+    }
+
+    // The current section is the last heading that has scrolled past the sticky top bar.
+    // Recomputed on every scroll frame, so jumps (TOC clicks, Page Down) cannot skip it.
+    function pickActive() {
+      var root = document.documentElement;
+      if (window.innerHeight + window.scrollY >= root.scrollHeight - 2) {
+        setActive(targets[targets.length - 1].id);
+        return;
+      }
+      var current = targets[0];
+      for (var i = 0; i < targets.length; i++) {
+        if (targets[i].getBoundingClientRect().top > 120) break;
+        current = targets[i];
+      }
+      if (current) setActive(current.id);
+    }
+
+    var queued = false;
+    window.addEventListener(
+      "scroll",
+      function () {
+        if (queued) return;
+        queued = true;
+        window.requestAnimationFrame(function () {
+          queued = false;
+          pickActive();
+        });
+      },
+      { passive: true }
+    );
+    pickActive();
+  }
+
+  var rail = document.querySelector(".news-rail");
+  var listEl = rail && rail.querySelector(".news-list");
+  if (!rail || !listEl || !window.matchMedia || !window.fetch) return;
+
+  var mq = window.matchMedia("(min-width: 1440px)");
+  var started = false;
+  var pageLang = document.documentElement.lang || "en";
+
+  function getPeriod(tool) {
+    return (tool && tool.latest && tool.latest.raw && tool.latest.raw.period) || "";
+  }
+
+  function renderNews(tools) {
+    var sorted = tools
+      .filter(function (t) {
+        return t && t.id && t.name && t.latest;
+      })
+      .slice()
+      .sort(function (a, b) {
+        var pa = getPeriod(a);
+        var pb = getPeriod(b);
+        if (pb > pa) return 1;
+        if (pb < pa) return -1;
+        return 0;
+      })
+      .slice(0, 4);
+
+    if (!sorted.length) return;
+
+    while (listEl.firstChild) {
+      listEl.removeChild(listEl.firstChild);
+    }
+
+    sorted.forEach(function (tool) {
+      var version = (tool.latest && tool.latest.version) || "";
+      var period = getPeriod(tool);
+
+      var a = document.createElement("a");
+      a.className = "news-item";
+      a.href =
+        "https://aqua5230.github.io/ai-updates/#" +
+        encodeURIComponent(tool.id) +
+        "/" +
+        encodeURIComponent(version);
+      a.target = "_blank";
+      a.rel = "noopener";
+
+      var head = document.createElement("div");
+      head.className = "news-item-head";
+
+      var nameEl = document.createElement("span");
+      nameEl.className = "news-item-name";
+      nameEl.textContent = version ? tool.name + " " + version : tool.name;
+      head.appendChild(nameEl);
+
+      if (period) {
+        var dateEl = document.createElement("time");
+        dateEl.className = "news-item-date";
+        dateEl.dateTime = period;
+        dateEl.textContent = period;
+        head.appendChild(dateEl);
+      }
+
+      a.appendChild(head);
+
+      var curated = tool.latest && tool.latest.curated;
+      var items = curated && curated.items;
+      var firstItem = Array.isArray(items) && items.length > 0 ? items[0] : null;
+      var titleObj = firstItem && firstItem.title;
+      var headline = titleObj && (titleObj[pageLang] || titleObj.en);
+      if (headline) {
+        var titleEl = document.createElement("p");
+        titleEl.className = "news-item-title";
+        titleEl.textContent = headline;
+        a.appendChild(titleEl);
+      }
+
+      listEl.appendChild(a);
+    });
+
+    rail.hidden = false;
+  }
+
+  function loadNews() {
+    if (started || !mq.matches) return;
+    started = true;
+    if (typeof mq.removeEventListener === "function") {
+      mq.removeEventListener("change", loadNews);
+    } else if (typeof mq.removeListener === "function") {
+      mq.removeListener(loadNews);
+    }
+    fetch("https://aqua5230.github.io/ai-updates/data.json")
+      .then(function (res) {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.json();
+      })
+      .then(function (data) {
+        if (data && Array.isArray(data.tools)) {
+          renderNews(data.tools);
+        }
+      })
+      .catch(function () {});
+  }
+
+  if (mq.matches) {
+    loadNews();
+  } else if (typeof mq.addEventListener === "function") {
+    mq.addEventListener("change", loadNews);
+  } else if (typeof mq.addListener === "function") {
+    mq.addListener(loadNews);
+  }
+})();
+</script>
 </body>
 </html>

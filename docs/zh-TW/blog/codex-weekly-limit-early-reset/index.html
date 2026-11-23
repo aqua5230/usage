@@ -372,6 +372,147 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   transition: border-color 140ms ease;
 }
 .related-list a:hover { border-color: rgba(255, 140, 66, 0.45); color: var(--accent); }
+.prose h2[id] { scroll-margin-top: 76px; }
+.article-layout { display: block; }
+.toc-rail, .news-rail { display: none; }
+.toc-mobile {
+  margin-bottom: 28px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+}
+.toc-mobile summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fg);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.toc-mobile summary::-webkit-details-marker { display: none; }
+.toc-mobile summary::after {
+  content: "▾";
+  font-size: 12px;
+  color: var(--fg-dimmer);
+  transition: transform 150ms ease;
+}
+.toc-mobile[open] summary::after { transform: rotate(180deg); }
+.toc-mobile .toc-list {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.toc-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fg-dimmer);
+  margin-bottom: 10px;
+}
+.toc-list { list-style: none; display: grid; gap: 6px; }
+.toc-list a {
+  display: block;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--fg-dim);
+  padding: 2px 0;
+  transition: color 140ms ease;
+  overflow-wrap: anywhere;
+}
+.toc-list a:hover { color: var(--fg); }
+.toc-list a[aria-current="location"] { color: var(--accent); font-weight: 600; }
+.news-card {
+  padding: 18px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+}
+.news-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg);
+  margin-bottom: 12px;
+}
+.news-list { display: grid; gap: 10px; }
+.news-item {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+  transition: border-color 140ms ease;
+}
+.news-item:hover { border-color: rgba(255, 140, 66, 0.45); }
+.news-item-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.news-item-name { font-size: 12.5px; font-weight: 600; color: var(--fg); }
+.news-item-date {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--fg-dimmer);
+  white-space: nowrap;
+}
+.news-item-title {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--fg-dim);
+  overflow-wrap: anywhere;
+}
+.news-all {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+}
+.news-all:hover { color: var(--accent-hover); }
+@media (min-width: 1300px) {
+  .wrap-article { max-width: 1300px; }
+  .article-layout {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 772px) 200px;
+    justify-content: center;
+    align-items: start;
+    column-gap: 40px;
+  }
+  .article-main { grid-column: 2; min-width: 0; }
+  .toc-rail {
+    grid-column: 1;
+    display: block;
+    position: sticky;
+    top: 76px;
+    max-height: calc(100vh - 96px);
+    overflow-y: auto;
+  }
+  .toc-mobile { display: none; }
+}
+@media (min-width: 1440px) {
+  .wrap-article { max-width: 1440px; }
+  .article-layout {
+    grid-template-columns: 200px 40px minmax(0, 772px) 32px 280px;
+    column-gap: 0;
+    justify-content: center;
+  }
+  .toc-rail { grid-column: 1; }
+  .article-main { grid-column: 3; }
+  .news-rail:not([hidden]) {
+    grid-column: 5;
+    display: block;
+    position: sticky;
+    top: 76px;
+    max-height: calc(100vh - 96px);
+    overflow-y: auto;
+  }
+}
 footer {
   padding: 36px 0 28px;
   border-top: 1px solid var(--border);
@@ -407,16 +548,45 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
   </div>
 </header>
 <main id="main-content">
-  <div class="wrap">
-    <article>
-      <header class="post-header">
-        <div class="post-meta">
-          <span>發布於 <time datetime="2026-11-23">2026-11-23</time></span>
-        </div>
-        <h1>Codex 每週額度為什麼提早重置？</h1>
-        <p class="post-desc">Codex 的每週額度常比 resets_at 早好幾天重置，原因是 OpenAI 會全體重置。附一個 Plus 帳號 10 週的實際紀錄、官方規則和查法。</p>
-      </header>
-      <div class="prose">
+  <div class="wrap wrap-article">
+    <div class="article-layout">
+      <aside class="toc-rail">
+        <nav aria-label="本文目錄">
+          <p class="toc-title">本文目錄</p>
+        <ol class="toc-list">
+          <li><a href="#為什麼-codex-的每週額度還沒到時間就重置了">為什麼 Codex 的每週額度還沒到時間就重置了？</a></li>
+          <li><a href="#提早重置有多常發生">提早重置有多常發生？</a></li>
+          <li><a href="#全體重置和儲備重置差在哪">全體重置和「儲備重置」差在哪？</a></li>
+          <li><a href="#既然會提早重置resets_at-還有什麼意義">既然會提早重置，resets_at 還有什麼意義？</a></li>
+          <li><a href="#怎麼查-codex-還剩多少額度多久重置">怎麼查 Codex 還剩多少額度、多久重置？</a></li>
+          <li><a href="#重點整理">重點整理</a></li>
+          <li><a href="#資料來源">資料來源</a></li>
+        </ol>
+        </nav>
+      </aside>
+      <article class="article-main">
+        <header class="post-header">
+          <div class="post-meta">
+            <span>發布於 <time datetime="2026-11-23">2026-11-23</time></span>
+          </div>
+          <h1>Codex 每週額度為什麼提早重置？</h1>
+          <p class="post-desc">Codex 的每週額度常比 resets_at 早好幾天重置，原因是 OpenAI 會全體重置。附一個 Plus 帳號 10 週的實際紀錄、官方規則和查法。</p>
+        </header>
+        <details class="toc-mobile">
+          <summary>本文目錄</summary>
+          <nav aria-label="本文目錄">
+        <ol class="toc-list">
+          <li><a href="#為什麼-codex-的每週額度還沒到時間就重置了">為什麼 Codex 的每週額度還沒到時間就重置了？</a></li>
+          <li><a href="#提早重置有多常發生">提早重置有多常發生？</a></li>
+          <li><a href="#全體重置和儲備重置差在哪">全體重置和「儲備重置」差在哪？</a></li>
+          <li><a href="#既然會提早重置resets_at-還有什麼意義">既然會提早重置，resets_at 還有什麼意義？</a></li>
+          <li><a href="#怎麼查-codex-還剩多少額度多久重置">怎麼查 Codex 還剩多少額度、多久重置？</a></li>
+          <li><a href="#重點整理">重點整理</a></li>
+          <li><a href="#資料來源">資料來源</a></li>
+        </ol>
+          </nav>
+        </details>
+        <div class="prose">
 <p><strong>OpenAI 對符合資格的帳號做「全體重置」時，你的 Codex 每週額度就會提早重置</strong>。OpenAI 會把你的額度補回 100%，並且當場開始新的一週。你不會損失任何東西，所以提早重置等於多拿一次額度。Codex 顯示的 <code>resets_at</code>，代表額度「最晚」什麼時候會補滿。2026-11-23 查證。</p>
 <aside class="blog-cta-card">
   <h2>在選單列掌握你的 AI 開發配額</h2>
@@ -431,18 +601,18 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <li>作者自己的 ChatGPT Plus 帳號，在 2026-08-29 到 2026-10-06 之間經歷了 10 個週期，每一個都比 <code>resets_at</code> 早 1 到 5 天結束。其中 3 個週期，作者已經把額度用到 100%。</li>
 <li>重置之後，下一次補滿的日期會跟著改，新日期會取代舊日期。</li>
 </ul>
-<h2>為什麼 Codex 的每週額度還沒到時間就重置了？</h2>
+<h2 id="為什麼-codex-的每週額度還沒到時間就重置了">為什麼 Codex 的每週額度還沒到時間就重置了？</h2>
 <p>ChatGPT Work 和 Codex 共用同一套價格、點數和額度。ChatGPT Plus 和 Business Standard 的 Codex 有 5 小時額度和每週額度；Pro 方案（<code>Pro 100</code>、<code>Pro 200</code>、<code>Pro 500</code>）目前只有每週額度，沒有 5 小時限制。</p>
 <p>照理說，每週額度要到 <code>resets_at</code> 才會補滿。但 OpenAI 常常做一種官方說明裡叫「OpenAI 發放的自動重置」的動作，也叫全體重置（global reset）。OpenAI 會直接替選定的帳號套用，你不用自己領。Tibo 通常會在 X 上公告這類重置，他提過的理由有修好用量相關的問題、用戶數破紀錄、推出新模型等等。</p>
 <p>全體重置不會出現在重置紀錄（History）裡。所以你實際看到的情況會是：已用的百分比突然變回 0，下一次補滿的日期也往後延。</p>
-<h2>提早重置有多常發生？</h2>
+<h2 id="提早重置有多常發生">提早重置有多常發生？</h2>
 <p>作者記錄了自己的 ChatGPT Plus 帳號，從 2026-08-29 到 2026-10-06。這段時間共有 10 個週期，沒有一個撐到 <code>resets_at</code>：</p>
 <ul>
 <li>10 個週期全部<strong>提早 1 到 5 天</strong>結束，然後馬上開始新的週期。</li>
 <li>其中 <strong>3</strong> 個週期，作者已經把額度用到 <strong>100%</strong>。提早重置讓作者能繼續工作。</li>
 </ul>
 <p>非官方網站 <a href="https://codex-resets.com/">codex-resets.com</a> 會追蹤 <code>@thsottiaux</code> 的貼文，記下每一次重置。到 2026-11-23 為止，它記了 72 次，平均每 5.9 天一次，最長隔了 67.7 天。網站自己註明，資料是由 AI 分類的，不代表 OpenAI 的承諾。OpenAI 官方也說，免費重置屬於促銷活動，沒有固定時間表。</p>
-<h2>全體重置和「儲備重置」差在哪？</h2>
+<h2 id="全體重置和儲備重置差在哪">全體重置和「儲備重置」差在哪？</h2>
 <p>OpenAI 的說明頁把一次性的重置分成三種：</p>
 <table>
 <thead>
@@ -475,23 +645,23 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 </tbody>
 </table>
 <p>假設你先用了一次儲備重置，之後又遇到全體重置。全體重置只會把額度補回 100%，不會疊成 200%。還沒用掉的儲備重置會留在帳號裡。</p>
-<h2>既然會提早重置，resets_at 還有什麼意義？</h2>
+<h2 id="既然會提早重置resets_at-還有什麼意義">既然會提早重置，resets_at 還有什麼意義？</h2>
 <p>你可以把 <code>resets_at</code> 當成額度「最晚」補滿的時間。如果中間沒有全體重置，這一週就會在這個時間結束。</p>
 <p>如果提早重置了，時間表也會跟著改。OpenAI 舉過一個例子：某個週期原本週五結束，但週二被重置重新開始，那麼下一次補滿就是下週二，原本週五的時間不再適用。</p>
-<h2>怎麼查 Codex 還剩多少額度、多久重置？</h2>
+<h2 id="怎麼查-codex-還剩多少額度多久重置">怎麼查 Codex 還剩多少額度、多久重置？</h2>
 <p>有兩種官方的免費查法。想讓數字一直顯示在畫面上，還有第三種做法：</p>
 <ul>
 <li><strong>用量頁面</strong>：網頁版打開 <a href="https://chatgpt.com/codex/settings/usage">usage dashboard</a>，桌面版打開 <strong>Settings &gt; Usage &amp; billing</strong>。這裡會顯示剩多少額度、什麼時候補滿，以及 <strong>Available</strong> 底下還有幾次儲備重置。</li>
 <li><strong>Codex CLI</strong>：輸入 <code>/status</code> 看剩多少額度。要使用儲備重置，輸入 <code>/usage</code> 再選 <strong>Redeem reset</strong>。</li>
 <li><strong>usage</strong>：<code>usage</code> 是免費開源的 app。它讀你電腦上的 Codex 紀錄，把 5 小時和每週額度連同倒數，顯示在 macOS 選單列或 Windows 系統匣。額度快用完時數字會變紅；你也可以在用到 50%、70%、80%、90% 或 95% 時收到通知，預設是 90%。遇到全體重置時，不用打開任何頁面，就能看到新的倒數。</li>
 </ul>
-<h2>重點整理</h2>
+<h2 id="重點整理">重點整理</h2>
 <ul>
 <li>Codex 每週額度提早重置，是因為 OpenAI 做了全體重置。你會拿回完整的額度，並開始新的一週。</li>
 <li>作者自己的 Plus 帳號，2026-08-29 到 2026-10-06 的 10 個週期，全部比 <code>resets_at</code> 早 1 到 5 天結束；其中 3 個週期已經用到 100%。</li>
 <li><code>resets_at</code> 是額度最晚補滿的時間。想看目前的數字，可以用用量頁面、<code>/status</code>，或 <code>usage</code>。</li>
 </ul>
-<h2>資料來源</h2>
+<h2 id="資料來源">資料來源</h2>
 <ul>
 <li><a href="https://help.openai.com/en/articles/20001498-how-resets-work-in-codex">How resets work in Codex</a></li>
 <li><a href="https://learn.chatgpt.com/docs/pricing">Pricing | ChatGPT Learn</a></li>
@@ -506,7 +676,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
     <a class="btn btn-secondary" href="https://github.com/aqua5230/usage" target="_blank" rel="noopener">GitHub</a>
   </div>
 </aside>
-      </div>
+        </div>
     <section class="related-section">
       <h2>相關文章</h2>
       <ul class="related-list">
@@ -514,7 +684,15 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
       <li><a href="../../../zh-TW/blog/how-to-check-antigravity-quota/">怎麼查 Antigravity（agy）剩多少額度？</a></li>
       </ul>
     </section>
-    </article>
+      </article>
+      <aside class="news-rail" aria-label="AI 更新日報" hidden>
+        <div class="news-card">
+          <h2 class="news-title">AI 更新日報</h2>
+          <div class="news-list"></div>
+          <a class="news-all" href="https://aqua5230.github.io/ai-updates/" target="_blank" rel="noopener">看全部更新 →</a>
+        </div>
+      </aside>
+    </div>
   </div>
 </main>
 <footer>
@@ -522,5 +700,175 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
     <p>作者： <a href="https://github.com/aqua5230" target="_blank" rel="noopener">@aqua5230</a> · AGPL-3.0 · 不上傳、不追蹤，只屬於你。</p>
   </div>
 </footer>
+<script>
+(function () {
+  var tocLinks = Array.prototype.slice.call(
+    document.querySelectorAll('.toc-rail a[href^="#"]')
+  );
+  var mobileLinks = Array.prototype.slice.call(
+    document.querySelectorAll('.toc-mobile a[href^="#"]')
+  );
+  if (tocLinks.length) {
+    var targets = [];
+    tocLinks.forEach(function (link) {
+      var el = document.getElementById(link.getAttribute("href").slice(1));
+      if (el) targets.push(el);
+    });
+
+    function setActive(activeId) {
+      tocLinks.concat(mobileLinks).forEach(function (link) {
+        if (link.getAttribute("href") === "#" + activeId) {
+          link.setAttribute("aria-current", "location");
+        } else {
+          link.removeAttribute("aria-current");
+        }
+      });
+    }
+
+    // The current section is the last heading that has scrolled past the sticky top bar.
+    // Recomputed on every scroll frame, so jumps (TOC clicks, Page Down) cannot skip it.
+    function pickActive() {
+      var root = document.documentElement;
+      if (window.innerHeight + window.scrollY >= root.scrollHeight - 2) {
+        setActive(targets[targets.length - 1].id);
+        return;
+      }
+      var current = targets[0];
+      for (var i = 0; i < targets.length; i++) {
+        if (targets[i].getBoundingClientRect().top > 120) break;
+        current = targets[i];
+      }
+      if (current) setActive(current.id);
+    }
+
+    var queued = false;
+    window.addEventListener(
+      "scroll",
+      function () {
+        if (queued) return;
+        queued = true;
+        window.requestAnimationFrame(function () {
+          queued = false;
+          pickActive();
+        });
+      },
+      { passive: true }
+    );
+    pickActive();
+  }
+
+  var rail = document.querySelector(".news-rail");
+  var listEl = rail && rail.querySelector(".news-list");
+  if (!rail || !listEl || !window.matchMedia || !window.fetch) return;
+
+  var mq = window.matchMedia("(min-width: 1440px)");
+  var started = false;
+  var pageLang = document.documentElement.lang || "en";
+
+  function getPeriod(tool) {
+    return (tool && tool.latest && tool.latest.raw && tool.latest.raw.period) || "";
+  }
+
+  function renderNews(tools) {
+    var sorted = tools
+      .filter(function (t) {
+        return t && t.id && t.name && t.latest;
+      })
+      .slice()
+      .sort(function (a, b) {
+        var pa = getPeriod(a);
+        var pb = getPeriod(b);
+        if (pb > pa) return 1;
+        if (pb < pa) return -1;
+        return 0;
+      })
+      .slice(0, 4);
+
+    if (!sorted.length) return;
+
+    while (listEl.firstChild) {
+      listEl.removeChild(listEl.firstChild);
+    }
+
+    sorted.forEach(function (tool) {
+      var version = (tool.latest && tool.latest.version) || "";
+      var period = getPeriod(tool);
+
+      var a = document.createElement("a");
+      a.className = "news-item";
+      a.href =
+        "https://aqua5230.github.io/ai-updates/#" +
+        encodeURIComponent(tool.id) +
+        "/" +
+        encodeURIComponent(version);
+      a.target = "_blank";
+      a.rel = "noopener";
+
+      var head = document.createElement("div");
+      head.className = "news-item-head";
+
+      var nameEl = document.createElement("span");
+      nameEl.className = "news-item-name";
+      nameEl.textContent = version ? tool.name + " " + version : tool.name;
+      head.appendChild(nameEl);
+
+      if (period) {
+        var dateEl = document.createElement("time");
+        dateEl.className = "news-item-date";
+        dateEl.dateTime = period;
+        dateEl.textContent = period;
+        head.appendChild(dateEl);
+      }
+
+      a.appendChild(head);
+
+      var curated = tool.latest && tool.latest.curated;
+      var items = curated && curated.items;
+      var firstItem = Array.isArray(items) && items.length > 0 ? items[0] : null;
+      var titleObj = firstItem && firstItem.title;
+      var headline = titleObj && (titleObj[pageLang] || titleObj.en);
+      if (headline) {
+        var titleEl = document.createElement("p");
+        titleEl.className = "news-item-title";
+        titleEl.textContent = headline;
+        a.appendChild(titleEl);
+      }
+
+      listEl.appendChild(a);
+    });
+
+    rail.hidden = false;
+  }
+
+  function loadNews() {
+    if (started || !mq.matches) return;
+    started = true;
+    if (typeof mq.removeEventListener === "function") {
+      mq.removeEventListener("change", loadNews);
+    } else if (typeof mq.removeListener === "function") {
+      mq.removeListener(loadNews);
+    }
+    fetch("https://aqua5230.github.io/ai-updates/data.json")
+      .then(function (res) {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.json();
+      })
+      .then(function (data) {
+        if (data && Array.isArray(data.tools)) {
+          renderNews(data.tools);
+        }
+      })
+      .catch(function () {});
+  }
+
+  if (mq.matches) {
+    loadNews();
+  } else if (typeof mq.addEventListener === "function") {
+    mq.addEventListener("change", loadNews);
+  } else if (typeof mq.addListener === "function") {
+    mq.addListener(loadNews);
+  }
+})();
+</script>
 </body>
 </html>

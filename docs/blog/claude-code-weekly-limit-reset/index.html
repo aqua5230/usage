@@ -372,6 +372,147 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   transition: border-color 140ms ease;
 }
 .related-list a:hover { border-color: rgba(255, 140, 66, 0.45); color: var(--accent); }
+.prose h2[id] { scroll-margin-top: 76px; }
+.article-layout { display: block; }
+.toc-rail, .news-rail { display: none; }
+.toc-mobile {
+  margin-bottom: 28px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+}
+.toc-mobile summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fg);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.toc-mobile summary::-webkit-details-marker { display: none; }
+.toc-mobile summary::after {
+  content: "▾";
+  font-size: 12px;
+  color: var(--fg-dimmer);
+  transition: transform 150ms ease;
+}
+.toc-mobile[open] summary::after { transform: rotate(180deg); }
+.toc-mobile .toc-list {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.toc-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fg-dimmer);
+  margin-bottom: 10px;
+}
+.toc-list { list-style: none; display: grid; gap: 6px; }
+.toc-list a {
+  display: block;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--fg-dim);
+  padding: 2px 0;
+  transition: color 140ms ease;
+  overflow-wrap: anywhere;
+}
+.toc-list a:hover { color: var(--fg); }
+.toc-list a[aria-current="location"] { color: var(--accent); font-weight: 600; }
+.news-card {
+  padding: 18px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+}
+.news-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg);
+  margin-bottom: 12px;
+}
+.news-list { display: grid; gap: 10px; }
+.news-item {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+  transition: border-color 140ms ease;
+}
+.news-item:hover { border-color: rgba(255, 140, 66, 0.45); }
+.news-item-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.news-item-name { font-size: 12.5px; font-weight: 600; color: var(--fg); }
+.news-item-date {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--fg-dimmer);
+  white-space: nowrap;
+}
+.news-item-title {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--fg-dim);
+  overflow-wrap: anywhere;
+}
+.news-all {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+}
+.news-all:hover { color: var(--accent-hover); }
+@media (min-width: 1300px) {
+  .wrap-article { max-width: 1300px; }
+  .article-layout {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 772px) 200px;
+    justify-content: center;
+    align-items: start;
+    column-gap: 40px;
+  }
+  .article-main { grid-column: 2; min-width: 0; }
+  .toc-rail {
+    grid-column: 1;
+    display: block;
+    position: sticky;
+    top: 76px;
+    max-height: calc(100vh - 96px);
+    overflow-y: auto;
+  }
+  .toc-mobile { display: none; }
+}
+@media (min-width: 1440px) {
+  .wrap-article { max-width: 1440px; }
+  .article-layout {
+    grid-template-columns: 200px 40px minmax(0, 772px) 32px 280px;
+    column-gap: 0;
+    justify-content: center;
+  }
+  .toc-rail { grid-column: 1; }
+  .article-main { grid-column: 3; }
+  .news-rail:not([hidden]) {
+    grid-column: 5;
+    display: block;
+    position: sticky;
+    top: 76px;
+    max-height: calc(100vh - 96px);
+    overflow-y: auto;
+  }
+}
 footer {
   padding: 36px 0 28px;
   border-top: 1px solid var(--border);
@@ -407,16 +548,45 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
   </div>
 </header>
 <main id="main-content">
-  <div class="wrap">
-    <article>
-      <header class="post-header">
-        <div class="post-meta">
-          <span>Published <time datetime="2026-11-23">2026-11-23</time></span>
-        </div>
-        <h1>When Does the Claude Code Weekly Limit Reset?</h1>
-        <p class="post-desc">Claude Code&#x27;s weekly limit resets at a fixed day and time assigned to your account. Here is how that works with the 5-hour limit, and how to see your countdown.</p>
-      </header>
-      <div class="prose">
+  <div class="wrap wrap-article">
+    <div class="article-layout">
+      <aside class="toc-rail">
+        <nav aria-label="In this article">
+          <p class="toc-title">In this article</p>
+        <ol class="toc-list">
+          <li><a href="#how-is-the-5-hour-limit-different-from-the-weekly-limit">How is the 5-hour limit different from the weekly limit?</a></li>
+          <li><a href="#does-claude-code-share-its-limits-with-claudeai-and-claude-desktop">Does Claude Code share its limits with claude.ai and Claude Desktop?</a></li>
+          <li><a href="#how-do-the-pro-and-max-limits-compare">How do the Pro and Max limits compare?</a></li>
+          <li><a href="#what-happens-if-you-hit-the-limit-in-the-middle-of-a-task">What happens if you hit the limit in the middle of a task?</a></li>
+          <li><a href="#how-can-you-check-your-weekly-limit-and-reset-time">How can you check your weekly limit and reset time?</a></li>
+          <li><a href="#key-takeaways">Key takeaways</a></li>
+          <li><a href="#sources">Sources</a></li>
+        </ol>
+        </nav>
+      </aside>
+      <article class="article-main">
+        <header class="post-header">
+          <div class="post-meta">
+            <span>Published <time datetime="2026-11-23">2026-11-23</time></span>
+          </div>
+          <h1>When Does the Claude Code Weekly Limit Reset?</h1>
+          <p class="post-desc">Claude Code&#x27;s weekly limit resets at a fixed day and time assigned to your account. Here is how that works with the 5-hour limit, and how to see your countdown.</p>
+        </header>
+        <details class="toc-mobile">
+          <summary>In this article</summary>
+          <nav aria-label="In this article">
+        <ol class="toc-list">
+          <li><a href="#how-is-the-5-hour-limit-different-from-the-weekly-limit">How is the 5-hour limit different from the weekly limit?</a></li>
+          <li><a href="#does-claude-code-share-its-limits-with-claudeai-and-claude-desktop">Does Claude Code share its limits with claude.ai and Claude Desktop?</a></li>
+          <li><a href="#how-do-the-pro-and-max-limits-compare">How do the Pro and Max limits compare?</a></li>
+          <li><a href="#what-happens-if-you-hit-the-limit-in-the-middle-of-a-task">What happens if you hit the limit in the middle of a task?</a></li>
+          <li><a href="#how-can-you-check-your-weekly-limit-and-reset-time">How can you check your weekly limit and reset time?</a></li>
+          <li><a href="#key-takeaways">Key takeaways</a></li>
+          <li><a href="#sources">Sources</a></li>
+        </ol>
+          </nav>
+        </details>
+        <div class="prose">
 <p><strong>Your Claude Code weekly limit resets once a week, on a fixed day and time that Anthropic assigns to your account.</strong> It does not count from your last prompt. The day and time stay the same no matter when you started coding or when you subscribed, and each new week gives you the full allowance again. Checked on 2026-11-23.</p>
 <aside class="blog-cta-card">
   <h2>Track your AI coding quotas in the menu bar</h2>
@@ -431,14 +601,14 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <li>Pro and Max plans also have a 5-hour limit. That clock starts when you send your first message, and the limit refills five hours later.</li>
 <li>Claude Code reports both limits, with their reset times, in the data it sends to your status line.</li>
 </ul>
-<h2>How is the 5-hour limit different from the weekly limit?</h2>
+<h2 id="how-is-the-5-hour-limit-different-from-the-weekly-limit">How is the 5-hour limit different from the weekly limit?</h2>
 <p>Paid Claude plans have two limits. One is a session limit that resets every five hours. The other is a weekly limit that resets once a week. You use both of them up whenever you chat or run coding tasks.</p>
 <p>The 5-hour limit starts when you send your first message, and it refills completely five hours later. If you run out before then, you have three choices: wait for the reset, turn on usage credits, or upgrade your plan.</p>
 <p>The weekly limit works on a fixed schedule. Anthropic gives every account a weekly reset day and time, and that slot never moves. On Max and Ultra plans, Fable also has its own separate weekly limit.</p>
-<h2>Does Claude Code share its limits with claude.ai and Claude Desktop?</h2>
+<h2 id="does-claude-code-share-its-limits-with-claudeai-and-claude-desktop">Does Claude Code share its limits with claude.ai and Claude Desktop?</h2>
 <p>Yes. Everything you do on claude.ai, Claude Desktop, the mobile apps, and Claude Code counts against the same limits. That includes Claude Code in your terminal and in IDEs such as VS Code, Cursor, IntelliJ, and PyCharm.</p>
 <p>Claude Code tends to use up your limit faster than chat does. On every turn, Claude Code sends the whole conversation again, so a long session costs more per message. The model matters too: a turn on Opus costs several times more than a turn on Sonnet, and Sonnet costs more than Haiku. Anthropic suggests running <code>/clear</code> when you start a new task and <code>/compact</code> when you continue a long one. Content that you reuse inside Projects is cached, so it counts for less.</p>
-<h2>How do the Pro and Max limits compare?</h2>
+<h2 id="how-do-the-pro-and-max-limits-compare">How do the Pro and Max limits compare?</h2>
 <p>Pro, Max, and Ultra all let you use Claude and Claude Code with one subscription. Here is how their limits differ:</p>
 <table>
 <thead>
@@ -479,23 +649,23 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 </tbody>
 </table>
 <p>If you upgrade after you hit a limit, the new plan's limits apply right away.</p>
-<h2>What happens if you hit the limit in the middle of a task?</h2>
+<h2 id="what-happens-if-you-hit-the-limit-in-the-middle-of-a-task">What happens if you hit the limit in the middle of a task?</h2>
 <p>Suppose Claude Code is halfway through a response when you reach the 5-hour limit. Anthropic gives you a small wrap-up allowance, so Claude Code can finish the step it is working on. While it finishes, you see <code>&quot;Usage limit reached · wrapping up&quot;</code>. The allowance has a cap, it counts toward your weekly limit, and you cannot use it to start something new.</p>
 <p>Anthropic also gives eligible plans a free limit reset from time to time. When you use one, your 5-hour or weekly limit refills right away, and your usual weekly reset time does not change. You cannot claim it from the terminal or the IDE. Open <strong>Settings &gt; Usage</strong> on the web, in Claude Desktop, or in the mobile app instead.</p>
-<h2>How can you check your weekly limit and reset time?</h2>
+<h2 id="how-can-you-check-your-weekly-limit-and-reset-time">How can you check your weekly limit and reset time?</h2>
 <p>There are two free official ways, and a third option if you want the number on screen all the time:</p>
 <ul>
 <li><strong>Settings &gt; Usage.</strong> In claude.ai or Claude Desktop, this page shows progress bars for your current session and your weekly limits.</li>
 <li><strong>Claude Code's status line data.</strong> Claude Code sends <code>rate_limits.five_hour</code> and <code>rate_limits.seven_day</code> to your status line. Each one has a usage percentage and a reset time.</li>
 <li><strong>The <code>usage</code> app.</strong> <code>usage</code> is free and open source. It reads the same status line data and shows your 5-hour and weekly limits, with countdowns, in the macOS menu bar or the Windows system tray. If Claude Code isn't running, it can read the local usage history of a running Claude Desktop instead. A limit turns red as it gets close, and you can get a notification at 50%, 70%, 80%, 90%, or 95%. The default is 90%.</li>
 </ul>
-<h2>Key takeaways</h2>
+<h2 id="key-takeaways">Key takeaways</h2>
 <ul>
 <li>The weekly limit resets at a fixed day and time assigned to your account. The 5-hour limit refills five hours after your first message.</li>
 <li>claude.ai, Claude Desktop, the mobile apps, and Claude Code all draw from the same limits.</li>
 <li>Claude Code reports <code>rate_limits.five_hour</code> and <code>rate_limits.seven_day</code> to your status line, and <code>usage</code> turns that data into a countdown in your menu bar or tray.</li>
 </ul>
-<h2>Sources</h2>
+<h2 id="sources">Sources</h2>
 <ul>
 <li><a href="https://support.claude.com/en/articles/11647753-how-do-usage-and-length-limits-work">How do usage and length limits work?</a></li>
 <li><a href="https://support.claude.com/en/articles/9797557-usage-limit-best-practices">Usage limit best practices</a></li>
@@ -513,7 +683,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
     <a class="btn btn-secondary" href="https://github.com/aqua5230/usage" target="_blank" rel="noopener">GitHub</a>
   </div>
 </aside>
-      </div>
+        </div>
     <section class="related-section">
       <h2>Related Articles</h2>
       <ul class="related-list">
@@ -521,7 +691,15 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
       <li><a href="../../blog/how-to-check-antigravity-quota/">How to Check Your Antigravity (agy) Quota</a></li>
       </ul>
     </section>
-    </article>
+      </article>
+      <aside class="news-rail" aria-label="AI Update Daily" hidden>
+        <div class="news-card">
+          <h2 class="news-title">AI Update Daily</h2>
+          <div class="news-list"></div>
+          <a class="news-all" href="https://aqua5230.github.io/ai-updates/" target="_blank" rel="noopener">See all updates →</a>
+        </div>
+      </aside>
+    </div>
   </div>
 </main>
 <footer>
@@ -529,5 +707,175 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
     <p>Built by <a href="https://github.com/aqua5230" target="_blank" rel="noopener">@aqua5230</a> · AGPL-3.0 · No uploads. No tracking. Just yours.</p>
   </div>
 </footer>
+<script>
+(function () {
+  var tocLinks = Array.prototype.slice.call(
+    document.querySelectorAll('.toc-rail a[href^="#"]')
+  );
+  var mobileLinks = Array.prototype.slice.call(
+    document.querySelectorAll('.toc-mobile a[href^="#"]')
+  );
+  if (tocLinks.length) {
+    var targets = [];
+    tocLinks.forEach(function (link) {
+      var el = document.getElementById(link.getAttribute("href").slice(1));
+      if (el) targets.push(el);
+    });
+
+    function setActive(activeId) {
+      tocLinks.concat(mobileLinks).forEach(function (link) {
+        if (link.getAttribute("href") === "#" + activeId) {
+          link.setAttribute("aria-current", "location");
+        } else {
+          link.removeAttribute("aria-current");
+        }
+      });
+    }
+
+    // The current section is the last heading that has scrolled past the sticky top bar.
+    // Recomputed on every scroll frame, so jumps (TOC clicks, Page Down) cannot skip it.
+    function pickActive() {
+      var root = document.documentElement;
+      if (window.innerHeight + window.scrollY >= root.scrollHeight - 2) {
+        setActive(targets[targets.length - 1].id);
+        return;
+      }
+      var current = targets[0];
+      for (var i = 0; i < targets.length; i++) {
+        if (targets[i].getBoundingClientRect().top > 120) break;
+        current = targets[i];
+      }
+      if (current) setActive(current.id);
+    }
+
+    var queued = false;
+    window.addEventListener(
+      "scroll",
+      function () {
+        if (queued) return;
+        queued = true;
+        window.requestAnimationFrame(function () {
+          queued = false;
+          pickActive();
+        });
+      },
+      { passive: true }
+    );
+    pickActive();
+  }
+
+  var rail = document.querySelector(".news-rail");
+  var listEl = rail && rail.querySelector(".news-list");
+  if (!rail || !listEl || !window.matchMedia || !window.fetch) return;
+
+  var mq = window.matchMedia("(min-width: 1440px)");
+  var started = false;
+  var pageLang = document.documentElement.lang || "en";
+
+  function getPeriod(tool) {
+    return (tool && tool.latest && tool.latest.raw && tool.latest.raw.period) || "";
+  }
+
+  function renderNews(tools) {
+    var sorted = tools
+      .filter(function (t) {
+        return t && t.id && t.name && t.latest;
+      })
+      .slice()
+      .sort(function (a, b) {
+        var pa = getPeriod(a);
+        var pb = getPeriod(b);
+        if (pb > pa) return 1;
+        if (pb < pa) return -1;
+        return 0;
+      })
+      .slice(0, 4);
+
+    if (!sorted.length) return;
+
+    while (listEl.firstChild) {
+      listEl.removeChild(listEl.firstChild);
+    }
+
+    sorted.forEach(function (tool) {
+      var version = (tool.latest && tool.latest.version) || "";
+      var period = getPeriod(tool);
+
+      var a = document.createElement("a");
+      a.className = "news-item";
+      a.href =
+        "https://aqua5230.github.io/ai-updates/#" +
+        encodeURIComponent(tool.id) +
+        "/" +
+        encodeURIComponent(version);
+      a.target = "_blank";
+      a.rel = "noopener";
+
+      var head = document.createElement("div");
+      head.className = "news-item-head";
+
+      var nameEl = document.createElement("span");
+      nameEl.className = "news-item-name";
+      nameEl.textContent = version ? tool.name + " " + version : tool.name;
+      head.appendChild(nameEl);
+
+      if (period) {
+        var dateEl = document.createElement("time");
+        dateEl.className = "news-item-date";
+        dateEl.dateTime = period;
+        dateEl.textContent = period;
+        head.appendChild(dateEl);
+      }
+
+      a.appendChild(head);
+
+      var curated = tool.latest && tool.latest.curated;
+      var items = curated && curated.items;
+      var firstItem = Array.isArray(items) && items.length > 0 ? items[0] : null;
+      var titleObj = firstItem && firstItem.title;
+      var headline = titleObj && (titleObj[pageLang] || titleObj.en);
+      if (headline) {
+        var titleEl = document.createElement("p");
+        titleEl.className = "news-item-title";
+        titleEl.textContent = headline;
+        a.appendChild(titleEl);
+      }
+
+      listEl.appendChild(a);
+    });
+
+    rail.hidden = false;
+  }
+
+  function loadNews() {
+    if (started || !mq.matches) return;
+    started = true;
+    if (typeof mq.removeEventListener === "function") {
+      mq.removeEventListener("change", loadNews);
+    } else if (typeof mq.removeListener === "function") {
+      mq.removeListener(loadNews);
+    }
+    fetch("https://aqua5230.github.io/ai-updates/data.json")
+      .then(function (res) {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.json();
+      })
+      .then(function (data) {
+        if (data && Array.isArray(data.tools)) {
+          renderNews(data.tools);
+        }
+      })
+      .catch(function () {});
+  }
+
+  if (mq.matches) {
+    loadNews();
+  } else if (typeof mq.addEventListener === "function") {
+    mq.addEventListener("change", loadNews);
+  } else if (typeof mq.addListener === "function") {
+    mq.addListener(loadNews);
+  }
+})();
+</script>
 </body>
 </html>
