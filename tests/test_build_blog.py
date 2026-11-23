@@ -97,6 +97,7 @@ def _write_post(
     date: str,
     updated: str | None = None,
     related: str | None = None,
+    image: str | None = None,
     body: str,
 ) -> Path:
     post_dir = source_dir / slug
@@ -111,6 +112,8 @@ def _write_post(
         lines.append(f"updated: {updated}")
     if related is not None:
         lines.append(f"related: {related}")
+    if image is not None:
+        lines.append(f"image: {image}")
     lines.append("---")
     lines.append("")
     lines.append(body)
@@ -564,3 +567,224 @@ def test_homepage_missing_markers_raises_and_stale_check_fails(
     )
     assert build_blog.main(["--check"]) == 1
     assert str(index_path) in capsys.readouterr().out
+
+
+def test_images_copied_once_as_bytes_and_rewritten_per_language(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source_dir, docs_dir, sitemap_path = _setup_workspace(tmp_path, monkeypatch)
+    post_dir = source_dir / "pond-post"
+    post_dir.mkdir(parents=True)
+
+    pond_bytes = b"\xff\xd8\xff\xe0FAKEJPEG"
+    diagram_bytes = b"<svg></svg>"
+    (post_dir / "pond.jpg").write_bytes(pond_bytes)
+    (post_dir / "Diagram.SVG").write_bytes(diagram_bytes)
+    (post_dir / "notes.txt").write_text("ignored", encoding="utf-8")
+
+    _write_post(
+        source_dir,
+        "pond-post",
+        "en",
+        title="Pond Post",
+        description="With images",
+        date="2026-11-24",
+        body="![Pond](pond.jpg)\n\n![Diagram](Diagram.SVG)\n",
+    )
+    _write_post(
+        source_dir,
+        "pond-post",
+        "zh-TW",
+        title="池塘文章",
+        description="附圖片",
+        date="2026-11-24",
+        body="![池塘](pond.jpg)\n\n![圖表](Diagram.SVG)\n",
+    )
+
+    outputs, _, _ = build_blog.build_outputs(
+        source_dir,
+        docs_dir,
+        sitemap_path.read_text(encoding="utf-8"),
+        (docs_dir / "index.html").read_text(encoding="utf-8"),
+    )
+    pond_out = docs_dir / "blog" / "pond-post" / "pond.jpg"
+    diagram_out = docs_dir / "blog" / "pond-post" / "Diagram.SVG"
+    assert outputs[pond_out] == pond_bytes
+    assert isinstance(outputs[pond_out], bytes)
+    assert outputs[diagram_out] == diagram_bytes
+    assert (docs_dir / "blog" / "pond-post" / "notes.txt") not in outputs
+    assert (docs_dir / "zh-TW" / "blog" / "pond-post" / "pond.jpg") not in outputs
+
+    assert build_blog.main([]) == 0
+    assert pond_out.read_bytes() == pond_bytes
+    assert diagram_out.read_bytes() == diagram_bytes
+    assert not (docs_dir / "zh-TW" / "blog" / "pond-post" / "pond.jpg").exists()
+    assert not (docs_dir / "blog" / "pond-post" / "notes.txt").exists()
+
+    en_html = (docs_dir / "blog" / "pond-post" / "index.html").read_text(encoding="utf-8")
+    tw_html = (docs_dir / "zh-TW" / "blog" / "pond-post" / "index.html").read_text(encoding="utf-8")
+    assert '<img src="pond.jpg" alt="Pond" />' in en_html
+    assert '<img src="Diagram.SVG" alt="Diagram" />' in en_html
+    assert '<img src="../../../blog/pond-post/pond.jpg" alt="池塘" />' in tw_html
+    assert '<img src="../../../blog/pond-post/Diagram.SVG" alt="圖表" />' in tw_html
+
+
+def test_external_and_root_relative_image_srcs_left_untouched(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source_dir, docs_dir, _ = _setup_workspace(tmp_path, monkeypatch)
+    _write_post(
+        source_dir,
+        "remote-imgs",
+        "zh-TW",
+        title="外部圖片",
+        description="不改寫外部或根路徑圖片",
+        date="2026-11-24",
+        body=(
+            "![HTTPS](https://example.com/a.png)\n\n"
+            "![HTTP](http://example.com/b.jpg)\n\n"
+            "![Root](/assets/c.webp)\n"
+        ),
+    )
+
+    assert build_blog.main([]) == 0
+    tw_html = (docs_dir / "zh-TW" / "blog" / "remote-imgs" / "index.html").read_text(
+        encoding="utf-8"
+    )
+    assert '<img src="https://example.com/a.png" alt="HTTPS" />' in tw_html
+    assert '<img src="http://example.com/b.jpg" alt="HTTP" />' in tw_html
+    assert '<img src="/assets/c.webp" alt="Root" />' in tw_html
+
+
+def test_missing_body_or_frontmatter_image_raises_value_error(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source_dir, _, _ = _setup_workspace(tmp_path, monkeypatch)
+    _write_post(
+        source_dir,
+        "broken-body",
+        "en",
+        title="Broken Body",
+        description="Missing body image",
+        date="2026-11-24",
+        body="![Missing](typo.png)\n",
+    )
+
+    with pytest.raises(ValueError, match=r"broken-body/en\.md.*typo\.png"):
+        build_blog.main([])
+
+    (source_dir / "broken-body" / "en.md").unlink()
+    fm_md = _write_post(
+        source_dir,
+        "broken-fm",
+        "zh-TW",
+        title="Broken Frontmatter",
+        description="Missing frontmatter image",
+        date="2026-11-24",
+        image="missing-cover.webp",
+        body="No body images.\n",
+    )
+
+    with pytest.raises(ValueError) as exc_info:
+        build_blog.main([])
+    msg = str(exc_info.value)
+    assert str(fm_md) in msg
+    assert "missing-cover.webp" in msg
+
+
+def test_frontmatter_image_overrides_og_twitter_jsonld_and_omits_dimensions(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source_dir, docs_dir, _ = _setup_workspace(tmp_path, monkeypatch)
+    (source_dir / "with-cover").mkdir(parents=True)
+    (source_dir / "with-cover" / "cover.PNG").write_bytes(b"\x89PNG\r\n\x1a\n")
+
+    _write_post(
+        source_dir,
+        "with-cover",
+        "zh-TW",
+        title="有封面",
+        description="自訂封面",
+        date="2026-11-24",
+        image="cover.PNG",
+        body="內文。\n",
+    )
+    _write_post(
+        source_dir,
+        "no-cover",
+        "en",
+        title="No Cover",
+        description="Default OG",
+        date="2026-11-24",
+        body="Body.\n",
+    )
+
+    assert build_blog.main([]) == 0
+
+    site = build_blog._site_root()
+    cover_url = f"{site}blog/with-cover/cover.PNG"
+    with_cover_html = (docs_dir / "zh-TW" / "blog" / "with-cover" / "index.html").read_text(
+        encoding="utf-8"
+    )
+    assert f'<meta property="og:image" content="{cover_url}" />' in with_cover_html
+    assert f'<meta name="twitter:image" content="{cover_url}" />' in with_cover_html
+    assert 'property="og:image:width"' not in with_cover_html
+    assert 'property="og:image:height"' not in with_cover_html
+    article_ld = next(
+        block for block in _parse_json_ld(with_cover_html) if block["@type"] == "Article"
+    )
+    assert article_ld["image"] == cover_url
+
+    default_url = f"{site}{build_blog.OG_IMAGE_PATH}"
+    no_cover_html = (docs_dir / "blog" / "no-cover" / "index.html").read_text(encoding="utf-8")
+    assert f'<meta property="og:image" content="{default_url}" />' in no_cover_html
+    assert f'<meta name="twitter:image" content="{default_url}" />' in no_cover_html
+    assert '<meta property="og:image:width" content="1200" />' in no_cover_html
+    assert '<meta property="og:image:height" content="630" />' in no_cover_html
+    no_cover_ld = next(
+        block for block in _parse_json_ld(no_cover_html) if block["@type"] == "Article"
+    )
+    assert no_cover_ld["image"] == default_url
+
+
+def test_run_build_check_detects_modified_and_orphan_images(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    source_dir, docs_dir, _ = _setup_workspace(tmp_path, monkeypatch)
+    post_dir = source_dir / "img-check"
+    post_dir.mkdir(parents=True)
+    src_img = post_dir / "chart.png"
+    src_img.write_bytes(b"\x89PNG\r\n\x1a\nv1")
+
+    _write_post(
+        source_dir,
+        "img-check",
+        "en",
+        title="Image Check",
+        description="Binary check",
+        date="2026-11-24",
+        body="![Chart](chart.png)\n",
+    )
+
+    assert build_blog.run_build(check=False) == 0
+    assert build_blog.run_build(check=True) == 0
+
+    dst_img = docs_dir / "blog" / "img-check" / "chart.png"
+    src_img.write_bytes(b"\x89PNG\r\n\x1a\nv2")
+    assert build_blog.run_build(check=True) == 1
+    assert str(dst_img) in capsys.readouterr().out
+
+    assert build_blog.run_build(check=False) == 0
+    assert build_blog.run_build(check=True) == 0
+
+    # Removing image from source leaves an orphan in docs/ until rebuilt.
+    src_img.unlink()
+    (post_dir / "en.md").write_text(
+        "---\ntitle: Image Check\ndescription: Binary check\ndate: 2026-11-24\n---\n\nNo img.\n",
+        encoding="utf-8",
+    )
+    assert build_blog.run_build(check=True) == 1
+    assert str(dst_img) in capsys.readouterr().out
+    assert build_blog.run_build(check=False) == 0
+    assert not dst_img.exists()
+    assert build_blog.run_build(check=True) == 0
