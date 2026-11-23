@@ -1085,7 +1085,7 @@ body {
 // A shared speech queue shows one bubble at a time and pauses while the panel is hidden.
 // The line greets visitors, occasionally chats or naps, and gets a tree and snow in December.
 (() => {
-  const NAMES = ["redpanda", "frog", "penguin", "rabbit", "raccoon", "piglet", "elephant", "bear", "puppy", "chick", "kitten", "hedgehog", "otter"];
+  const NAMES = ["redpanda", "frog", "penguin", "rabbit", "raccoon", "piglet", "elephant", "bear", "puppy", "chick", "kitten", "hedgehog", "otter", "snail", "crab", "pufferfish", "cockatoo"];
   const POSES = ["stand", "jump", "worried", "sleep", "cheer"];
   // Display height of each pose relative to standing: sitting is shorter, arms up is a little taller.
   const HEIGHT = { sleep: 0.82, cheer: 1.06 };
@@ -1243,6 +1243,26 @@ body {
     otter_worried: "{{ASSET:panels/felt/pals/otter_worried.webp}}",
     otter_sleep: "{{ASSET:panels/felt/pals/otter_sleep.webp}}",
     otter_cheer: "{{ASSET:panels/felt/pals/otter_cheer.webp}}",
+    snail_stand: "{{ASSET:panels/felt/pals/snail_stand.webp}}",
+    snail_jump: "{{ASSET:panels/felt/pals/snail_jump.webp}}",
+    snail_worried: "{{ASSET:panels/felt/pals/snail_worried.webp}}",
+    snail_sleep: "{{ASSET:panels/felt/pals/snail_sleep.webp}}",
+    snail_cheer: "{{ASSET:panels/felt/pals/snail_cheer.webp}}",
+    crab_stand: "{{ASSET:panels/felt/pals/crab_stand.webp}}",
+    crab_jump: "{{ASSET:panels/felt/pals/crab_jump.webp}}",
+    crab_worried: "{{ASSET:panels/felt/pals/crab_worried.webp}}",
+    crab_sleep: "{{ASSET:panels/felt/pals/crab_sleep.webp}}",
+    crab_cheer: "{{ASSET:panels/felt/pals/crab_cheer.webp}}",
+    pufferfish_stand: "{{ASSET:panels/felt/pals/pufferfish_stand.webp}}",
+    pufferfish_jump: "{{ASSET:panels/felt/pals/pufferfish_jump.webp}}",
+    pufferfish_worried: "{{ASSET:panels/felt/pals/pufferfish_worried.webp}}",
+    pufferfish_sleep: "{{ASSET:panels/felt/pals/pufferfish_sleep.webp}}",
+    pufferfish_cheer: "{{ASSET:panels/felt/pals/pufferfish_cheer.webp}}",
+    cockatoo_stand: "{{ASSET:panels/felt/pals/cockatoo_stand.webp}}",
+    cockatoo_jump: "{{ASSET:panels/felt/pals/cockatoo_jump.webp}}",
+    cockatoo_worried: "{{ASSET:panels/felt/pals/cockatoo_worried.webp}}",
+    cockatoo_sleep: "{{ASSET:panels/felt/pals/cockatoo_sleep.webp}}",
+    cockatoo_cheer: "{{ASSET:panels/felt/pals/cockatoo_cheer.webp}}",
   };
   const src = (name, pose) => PAL_IMG[`${name}_${pose}`];
   const rand = (a, b) => a + Math.random() * (b - a);
