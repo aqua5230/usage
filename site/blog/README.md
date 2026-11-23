@@ -53,3 +53,15 @@ uv run python scripts/build_blog.py
 # Verify generated pages and docs/sitemap.xml are up to date (used in CI)
 uv run python scripts/build_blog.py --check
 ```
+
+## Writing Style
+
+Every post is checked against these rules before it ships. They come from research on why AI-written prose is hard to read: readers predict the next word and hold the subject in memory until the verb arrives, and AI text breaks both.
+
+- **Things don't act like people.** Write "Codex reports the reset time", not "the status line spits out the reset time" or "the reset gives you a gift". In Chinese, avoid verbs such as 吐、吃、燒光 for software or quotas.
+- **Keep the subject next to its verb.** Split long modifiers into their own sentence. One sentence carries one idea.
+- **Keep the connecting words.** Don't drop "that", "because", "so" (中文的「因為、所以、但是」) to save space; the reader guesses wrong without them, and a missing link can turn a fact into a false one.
+- **Use the words people expect.** Common collocations over clever ones. No slang such as 滿血復活、白拿.
+- **One name per thing.** Pick a term (for example 週期 for a weekly period) and use it everywhere. Taiwan Chinese, not mainland terms (窗口、視頻).
+- **Don't repeat a fact** in the intro, the bullets, every section, and the takeaways. Say it where it belongs.
+- **Every number has a source** in the post's fact sheet: an official page quoted word for word, or first-hand data the author provided.

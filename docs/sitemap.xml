@@ -64,5 +64,61 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://aqua5230.github.io/usage/"/>
   </url>
 <!-- blog:start -->
+  <url>
+    <loc>https://aqua5230.github.io/usage/blog/</loc>
+    <lastmod>2026-11-23</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aqua5230.github.io/usage/blog/"/>
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://aqua5230.github.io/usage/zh-TW/blog/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aqua5230.github.io/usage/blog/"/>
+  </url>
+  <url>
+    <loc>https://aqua5230.github.io/usage/zh-TW/blog/</loc>
+    <lastmod>2026-11-23</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aqua5230.github.io/usage/blog/"/>
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://aqua5230.github.io/usage/zh-TW/blog/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aqua5230.github.io/usage/blog/"/>
+  </url>
+  <url>
+    <loc>https://aqua5230.github.io/usage/blog/how-to-check-antigravity-quota/</loc>
+    <lastmod>2026-11-23</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aqua5230.github.io/usage/blog/how-to-check-antigravity-quota/"/>
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://aqua5230.github.io/usage/zh-TW/blog/how-to-check-antigravity-quota/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aqua5230.github.io/usage/blog/how-to-check-antigravity-quota/"/>
+  </url>
+  <url>
+    <loc>https://aqua5230.github.io/usage/zh-TW/blog/how-to-check-antigravity-quota/</loc>
+    <lastmod>2026-11-23</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aqua5230.github.io/usage/blog/how-to-check-antigravity-quota/"/>
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://aqua5230.github.io/usage/zh-TW/blog/how-to-check-antigravity-quota/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aqua5230.github.io/usage/blog/how-to-check-antigravity-quota/"/>
+  </url>
+  <url>
+    <loc>https://aqua5230.github.io/usage/blog/codex-weekly-limit-early-reset/</loc>
+    <lastmod>2026-11-23</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aqua5230.github.io/usage/blog/codex-weekly-limit-early-reset/"/>
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://aqua5230.github.io/usage/zh-TW/blog/codex-weekly-limit-early-reset/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aqua5230.github.io/usage/blog/codex-weekly-limit-early-reset/"/>
+  </url>
+  <url>
+    <loc>https://aqua5230.github.io/usage/zh-TW/blog/codex-weekly-limit-early-reset/</loc>
+    <lastmod>2026-11-23</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aqua5230.github.io/usage/blog/codex-weekly-limit-early-reset/"/>
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://aqua5230.github.io/usage/zh-TW/blog/codex-weekly-limit-early-reset/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aqua5230.github.io/usage/blog/codex-weekly-limit-early-reset/"/>
+  </url>
+  <url>
+    <loc>https://aqua5230.github.io/usage/blog/claude-code-weekly-limit-reset/</loc>
+    <lastmod>2026-11-23</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aqua5230.github.io/usage/blog/claude-code-weekly-limit-reset/"/>
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://aqua5230.github.io/usage/zh-TW/blog/claude-code-weekly-limit-reset/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aqua5230.github.io/usage/blog/claude-code-weekly-limit-reset/"/>
+  </url>
+  <url>
+    <loc>https://aqua5230.github.io/usage/zh-TW/blog/claude-code-weekly-limit-reset/</loc>
+    <lastmod>2026-11-23</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aqua5230.github.io/usage/blog/claude-code-weekly-limit-reset/"/>
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://aqua5230.github.io/usage/zh-TW/blog/claude-code-weekly-limit-reset/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aqua5230.github.io/usage/blog/claude-code-weekly-limit-reset/"/>
+  </url>
 <!-- blog:end -->
 </urlset>
