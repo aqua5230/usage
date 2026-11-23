@@ -11,6 +11,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 - **Two new Plush Pals: Prickle the hedgehog and Shelly the otter.** There are now thirteen pals. The row under the cards never squeezes them closer than before: pals that do not fit wait offstage, and every few minutes the last pal in line hops out and the one that has waited longest hops in. Who starts onstage is shuffled each time the panel loads.
 - **Four more Plush Pals: Swirl the snail, Pinch the crab, Puff the pufferfish and Tuft the cockatoo.** There are now seventeen pals, each with the same five poses, and they take turns in the line like the others.
 
+### Fixed
+- **Quota now updates for Claude Code in IDE extensions and Cowork.** When the status line stops reporting, usage can switch to a newer cache for the same account. Quota notifications are tracked separately for each account.
+
 ## [0.35.0] - 2026-11-22
 
 ### Added

@@ -7,6 +7,7 @@
 import json
 import math
 import os
+import time
 from datetime import datetime, timezone
 from typing import Any
 
@@ -45,18 +46,30 @@ def _read_status() -> dict[str, Any] | None:
 
 def load_rate_limits() -> RateLimits | None:
     data = _read_status()
-    if data is None or not usage_client._has_rate_limits(data):
+    if data is None:
         snapshot = usage_client.read_quota_fallback()
+        return _snapshot_rate_limits(snapshot) if snapshot is not None else None
+
+    current_account, cached_snapshot = usage_client._read_claude_json()
+    if usage_client._hook_account_mismatch(data, current_account):
+        return _snapshot_rate_limits(cached_snapshot) if cached_snapshot is not None else None
+
+    now_ts = time.time()
+    if not usage_client._has_rate_limits(data):
+        snapshot = usage_client.read_quota_fallback(lambda: cached_snapshot)
         if snapshot is not None:
             return _snapshot_rate_limits(snapshot)
-        if data is None:
-            return None
+    elif cached_snapshot is not None:
+        hook_snapshot = usage_client._build_snapshot(data)
+        if hook_snapshot is not None and usage_client._should_prefer_claude_json(
+            data, hook_snapshot, cached_snapshot, now_ts
+        ):
+            return _snapshot_rate_limits(cached_snapshot)
 
     rl = usage_client._as_dict(data.get("rate_limits"))
     five = usage_client._as_dict(rl.get("five_hour"))
     seven = usage_client._as_dict(rl.get("seven_day"))
 
-    now_ts = datetime.now(timezone.utc).timestamp()
     five_pct = _as_finite_float(five.get("used_percentage"))
     five_reset = _as_finite_float(five.get("resets_at"))
     if five_reset and five_reset < now_ts:

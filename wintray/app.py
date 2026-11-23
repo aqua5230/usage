@@ -2166,7 +2166,12 @@ class _WindowsTrayController:
                     "muse_session": quota_reading(state.muse_session, state.muse_stale is None),
                     "muse_weekly": quota_reading(state.muse_weekly, state.muse_stale is None),
                 },
-                {"agy_session": state.agy_group_name, "agy_weekly": state.agy_group_name},
+                {
+                    "claude_session": state.claude_account,
+                    "claude_weekly": state.claude_account,
+                    "agy_session": state.agy_group_name,
+                    "agy_weekly": state.agy_group_name,
+                },
             )
             if _quota_notifications_enabled() and not self.mock:
                 for event in events:

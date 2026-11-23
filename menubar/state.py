@@ -194,6 +194,7 @@ class PopoverState:
     service_known_cards: tuple[str, ...] = ()
     service_operational_cards: tuple[str, ...] = ()
     totals_ready: bool = True
+    claude_account: str = ""
 
 
 @dataclass(frozen=True, slots=True)
@@ -905,8 +906,10 @@ def build_popover_state(
         value=_status_message_value(outcome, "status_loading", language),
     )
 
+    claude_account = ""
     if outcome.state == PollState.SUCCESS and outcome.snapshot is not None:
         snapshot = outcome.snapshot
+        claude_account = snapshot.account_uuid or ""
         if snapshot.current_percent is not None:
             burn_rate_trackers["claude_session"].record(
                 snapshot.polled_at,
@@ -1007,6 +1010,7 @@ def build_popover_state(
         language=language,
         claude_session=claude_session,
         claude_weekly=claude_weekly,
+        claude_account=claude_account,
         codex_session=codex_rows[0],
         codex_weekly=codex_rows[1],
         agy_session=agy_rows[0],

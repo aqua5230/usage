@@ -35,6 +35,8 @@ flowchart LR
 4. `~/.claude.json` 的 `cachedUsageUtilization` —— Claude Code 快取的配額。
 5. 桌面版的本機 `plan-usage-history.json` —— Claude Code 來源都無法使用時才讀取，不讀憑證、不連網。
 
+只有 Claude Code 畫狀態列時，hook（掛鉤）才會更新。IDE 外掛與 Cowork 不畫狀態列。若 hook 超過 15 分鐘沒回報新額度，且 `~/.claude.json` 有同帳號的較新額度，usage 會改讀快取，數字可能落後約 20–30 分鐘。若 hook 記錄的帳號與目前登入帳號不同，usage 會捨棄 hook 資料。
+
 同一桌面版設定檔的本機 HTTP 快取，若組織與觀測資料吻合，可提供精確重置時間。快取缺失或無法使用時，重置時間維持未知（`None`），usage 不會編造。
 
 ### Codex 用量
