@@ -118,8 +118,8 @@ UI_STRINGS: dict[str, dict[str, str]] = {
         "nav_install": "インストール",
         "blog_title": "ブログ",
         "blog_subtitle": "AI コーディングのクォータ管理やローカル計測、usage 開発の記録。",
-        "published": "公開",
-        "updated": "更新",
+        "published": "公開日",
+        "updated": "更新日",
         "card_title": "AI コーディングのクォータをメニューバーで把握",
         "card_desc": (
             "usage は無料・オープンソース（AGPL-3.0）のツールで、macOS メニューバー、"
@@ -141,8 +141,8 @@ UI_STRINGS: dict[str, dict[str, str]] = {
         "nav_install": "설치",
         "blog_title": "블로그",
         "blog_subtitle": "AI 코딩 할당량 관리, 로컬 우선 추적, usage 개발 기록.",
-        "published": "게시",
-        "updated": "수정",
+        "published": "게시일",
+        "updated": "수정일",
         "card_title": "메뉴 막대에서 AI 코딩 할당량을 바로 확인하세요",
         "card_desc": (
             "usage는 무료 오픈소스(AGPL-3.0) 앱으로 macOS 메뉴 막대, Windows 트레이, "
@@ -201,6 +201,13 @@ img { max-width: 100%; height: auto; display: block; }
 :lang(ko) :is(h1, h2, h3) { word-break: keep-all; }
 :lang(ja) :is(h1, h2, h3) { word-break: auto-phrase; }
 :lang(zh) :is(h1, h2, h3) { word-break: keep-all; overflow-wrap: break-word; }
+/* Mirrors docs/index.html: CJK headings drop the negative tracking, and text-wrap keeps a
+   single character off the last line. */
+:is(:lang(zh), :lang(ja), :lang(ko)) :is(.post-header h1, .blog-hero h1, .prose h2) {
+  letter-spacing: 0;
+}
+h1, h2, h3 { text-wrap: balance; }
+p, li { text-wrap: pretty; }
 .skip-link {
   position: absolute;
   left: -9999px;
@@ -285,8 +292,8 @@ img { max-width: 100%; height: auto; display: block; }
 main { flex: 1 0 auto; padding: 48px 0 72px; }
 @media (max-width: 640px) { main { padding: 32px 0 56px; } }
 .post-header { margin-bottom: 32px; }
+.post-meta time { font-family: var(--mono); }
 .post-meta {
-  font-family: var(--mono);
   font-size: 13px;
   color: var(--fg-dimmer);
   margin-bottom: 12px;
@@ -787,7 +794,7 @@ def render_article(
         )
 
     updated_meta = (
-        f'<span>{html.escape(ui["updated"])}: <time datetime="{article.updated}">'
+        f'<span>{html.escape(ui["updated"])} <time datetime="{article.updated}">'
         f"{article.updated}</time></span>"
         if article.updated
         else ""
@@ -796,7 +803,7 @@ def render_article(
         "    <article>\n"
         '      <header class="post-header">\n'
         '        <div class="post-meta">\n'
-        f'          <span>{html.escape(ui["published"])}: <time datetime="{article.date}">'
+        f'          <span>{html.escape(ui["published"])} <time datetime="{article.date}">'
         f"{article.date}</time></span>\n"
         + (f"          {updated_meta}\n" if updated_meta else "")
         + "        </div>\n"

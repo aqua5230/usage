@@ -1059,7 +1059,7 @@ footer .kofi:hover { background: var(--accent-hover); }
       <a href="#reports" data-i18n="nav_reports">レポート</a>
       <a href="#screenshots" data-i18n="nav_screenshots">18種類のテーマ</a>
       <a href="#data" data-i18n="nav_data">データソース</a>
-      <a href="../blog/" data-i18n="nav_blog">ブログ</a>
+      <a href="../blog/" data-i18n-attr="href:nav_blog_href" data-i18n="nav_blog">ブログ</a>
       <a href="#install" data-i18n="nav_install">インストール</a>
       <a href="https://github.com/aqua5230/usage" target="_blank" rel="noopener"><svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
     </nav>
@@ -1071,7 +1071,7 @@ footer .kofi:hover { background: var(--accent-hover); }
         <a href="#reports" data-i18n="nav_reports">レポート</a>
         <a href="#screenshots" data-i18n="nav_screenshots">18種類のテーマ</a>
         <a href="#data" data-i18n="nav_data">データソース</a>
-        <a href="../blog/" data-i18n="nav_blog">ブログ</a>
+        <a href="../blog/" data-i18n-attr="href:nav_blog_href" data-i18n="nav_blog">ブログ</a>
         <a href="#install" data-i18n="nav_install">インストール</a>
         <a href="https://github.com/aqua5230/usage" target="_blank" rel="noopener">GitHub</a>
       </nav>
@@ -1516,6 +1516,7 @@ const T = {
     nav_reports: 'Reports',
     nav_data: 'Data',
     nav_blog: 'Blog',
+    nav_blog_href: 'blog/',
     grp_panel_h: 'Menu bar &amp; panel',
     grp_panel_sub: 'More than a percentage',
     pools_h: 'Antigravity’s three quota pools',
@@ -1656,6 +1657,7 @@ const T = {
     nav_reports: '報表',
     nav_data: '資料來源',
     nav_blog: '部落格',
+    nav_blog_href: 'zh-TW/blog/',
     grp_panel_h: '選單列與面板',
     grp_panel_sub: '除了百分比，還會告訴你這些',
     pools_h: 'Antigravity 的三個額度池',
@@ -1796,6 +1798,7 @@ const T = {
     nav_reports: '报告',
     nav_data: '数据来源',
     nav_blog: '博客',
+    nav_blog_href: 'blog/',
     grp_panel_h: '菜单栏与面板',
     grp_panel_sub: '除了百分比，还会告诉你这些',
     pools_h: 'Antigravity 的三个配额池',
@@ -1936,6 +1939,7 @@ const T = {
     nav_reports: 'レポート',
     nav_data: 'データソース',
     nav_blog: 'ブログ',
+    nav_blog_href: 'blog/',
     grp_panel_h: 'メニューバーとパネル',
     grp_panel_sub: '割合だけではわからないことも',
     pools_h: 'Antigravityの3つのクォータプール',
@@ -2076,6 +2080,7 @@ const T = {
     nav_reports: '보고서',
     nav_data: '데이터 소스',
     nav_blog: '블로그',
+    nav_blog_href: 'blog/',
     grp_panel_h: '메뉴 막대와 패널',
     grp_panel_sub: '사용률 외에도 알려 주는 것들',
     pools_h: 'Antigravity의 세 가지 할당량 풀',
@@ -2188,7 +2193,10 @@ function applyLang(lang) {
     if (idx < 0) return;
     const attr = spec.slice(0, idx);
     const key = spec.slice(idx + 1);
-    if (t[key] !== undefined) el.setAttribute(attr, t[key]);
+    if (t[key] === undefined) return;
+    // Relative links in T are written from the site root; generated language pages sit one level down.
+    const relative = attr === 'href' && !/^(https?:|#|\/)/.test(t[key]);
+    el.setAttribute(attr, relative ? ROOT + t[key] : t[key]);
   });
 
   const useEn = USE_EN_SHOT.indexOf(lang) >= 0;

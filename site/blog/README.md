@@ -64,4 +64,5 @@ Every post is checked against these rules before it ships. They come from resear
 - **Use the words people expect.** Common collocations over clever ones. No slang such as 滿血復活、白拿.
 - **One name per thing.** Pick a term (for example 週期 for a weekly period) and use it everywhere. Taiwan Chinese, not mainland terms (窗口、視頻).
 - **Don't repeat a fact** in the intro, the bullets, every section, and the takeaways. Say it where it belongs.
+- **Chinese bold leads end outside the bold.** Write `**…時刻**。它不是`, with no space after `。`. A space after full-width punctuation shows as a gap, and `。**它` breaks the Markdown bold.
 - **Every number has a source** in the post's fact sheet: an official page quoted word for word, or first-hand data the author provided.
