@@ -7,12 +7,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.35.1] - 2026-11-23
+
 ### Added
+- **Report an Issue opens a prefilled bug report.** The panel menu (macOS) and tray menu (Windows) gain the item. It opens a new GitHub issue with the bug template's sections and an Environment block: usage version, install method, OS, CPU, Python, language, panel theme and which AI cards are shown. It includes no paths, usernames, quota figures or logs.
 - **Two new Plush Pals: Prickle the hedgehog and Shelly the otter.** There are now thirteen pals. The row under the cards never squeezes them closer than before: pals that do not fit wait offstage, and every few minutes the last pal in line hops out and the one that has waited longest hops in. Who starts onstage is shuffled each time the panel loads.
 - **Four more Plush Pals: Swirl the snail, Pinch the crab, Puff the pufferfish and Tuft the cockatoo.** There are now seventeen pals, each with the same five poses, and they take turns in the line like the others.
 
+### Changed
+- **Less memory for history, and no reparsing on large Codex histories.** Equal values loaded from the disk caches now share one copy (about 174 MiB → 162 MiB after three refreshes on real data). The per-file cache limit rose from 4,096 to 16,384, so a Codex history with more files than the old limit no longer reparses part of itself on every refresh.
+
 ### Fixed
-- **Quota now updates for Claude Code in IDE extensions and Cowork.** When the status line stops reporting, usage can switch to a newer cache for the same account. Quota notifications are tracked separately for each account.
+- **Claude quota now updates while you work in an IDE extension or Cowork.** Before, usage read Claude quota only from the status line, which IDE extensions and Cowork never draw, so the menu bar kept the last terminal session's number for hours with no warning. Now, when the status line has reported no new quota for 15 minutes and Claude Code's own cache is newer for the same account, usage shows the cache and says how old it is (it can lag by 20–30 minutes). Quota recorded for another account is no longer shown after you switch accounts, and quota notifications are tracked per account, so switching from an exhausted account no longer reads as a reset.
 
 ## [0.35.0] - 2026-11-22
 
