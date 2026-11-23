@@ -274,7 +274,7 @@ p, li { text-wrap: pretty; }
   z-index: 60;
 }
 .lang-menu[hidden] { display: none; }
-.lang-menu button {
+.lang-menu a {
   display: block;
   width: 100%;
   text-align: left;
@@ -287,8 +287,8 @@ p, li { text-wrap: pretty; }
   border-radius: 6px;
   transition: background 120ms ease, color 120ms ease;
 }
-.lang-menu button:hover { background: rgba(255, 255, 255, 0.06); color: var(--fg); }
-.lang-menu button[aria-selected="true"] {
+.lang-menu a:hover { background: rgba(255, 255, 255, 0.06); color: var(--fg); }
+.lang-menu a[aria-selected="true"] {
   color: var(--accent);
   font-weight: 600;
   background: var(--accent-soft);
@@ -1081,11 +1081,11 @@ footer .kofi:hover { background: var(--accent-hover); }
         <span id="lang-current">EN</span>
       </button>
       <ul id="lang-menu" class="lang-menu" role="listbox" aria-label="語言" data-i18n-attr="aria-label:lang_menu" hidden>
-        <li><button data-lang="en" role="option" aria-selected="false">English</button></li>
-        <li><button data-lang="zh-TW" role="option" aria-selected="false">繁體中文</button></li>
-        <li><button data-lang="zh-CN" role="option" aria-selected="false">简体中文</button></li>
-        <li><button data-lang="ja" role="option" aria-selected="false">日本語</button></li>
-        <li><button data-lang="ko" role="option" aria-selected="false">한국어</button></li>
+        <li><a href=".././" hreflang="en" lang="en" data-lang="en" role="option" aria-selected="false">English</a></li>
+        <li><a href="../zh-TW/" hreflang="zh-TW" lang="zh-TW" data-lang="zh-TW" role="option" aria-selected="false">繁體中文</a></li>
+        <li><a href="../zh-CN/" hreflang="zh-CN" lang="zh-CN" data-lang="zh-CN" role="option" aria-selected="false">简体中文</a></li>
+        <li><a href="../ja/" hreflang="ja" lang="ja" data-lang="ja" role="option" aria-selected="false">日本語</a></li>
+        <li><a href="../ko/" hreflang="ko" lang="ko" data-lang="ko" role="option" aria-selected="false">한국어</a></li>
       </ul>
     </div>
   </div>
@@ -2209,7 +2209,7 @@ function applyLang(lang) {
   const cur = document.getElementById('lang-current');
   if (cur) cur.textContent = t._label;
 
-  document.querySelectorAll('#lang-menu button').forEach(b => {
+  document.querySelectorAll('#lang-menu a').forEach(b => {
     b.setAttribute('aria-selected', b.dataset.lang === lang ? 'true' : 'false');
   });
 
@@ -2240,8 +2240,10 @@ btn.addEventListener('keydown', event => {
   openMenuAndFocus(event.key === 'ArrowDown' ? 0 : langOptions.length - 1);
 });
 menu.addEventListener('click', e => {
-  const t = e.target.closest('button[data-lang]');
-  if (!t) return;
+  const t = e.target.closest('a[data-lang]');
+  // 修飾鍵點擊交給瀏覽器（例如 Cmd+點擊開新分頁）。
+  if (!t || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+  e.preventDefault();
   const lang = t.dataset.lang;
   // 每個語言有自己的網址；換語言就換頁，搜尋引擎跟分享出去的連結才對得上內容。
   const target = new URL(ROOT + (lang === 'en' ? '' : lang + '/'), location.href);
