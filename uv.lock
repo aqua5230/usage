@@ -729,6 +729,7 @@ build = [
     { name = "setuptools" },
 ]
 dev = [
+    { name = "markdown-it-py" },
     { name = "mypy" },
     { name = "pytest" },
     { name = "ruff" },
@@ -756,6 +757,7 @@ build = [
     { name = "setuptools", specifier = ">=84.0.0" },
 ]
 dev = [
+    { name = "markdown-it-py" },
     { name = "mypy", specifier = ">=2.3.1" },
     { name = "pytest", specifier = ">=9.1.1" },
     { name = "ruff", specifier = ">=0.16.2" },
