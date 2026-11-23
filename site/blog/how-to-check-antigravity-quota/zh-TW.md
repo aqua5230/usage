@@ -30,6 +30,8 @@ agy -p /usage --output-format json
 
 我們實測，這個指令不會呼叫模型，大約 6 秒就有結果。Google 的文件分別介紹了互動式的 `/usage`，以及 `agy -p` 搭配 `--output-format json` 的用法，但沒有寫到兩者一起用，也沒有說明存放額度池的 `command.data.groups` 欄位。
 
+![Antigravity 的 JSON 輸出用 groups 列出三個額度池，並用 window、remaining_fraction 和 reset_time 表示額度週期、剩餘比例和補滿時間。](usage-json.svg)
+
 ## 三個額度池怎麼分？計時會互相影響嗎？
 
 `command.data.groups` 欄位裡列了三個額度池，每個都各自計時：

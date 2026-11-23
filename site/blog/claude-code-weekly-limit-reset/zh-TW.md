@@ -20,6 +20,8 @@ Claude 的付費方案有兩種額度。一種是每 5 小時重置的對話額�
 
 每週額度照固定時間表走。Anthropic 會給每個帳號一個固定的重置星期和時間，之後就不會再變。Max 和 Ultra 方案的 Fable 模型，另外還有一份獨立的每週額度。
 
+![Claude Code 的 5 小時額度在第一則訊息後 5 小時補滿，每週額度則在帳號固定的星期和時間重置。](windows.svg)
+
 ## Claude Code 和網頁版、桌面版共用額度嗎？
 
 共用。你在 claude.ai、Claude Desktop、手機 App 和 Claude Code 用掉的量，都算在同一份額度裡。Claude Code 不管是在終端機跑，還是在 VS Code、Cursor、IntelliJ、PyCharm 這些 IDE 裡跑，都一樣。
