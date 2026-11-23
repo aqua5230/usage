@@ -5,7 +5,7 @@ date: 2026-11-23
 related: claude-code-weekly-limit-reset, how-to-check-antigravity-quota
 ---
 
-**OpenAI 對符合資格的帳號做「全體重置」時，你的 Codex 每週額度就會提早重置。** OpenAI 會把你的額度補回 100%，並且當場開始新的一週。你不會損失任何東西，所以提早重置等於多拿一次額度。Codex 顯示的 `resets_at`，代表額度「最晚」什麼時候會補滿。2026-11-23 查證。
+**OpenAI 對符合資格的帳號做「全體重置」時，你的 Codex 每週額度就會提早重置**。OpenAI 會把你的額度補回 100%，並且當場開始新的一週。你不會損失任何東西，所以提早重置等於多拿一次額度。Codex 顯示的 `resets_at`，代表額度「最晚」什麼時候會補滿。2026-11-23 查證。
 
 - OpenAI 的 Codex 負責人 Tibo（X 帳號 `@thsottiaux`）會不定期幫所有人重置用量，通常會先在 X 上預告。
 - 作者自己的 ChatGPT Plus 帳號，在 2026-08-29 到 2026-10-06 之間經歷了 10 個週期，每一個都比 `resets_at` 早 1 到 5 天結束。其中 3 個週期，作者已經把額度用到 100%。

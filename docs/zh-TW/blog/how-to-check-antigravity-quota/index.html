@@ -118,6 +118,13 @@ img { max-width: 100%; height: auto; display: block; }
 :lang(ko) :is(h1, h2, h3) { word-break: keep-all; }
 :lang(ja) :is(h1, h2, h3) { word-break: auto-phrase; }
 :lang(zh) :is(h1, h2, h3) { word-break: keep-all; overflow-wrap: break-word; }
+/* Mirrors docs/index.html: CJK headings drop the negative tracking, and text-wrap keeps a
+   single character off the last line. */
+:is(:lang(zh), :lang(ja), :lang(ko)) :is(.post-header h1, .blog-hero h1, .prose h2) {
+  letter-spacing: 0;
+}
+h1, h2, h3 { text-wrap: balance; }
+p, li { text-wrap: pretty; }
 .skip-link {
   position: absolute;
   left: -9999px;
@@ -202,8 +209,8 @@ img { max-width: 100%; height: auto; display: block; }
 main { flex: 1 0 auto; padding: 48px 0 72px; }
 @media (max-width: 640px) { main { padding: 32px 0 56px; } }
 .post-header { margin-bottom: 32px; }
+.post-meta time { font-family: var(--mono); }
 .post-meta {
-  font-family: var(--mono);
   font-size: 13px;
   color: var(--fg-dimmer);
   margin-bottom: 12px;
@@ -404,13 +411,13 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
     <article>
       <header class="post-header">
         <div class="post-meta">
-          <span>發布於: <time datetime="2026-11-23">2026-11-23</time></span>
+          <span>發布於 <time datetime="2026-11-23">2026-11-23</time></span>
         </div>
         <h1>怎麼查 Antigravity（agy）剩多少額度？</h1>
         <p class="post-desc">在 Antigravity CLI 輸入 /usage，或在終端機跑 agy -p /usage --output-format json，不用呼叫模型就能查額度。這篇說明三個額度池和重置時間。</p>
       </header>
       <div class="prose">
-<p><strong>想查 Antigravity（<code>agy</code>）剩多少額度，可以在 CLI 裡輸入 <code>/usage</code>，或在終端機執行 <code>agy -p /usage --output-format json</code>。</strong> 第二種方法不會呼叫模型，大約 6 秒就有結果。你的額度分成三個額度池：Gemini Models、Claude and GPT models，以及 Gemini 4 Argon。每個額度池各自計時。2026-11-23 查證。</p>
+<p><strong>想查 Antigravity（<code>agy</code>）剩多少額度，可以在 CLI 裡輸入 <code>/usage</code>，或在終端機執行 <code>agy -p /usage --output-format json</code></strong>。第二種方法不會呼叫模型，大約 6 秒就有結果。你的額度分成三個額度池：Gemini Models、Claude and GPT models，以及 Gemini 4 Argon。每個額度池各自計時。2026-11-23 查證。</p>
 <aside class="blog-cta-card">
   <h2>在選單列掌握你的 AI 開發配額</h2>
   <p>usage 是一款免費、開源（AGPL-3.0）的用量工具，提供 macOS 選單列、Windows 系統匣與終端機 TUI，支援 Claude Code、Codex、Antigravity、Grok 與 Muse。</p>

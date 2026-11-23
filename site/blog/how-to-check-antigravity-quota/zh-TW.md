@@ -5,7 +5,7 @@ date: 2026-11-23
 related: claude-code-weekly-limit-reset, codex-weekly-limit-early-reset
 ---
 
-**想查 Antigravity（`agy`）剩多少額度，可以在 CLI 裡輸入 `/usage`，或在終端機執行 `agy -p /usage --output-format json`。** 第二種方法不會呼叫模型，大約 6 秒就有結果。你的額度分成三個額度池：Gemini Models、Claude and GPT models，以及 Gemini 4 Argon。每個額度池各自計時。2026-11-23 查證。
+**想查 Antigravity（`agy`）剩多少額度，可以在 CLI 裡輸入 `/usage`，或在終端機執行 `agy -p /usage --output-format json`**。第二種方法不會呼叫模型，大約 6 秒就有結果。你的額度分成三個額度池：Gemini Models、Claude and GPT models，以及 Gemini 4 Argon。每個額度池各自計時。2026-11-23 查證。
 
 - `agy -p /usage --output-format json` 會用 JSON 格式列出你的額度，而且不會用掉任何模型額度。
 - Gemini Models 和 Claude and GPT models 各有每週額度和 5 小時額度；Gemini 4 Argon 只有每週額度。

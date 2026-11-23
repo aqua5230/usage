@@ -118,6 +118,13 @@ img { max-width: 100%; height: auto; display: block; }
 :lang(ko) :is(h1, h2, h3) { word-break: keep-all; }
 :lang(ja) :is(h1, h2, h3) { word-break: auto-phrase; }
 :lang(zh) :is(h1, h2, h3) { word-break: keep-all; overflow-wrap: break-word; }
+/* Mirrors docs/index.html: CJK headings drop the negative tracking, and text-wrap keeps a
+   single character off the last line. */
+:is(:lang(zh), :lang(ja), :lang(ko)) :is(.post-header h1, .blog-hero h1, .prose h2) {
+  letter-spacing: 0;
+}
+h1, h2, h3 { text-wrap: balance; }
+p, li { text-wrap: pretty; }
 .skip-link {
   position: absolute;
   left: -9999px;
@@ -202,8 +209,8 @@ img { max-width: 100%; height: auto; display: block; }
 main { flex: 1 0 auto; padding: 48px 0 72px; }
 @media (max-width: 640px) { main { padding: 32px 0 56px; } }
 .post-header { margin-bottom: 32px; }
+.post-meta time { font-family: var(--mono); }
 .post-meta {
-  font-family: var(--mono);
   font-size: 13px;
   color: var(--fg-dimmer);
   margin-bottom: 12px;
@@ -404,13 +411,13 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
     <article>
       <header class="post-header">
         <div class="post-meta">
-          <span>發布於: <time datetime="2026-11-23">2026-11-23</time></span>
+          <span>發布於 <time datetime="2026-11-23">2026-11-23</time></span>
         </div>
         <h1>Claude Code 每週額度什麼時候重置？</h1>
         <p class="post-desc">Claude Code 的每週額度在帳號固定的星期與時間重置。這篇說明它和 5 小時額度的差別，以及怎麼看重置倒數。</p>
       </header>
       <div class="prose">
-<p><strong>Claude Code 的每週額度每週重置一次，時間是 Anthropic 指定給你帳號的固定星期和時刻。</strong> 它不是從你最後一次送出訊息往後算。不管你哪天開始寫程式、哪天訂閱，這個時間都不會變；每到這個時間，整週的額度就會補滿。2026-11-23 查證。</p>
+<p><strong>Claude Code 的每週額度每週重置一次，時間是 Anthropic 指定給你帳號的固定星期和時刻</strong>。它不是從你最後一次送出訊息往後算。不管你哪天開始寫程式、哪天訂閱，這個時間都不會變；每到這個時間，整週的額度就會補滿。2026-11-23 查證。</p>
 <aside class="blog-cta-card">
   <h2>在選單列掌握你的 AI 開發配額</h2>
   <p>usage 是一款免費、開源（AGPL-3.0）的用量工具，提供 macOS 選單列、Windows 系統匣與終端機 TUI，支援 Claude Code、Codex、Antigravity、Grok 與 Muse。</p>
