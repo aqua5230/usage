@@ -34,7 +34,7 @@ def test_malformed_window_uses_fallback(monkeypatch: pytest.MonkeyPatch, window:
     calls = []
     fallback = claude_usage.UsageSnapshot(10, None, 20, None, "", 1_800_000_000)
 
-    def read_fallback() -> claude_usage.UsageSnapshot:
+    def read_fallback(*_args: object) -> claude_usage.UsageSnapshot:
         calls.append(True)
         return fallback
 
@@ -44,7 +44,7 @@ def test_malformed_window_uses_fallback(monkeypatch: pytest.MonkeyPatch, window:
     assert result.five_hour_pct == (None if window is None else 10)
     assert calls == ([] if window is None else [True])
     # Missing fallback must also tolerate malformed windows without .get errors.
-    monkeypatch.setattr(claude_usage, "read_quota_fallback", lambda: None)
+    monkeypatch.setattr(claude_usage, "read_quota_fallback", lambda *_: None)
     result = rate_limits.load_rate_limits()
     assert result is not None
     assert result.five_hour_pct is None

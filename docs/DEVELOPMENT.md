@@ -35,6 +35,8 @@ Read priority:
 4. `cachedUsageUtilization` in `~/.claude.json` — Claude Code's cached quota.
 5. The desktop app's local `plan-usage-history.json` — used when no Claude Code source is usable, without credentials or network access.
 
+The hook updates only when Claude Code draws a status line. IDE extensions and Cowork do not draw one. If the hook has reported no new quota for more than 15 minutes and `~/.claude.json` has newer quota for the same account, usage switches to the cache, which can lag by about 20–30 minutes. If the account recorded by the hook differs from the signed-in account, usage discards the hook data.
+
 The same desktop profile's local HTTP cache can supply exact reset times when its organization and observations match. Missing or unusable cache leaves reset times unknown (`None`); usage never invents them.
 
 ### Codex usage

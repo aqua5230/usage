@@ -545,14 +545,14 @@ def test_fetch_once_reuses_claude_json_snapshot_until_mtime_changes(
     monkeypatch.setattr(usage_client, "_claude_json_file", lambda: str(claude_json_path))
     claude_json_path.write_text("{}", encoding="utf-8")
     calls = 0
-    original = usage_client._read_claude_json_snapshot
+    original = usage_client._read_claude_json
 
-    def counting_read() -> usage_client.UsageSnapshot | None:
+    def counting_read() -> tuple[str | None, usage_client.UsageSnapshot | None]:
         nonlocal calls
         calls += 1
         return original()
 
-    monkeypatch.setattr(usage_client, "_read_claude_json_snapshot", counting_read)
+    monkeypatch.setattr(usage_client, "_read_claude_json", counting_read)
     client = usage_client.ClaudeUsageClient(mock=False)
 
     asyncio.run(client.fetch_once())

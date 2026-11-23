@@ -157,8 +157,13 @@ def notification_channels(state: PopoverState) -> dict[str, tuple[float | None, 
 
 
 def notification_scopes(state: PopoverState) -> dict[str, str]:
-    """Antigravity rows follow the selected model group; track each group apart."""
-    return {"agy_session": state.agy_group_name, "agy_weekly": state.agy_group_name}
+    """Track each Claude account and each Antigravity model group apart."""
+    return {
+        "claude_session": state.claude_account,
+        "claude_weekly": state.claude_account,
+        "agy_session": state.agy_group_name,
+        "agy_weekly": state.agy_group_name,
+    }
 
 
 # Keep the instance alive: UNUserNotificationCenter holds its delegate weakly.

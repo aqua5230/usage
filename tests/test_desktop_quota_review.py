@@ -132,10 +132,9 @@ def test_complete_hook_never_reads_desktop_even_on_repeated_polls(
         _code_cache(sources / "cli.json")
 
     def forbidden(*args: Any) -> Any:
-        pytest.fail("A complete hook must not read Desktop or the fallback cache")
+        pytest.fail("A complete hook must not read Desktop")
 
     monkeypatch.setattr(claude_desktop, "load_desktop_quota", forbidden)
-    monkeypatch.setattr(usage_client, "_read_claude_json_snapshot", forbidden)
     client = usage_client.ClaudeUsageClient()
     for _ in range(2):
         snapshot = asyncio.run(client.fetch_once()).snapshot
