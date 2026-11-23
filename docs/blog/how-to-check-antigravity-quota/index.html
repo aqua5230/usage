@@ -610,6 +610,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <pre><code class="language-bash">agy -p /usage --output-format json
 </code></pre>
 <p>In our testing, this command makes no model call and returns in about 6 seconds. Google documents <code>/usage</code> as an interactive command, and it documents <code>agy -p</code> with <code>--output-format json</code>. It does not document using the two together, and it does not describe the <code>command.data.groups</code> field that holds the pools.</p>
+<p><img src="usage-json-en.svg" alt="Antigravity’s JSON output lists three quota pools in groups and reports the quota window, fraction remaining, and refill time in window, remaining_fraction, and reset_time." /></p>
 <h2 id="what-are-the-three-quota-pools-and-do-they-share-a-timer">What are the three quota pools, and do they share a timer?</h2>
 <p>The <code>command.data.groups</code> field lists three pools. Each one keeps its own timer:</p>
 <table>

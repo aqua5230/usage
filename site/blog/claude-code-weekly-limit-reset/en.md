@@ -20,6 +20,8 @@ The 5-hour limit starts when you send your first message, and it refills complet
 
 The weekly limit works on a fixed schedule. Anthropic gives every account a weekly reset day and time, and that slot never moves. On Max and Ultra plans, Fable also has its own separate weekly limit.
 
+![Claude Code’s 5-hour limit refills five hours after your first message, and its weekly limit resets at a fixed day and time for your account.](windows-en.svg)
+
 ## Does Claude Code share its limits with claude.ai and Claude Desktop?
 
 Yes. Everything you do on claude.ai, Claude Desktop, the mobile apps, and Claude Code counts against the same limits. That includes Claude Code in your terminal and in IDEs such as VS Code, Cursor, IntelliJ, and PyCharm.

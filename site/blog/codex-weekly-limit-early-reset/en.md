@@ -47,6 +47,8 @@ Think of `resets_at` as the latest time your limit will refill. If no global res
 
 When a reset does come early, your schedule moves with it. OpenAI gives an example: a weekly period was due to end on Friday, but a reset restarted it on Tuesday. The next refresh is then the following Tuesday, and the Friday date no longer applies.
 
+![A Codex global reset on Tuesday drops the used percentage to zero and moves the next refill from Friday to the following Tuesday.](early-reset-en.svg)
+
 ## How can you check your Codex limit and countdown?
 
 There are two free official ways, and a third option if you want the number on screen all the time:

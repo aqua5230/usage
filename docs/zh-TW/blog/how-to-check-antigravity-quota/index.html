@@ -610,6 +610,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <pre><code class="language-bash">agy -p /usage --output-format json
 </code></pre>
 <p>我們實測，這個指令不會呼叫模型，大約 6 秒就有結果。Google 的文件分別介紹了互動式的 <code>/usage</code>，以及 <code>agy -p</code> 搭配 <code>--output-format json</code> 的用法，但沒有寫到兩者一起用，也沒有說明存放額度池的 <code>command.data.groups</code> 欄位。</p>
+<p><img src="../../../blog/how-to-check-antigravity-quota/usage-json.svg" alt="Antigravity 的 JSON 輸出用 groups 列出三個額度池，並用 window、remaining_fraction 和 reset_time 表示額度週期、剩餘比例和補滿時間。" /></p>
 <h2 id="三個額度池怎麼分計時會互相影響嗎">三個額度池怎麼分？計時會互相影響嗎？</h2>
 <p><code>command.data.groups</code> 欄位裡列了三個額度池，每個都各自計時：</p>
 <table>
