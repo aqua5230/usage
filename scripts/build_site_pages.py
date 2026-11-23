@@ -36,6 +36,12 @@ LOCAL_URL_RE = re.compile(
 )
 SRCSET_RE = re.compile(r'(\ssrcset=")([^"]+)"')
 LD_DESC_RE = re.compile(r'^  "description": ".*",$', re.M)
+LATEST_POSTS_START = "<!-- latest-posts:start -->"
+LATEST_POSTS_END = "<!-- latest-posts:end -->"
+POSTS_GROUP_RE = re.compile(
+    r'([ \t]*<div\s+class="latest-posts"\s+data-posts-lang="([^"]+)")(?:\s+hidden)?(>.*?</div>)',
+    re.S,
+)
 
 
 def parse_translations(source: str) -> dict[str, dict[str, str]]:
@@ -63,6 +69,28 @@ def replace_once(page: str, old: str, new: str) -> str:
     if page.count(old) != 1:
         raise ValueError(f"expected exactly one {old!r} in docs/index.html")
     return page.replace(old, new)
+
+
+def select_latest_posts(page: str, lang: str) -> str:
+    """Keep only the matching language group (or en fallback) and drop its hidden attribute."""
+    if LATEST_POSTS_START not in page or LATEST_POSTS_END not in page:
+        raise ValueError(
+            f"docs/index.html must contain {LATEST_POSTS_START} and {LATEST_POSTS_END}"
+        )
+    before, rest = page.split(LATEST_POSTS_START, 1)
+    if LATEST_POSTS_END not in rest:
+        raise ValueError(
+            f"docs/index.html must contain {LATEST_POSTS_START} before {LATEST_POSTS_END}"
+        )
+    middle, after = rest.split(LATEST_POSTS_END, 1)
+
+    groups: dict[str, str] = {}
+    for match in POSTS_GROUP_RE.finditer(middle):
+        groups[match.group(2)] = f"{match.group(1)}{match.group(3)}"
+
+    selected = groups.get(lang) or groups.get("en")
+    new_middle = f"\n{selected}\n" if selected else "\n"
+    return f"{before}{LATEST_POSTS_START}{new_middle}{LATEST_POSTS_END}{after}"
 
 
 def render(source: str, lang: str, t: dict[str, str]) -> str:
@@ -116,6 +144,7 @@ def render(source: str, lang: str, t: dict[str, str]) -> str:
     page = ATTR_TAG_RE.sub(attribute, page)
     if lang not in USE_EN_SHOT:
         page = SHOT_RE.sub(cjk_shot, page)
+    page = select_latest_posts(page, lang)
     page = LOCAL_URL_RE.sub(r"\1../", page)
     return SRCSET_RE.sub(
         lambda m: m[1] + ", ".join("../" + c.strip() for c in m[2].split(",")) + '"', page
