@@ -1085,7 +1085,7 @@ body {
 // A shared speech queue shows one bubble at a time and pauses while the panel is hidden.
 // The line greets visitors, occasionally chats or naps, and gets a tree and snow in December.
 (() => {
-  const NAMES = ["redpanda", "frog", "penguin", "rabbit", "raccoon", "piglet", "elephant", "bear", "puppy", "chick", "kitten"];
+  const NAMES = ["redpanda", "frog", "penguin", "rabbit", "raccoon", "piglet", "elephant", "bear", "puppy", "chick", "kitten", "hedgehog", "otter"];
   const POSES = ["stand", "jump", "worried", "sleep", "cheer"];
   // Display height of each pose relative to standing: sitting is shorter, arms up is a little taller.
   const HEIGHT = { sleep: 0.82, cheer: 1.06 };
@@ -1233,6 +1233,16 @@ body {
     kitten_worried: "{{ASSET:panels/felt/pals/kitten_worried.webp}}",
     kitten_sleep: "{{ASSET:panels/felt/pals/kitten_sleep.webp}}",
     kitten_cheer: "{{ASSET:panels/felt/pals/kitten_cheer.webp}}",
+    hedgehog_stand: "{{ASSET:panels/felt/pals/hedgehog_stand.webp}}",
+    hedgehog_jump: "{{ASSET:panels/felt/pals/hedgehog_jump.webp}}",
+    hedgehog_worried: "{{ASSET:panels/felt/pals/hedgehog_worried.webp}}",
+    hedgehog_sleep: "{{ASSET:panels/felt/pals/hedgehog_sleep.webp}}",
+    hedgehog_cheer: "{{ASSET:panels/felt/pals/hedgehog_cheer.webp}}",
+    otter_stand: "{{ASSET:panels/felt/pals/otter_stand.webp}}",
+    otter_jump: "{{ASSET:panels/felt/pals/otter_jump.webp}}",
+    otter_worried: "{{ASSET:panels/felt/pals/otter_worried.webp}}",
+    otter_sleep: "{{ASSET:panels/felt/pals/otter_sleep.webp}}",
+    otter_cheer: "{{ASSET:panels/felt/pals/otter_cheer.webp}}",
   };
   const src = (name, pose) => PAL_IMG[`${name}_${pose}`];
   const rand = (a, b) => a + Math.random() * (b - a);
@@ -1344,11 +1354,17 @@ body {
     return out;
   }
 
-  // The waiting line: evenly spaced slots, front (index 0) on the left.
+  // The waiting line: evenly spaced slots, front (index 0) on the left; overflow waits offstage (FIFO).
   const queue = [];
-  function slot(i) {
+  const offstage = [];
+  function lineMetrics() {
     const r = toLocal(lineEl.getBoundingClientRect());
     const l = r.left + 30, w = Math.max(0, r.width - 60 - treeSpace);
+    return { r, l, w };
+  }
+  const lineCap = (w = lineMetrics().w) => Math.max(1, 1 + Math.floor(w / (SIZE * 0.95)));
+  function slot(i) {
+    const { r, l, w } = lineMetrics();
     const step = queue.length > 1 ? Math.min(w / (queue.length - 1), SIZE * 1.1) : 0;
     const start = l + (w - step * (queue.length - 1)) / 2;
     return { x: start + step * i, y: r.bottom - LINE_GROUND };
@@ -1389,10 +1405,15 @@ body {
     body.append(sil, img);
     wrap.append(body, hit, badge, ...zs);
     const p = { name, img, sil, body, wrap, shadow, badge, zs, mood: "calm", pose: "", bar: -1, key: "", seen: 0, x: 0, y: 0, shift: 0,
-      scale: QUEUE_SCALE, face: -1, busy: false, pct: 0, since: 0, loopTimer: null };
+      scale: QUEUE_SCALE, face: -1, busy: false, pct: 0, since: 0, loopTimer: null, alpha: 1, offstage: false, exiting: false };
     hit.addEventListener("click", () => poke(p));
     return p;
   });
+  // Randomize initial cast order so the same pals do not always start offstage.
+  for (let i = pals.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pals[i], pals[j]] = [pals[j], pals[i]];
+  }
 
   function pose(p, name) {
     const use = aspect[`${p.name}_${name}`] ? name : "stand";
@@ -1416,16 +1437,17 @@ body {
   // Draw a pal at (x, y) with squash/stretch and tilt; the shadow stays on `ground`.
   function draw(p, x, y, sx = 1, sy = 1, rot = 0, ground = y) {
     p.last = [x, y, sx, sy, rot, ground];
-    if (p.bar < 0) x = Math.min(x, lineRight);
+    if (p.bar < 0 && !p.exiting) x = Math.min(x, lineRight);
     // shift moves a pal that is mid-action along with its strip (see settle()).
     p.wrap.style.translate = `${x}px ${y + p.shift}px`;
+    p.wrap.style.opacity = p.alpha < 1 ? String(p.alpha) : "";
     p.body.style.transform = `rotate(${rot}deg) scale(${p.face * sx * p.scale}, ${sy * p.scale})`;
     // Keep the cast shadow down-right whichever way the pal faces (the body's scale mirrors it).
     p.sil.style.translate = `${p.face < 0 ? -3 : 3}px 2px`;
     const k = Math.max(0.35, 1 - Math.max(0, ground - y) / 70) * p.scale;
     p.shadow.style.translate = `${x}px ${ground + p.shift}px`;
     p.shadow.style.transform = `scale(${k})`;
-    p.shadow.style.opacity = String(k);
+    p.shadow.style.opacity = String(k * p.alpha);
   }
 
   // Run fn(k) for k in [0, 1] over dur ms. Idle CSS animation pauses while a pal is being animated.
@@ -1475,8 +1497,8 @@ body {
     }
   }
 
-  async function jump(p, tx, ty, height, { flip = false, scale = p.scale, air = "jump", land } = {}) {
-    const x0 = p.x, y0 = p.y, s0 = p.scale;
+  async function jump(p, tx, ty, height, { flip = false, scale = p.scale, air = "jump", land, alpha, landSquash = true } = {}) {
+    const x0 = p.x, y0 = p.y, s0 = p.scale, a0 = p.alpha;
     // A hop within the line stays inside the felt strip, so a pal never pops out over the footer card.
     if (p.bar < 0 && Math.abs(ty - y0) < 2) {
       const top = toLocal(lineEl.getBoundingClientRect()).top;
@@ -1497,18 +1519,22 @@ body {
       const v = Math.abs(1 - 2 * k);
       const spin = flip ? p.face * 360 * ease(k) : 0;
       p.scale = lerp(s0, scale, k);
+      if (alpha !== undefined) p.alpha = lerp(a0, alpha, k);
       draw(p, lerp(x0, tx, k), y, 1 - 0.08 * v, 1 + 0.14 * v, spin + p.face * 9 * (1 - 2 * k), k < 0.5 ? y0 : ty);
     }, p);
     pose(p, land || rest(p));
     p.x = tx;
     p.y = ty;
     p.scale = scale;
+    if (alpha !== undefined) p.alpha = alpha;
     if (height >= 9) puff(tx, ty, height > 20 ? 4 : 2);
     // Land: damped squash.
-    await play(460, (k) => {
-      const d = Math.exp(-5 * k) * Math.cos(k * 14);
-      draw(p, tx, ty, 1 + 0.2 * d, 1 - 0.24 * d);
-    }, p);
+    if (landSquash) {
+      await play(460, (k) => {
+        const d = Math.exp(-5 * k) * Math.cos(k * 14);
+        draw(p, tx, ty, 1 + 0.2 * d, 1 - 0.24 * d);
+      }, p);
+    }
     idle(p);
   }
 
@@ -1607,6 +1633,7 @@ body {
     const now = speechTime();
     if (speaking && now >= speaking.until) endSpeech(true);
     if (speaking?.item.valid && !speaking.item.valid()) endSpeech(false, false);
+    if (speaking?.p.offstage) endSpeech(false, false);
     if (speaking?.item.card && riderFor(speaking.item.card, b) !== speaking.p) endSpeech();
 
     let next = Infinity;
@@ -1802,6 +1829,40 @@ body {
     schedule();
   }
 
+  function toOffstage(p) {
+    stopPalLoop(p);
+    stopHurry(p);
+    if (speaking?.p === p) endSpeech(false, false);
+    if (nameBubble && nameBubble.parentElement === p.wrap) {
+      nameBubble.remove();
+      nameBubble = null;
+    }
+    p.offstage = true;
+    p.exiting = false;
+    p.alpha = 1;
+    p.body.classList.remove("idle", "dozing");
+    p.wrap.style.display = "none";
+    p.shadow.style.display = "none";
+    p.wrap.style.opacity = "";
+    p.shadow.style.opacity = "";
+  }
+
+  function fromOffstage(p, ground) {
+    p.offstage = false;
+    p.exiting = false;
+    p.alpha = 1;
+    p.bar = -1;
+    p.mood = "calm";
+    p.scale = QUEUE_SCALE;
+    p.face = -1;
+    pose(p, "stand");
+    p.wrap.style.display = "";
+    p.shadow.style.display = "";
+    p.wrap.style.opacity = "";
+    if (p.x) p.y = ground;
+    if (motionActive() && !p.loopTimer) loop(p);
+  }
+
   // Shift change: the front of the line takes over a bar, the longest-serving rider goes to the back, the line moves up.
   async function swap() {
     const b = bars();
@@ -1809,7 +1870,7 @@ body {
     const riders = pals.filter((p) => p.bar >= 0 && (!p.busy || p.hurry?.moving)
       && b[p.bar]?.key === p.key && b[p.bar].pct < WARN);
     const fresh = queue[0];
-    if (!riders.length || !fresh || fresh.busy) return;
+    if (rotating || !riders.length || !fresh || fresh.busy) return;
     const rider = riders.reduce((a, c) => (c.since < a.since ? c : a));
     const i = rider.bar;
     stopHurry(rider);
@@ -1838,10 +1899,79 @@ body {
     await closeUp();
   }
 
+  // Line rotation: the back pal hops offstage to the right and the longest-waiting offstage pal takes its place.
+  let rotating = false;
+  async function rotate() {
+    if (rotating || !offstage.length || !queue.length) return;
+    const out = queue[queue.length - 1];
+    const incoming = offstage[0];
+    if (!out || out.busy || speaking?.p === out || !incoming || incoming.busy) return;
+    rotating = true;
+    out.busy = true;
+    incoming.busy = true;
+    const offX = lineMetrics().r.right + SIZE * 0.75;
+
+    stopPalLoop(out);
+    out.exiting = true;
+    const outMid = (out.x + offX) / 2;
+    await jump(out, outMid, out.y, 8, { alpha: 0.5 });
+    await jump(out, offX, out.y, 8, { alpha: 0, landSquash: false });
+    const outIdx = queue.indexOf(out);
+    if (outIdx >= 0) queue.splice(outIdx, 1);
+    toOffstage(out);
+    offstage.push(out);
+    out.busy = false;
+
+    const inIdx = offstage.indexOf(incoming);
+    if (inIdx >= 0) offstage.splice(inIdx, 1);
+    const ground = slot(0).y;
+    if (queue.length >= lineCap()) {
+      offstage.unshift(incoming);
+      incoming.busy = false;
+      rotating = false;
+      schedule();
+      return;
+    }
+    fromOffstage(incoming, ground);
+    queue.push(incoming);
+    if (still) {
+      incoming.x = slot(queue.length - 1).x;
+      incoming.y = ground;
+      draw(incoming, incoming.x, incoming.y);
+      rotating = false;
+      free(incoming);
+      return;
+    }
+    incoming.x = offX;
+    incoming.y = ground;
+    incoming.alpha = 0;
+    incoming.exiting = true;
+    draw(incoming, incoming.x, incoming.y);
+    const slotX = () => {
+      const idx = queue.indexOf(incoming);
+      return idx >= 0 ? slot(idx).x : offX;
+    };
+    const inMid = (offX + slotX()) / 2;
+    await jump(incoming, inMid, incoming.y, 8, { alpha: 0.55 });
+    await jump(incoming, slotX(), incoming.y, 8, { alpha: 1 });
+    incoming.exiting = false;
+    incoming.alpha = 1;
+    draw(incoming, incoming.x, incoming.y);
+
+    const heart = bubble(incoming, "pal-heart", "♥", SIZE * incoming.scale + 2, -9);
+    setTimeout(() => heart.remove(), 1900);
+
+    rotating = false;
+    free(incoming);
+  }
+  window.__feltRotate = () => rotate();
+
   function settle() {
     const b = bars();
-    lineRight = treeSpace ? toLocal(lineEl.getBoundingClientRect()).right - treeSpace - 30 : Infinity;
-    const ground = slot(0).y;
+    const { r, w } = lineMetrics();
+    const cap = lineCap(w);
+    lineRight = treeSpace ? r.right - treeSpace - 30 : Infinity;
+    const ground = r.bottom - LINE_GROUND;
     const moved = lineY === null ? 0 : ground - lineY;
     lineY = ground;
     // One rider per bar: extras rejoin the line, empty bars (bars appear once the data renders) take the front.
@@ -1871,9 +2001,24 @@ body {
     for (const p of pals) {
       if (p.hurry && b[p.bar]?.key !== p.key) stopHurry(p);
       if (p.bar >= 0 && !b[p.bar]) p.bar = -1;
-      if (p.bar < 0 && !queue.includes(p)) queue.push(p);
+      if (p.bar < 0 && !p.offstage && !queue.includes(p)) queue.push(p);
+    }
+    // Keep the waiting line within cap so pals never crowd tighter than SIZE * 0.95.
+    for (let i = queue.length - 1; queue.length > cap && i >= 0; i--) {
+      if (queue[i].busy) continue;
+      const [p] = queue.splice(i, 1);
+      toOffstage(p);
+      offstage.push(p);
+    }
+    while (queue.length < cap && offstage.length) {
+      const p = offstage.find((o) => !o.busy);
+      if (!p) break;
+      offstage.splice(offstage.indexOf(p), 1);
+      fromOffstage(p, ground);
+      queue.push(p);
     }
     for (const p of pals) {
+      if (p.offstage) continue;
       if (p.busy) {
         // A pal busy hopping in line, or on its way back to it, finishes its action but moves as far as the line
         // moved: the footer grew or shrank, or the panel was first laid out, which can move it hundreds of pixels.
@@ -1962,6 +2107,7 @@ body {
 
   const motionActive = () => !hidden() && !still;
   let shiftTimer = null;
+  let rotateTimer = null;
 
   function stopPalLoop(p) {
     clearTimeout(p.loopTimer);
@@ -1970,11 +2116,11 @@ body {
 
   function loop(p) {
     stopPalLoop(p);
-    if (!motionActive()) return;
+    if (!motionActive() || p.offstage) return;
     const ms = p.mood === "alert" ? 2600 : p.bar >= 0 ? lerp(1200, 5200, Math.min(p.pct, WARN)) : rand(3000, 7000);
     p.loopTimer = setTimeout(async () => {
       p.loopTimer = null;
-      if (!motionActive()) return;
+      if (!motionActive() || p.offstage) return;
       if (!p.busy) {
         p.busy = true;
         await act(p);
@@ -1996,21 +2142,36 @@ body {
     }, rand(20000, 40000));
   }
 
+  function rotations() {
+    clearTimeout(rotateTimer);
+    rotateTimer = null;
+    if (!motionActive()) return;
+    rotateTimer = setTimeout(async () => {
+      rotateTimer = null;
+      if (!motionActive()) return;
+      await rotate();
+      rotations();
+    }, rand(150000, 300000));
+  }
+
   function startMotion() {
     if (!motionActive()) return;
     pals.forEach((p, i) => {
-      if (p.loopTimer) return;
+      if (p.offstage || p.loopTimer) return;
       p.loopTimer = setTimeout(() => {
         p.loopTimer = null;
         loop(p);
       }, i * 350);
     });
     if (!shiftTimer) shifts();
+    if (!rotateTimer) rotations();
   }
 
   function stopMotion() {
     clearTimeout(shiftTimer);
     shiftTimer = null;
+    clearTimeout(rotateTimer);
+    rotateTimer = null;
     pals.forEach(stopPalLoop);
   }
 
