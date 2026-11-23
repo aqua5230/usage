@@ -7,6 +7,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+- **Two new Plush Pals: Prickle the hedgehog and Shelly the otter.** There are now thirteen pals. The row under the cards never squeezes them closer than before: pals that do not fit wait offstage, and every few minutes the last pal in line hops out and the one that has waited longest hops in. Who starts onstage is shuffled each time the panel loads.
+
 ## [0.35.0] - 2026-11-22
 
 ### Added
