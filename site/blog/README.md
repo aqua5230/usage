@@ -24,6 +24,7 @@ title: Post title
 description: One-sentence summary for search results and blog list cards.
 date: 2026-11-23
 updated: 2026-11-24
+tool: claude-code
 related: other-post-slug, another-slug
 ---
 
@@ -36,6 +37,7 @@ First paragraph of the article...
 - `description` (required): Meta description and list-page summary.
 - `date` (required): Publication date in `YYYY-MM-DD`.
 - `updated` (optional): Last modified date in `YYYY-MM-DD`; falls back to `date`.
+- `tool` (required for new posts): The tool the post is about, for future category filters. One of `claude-code`, `codex`, `antigravity`, `grok`, `muse`, or `general` (tool roundups and posts that cover several tools). Use the same value in every language of a post. Not shown on the page yet.
 - `related` (optional): Comma-separated list of post `<slug>` values linked at the end of the article (links to the same language if available, otherwise `en`).
 
 ## Markdown Rules

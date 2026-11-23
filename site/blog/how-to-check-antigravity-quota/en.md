@@ -2,6 +2,7 @@
 title: How to Check Your Antigravity (agy) Quota
 description: Type /usage in the Antigravity CLI, or run agy -p /usage --output-format json to get your quota without calling a model. Here are the three quota pools and when they reset.
 date: 2026-11-23
+tool: antigravity
 related: claude-code-weekly-limit-reset, codex-weekly-limit-early-reset
 ---
 

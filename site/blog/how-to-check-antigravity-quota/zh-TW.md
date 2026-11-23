@@ -2,6 +2,7 @@
 title: 怎麼查 Antigravity（agy）剩多少額度？
 description: 在 Antigravity CLI 輸入 /usage，或在終端機跑 agy -p /usage --output-format json，不用呼叫模型就能查額度。這篇說明三個額度池和重置時間。
 date: 2026-11-23
+tool: antigravity
 related: claude-code-weekly-limit-reset, codex-weekly-limit-early-reset
 ---
 

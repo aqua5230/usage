@@ -2,6 +2,7 @@
 title: Why Did My Codex Weekly Limit Reset Early?
 description: Codex weekly limits often reset days before resets_at because OpenAI runs global resets. Ten weeks of data from one Plus account, the official reset rules, and how to check.
 date: 2026-11-23
+tool: codex
 related: claude-code-weekly-limit-reset, how-to-check-antigravity-quota
 ---
 

@@ -2,6 +2,7 @@
 title: Codex 每週額度為什麼提早重置？
 description: Codex 的每週額度常比 resets_at 早好幾天重置，原因是 OpenAI 會全體重置。附一個 Plus 帳號 10 週的實際紀錄、官方規則和查法。
 date: 2026-11-23
+tool: codex
 related: claude-code-weekly-limit-reset, how-to-check-antigravity-quota
 ---
 
