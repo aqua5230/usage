@@ -9,6 +9,7 @@ import html
 import json
 import re
 import sys
+from collections.abc import Collection
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
@@ -44,6 +45,8 @@ LATEST_POSTS_LIMIT = 3
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 H2_RE = re.compile(r"<h2>(.*?)</h2>", re.DOTALL)
 TAG_RE = re.compile(r"<[^>]+>")
+IMG_SRC_RE = re.compile(r'<img\b([^>]*?\s)src="([^"]*)"([^>]*>)')
+IMAGE_EXTENSIONS: frozenset[str] = frozenset({".jpg", ".jpeg", ".png", ".webp", ".svg"})
 
 UI_STRINGS: dict[str, dict[str, str]] = {
     "en": {
@@ -647,6 +650,7 @@ class Article:
     updated: str | None
     related: tuple[str, ...]
     body_markdown: str
+    image: str | None = None
 
     @property
     def lastmod(self) -> str:
@@ -690,6 +694,22 @@ def article_output_path(docs_dir: Path, slug: str, lang: str) -> Path:
     if lang == "en":
         return docs_dir / "blog" / slug / "index.html"
     return docs_dir / lang / "blog" / slug / "index.html"
+
+
+def image_output_path(docs_dir: Path, slug: str, filename: str) -> Path:
+    return docs_dir / "blog" / slug / filename
+
+
+def load_slug_images(slug_dir: Path) -> dict[str, Path]:
+    images: dict[str, Path] = {}
+    if not slug_dir.is_dir():
+        return images
+    for entry in sorted(slug_dir.iterdir()):
+        if not entry.is_file() or entry.name.startswith("."):
+            continue
+        if entry.suffix.lower() in IMAGE_EXTENSIONS:
+            images[entry.name] = entry
+    return images
 
 
 def _validate_date(value: str, field: str, path: Path) -> str:
@@ -741,6 +761,7 @@ def load_articles(source_dir: Path) -> dict[str, dict[str, Article]]:
         if not slug_dir.is_dir() or slug_dir.name.startswith("."):
             continue
         slug = slug_dir.name
+        slug_images = load_slug_images(slug_dir)
         per_lang: dict[str, Article] = {}
         for lang in LANGS:
             md_path = slug_dir / f"{lang}.md"
@@ -760,6 +781,10 @@ def load_articles(source_dir: Path) -> dict[str, dict[str, Article]]:
             related = tuple(
                 part.strip() for part in meta.get("related", "").split(",") if part.strip()
             )
+            raw_image = meta.get("image", "").strip()
+            image = raw_image or None
+            if image is not None and image not in slug_images:
+                raise ValueError(f"{md_path}: unknown image {image!r}")
             per_lang[lang] = Article(
                 slug=slug,
                 lang=lang,
@@ -769,6 +794,7 @@ def load_articles(source_dir: Path) -> dict[str, dict[str, Article]]:
                 updated=updated,
                 related=related,
                 body_markdown=body,
+                image=image,
             )
         if per_lang:
             articles[slug] = per_lang
@@ -1044,13 +1070,20 @@ def _render_shell(
     main_html: str,
     wrap_class: str = "wrap",
     extra_script: str = "",
+    og_image: str | None = None,
 ) -> str:
     ui = UI_STRINGS[lang]
-    og_image = f"{_site_root()}{OG_IMAGE_PATH}"
+    resolved_og_image = og_image if og_image is not None else f"{_site_root()}{OG_IMAGE_PATH}"
     escaped_title = html.escape(title)
     escaped_desc = html.escape(description, quote=True)
     escaped_canonical = html.escape(canonical_url, quote=True)
-    escaped_og_image = html.escape(og_image, quote=True)
+    escaped_og_image = html.escape(resolved_og_image, quote=True)
+    og_image_dims = (
+        ""
+        if og_image is not None
+        else '<meta property="og:image:width" content="1200" />\n'
+        '<meta property="og:image:height" content="630" />\n'
+    )
     hreflangs = _render_hreflang_links(hreflang_urls)
     json_ld_html = "\n".join(_json_ld_script(block) for block in json_ld_blocks)
 
@@ -1075,8 +1108,7 @@ def _render_shell(
         f'<meta property="og:title" content="{escaped_title}" />\n'
         f'<meta property="og:description" content="{escaped_desc}" />\n'
         f'<meta property="og:image" content="{escaped_og_image}" />\n'
-        '<meta property="og:image:width" content="1200" />\n'
-        '<meta property="og:image:height" content="630" />\n'
+        f"{og_image_dims}"
         f'<meta property="og:url" content="{escaped_canonical}" />\n'
         f'<meta property="og:type" content="{og_type}" />\n'
         '<meta name="twitter:card" content="summary_large_image" />\n'
@@ -1122,11 +1154,39 @@ def _render_shell(
     )
 
 
+def _is_plain_filename(src: str) -> bool:
+    if not src:
+        return False
+    if src.lower().startswith(("http://", "https://", "data:")) or src.startswith("/"):
+        return False
+    return "/" not in src and "\\" not in src
+
+
+def _rewrite_image_sources(
+    body_html: str,
+    slug: str,
+    lang: str,
+    slug_images: Collection[str],
+) -> str:
+    def _replace(match: re.Match[str]) -> str:
+        prefix, raw_src, suffix = match.groups()
+        src = html.unescape(raw_src)
+        if not _is_plain_filename(src):
+            return match.group(0)
+        if src not in slug_images:
+            raise ValueError(f"site/blog/{slug}/{lang}.md: unknown image {src!r}")
+        new_src = src if lang == "en" else f"../../../blog/{slug}/{src}"
+        return f'<img{prefix}src="{html.escape(new_src, quote=True)}"{suffix}'
+
+    return IMG_SRC_RE.sub(_replace, body_html)
+
+
 def render_article(
     article: Article,
     available_langs: dict[str, Article],
     all_articles: dict[str, dict[str, Article]],
     md: MarkdownIt,
+    slug_images: Collection[str] = (),
 ) -> str:
     lang = article.lang
     ui = UI_STRINGS[lang]
@@ -1134,7 +1194,9 @@ def render_article(
     home_rel = "../../"
     blog_rel = "../"
 
-    raw_body_html = md.render(article.body_markdown)
+    raw_body_html = _rewrite_image_sources(
+        md.render(article.body_markdown), article.slug, lang, slug_images
+    )
     body_html, toc_headings = add_heading_ids_and_extract_toc(raw_body_html)
     card_html = _render_download_card(lang, home_rel)
     body_with_cards = inject_download_cards(body_html, card_html)
@@ -1245,7 +1307,10 @@ def render_article(
         )
         for l_code in available_langs
     }
-    og_image = f"{_site_root()}{OG_IMAGE_PATH}"
+    custom_og_image = (
+        f"{_site_root()}blog/{article.slug}/{article.image}" if article.image is not None else None
+    )
+    og_image = custom_og_image if custom_og_image is not None else f"{_site_root()}{OG_IMAGE_PATH}"
     article_ld: dict[str, object] = {
         "@context": "https://schema.org",
         "@type": "Article",
@@ -1284,6 +1349,7 @@ def render_article(
         main_html=main_html,
         wrap_class="wrap wrap-article",
         extra_script=ARTICLE_SCRIPT,
+        og_image=custom_og_image,
     )
 
 
@@ -1449,11 +1515,11 @@ def render_homepage_latest_posts(
 
 def build_outputs(
     source_dir: Path, docs_dir: Path, sitemap_text: str, index_text: str
-) -> tuple[dict[Path, str], str, str]:
+) -> tuple[dict[Path, str | bytes], str, str]:
     articles = load_articles(source_dir)
     md = MarkdownIt("commonmark", {"html": False}).enable("table")
 
-    outputs: dict[Path, str] = {}
+    outputs: dict[Path, str | bytes] = {}
     posts_by_lang: dict[str, list[Article]] = {}
     for per_lang in articles.values():
         for lang, article in per_lang.items():
@@ -1469,9 +1535,12 @@ def build_outputs(
         )
 
     for slug, per_lang in articles.items():
+        slug_images = load_slug_images(source_dir / slug)
+        for filename, img_path in slug_images.items():
+            outputs[image_output_path(docs_dir, slug, filename)] = img_path.read_bytes()
         for lang, article in per_lang.items():
             outputs[article_output_path(docs_dir, slug, lang)] = render_article(
-                article, per_lang, articles, md
+                article, per_lang, articles, md, slug_images=slug_images
             )
 
     new_sitemap = render_sitemap(sitemap_text, articles, posts_by_lang)
@@ -1512,7 +1581,12 @@ def run_build(*, check: bool) -> int:
     if check:
         problems: list[Path] = []
         for path, content in sorted(outputs.items()):
-            if not path.is_file() or path.read_text(encoding="utf-8") != content:
+            if not path.is_file():
+                problems.append(path)
+            elif isinstance(content, bytes):
+                if path.read_bytes() != content:
+                    problems.append(path)
+            elif path.read_text(encoding="utf-8") != content:
                 problems.append(path)
         problems.extend(orphans)
         if sitemap_text != expected_sitemap:
@@ -1534,7 +1608,10 @@ def run_build(*, check: bool) -> int:
 
     for path, content in sorted(outputs.items()):
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(content, encoding="utf-8")
+        if isinstance(content, bytes):
+            path.write_bytes(content)
+        else:
+            path.write_text(content, encoding="utf-8")
         print(f"wrote {path}")
 
     if sitemap_text != expected_sitemap:

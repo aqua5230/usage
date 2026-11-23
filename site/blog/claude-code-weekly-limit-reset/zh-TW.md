@@ -2,6 +2,7 @@
 title: Claude Code 每週額度什麼時候重置？
 description: Claude Code 的每週額度在帳號固定的星期與時間重置。這篇說明它和 5 小時額度的差別，以及怎麼看重置倒數。
 date: 2026-11-23
+tool: claude-code
 related: codex-weekly-limit-early-reset, how-to-check-antigravity-quota
 ---
 

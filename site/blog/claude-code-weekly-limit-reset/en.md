@@ -2,6 +2,7 @@
 title: When Does the Claude Code Weekly Limit Reset?
 description: Claude Code's weekly limit resets at a fixed day and time assigned to your account. Here is how that works with the 5-hour limit, and how to see your countdown.
 date: 2026-11-23
+tool: claude-code
 related: codex-weekly-limit-early-reset, how-to-check-antigravity-quota
 ---
 

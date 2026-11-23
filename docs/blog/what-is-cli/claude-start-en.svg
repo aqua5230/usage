@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 387" role="img" aria-label="The Claude Code start screen: Claude Code v2.1.277; Opus 5 · Claude Pro, labeled the AI model and your plan; ~/pond, labeled the folder it is working in; and the request typed after ❯, labeled type what you want after this symbol" font-family="-apple-system, Inter, Helvetica, Arial, sans-serif">
+<title>The Claude Code start screen: Claude Code v2.1.277; Opus 5 · Claude Pro, labeled the AI model and your plan; ~/pond, labeled the folder it is working in; and the request typed after ❯, labeled type what you want after this symbol</title>
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#A9CFC0"/><stop offset=".55" stop-color="#6E9E8E"/><stop offset="1" stop-color="#3F6E61"/></linearGradient><radialGradient id="g1" cx=".1" cy=".95" r=".6"><stop offset="0" stop-color="#E8D9B5" stop-opacity=".55"/><stop offset="1" stop-color="#E8D9B5" stop-opacity="0"/></radialGradient><filter id="sh" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#0B2A22" flood-opacity=".38"/></filter></defs>
+<rect width="600" height="387" rx="16" fill="url(#bg)"/><rect width="600" height="387" rx="16" fill="url(#g1)"/>
+<g filter="url(#sh)"><rect x="20" y="20" width="560" height="347" rx="12" fill="#1E2228" stroke="#FFFFFF1A"/></g>
+<circle cx="40" cy="38" r="6" fill="#FF5F57"/><circle cx="58" cy="38" r="6" fill="#FEBC2E"/><circle cx="76" cy="38" r="6" fill="#28C840"/>
+<text x="300.0" y="43" font-size="13" fill="#9AA0A6" text-anchor="middle">pond — claude</text>
+<line x1="20" y1="56" x2="580" y2="56" stroke="#FFFFFF14"/>
+<text x="40" y="86" font-size="15" font-family="Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#E8A87C">Claude Code v2.1.277</tspan></text>
+<text x="40" y="109" font-size="15" font-family="Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#8A939E">Opus 5 · Claude Pro</tspan></text>
+<text x="40" y="132" font-size="15" font-family="Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#8A939E">~/pond</tspan></text>
+<text x="40" y="155" font-size="15" font-family="Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#8A939E"></tspan></text>
+<text x="40" y="178" font-size="15" font-family="Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#F2C46D">❯</tspan><tspan fill="#F2F2F2"> Make a web page: a pond at night with a</tspan></text>
+<text x="40" y="201" font-size="15" font-family="Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#F2F2F2">  small fish swimming. When the fish swims</tspan></text>
+<text x="40" y="224" font-size="15" font-family="Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#F2F2F2">  through the moon&#x27;s reflection, the</tspan></text>
+<text x="40" y="247" font-size="15" font-family="Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#F2F2F2">  reflection breaks up and sways; clicking</tspan></text>
+<text x="40" y="270" font-size="15" font-family="Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#F2F2F2">  the water sends out ripples. Don&#x27;t use</tspan></text>
+<text x="40" y="293" font-size="15" font-family="Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#F2F2F2">  any images; draw everything with code</tspan></text>
+<text x="40" y="316" font-size="15" font-family="Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#F2F2F2">  and save it as pond.html.</tspan></text>
+<line x1="221.57" y1="104" x2="322" y2="104" stroke="#9FD3BD" stroke-width="1.3" stroke-dasharray="2 4" stroke-linecap="round"/>
+<text x="330" y="109" font-size="14" fill="#9FD3BD">the AI model and your plan</text>
+<line x1="104.17999999999999" y1="127" x2="322" y2="127" stroke="#8AB4F8" stroke-width="1.3" stroke-dasharray="2 4" stroke-linecap="round"/>
+<text x="330" y="132" font-size="14" fill="#8AB4F8">the folder it is working in</text>
+<path d="M41 156 V330 H 60" fill="none" stroke="#F2C46D" stroke-width="1.4" stroke-linecap="round"/>
+<text x="68" y="335" font-size="14" fill="#F2C46D">type what you want after ❯, in plain language</text>
+</svg>

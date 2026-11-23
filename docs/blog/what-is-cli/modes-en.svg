@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 470" role="img" aria-label="Three settings compared from top to bottom: Manual usually asks before a change; with accept edits, creating, editing, and ordinary deletions in the folder are allowed without asking; auto mode blocks only actions that look risky." font-family="-apple-system, Inter, Helvetica, Arial, sans-serif">
+<title>Three settings compared from top to bottom: Manual usually asks before a change; with accept edits, creating, editing, and ordinary deletions in the folder are allowed without asking; auto mode blocks only actions that look risky.</title>
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#A9CFC0"/><stop offset=".55" stop-color="#6E9E8E"/><stop offset="1" stop-color="#3F6E61"/></linearGradient><radialGradient id="g1" cx=".1" cy=".95" r=".6"><stop offset="0" stop-color="#E8D9B5" stop-opacity=".55"/><stop offset="1" stop-color="#E8D9B5" stop-opacity="0"/></radialGradient><filter id="sh" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#0B2A22" flood-opacity=".38"/></filter></defs>
+<rect width="600" height="470" rx="16" fill="url(#bg)"/><rect width="600" height="470" rx="16" fill="url(#g1)"/>
+<text x="272" y="52" font-size="20" fill="#FFFFFF" text-anchor="middle" font-weight="700">Create</text>
+<text x="396" y="52" font-size="20" fill="#FFFFFF" text-anchor="middle" font-weight="700">Edit</text>
+<text x="520" y="52" font-size="20" fill="#FFFFFF" text-anchor="middle" font-weight="700">Delete</text>
+<g filter="url(#sh)"><rect x="20" y="74" width="560" height="112" rx="14" fill="#F6F6F4" fill-opacity=".96"/></g>
+<text x="38" y="124" font-size="21" fill="#2B2A26" font-weight="700">Manual</text>
+<text x="38" y="152" font-size="15" fill="#6B665C">usually asks</text>
+<rect x="216" y="88" width="112" height="84" rx="10" fill="#FFFFFF" stroke="#2F6FD6" stroke-opacity=".5" stroke-width="1.5"/>
+<circle cx="272" cy="114" r="13" fill="#2F6FD6"/><text x="272" y="120" font-size="17" fill="#fff" text-anchor="middle" font-weight="700">?</text>
+<text x="272" y="154" font-size="18" fill="#2F6FD6" text-anchor="middle" font-weight="600">Asks</text>
+<rect x="340" y="88" width="112" height="84" rx="10" fill="#FFFFFF" stroke="#2F6FD6" stroke-opacity=".5" stroke-width="1.5"/>
+<circle cx="396" cy="114" r="13" fill="#2F6FD6"/><text x="396" y="120" font-size="17" fill="#fff" text-anchor="middle" font-weight="700">?</text>
+<text x="396" y="154" font-size="18" fill="#2F6FD6" text-anchor="middle" font-weight="600">Asks</text>
+<rect x="464" y="88" width="112" height="84" rx="10" fill="#FFFFFF" stroke="#2F6FD6" stroke-opacity=".5" stroke-width="1.5"/>
+<circle cx="520" cy="114" r="13" fill="#2F6FD6"/><text x="520" y="120" font-size="17" fill="#fff" text-anchor="middle" font-weight="700">?</text>
+<text x="520" y="154" font-size="18" fill="#2F6FD6" text-anchor="middle" font-weight="600">Asks</text>
+<g filter="url(#sh)"><rect x="20" y="202" width="560" height="112" rx="14" fill="#F6F6F4" fill-opacity=".96"/></g>
+<text x="38" y="252" font-size="21" fill="#2B2A26" font-weight="700">Accept edits</text>
+<text x="38" y="280" font-size="15" fill="#6B665C">option 2</text>
+<rect x="216" y="216" width="112" height="84" rx="10" fill="#FFFFFF" stroke="#2F5D50" stroke-opacity=".5" stroke-width="1.5"/>
+<circle cx="272" cy="242" r="13" fill="#2F5D50"/><text x="272" y="248" font-size="17" fill="#fff" text-anchor="middle" font-weight="700">✓</text>
+<text x="272" y="282" font-size="18" fill="#2F5D50" text-anchor="middle" font-weight="600">Allowed</text>
+<rect x="340" y="216" width="112" height="84" rx="10" fill="#FFFFFF" stroke="#2F5D50" stroke-opacity=".5" stroke-width="1.5"/>
+<circle cx="396" cy="242" r="13" fill="#2F5D50"/><text x="396" y="248" font-size="17" fill="#fff" text-anchor="middle" font-weight="700">✓</text>
+<text x="396" y="282" font-size="18" fill="#2F5D50" text-anchor="middle" font-weight="600">Allowed</text>
+<rect x="464" y="216" width="112" height="84" rx="10" fill="#FDECEA" stroke="#B0263F" stroke-opacity=".5" stroke-width="1.5"/>
+<circle cx="520" cy="242" r="13" fill="#B0263F"/><text x="520" y="248" font-size="17" fill="#fff" text-anchor="middle" font-weight="700">!</text>
+<text x="520" y="282" font-size="15" fill="#B0263F" text-anchor="middle" font-weight="600">Most deletes</text>
+<g filter="url(#sh)"><rect x="20" y="330" width="560" height="112" rx="14" fill="#F6F6F4" fill-opacity=".96"/></g>
+<text x="38" y="380" font-size="21" fill="#2B2A26" font-weight="700">Auto mode</text>
+<text x="38" y="408" font-size="15" fill="#6B665C">blocks risky only</text>
+<rect x="216" y="344" width="112" height="84" rx="10" fill="#FFFFFF" stroke="#6B665C" stroke-opacity=".5" stroke-width="1.5"/>
+<circle cx="272" cy="370" r="13" fill="#6B665C"/><text x="272" y="376" font-size="17" fill="#fff" text-anchor="middle" font-weight="700">~</text>
+<text x="272" y="410" font-size="18" fill="#2B2A26" text-anchor="middle" font-weight="600">Depends</text>
+<rect x="340" y="344" width="112" height="84" rx="10" fill="#FFFFFF" stroke="#6B665C" stroke-opacity=".5" stroke-width="1.5"/>
+<circle cx="396" cy="370" r="13" fill="#6B665C"/><text x="396" y="376" font-size="17" fill="#fff" text-anchor="middle" font-weight="700">~</text>
+<text x="396" y="410" font-size="18" fill="#2B2A26" text-anchor="middle" font-weight="600">Depends</text>
+<rect x="464" y="344" width="112" height="84" rx="10" fill="#FFFFFF" stroke="#6B665C" stroke-opacity=".5" stroke-width="1.5"/>
+<circle cx="520" cy="370" r="13" fill="#6B665C"/><text x="520" y="376" font-size="17" fill="#fff" text-anchor="middle" font-weight="700">~</text>
+<text x="520" y="410" font-size="18" fill="#2B2A26" text-anchor="middle" font-weight="600">Depends</text>
+</svg>
