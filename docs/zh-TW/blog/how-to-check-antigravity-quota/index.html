@@ -372,6 +372,147 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   transition: border-color 140ms ease;
 }
 .related-list a:hover { border-color: rgba(255, 140, 66, 0.45); color: var(--accent); }
+.prose h2[id] { scroll-margin-top: 76px; }
+.article-layout { display: block; }
+.toc-rail, .news-rail { display: none; }
+.toc-mobile {
+  margin-bottom: 28px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+}
+.toc-mobile summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fg);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.toc-mobile summary::-webkit-details-marker { display: none; }
+.toc-mobile summary::after {
+  content: "▾";
+  font-size: 12px;
+  color: var(--fg-dimmer);
+  transition: transform 150ms ease;
+}
+.toc-mobile[open] summary::after { transform: rotate(180deg); }
+.toc-mobile .toc-list {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.toc-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fg-dimmer);
+  margin-bottom: 10px;
+}
+.toc-list { list-style: none; display: grid; gap: 6px; }
+.toc-list a {
+  display: block;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--fg-dim);
+  padding: 2px 0;
+  transition: color 140ms ease;
+  overflow-wrap: anywhere;
+}
+.toc-list a:hover { color: var(--fg); }
+.toc-list a[aria-current="location"] { color: var(--accent); font-weight: 600; }
+.news-card {
+  padding: 18px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+}
+.news-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg);
+  margin-bottom: 12px;
+}
+.news-list { display: grid; gap: 10px; }
+.news-item {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+  transition: border-color 140ms ease;
+}
+.news-item:hover { border-color: rgba(255, 140, 66, 0.45); }
+.news-item-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.news-item-name { font-size: 12.5px; font-weight: 600; color: var(--fg); }
+.news-item-date {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--fg-dimmer);
+  white-space: nowrap;
+}
+.news-item-title {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--fg-dim);
+  overflow-wrap: anywhere;
+}
+.news-all {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+}
+.news-all:hover { color: var(--accent-hover); }
+@media (min-width: 1300px) {
+  .wrap-article { max-width: 1300px; }
+  .article-layout {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 772px) 200px;
+    justify-content: center;
+    align-items: start;
+    column-gap: 40px;
+  }
+  .article-main { grid-column: 2; min-width: 0; }
+  .toc-rail {
+    grid-column: 1;
+    display: block;
+    position: sticky;
+    top: 76px;
+    max-height: calc(100vh - 96px);
+    overflow-y: auto;
+  }
+  .toc-mobile { display: none; }
+}
+@media (min-width: 1440px) {
+  .wrap-article { max-width: 1440px; }
+  .article-layout {
+    grid-template-columns: 200px 40px minmax(0, 772px) 32px 280px;
+    column-gap: 0;
+    justify-content: center;
+  }
+  .toc-rail { grid-column: 1; }
+  .article-main { grid-column: 3; }
+  .news-rail:not([hidden]) {
+    grid-column: 5;
+    display: block;
+    position: sticky;
+    top: 76px;
+    max-height: calc(100vh - 96px);
+    overflow-y: auto;
+  }
+}
 footer {
   padding: 36px 0 28px;
   border-top: 1px solid var(--border);
@@ -407,16 +548,45 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
   </div>
 </header>
 <main id="main-content">
-  <div class="wrap">
-    <article>
-      <header class="post-header">
-        <div class="post-meta">
-          <span>發布於 <time datetime="2026-11-23">2026-11-23</time></span>
-        </div>
-        <h1>怎麼查 Antigravity（agy）剩多少額度？</h1>
-        <p class="post-desc">在 Antigravity CLI 輸入 /usage，或在終端機跑 agy -p /usage --output-format json，不用呼叫模型就能查額度。這篇說明三個額度池和重置時間。</p>
-      </header>
-      <div class="prose">
+  <div class="wrap wrap-article">
+    <div class="article-layout">
+      <aside class="toc-rail">
+        <nav aria-label="本文目錄">
+          <p class="toc-title">本文目錄</p>
+        <ol class="toc-list">
+          <li><a href="#怎麼在-cli-或-app-裡查額度">怎麼在 CLI 或 app 裡查額度？</a></li>
+          <li><a href="#怎麼不呼叫模型直接拿到-json-格式的額度">怎麼不呼叫模型，直接拿到 JSON 格式的額度？</a></li>
+          <li><a href="#三個額度池怎麼分計時會互相影響嗎">三個額度池怎麼分？計時會互相影響嗎？</a></li>
+          <li><a href="#5-小時和每週額度什麼時候重置">5 小時和每週額度什麼時候重置？</a></li>
+          <li><a href="#怎麼讓-antigravity-的額度一直顯示在畫面上">怎麼讓 Antigravity 的額度一直顯示在畫面上？</a></li>
+          <li><a href="#重點整理">重點整理</a></li>
+          <li><a href="#資料來源">資料來源</a></li>
+        </ol>
+        </nav>
+      </aside>
+      <article class="article-main">
+        <header class="post-header">
+          <div class="post-meta">
+            <span>發布於 <time datetime="2026-11-23">2026-11-23</time></span>
+          </div>
+          <h1>怎麼查 Antigravity（agy）剩多少額度？</h1>
+          <p class="post-desc">在 Antigravity CLI 輸入 /usage，或在終端機跑 agy -p /usage --output-format json，不用呼叫模型就能查額度。這篇說明三個額度池和重置時間。</p>
+        </header>
+        <details class="toc-mobile">
+          <summary>本文目錄</summary>
+          <nav aria-label="本文目錄">
+        <ol class="toc-list">
+          <li><a href="#怎麼在-cli-或-app-裡查額度">怎麼在 CLI 或 app 裡查額度？</a></li>
+          <li><a href="#怎麼不呼叫模型直接拿到-json-格式的額度">怎麼不呼叫模型，直接拿到 JSON 格式的額度？</a></li>
+          <li><a href="#三個額度池怎麼分計時會互相影響嗎">三個額度池怎麼分？計時會互相影響嗎？</a></li>
+          <li><a href="#5-小時和每週額度什麼時候重置">5 小時和每週額度什麼時候重置？</a></li>
+          <li><a href="#怎麼讓-antigravity-的額度一直顯示在畫面上">怎麼讓 Antigravity 的額度一直顯示在畫面上？</a></li>
+          <li><a href="#重點整理">重點整理</a></li>
+          <li><a href="#資料來源">資料來源</a></li>
+        </ol>
+          </nav>
+        </details>
+        <div class="prose">
 <p><strong>想查 Antigravity（<code>agy</code>）剩多少額度，可以在 CLI 裡輸入 <code>/usage</code>，或在終端機執行 <code>agy -p /usage --output-format json</code></strong>。第二種方法不會呼叫模型，大約 6 秒就有結果。你的額度分成三個額度池：Gemini Models、Claude and GPT models，以及 Gemini 4 Argon。每個額度池各自計時。2026-11-23 查證。</p>
 <aside class="blog-cta-card">
   <h2>在選單列掌握你的 AI 開發配額</h2>
@@ -431,16 +601,16 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <li>Gemini Models 和 Claude and GPT models 各有每週額度和 5 小時額度；Gemini 4 Argon 只有每週額度。</li>
 <li>我們實測，5 小時額度從你當天第一次使用時開始計時。Google 的文件沒有寫這一點。</li>
 </ul>
-<h2>怎麼在 CLI 或 app 裡查額度？</h2>
+<h2 id="怎麼在-cli-或-app-裡查額度">怎麼在 CLI 或 app 裡查額度？</h2>
 <p>Google 的文件提供兩種內建查法，可以看基本額度和 AI 點數。</p>
 <p>第一種在 CLI 裡。在互動模式輸入 <code>/usage</code>（或 <code>/quota</code>）再按 Enter。Google 的 CLI 文件說，這個指令會從伺服器重新抓額度，然後打開 <strong>Models &amp; Quota</strong> 面板。你可以用方向鍵或 <code>J</code>、<code>K</code> 捲動，用 <code>G</code> 和 <code>Shift + G</code> 跳到最上面或最下面，按 <code>Esc</code> 或 <code>Q</code> 關掉面板。狀態列右邊也會顯示你還剩多少 AI 點數，快用完時會特別標出來。想看點數的詳細面板，就輸入 <code>/credits</code>。</p>
 <p>第二種在 app 裡。Google 的 <strong>Plans</strong> 頁面說，你可以在 <strong>Settings</strong> 頁面看到基本額度。如果你訂的是 Google AI Pro 或 Ultra，還可以在這裡設定 <strong>AI Credit Overages</strong>：選 <strong>Never</strong>，額度用完就等它補滿；選 <strong>Always</strong>，額度用完後會改用你的 AI 點數。</p>
-<h2>怎麼不呼叫模型，直接拿到 JSON 格式的額度？</h2>
+<h2 id="怎麼不呼叫模型直接拿到-json-格式的額度">怎麼不呼叫模型，直接拿到 JSON 格式的額度？</h2>
 <p>如果你想把數字拿去給腳本或狀態列用，可以用無頭模式（<code>-p</code>）加上 JSON 輸出來執行 CLI：</p>
 <pre><code class="language-bash">agy -p /usage --output-format json
 </code></pre>
 <p>我們實測，這個指令不會呼叫模型，大約 6 秒就有結果。Google 的文件分別介紹了互動式的 <code>/usage</code>，以及 <code>agy -p</code> 搭配 <code>--output-format json</code> 的用法，但沒有寫到兩者一起用，也沒有說明存放額度池的 <code>command.data.groups</code> 欄位。</p>
-<h2>三個額度池怎麼分？計時會互相影響嗎？</h2>
+<h2 id="三個額度池怎麼分計時會互相影響嗎">三個額度池怎麼分？計時會互相影響嗎？</h2>
 <p><code>command.data.groups</code> 欄位裡列了三個額度池，每個都各自計時：</p>
 <table>
 <thead>
@@ -473,7 +643,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 </tbody>
 </table>
 <p>所以就算你用完了 Gemini Models 的 5 小時額度，Claude and GPT models 和 Gemini 4 Argon 的額度還是滿的。</p>
-<h2>5 小時和每週額度什麼時候重置？</h2>
+<h2 id="5-小時和每週額度什麼時候重置">5 小時和每週額度什麼時候重置？</h2>
 <p>Google 的 <strong>Plans</strong> 頁面說，重置頻率要看你的 Google AI 方案：</p>
 <ul>
 <li><strong>Google AI Ultra</strong>：額度最高，每 5 小時補滿一次，每週上限也最高，還能用第三方模型。</li>
@@ -481,20 +651,20 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <li><strong>其他方案</strong>：基本額度每週補滿一次，另有每週上限。</li>
 </ul>
 <p>Google 也說，額度用掉的速度要看代理做了多少工作：簡單的任務可以多問幾次，複雜的任務用得比較快。文件沒有寫 5 小時額度從什麼時候開始算。我們實測，是從你當天第一次使用時開始。</p>
-<h2>怎麼讓 Antigravity 的額度一直顯示在畫面上？</h2>
+<h2 id="怎麼讓-antigravity-的額度一直顯示在畫面上">怎麼讓 Antigravity 的額度一直顯示在畫面上？</h2>
 <p>有兩種官方的免費查法。想讓數字一直顯示在畫面上，還有第三種做法：</p>
 <ul>
 <li><strong><code>/usage</code> 或 Settings</strong>：在 <code>agy</code> 輸入 <code>/usage</code> 打開 Models &amp; Quota 面板，或打開 app 的 Settings 頁面。</li>
 <li><strong><code>agy -p /usage --output-format json</code></strong>：從 <code>command.data.groups</code> 讀三個額度池。</li>
 <li><strong>usage</strong>：<code>usage</code> 是免費開源的 app。它用 <code>agy -p /usage</code> 讀額度；如果讀不到，就改用 Antigravity CLI 已經存好的登入資料，向 Google 的額度服務查詢。它會把 5 小時和每週額度連同倒數，顯示在 macOS 選單列或 Windows 系統匣。Antigravity 卡片預設顯示 Gemini 額度池；點一下 <code>Gemini ⇄</code> 標籤，可以切換到 Claude / GPT 或 Gemini 4 Argon 額度池，卡片會記住你的選擇。額度快用完時數字會變紅；你也可以在用到 50%、70%、80%、90% 或 95% 時收到通知，預設是 90%。</li>
 </ul>
-<h2>重點整理</h2>
+<h2 id="重點整理">重點整理</h2>
 <ul>
 <li>在 Antigravity CLI 輸入 <code>/usage</code> 可以打開額度面板；執行 <code>agy -p /usage --output-format json</code>，不用呼叫模型就能拿到一樣的資料。</li>
 <li>額度分成三個額度池：Gemini Models 和 Claude and GPT models 有每週和 5 小時額度，Gemini 4 Argon 只有每週額度。每個額度池各自計時。</li>
 <li>我們實測，5 小時額度從當天第一次使用開始計時。<code>usage</code> 會把三個額度池連同倒數，顯示在選單列或系統匣。</li>
 </ul>
-<h2>資料來源</h2>
+<h2 id="資料來源">資料來源</h2>
 <ul>
 <li><a href="https://antigravity.google/docs/cli/commands/usage">Model quotas (/usage)</a></li>
 <li><a href="https://antigravity.google/docs/plans">Plans</a></li>
@@ -510,7 +680,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
     <a class="btn btn-secondary" href="https://github.com/aqua5230/usage" target="_blank" rel="noopener">GitHub</a>
   </div>
 </aside>
-      </div>
+        </div>
     <section class="related-section">
       <h2>相關文章</h2>
       <ul class="related-list">
@@ -518,7 +688,15 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
       <li><a href="../../../zh-TW/blog/codex-weekly-limit-early-reset/">Codex 每週額度為什麼提早重置？</a></li>
       </ul>
     </section>
-    </article>
+      </article>
+      <aside class="news-rail" aria-label="AI 更新日報" hidden>
+        <div class="news-card">
+          <h2 class="news-title">AI 更新日報</h2>
+          <div class="news-list"></div>
+          <a class="news-all" href="https://aqua5230.github.io/ai-updates/" target="_blank" rel="noopener">看全部更新 →</a>
+        </div>
+      </aside>
+    </div>
   </div>
 </main>
 <footer>
@@ -526,5 +704,175 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
     <p>作者： <a href="https://github.com/aqua5230" target="_blank" rel="noopener">@aqua5230</a> · AGPL-3.0 · 不上傳、不追蹤，只屬於你。</p>
   </div>
 </footer>
+<script>
+(function () {
+  var tocLinks = Array.prototype.slice.call(
+    document.querySelectorAll('.toc-rail a[href^="#"]')
+  );
+  var mobileLinks = Array.prototype.slice.call(
+    document.querySelectorAll('.toc-mobile a[href^="#"]')
+  );
+  if (tocLinks.length) {
+    var targets = [];
+    tocLinks.forEach(function (link) {
+      var el = document.getElementById(link.getAttribute("href").slice(1));
+      if (el) targets.push(el);
+    });
+
+    function setActive(activeId) {
+      tocLinks.concat(mobileLinks).forEach(function (link) {
+        if (link.getAttribute("href") === "#" + activeId) {
+          link.setAttribute("aria-current", "location");
+        } else {
+          link.removeAttribute("aria-current");
+        }
+      });
+    }
+
+    // The current section is the last heading that has scrolled past the sticky top bar.
+    // Recomputed on every scroll frame, so jumps (TOC clicks, Page Down) cannot skip it.
+    function pickActive() {
+      var root = document.documentElement;
+      if (window.innerHeight + window.scrollY >= root.scrollHeight - 2) {
+        setActive(targets[targets.length - 1].id);
+        return;
+      }
+      var current = targets[0];
+      for (var i = 0; i < targets.length; i++) {
+        if (targets[i].getBoundingClientRect().top > 120) break;
+        current = targets[i];
+      }
+      if (current) setActive(current.id);
+    }
+
+    var queued = false;
+    window.addEventListener(
+      "scroll",
+      function () {
+        if (queued) return;
+        queued = true;
+        window.requestAnimationFrame(function () {
+          queued = false;
+          pickActive();
+        });
+      },
+      { passive: true }
+    );
+    pickActive();
+  }
+
+  var rail = document.querySelector(".news-rail");
+  var listEl = rail && rail.querySelector(".news-list");
+  if (!rail || !listEl || !window.matchMedia || !window.fetch) return;
+
+  var mq = window.matchMedia("(min-width: 1440px)");
+  var started = false;
+  var pageLang = document.documentElement.lang || "en";
+
+  function getPeriod(tool) {
+    return (tool && tool.latest && tool.latest.raw && tool.latest.raw.period) || "";
+  }
+
+  function renderNews(tools) {
+    var sorted = tools
+      .filter(function (t) {
+        return t && t.id && t.name && t.latest;
+      })
+      .slice()
+      .sort(function (a, b) {
+        var pa = getPeriod(a);
+        var pb = getPeriod(b);
+        if (pb > pa) return 1;
+        if (pb < pa) return -1;
+        return 0;
+      })
+      .slice(0, 4);
+
+    if (!sorted.length) return;
+
+    while (listEl.firstChild) {
+      listEl.removeChild(listEl.firstChild);
+    }
+
+    sorted.forEach(function (tool) {
+      var version = (tool.latest && tool.latest.version) || "";
+      var period = getPeriod(tool);
+
+      var a = document.createElement("a");
+      a.className = "news-item";
+      a.href =
+        "https://aqua5230.github.io/ai-updates/#" +
+        encodeURIComponent(tool.id) +
+        "/" +
+        encodeURIComponent(version);
+      a.target = "_blank";
+      a.rel = "noopener";
+
+      var head = document.createElement("div");
+      head.className = "news-item-head";
+
+      var nameEl = document.createElement("span");
+      nameEl.className = "news-item-name";
+      nameEl.textContent = version ? tool.name + " " + version : tool.name;
+      head.appendChild(nameEl);
+
+      if (period) {
+        var dateEl = document.createElement("time");
+        dateEl.className = "news-item-date";
+        dateEl.dateTime = period;
+        dateEl.textContent = period;
+        head.appendChild(dateEl);
+      }
+
+      a.appendChild(head);
+
+      var curated = tool.latest && tool.latest.curated;
+      var items = curated && curated.items;
+      var firstItem = Array.isArray(items) && items.length > 0 ? items[0] : null;
+      var titleObj = firstItem && firstItem.title;
+      var headline = titleObj && (titleObj[pageLang] || titleObj.en);
+      if (headline) {
+        var titleEl = document.createElement("p");
+        titleEl.className = "news-item-title";
+        titleEl.textContent = headline;
+        a.appendChild(titleEl);
+      }
+
+      listEl.appendChild(a);
+    });
+
+    rail.hidden = false;
+  }
+
+  function loadNews() {
+    if (started || !mq.matches) return;
+    started = true;
+    if (typeof mq.removeEventListener === "function") {
+      mq.removeEventListener("change", loadNews);
+    } else if (typeof mq.removeListener === "function") {
+      mq.removeListener(loadNews);
+    }
+    fetch("https://aqua5230.github.io/ai-updates/data.json")
+      .then(function (res) {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.json();
+      })
+      .then(function (data) {
+        if (data && Array.isArray(data.tools)) {
+          renderNews(data.tools);
+        }
+      })
+      .catch(function () {});
+  }
+
+  if (mq.matches) {
+    loadNews();
+  } else if (typeof mq.addEventListener === "function") {
+    mq.addEventListener("change", loadNews);
+  } else if (typeof mq.addListener === "function") {
+    mq.addListener(loadNews);
+  }
+})();
+</script>
 </body>
 </html>
