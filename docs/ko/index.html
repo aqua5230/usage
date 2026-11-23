@@ -109,7 +109,8 @@ h1, h2, h3 { text-wrap: balance; }
   letter-spacing: 0;
   line-height: 1.3;
 }
-:is(:lang(zh), :lang(ja), :lang(ko)) .card h3 {
+:is(:lang(zh), :lang(ja), :lang(ko)) .card h3,
+:is(:lang(zh), :lang(ja), :lang(ko)) .latest-post h3 {
   letter-spacing: 0;
 }
 :is(:lang(zh), :lang(ja), :lang(ko)) .install-note {
@@ -197,6 +198,7 @@ p, li { text-wrap: pretty; }
 .topbar nav { display: flex; align-items: center; gap: 18px; font-size: 15px; color: var(--fg-dim); }
 .topbar nav a { white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; min-height: 40px; transition: color 140ms ease; }
 .topbar nav a:hover { color: var(--fg); }
+.topbar nav .nav-sep { width: 1px; height: 16px; background: var(--border); flex-shrink: 0; }
 .mobile-nav { display: none; }
 @media (max-width: 1000px) {
   .topbar .wrap { grid-template-columns: 1fr auto auto; gap: 8px; }
@@ -237,6 +239,7 @@ p, li { text-wrap: pretty; }
     border-radius: 6px;
   }
   .mobile-nav nav a:hover { background: var(--bg-soft); color: var(--fg); }
+  .mobile-nav nav .nav-sep { width: auto; height: 1px; margin: 4px 8px; }
 }
 
 /* Language switcher */
@@ -1039,9 +1042,29 @@ footer .kofi:hover { background: var(--accent-hover); }
 .data-badge { display: inline-block; padding: 3px 10px; border: 1px solid var(--border); border-radius: 999px; font-size: 12px; white-space: nowrap; }
 .data-privacy { padding-top: 24px; border-top: 1px solid var(--border); color: var(--fg-dim); font-size: 15px; }
 .data-privacy a { display: inline-block; margin-left: 12px; color: var(--accent); }
+/* Install below already opens with 128px, so this section keeps its bottom padding short. */
+#latest-posts { padding: 96px 0 16px; border-top: 1px solid var(--border); }
+#latest-posts h2 { margin-bottom: 32px; }
+.latest-posts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.latest-posts[hidden] { display: none; }
+.latest-post {
+  display: flex; flex-direction: column; min-width: 0; padding: 26px 24px;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition: border-color 150ms ease;
+}
+.latest-post:hover { border-color: rgba(255, 255, 255, 0.16); }
+.latest-post time { font-family: var(--mono); font-size: 13px; color: var(--fg-dimmer); margin-bottom: 10px; }
+.latest-post h3 { font-size: 18px; line-height: 1.35; margin-bottom: 10px; letter-spacing: -0.01em; color: var(--fg); font-weight: 600; overflow-wrap: anywhere; }
+.latest-post p { font-size: 15px; color: var(--fg-dim); line-height: 1.7; overflow-wrap: anywhere; }
+#latest-posts .card-link { display: inline-block; margin-top: 24px; }
+@media (max-width: 900px) {
+  .latest-posts { grid-template-columns: minmax(0, 1fr); }
+}
 @media (max-width: 640px) {
   #claude-code { padding-bottom: 56px; }
   #reports, #data { padding: 56px 0; }
+  #latest-posts { padding: 56px 0 8px; }
   .data-row { grid-template-columns: minmax(0, 1fr); gap: 10px; }
 }
 </style>
@@ -1059,8 +1082,9 @@ footer .kofi:hover { background: var(--accent-hover); }
       <a href="#reports" data-i18n="nav_reports">보고서</a>
       <a href="#screenshots" data-i18n="nav_screenshots">18가지 테마</a>
       <a href="#data" data-i18n="nav_data">데이터 소스</a>
-      <a href="../blog/" data-i18n-attr="href:nav_blog_href" data-i18n="nav_blog">블로그</a>
       <a href="#install" data-i18n="nav_install">설치</a>
+      <span class="nav-sep" aria-hidden="true"></span>
+      <a href="../blog/" data-i18n-attr="href:nav_blog_href" data-i18n="nav_blog">블로그</a>
       <a href="https://github.com/aqua5230/usage" target="_blank" rel="noopener"><svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
     </nav>
     <details class="mobile-nav">
@@ -1071,8 +1095,9 @@ footer .kofi:hover { background: var(--accent-hover); }
         <a href="#reports" data-i18n="nav_reports">보고서</a>
         <a href="#screenshots" data-i18n="nav_screenshots">18가지 테마</a>
         <a href="#data" data-i18n="nav_data">데이터 소스</a>
-        <a href="../blog/" data-i18n-attr="href:nav_blog_href" data-i18n="nav_blog">블로그</a>
         <a href="#install" data-i18n="nav_install">설치</a>
+        <span class="nav-sep" aria-hidden="true"></span>
+        <a href="../blog/" data-i18n-attr="href:nav_blog_href" data-i18n="nav_blog">블로그</a>
         <a href="https://github.com/aqua5230/usage" target="_blank" rel="noopener">GitHub</a>
       </nav>
     </details>
@@ -1356,6 +1381,33 @@ footer .kofi:hover { background: var(--accent-hover); }
   </div>
 </section>
 
+<section id="latest-posts">
+  <div class="wrap">
+    <div class="section-label"><span class="eyebrow" data-i18n="latest_label">블로그</span></div>
+    <h2 data-i18n="latest_h2">최신 글</h2>
+<!-- latest-posts:start -->
+    <div class="latest-posts" data-posts-lang="en">
+      <a class="latest-post" href="../blog/how-to-check-antigravity-quota/">
+        <time datetime="2026-11-23">2026-11-23</time>
+        <h3>How to Check Your Antigravity (agy) Quota</h3>
+        <p>Type /usage in the Antigravity CLI, or run agy -p /usage --output-format json to get your quota without calling a model. Here are the three quota pools and when they reset.</p>
+      </a>
+      <a class="latest-post" href="../blog/codex-weekly-limit-early-reset/">
+        <time datetime="2026-11-23">2026-11-23</time>
+        <h3>Why Did My Codex Weekly Limit Reset Early?</h3>
+        <p>Codex weekly limits often reset days before resets_at because OpenAI runs global resets. Ten weeks of data from one Plus account, the official reset rules, and how to check.</p>
+      </a>
+      <a class="latest-post" href="../blog/claude-code-weekly-limit-reset/">
+        <time datetime="2026-11-23">2026-11-23</time>
+        <h3>When Does the Claude Code Weekly Limit Reset?</h3>
+        <p>Claude Code&#x27;s weekly limit resets at a fixed day and time assigned to your account. Here is how that works with the 5-hour limit, and how to see your countdown.</p>
+      </a>
+    </div>
+<!-- latest-posts:end -->
+    <a class="card-link" href="../blog/" data-i18n-attr="href:nav_blog_href" data-i18n="latest_all">모든 글 보기 →</a>
+  </div>
+</section>
+
 <section id="install" class="install">
   <div class="wrap">
     <div class="section-label"><span class="eyebrow" data-i18n="nav_install">설치</span></div>
@@ -1562,6 +1614,9 @@ const T = {
     data_other_h: 'Everything else',
     data_other: 'Public Claude and Codex status pages for outage alerts, a public model-pricing table to estimate cost (built-in prices work offline), and an occasional GitHub check for a new version. Beginner Mode, only if you turn it on, sends Claude Code’s latest answer to Claude Haiku through your own Claude Code sign-in.',
     data_privacy: 'No telemetry, no accounts, no uploads.',
+    latest_label: 'Blog',
+    latest_h2: 'Latest posts',
+    latest_all: 'All posts →',
   },
   'zh-TW': {
     side_pane_label: '在 CLAUDE CODE 裡',
@@ -1703,6 +1758,9 @@ const T = {
     data_other_h: '其他背景連線',
     data_other: 'Claude 與 Codex 的公開狀態頁（故障警示用）、公開的模型價目表（估算花費用；離線時用內建價格）、偶爾向 GitHub 查有沒有新版。新手模式開啟後，才會透過你自己的 Claude Code 登入，把最新一則回答送給 Claude Haiku 挑詞。',
     data_privacy: '無遙測、無帳號、不上傳。',
+    latest_label: '部落格',
+    latest_h2: '最新文章',
+    latest_all: '看全部文章 →',
   },
   'zh-CN': {
     side_pane_label: '在 CLAUDE CODE 中',
@@ -1844,6 +1902,9 @@ const T = {
     data_other_h: '其他后台连接',
     data_other: 'Claude 与 Codex 的公开状态页（故障警示用）、公开模型价格表（估算费用用；离线时使用内置价格），以及偶尔向 GitHub 查询新版本。新手模式开启后，才会通过你自己的 Claude Code 登录，把最新一条回答发给 Claude Haiku 挑词。',
     data_privacy: '无遥测、无账号、不上传。',
+    latest_label: '博客',
+    latest_h2: '最新文章',
+    latest_all: '查看全部文章 →',
   },
   'ja': {
     side_pane_label: 'CLAUDE CODE の中で',
@@ -1985,6 +2046,9 @@ const T = {
     data_other_h: 'その他のバックグラウンド通信',
     data_other: '障害通知用のClaudeとCodexの公開ステータスページ、費用推定用の公開モデル価格表（オフラインでは内蔵価格を使用）、時折GitHubで行う新バージョンの確認です。初心者モードをオンにした場合のみ、自分の Claude Code サインインを通じて最新の回答を Claude Haiku に送り、用語を選びます。',
     data_privacy: 'テレメトリーなし、アカウント不要、アップロードなし。',
+    latest_label: 'ブログ',
+    latest_h2: '最新の記事',
+    latest_all: 'すべての記事 →',
   },
   'ko': {
     side_pane_label: 'CLAUDE CODE 안에서',
@@ -2126,6 +2190,9 @@ const T = {
     data_other_h: '기타 백그라운드 연결',
     data_other: '장애 알림을 위한 Claude와 Codex 공개 상태 페이지, 비용 추정을 위한 공개 모델 가격표(오프라인에서는 내장 가격 사용), 가끔 GitHub에서 새 버전을 확인하는 작업입니다. 초보자 모드를 켠 경우에만 본인의 Claude Code 로그인으로 최신 답변을 Claude Haiku에 보내 용어를 고릅니다.',
     data_privacy: '텔레메트리 없음, 계정 불필요, 업로드 없음.',
+    latest_label: '블로그',
+    latest_h2: '최신 글',
+    latest_all: '모든 글 보기 →',
   },
 };
 
@@ -2213,6 +2280,14 @@ function applyLang(lang) {
   });
 
   if (typeof window.usagePanelsSetLanguage === 'function') window.usagePanelsSetLanguage(lang);
+
+  const postGroups = [...document.querySelectorAll('.latest-posts[data-posts-lang]')];
+  if (postGroups.length) {
+    const activeGroup = postGroups.find(g => g.dataset.postsLang === lang)
+      || postGroups.find(g => g.dataset.postsLang === 'en')
+      || postGroups[0];
+    postGroups.forEach(g => { g.hidden = g !== activeGroup; });
+  }
 
   const cur = document.getElementById('lang-current');
   if (cur) cur.textContent = t._label;

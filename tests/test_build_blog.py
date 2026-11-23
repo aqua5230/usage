@@ -20,6 +20,14 @@ build_blog = importlib.util.module_from_spec(_SPEC)
 sys.modules[_SPEC.name] = build_blog
 _SPEC.loader.exec_module(build_blog)
 
+_SITE_SPEC = importlib.util.spec_from_file_location(
+    "build_site_pages", Path(__file__).resolve().parent.parent / "scripts" / "build_site_pages.py"
+)
+assert _SITE_SPEC is not None and _SITE_SPEC.loader is not None
+build_site_pages = importlib.util.module_from_spec(_SITE_SPEC)
+sys.modules[_SITE_SPEC.name] = build_site_pages
+_SITE_SPEC.loader.exec_module(build_site_pages)
+
 SITEMAP_TEMPLATE = (
     '<?xml version="1.0" encoding="UTF-8"?>\n'
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"\n'
@@ -32,6 +40,33 @@ SITEMAP_TEMPLATE = (
     "</urlset>\n"
 )
 
+INDEX_TEMPLATE = (
+    "<!doctype html>\n"
+    '<html lang="en">\n'
+    "<head>\n"
+    "<title>usage</title>\n"
+    '<link rel="canonical" href="https://aqua5230.github.io/usage/" />\n'
+    '<meta property="og:title" content="usage" />\n'
+    '<meta property="og:description" content="desc" />\n'
+    '<meta property="og:url" content="https://aqua5230.github.io/usage/" />\n'
+    '<script type="application/ld+json">\n'
+    "{\n"
+    '  "description": "desc",\n'
+    '  "url": "https://aqua5230.github.io/usage/",\n'
+    '  "inLanguage": "en",\n'
+    '  "name": "usage"\n'
+    "}\n"
+    "</script>\n"
+    "</head>\n"
+    "<body>\n"
+    '<section id="latest-posts">\n'
+    "<!-- latest-posts:start -->\n"
+    "<!-- latest-posts:end -->\n"
+    "</section>\n"
+    "</body>\n"
+    "</html>\n"
+)
+
 JSON_LD_RE = re.compile(r'<script type="application/ld\+json">\s*(.*?)\s*</script>', re.S)
 
 
@@ -42,10 +77,13 @@ def _setup_workspace(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[P
     docs_dir.mkdir(parents=True)
     sitemap_path = docs_dir / "sitemap.xml"
     sitemap_path.write_text(SITEMAP_TEMPLATE, encoding="utf-8")
+    index_path = docs_dir / "index.html"
+    index_path.write_text(INDEX_TEMPLATE, encoding="utf-8")
 
     monkeypatch.setattr(build_blog, "SOURCE_DIR", source_dir)
     monkeypatch.setattr(build_blog, "DOCS_DIR", docs_dir)
     monkeypatch.setattr(build_blog, "SITEMAP_PATH", sitemap_path)
+    monkeypatch.setattr(build_blog, "INDEX_PATH", index_path)
     return source_dir, docs_dir, sitemap_path
 
 
@@ -95,6 +133,7 @@ def test_empty_blog_creates_no_list_pages_and_passes_check(
     assert build_blog.main(["--check"]) == 0
     assert not (docs_dir / "blog").exists()
     assert sitemap_path.read_text(encoding="utf-8") == SITEMAP_TEMPLATE
+    assert (docs_dir / "index.html").read_text(encoding="utf-8") == INDEX_TEMPLATE
 
 
 def test_bilingual_article_renders_seo_cards_escaping_and_sitemap(
@@ -401,3 +440,127 @@ def test_ui_strings_include_toc_and_news_keys_for_all_langs() -> None:
         assert ui["toc_title"]
         assert ui["news_title"]
         assert ui["news_all"]
+
+
+def test_homepage_latest_posts_top_three_hrefs_hidden_and_language_pages(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source_dir, docs_dir, _ = _setup_workspace(tmp_path, monkeypatch)
+    _write_post(
+        source_dir,
+        "oldest-post",
+        "en",
+        title="Oldest Post",
+        description="Should not appear on homepage",
+        date="2026-10-01",
+        body="Body 1.",
+    )
+    _write_post(
+        source_dir,
+        "alpha-same-day",
+        "en",
+        title="Alpha & <Beta>",
+        description="Same day earlier slug",
+        date="2026-11-10",
+        body="Body 2.",
+    )
+    _write_post(
+        source_dir,
+        "zeta-same-day",
+        "en",
+        title="Zeta Same Day",
+        description="Same day later slug",
+        date="2026-11-10",
+        body="Body 3.",
+    )
+    _write_post(
+        source_dir,
+        "newest-post",
+        "en",
+        title="Newest Post",
+        description="Latest <summary>",
+        date="2026-11-20",
+        body="Body 4.",
+    )
+    _write_post(
+        source_dir,
+        "tw-only",
+        "zh-TW",
+        title="繁中文章",
+        description="繁中摘要",
+        date="2026-11-18",
+        body="內文。",
+    )
+
+    assert build_blog.main([]) == 0
+    assert build_blog.main(["--check"]) == 0
+
+    index_html = (docs_dir / "index.html").read_text(encoding="utf-8")
+    assert '<div class="latest-posts" data-posts-lang="en">' in index_html
+    assert '<div class="latest-posts" data-posts-lang="zh-TW" hidden>' in index_html
+    assert 'data-posts-lang="ja"' not in index_html
+
+    en_block = index_html.split('<div class="latest-posts" data-posts-lang="en">', 1)[1].split(
+        "</div>", 1
+    )[0]
+    assert "oldest-post" not in en_block
+    assert en_block.count('class="latest-post"') == 3
+    assert (
+        en_block.index('href="blog/newest-post/"')
+        < en_block.index('href="blog/zeta-same-day/"')
+        < en_block.index('href="blog/alpha-same-day/"')
+    )
+    assert '<time datetime="2026-11-20">2026-11-20</time>' in en_block
+    assert "<h3>Alpha &amp; &lt;Beta&gt;</h3>" in en_block
+    assert "<p>Latest &lt;summary&gt;</p>" in en_block
+
+    tw_block = index_html.split('<div class="latest-posts" data-posts-lang="zh-TW" hidden>', 1)[
+        1
+    ].split("</div>", 1)[0]
+    assert tw_block.count('class="latest-post"') == 1
+    assert 'href="zh-TW/blog/tw-only/"' in tw_block
+
+    tw_page = build_site_pages.render(
+        index_html, "zh-TW", {"meta_title": "標題", "meta_desc": "描述"}
+    )
+    assert tw_page.count("data-posts-lang") == 1
+    assert '<div class="latest-posts" data-posts-lang="zh-TW">' in tw_page
+    assert 'href="../zh-TW/blog/tw-only/"' in tw_page
+
+    ja_page = build_site_pages.render(
+        index_html, "ja", {"meta_title": "タイトル", "meta_desc": "説明"}
+    )
+    assert ja_page.count("data-posts-lang") == 1
+    assert '<div class="latest-posts" data-posts-lang="en">' in ja_page
+    assert 'href="../blog/newest-post/"' in ja_page
+
+
+def test_homepage_missing_markers_raises_and_stale_check_fails(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    source_dir, docs_dir, _ = _setup_workspace(tmp_path, monkeypatch)
+    index_path = docs_dir / "index.html"
+    index_path.write_text("<html><body>No markers</body></html>", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="latest-posts"):
+        build_blog.main([])
+
+    index_path.write_text(INDEX_TEMPLATE, encoding="utf-8")
+    _write_post(
+        source_dir,
+        "sample-post",
+        "en",
+        title="Sample",
+        description="Sample desc",
+        date="2026-11-20",
+        body="Body.",
+    )
+    assert build_blog.main([]) == 0
+    assert build_blog.main(["--check"]) == 0
+
+    index_path.write_text(
+        index_path.read_text(encoding="utf-8").replace("<h3>Sample</h3>", "<h3>Stale</h3>"),
+        encoding="utf-8",
+    )
+    assert build_blog.main(["--check"]) == 1
+    assert str(index_path) in capsys.readouterr().out
