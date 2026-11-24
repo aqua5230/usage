@@ -1087,8 +1087,12 @@ body {
 (() => {
   const NAMES = ["redpanda", "frog", "penguin", "rabbit", "raccoon", "piglet", "elephant", "bear", "puppy", "chick", "kitten", "hedgehog", "otter", "snail", "crab", "pufferfish", "cockatoo",
     "bobo", "tuanli", "starpup", "tantan", "minto", "shandou", "nibo", "boqi", "zapi"];
-  // Hidden pals stay out of the normal rotation and only rarely take a turn in line.
-  const HIDDEN = new Set(["bobo", "tuanli", "starpup", "tantan", "minto", "shandou", "nibo", "boqi", "zapi"]);
+  // Hidden pals stay out of the normal rotation and only rarely take a turn in line. One unlocks each week in this
+  // order, from local midnight on HIDDEN_START; a pal that is not unlocked yet never appears.
+  const HIDDEN_ORDER = ["tuanli", "zapi", "bobo", "nibo", "tantan", "starpup", "shandou", "minto", "boqi"];
+  const HIDDEN = new Set(HIDDEN_ORDER);
+  const unlockAt = (name) => new Date(2026, 11, 1 + HIDDEN_ORDER.indexOf(name) * 7);
+  const unlocked = (name, now = new Date()) => unlockAt(name) <= now;
   const RARE = 0.1;
   // Every pal has the first five poses; the rest are optional extras, and a pal without one keeps its current pose.
   const POSES = ["stand", "jump", "worried", "sleep", "cheer", "wave", "stretch", "run", "surprised", "signature"];
@@ -1146,6 +1150,91 @@ body {
     .pal-sweat{position:absolute;width:7px;height:7px;background:#6fb7e0;border-radius:50% 0 50% 50%;
       rotate:45deg;opacity:0;animation:pal-sweat 1.2s ease-in forwards}
     @keyframes pal-sweat{0%{opacity:0;translate:0 0}20%{opacity:1}100%{opacity:0;translate:0 10px}}
+    .pal-spark{position:absolute;left:0;bottom:18px;width:6px;height:6px;margin-left:-3px;border-radius:50%;background:#f4c24a;
+      box-shadow:0 0 6px #ffd970;animation:pal-burst 1.3s ease-out forwards;pointer-events:none;z-index:3}
+    @keyframes pal-burst{from{transform:rotate(var(--a)) translateY(0) scale(1.2);opacity:1}
+      to{transform:rotate(var(--a)) translateY(calc(-1 * var(--d))) scale(.2);opacity:0}}
+    .pal-book{position:absolute;left:8px;bottom:12px;display:flex;align-items:center;gap:5px;padding:3px 10px 3px 8px;border:0;border-radius:99px;
+      font:700 11px/16px ui-rounded,-apple-system,"PingFang TC",sans-serif;color:var(--text,#4a3a2e);background:var(--button,#f7efe4);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 2px 4px rgba(60,40,25,.22);cursor:pointer;z-index:5}
+    .pal-book[hidden]{display:none}
+    .pal-book svg{width:14px;height:14px}
+    .pal-book i{display:none;width:6px;height:6px;border-radius:50%;background:#e8734a}
+    .pal-book.fresh i{display:block}
+    .pal-book.bump{animation:pal-bump .7s ease-out}
+    @keyframes pal-bump{30%{transform:scale(1.25)}60%{transform:scale(.95)}}
+    .pal-card{position:fixed;left:50%;bottom:150px;width:136px;height:190px;margin-left:-68px;perspective:800px;pointer-events:none;z-index:48}
+    .pal-card .flip{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .75s cubic-bezier(.3,1.35,.5,1)}
+    .pal-card.show .flip{transform:rotateY(180deg)}
+    .pal-card .face{position:absolute;inset:0;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;overflow:hidden;
+      border-radius:12px;backface-visibility:hidden;box-shadow:0 10px 26px rgba(50,28,8,.45),0 2px 4px rgba(50,28,8,.3);
+      font-family:ui-rounded,-apple-system,"PingFang TC",sans-serif}
+    .pal-card .back{justify-content:center;gap:10px;border:3px solid #fff3e2;
+      background:repeating-linear-gradient(45deg,rgba(255,255,255,.06) 0 6px,transparent 6px 12px),radial-gradient(circle at 50% 42%,#f39468,#d65f37)}
+    .pal-card .back::before{content:"";position:absolute;inset:6px;border:1.5px dashed rgba(255,243,226,.55);border-radius:8px}
+    .pal-card .emblem{display:grid;place-items:center;width:58px;height:58px;border-radius:50%;background:rgba(255,243,226,.16);
+      box-shadow:inset 0 0 0 2px rgba(255,243,226,.85)}
+    .pal-card .emblem svg{width:30px;height:30px;fill:#fff3e2}
+    .pal-card .brand{font-size:9px;font-weight:800;letter-spacing:.24em;color:#fff3e2}
+    .pal-card .front{transform:rotateY(180deg);padding:8px 8px 7px;border:3px solid #d9a93a;
+      background:linear-gradient(160deg,#fffaf0,#f1dfbd);box-shadow:inset 0 0 0 2px #fff4d6,0 10px 26px rgba(50,28,8,.45)}
+    .pal-card .top{display:flex;justify-content:space-between;align-items:center;width:100%;font-size:9px;font-weight:800;letter-spacing:.08em;color:#8a5a10}
+    .pal-card .tag{padding:1px 6px;border-radius:99px;background:#d9a93a;color:#fffaf0;letter-spacing:.04em}
+    .pal-card .art{position:relative;display:grid;place-items:end center;width:100%;height:104px;margin-top:6px;border-radius:7px;overflow:hidden;
+      background:radial-gradient(circle at 50% 36%,#fff 0,var(--tone) 150%);box-shadow:inset 0 0 0 1px rgba(80,50,10,.12),inset 0 -12px 18px rgba(80,50,10,.08)}
+    .pal-card .art::after{content:"";position:absolute;bottom:7px;left:50%;width:56px;height:8px;margin-left:-28px;border-radius:50%;background:rgba(60,38,20,.22)}
+    .pal-card .art img{position:relative;z-index:1;height:84px;margin-bottom:9px}
+    .pal-card .plate{width:100%;margin-top:6px;text-align:center;color:#4a2a04}
+    .pal-card .plate b{display:block;font-size:15px;font-weight:900;line-height:1.2}
+    .pal-card .plate small{display:block;font-size:9px;font-weight:700;letter-spacing:.06em;opacity:.6}
+    .pal-card .shine{position:absolute;inset:0;background:linear-gradient(112deg,transparent 30%,rgba(255,255,255,.75) 46%,transparent 60%);
+      transform:translateX(-130%);pointer-events:none}
+    .pal-card.show .shine{animation:pal-shine 1.1s .6s ease-out forwards}
+    @keyframes pal-shine{to{transform:translateX(130%)}}
+    .pal-dex{position:fixed;inset:0;display:grid;place-items:center;background:rgba(70,45,25,.34);z-index:50}
+    .pal-dex[hidden]{display:none}
+    .pal-dex-card{position:relative;width:min(92vw,440px);box-sizing:border-box;padding:18px 20px 16px;border-radius:14px;
+      background:var(--card,#fbf5ec);color:var(--text,#4a3a2e);box-shadow:0 10px 30px rgba(50,30,10,.35);
+      font-family:ui-rounded,-apple-system,"PingFang TC",sans-serif;animation:pal-open .28s ease-out}
+    @keyframes pal-open{from{transform:translateY(10px) scale(.96);opacity:0}}
+    .pal-dex-head{display:flex;align-items:baseline;justify-content:space-between;margin:0 0 8px;padding-right:22px}
+    .pal-dex-bar{height:6px;margin:0 0 14px;border-radius:99px;background:rgba(120,85,40,.14);overflow:hidden}
+    .pal-dex-bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#f2c43d,#d9a93a);box-shadow:inset 0 1px 0 rgba(255,255,255,.5)}
+    .pal-dex-head h3{margin:0;font-size:16px;font-weight:800}
+    .pal-dex-head span{font-size:12px;font-weight:700;opacity:.75}
+    .pal-dex-x{position:absolute;top:10px;right:12px;border:0;background:none;color:inherit;font:700 16px sans-serif;cursor:pointer;opacity:.6}
+    .pal-dex-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;perspective:900px}
+    .pal-dex-cell{position:relative;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;aspect-ratio:5/7;padding:6px 6px 7px;
+      border-radius:9px;border:2px solid #d9a93a;background:linear-gradient(160deg,#fffaf0,#f1dfbd);box-shadow:inset 0 0 0 1.5px #fff4d6,0 2px 5px rgba(60,35,10,.16);
+      transition:transform .18s ease-out,box-shadow .18s}
+    .pal-dex-cell .no{align-self:flex-start;font-size:8.5px;font-weight:800;letter-spacing:.06em;color:#8a5a10}
+    .pal-dex-cell .art{position:relative;width:100%;flex:1;min-height:0;margin-top:3px;border-radius:5px;overflow:hidden;
+      background:radial-gradient(circle at 50% 36%,#fff 0,var(--tone) 150%);box-shadow:inset 0 0 0 1px rgba(80,50,10,.12)}
+    .pal-dex-cell img{position:absolute;left:50%;bottom:7%;height:80%;translate:-50% 0}
+    .pal-dex-cell b{margin-top:6px;font-size:12px;font-weight:900;color:#4a2a04}
+    .pal-dex-cell small{font-size:9.5px;font-weight:700;text-align:center;color:#4a2a04;opacity:.6}
+    .pal-dex-cell .new{position:absolute;top:-6px;right:-6px;z-index:2;padding:0 6px;border-radius:99px;font-size:9px;font-weight:800;line-height:15px;
+      color:#7a4a08;background:#f4c24a;box-shadow:0 1px 3px rgba(90,50,5,.35)}
+    .pal-dex-cell.seen{cursor:pointer;transform-style:preserve-3d}
+    .pal-dex-cell.seen::after{content:"";position:absolute;inset:0;border-radius:7px;pointer-events:none;opacity:0;transition:opacity .2s;mix-blend-mode:soft-light;
+      background:radial-gradient(circle at var(--mx,50%) var(--my,30%),rgba(255,255,255,.9),transparent 45%),
+        linear-gradient(115deg,#ff9ac1,#ffe48a,#9df0c8,#8fc8ff,#d3a6ff)}
+    .pal-dex-cell.seen:hover{box-shadow:inset 0 0 0 1.5px #fff4d6,0 8px 18px rgba(60,35,10,.28)}
+    .pal-dex-cell.seen:hover::after{opacity:.75}
+    .pal-dex-cell.nearby .art{background:radial-gradient(circle at 50% 36%,#fff 0,#cdbfa8 150%)}
+    .pal-dex-cell.nearby img{filter:brightness(0);opacity:.55}
+    .pal-dex-cell.locked{justify-content:center;gap:8px;border:2px solid #e6d6bd;
+      background:repeating-linear-gradient(45deg,rgba(150,110,60,.05) 0 5px,transparent 5px 10px),#f3e9d9;box-shadow:inset 0 0 0 3px #faf3e8}
+    .pal-dex-cell.locked::before{content:"";position:absolute;inset:6px;border:1.5px dashed rgba(170,130,85,.35);border-radius:5px}
+    .pal-dex-cell.locked .emblem{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;box-shadow:inset 0 0 0 1.5px rgba(170,130,85,.45)}
+    .pal-dex-cell.locked .emblem svg{width:18px;height:18px;fill:rgba(170,130,85,.55)}
+    .pal-dex-cell.locked small{color:#8f7454;opacity:.85}
+    .pal-dex-cell.locked .no{position:absolute;top:9px;left:10px;color:rgba(143,116,84,.75)}
+    .pal-dex-card.done{box-shadow:inset 0 0 0 3px #f2c43d,0 10px 30px rgba(50,30,10,.35)}
+    .pal-dex-card.done .pal-dex-foot{font-weight:800;color:#9a6512;opacity:1}
+    .pal-view{position:fixed;inset:0;z-index:55;display:grid;place-items:center;background:rgba(40,25,10,.45);cursor:pointer}
+    .pal-view .pal-card{position:relative;left:auto;bottom:auto;margin:0;transform:scale(1.45);pointer-events:auto}
+    .pal-dex-foot{margin:12px 0 0;text-align:center;font-size:11.5px;font-weight:600;opacity:.7}
     .pal-hit{position:absolute;bottom:0;left:${-SIZE * 0.4}px;width:${SIZE * 0.8}px;height:${SIZE}px;pointer-events:auto;cursor:pointer}
     .pal-say.paused{animation-play-state:paused}
     .pal-tree{position:absolute;right:0;bottom:${LINE_GROUND}px;height:50px;pointer-events:none;z-index:1}
@@ -1158,7 +1247,7 @@ body {
     html.pal-paused .pal-dust,html.pal-paused .pal-sweat,html.pal-paused .pal-flake,
     html.pal-paused .card[data-critical="true"]::after{animation-play-state:paused}
     @media (prefers-reduced-motion: reduce){
-      .pal-body.idle .pal-img,.pal-body.dozing .pal-img,.pal-badge.on,.pal-say,.pal-name,.pal-heart,.pal-dust,.pal-sweat{animation:none}
+      .pal-body.idle .pal-img,.pal-body.dozing .pal-img,.pal-badge.on,.pal-say,.pal-name,.pal-heart,.pal-dust,.pal-sweat,.pal-spark,.pal-book.bump,.pal-dex-card{animation:none}
       .pal-z.on{animation:none;opacity:1}.pal-z.on+.pal-z.on{display:none}
       .pal-snow{display:none}}`;
   document.head.appendChild(css);
@@ -1378,6 +1467,12 @@ body {
   };
 
   const lineEl = document.querySelector(".pals-line");
+  // The hidden pals' book sits at the left end of the line, which leaves it room; it appears once the first one unlocks.
+  const book = Object.assign(document.createElement("button"), { className: "pal-book", type: "button" });
+  book.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5C4 4.7 4.7 4 5.5 4H11v16H5.5c-.8 0-1.5-.7-1.5-1.5z"/><path d="M20 5.5c0-.8-.7-1.5-1.5-1.5H13v16h5.5c.8 0 1.5-.7 1.5-1.5z"/></svg><span></span><i></i>';
+  book.hidden = !unlocked(HIDDEN_ORDER[0]);
+  lineEl.appendChild(book);
+  const bookSpace = () => (book.hidden ? 0 : book.offsetWidth + 4);
   if (!lineEl) return;
 
   const TREES = [
@@ -1474,7 +1569,7 @@ body {
   const offstage = [];
   function lineMetrics() {
     const r = toLocal(lineEl.getBoundingClientRect());
-    const l = r.left + 30, w = Math.max(0, r.width - 60 - treeSpace);
+    const l = r.left + 30 + bookSpace(), w = Math.max(0, r.width - 60 - treeSpace - bookSpace());
     return { r, l, w };
   }
   const lineCap = (w = lineMetrics().w) => Math.max(1, 1 + Math.floor(w / (SIZE * 0.95)));
@@ -1531,14 +1626,15 @@ body {
     [pals[i], pals[j]] = [pals[j], pals[i]];
   }
   // Hidden pals wait in the vault; rarely one starts at the front of the line.
-  const vault = pals.filter((p) => HIDDEN.has(p.name));
+  const vault = pals.filter((p) => HIDDEN.has(p.name) && unlocked(p.name));
   const guest = Math.random() < RARE ? vault[Math.floor(Math.random() * vault.length)] : null;
   if (guest) {
     vault.splice(vault.indexOf(guest), 1);
     pals.splice(pals.indexOf(guest), 1);
     pals.unshift(guest);
   }
-  for (const p of vault) {
+  for (const p of pals) {
+    if (!HIDDEN.has(p.name) || p === guest) continue;
     p.offstage = true;
     p.wrap.style.display = "none";
     p.shadow.style.display = "none";
@@ -1546,6 +1642,193 @@ body {
   // A pal leaving the line goes back to the vault if it is hidden, otherwise to the end of the offstage queue.
   const park = (p) => (HIDDEN.has(p.name) ? vault : offstage).push(p);
   const has = (p, pz) => Boolean(aspect[`${p.name}_${pz}`]);
+
+  // Hidden pals: the first time one comes onstage, a collectible card flips up and files itself into the book.
+  const TONE = { tuanli: "#f2c43d", zapi: "#2bb3a8", bobo: "#f08a3c", nibo: "#8a63d9", tantan: "#16747a", starpup: "#a58be0",
+    shandou: "#3b4a72", minto: "#8fd8c0", boqi: "#2ec4b6" };
+  const PAW = '<svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="16.2" rx="5.2" ry="4.3"/><ellipse cx="5.6" cy="10.4" rx="2.1" ry="2.7"/><ellipse cx="9.6" cy="6.6" rx="2.1" ry="2.8"/><ellipse cx="14.4" cy="6.6" rx="2.1" ry="2.8"/><ellipse cx="18.4" cy="10.4" rx="2.1" ry="2.7"/></svg>';
+  const loadList = (key) => {
+    try {
+      const v = JSON.parse(localStorage.getItem(key) || "[]");
+      return Array.isArray(v) ? v.filter((n) => HIDDEN.has(n)) : [];
+    } catch {
+      return [];
+    }
+  };
+  const saveList = (key, v) => {
+    try {
+      localStorage.setItem(key, JSON.stringify(v));
+    } catch {}
+  };
+  const seen = loadList("usage-felt-hidden-seen");
+  let fresh = loadList("usage-felt-hidden-fresh");
+  const el = (tag, cls, text) => Object.assign(document.createElement(tag), cls ? { className: cls } : {}, text === undefined ? {} : { textContent: text });
+  const dateText = (d) => d.toLocaleDateString(document.documentElement.lang || undefined, { month: "numeric", day: "numeric", weekday: "short" });
+  const no = (name) => `No.${String(HIDDEN_ORDER.indexOf(name) + 1).padStart(2, "0")}`;
+
+  function renderBook() {
+    book.hidden = !unlocked(HIDDEN_ORDER[0]);
+    book.querySelector("span").textContent = `${seen.length}/${HIDDEN_ORDER.length}`;
+    book.classList.toggle("fresh", fresh.length > 0);
+    book.title = tr("hidden_book");
+  }
+  function bumpBook() {
+    renderBook();
+    book.classList.remove("bump");
+    void book.offsetWidth;
+    book.classList.add("bump");
+  }
+
+  const dex = el("div", "pal-dex");
+  dex.hidden = true;
+  document.body.appendChild(dex);
+  function openDex() {
+    const now = new Date();
+    const card = el("div", "pal-dex-card");
+    const close = el("button", "pal-dex-x", "×");
+    close.type = "button";
+    close.setAttribute("aria-label", tr("hidden_close"));
+    const head = el("div", "pal-dex-head");
+    head.append(el("h3", "", tr("hidden_book")), el("span", "", tr("hidden_count", { n: seen.length, total: HIDDEN_ORDER.length })));
+    const bar = el("div", "pal-dex-bar");
+    const fill = el("i");
+    fill.style.width = `${(seen.length / HIDDEN_ORDER.length) * 100}%`;
+    bar.append(fill);
+    const grid = el("div", "pal-dex-grid");
+    const next = HIDDEN_ORDER.find((n) => !unlocked(n, now));
+    for (const name of HIDDEN_ORDER) {
+      const state = !unlocked(name, now) ? "locked" : seen.includes(name) ? "seen" : "nearby";
+      const cell = el("div", `pal-dex-cell ${state}`);
+      cell.style.setProperty("--tone", TONE[name] || "#e8b86a");
+      if (state === "locked") {
+        const emblem = el("div", "emblem");
+        emblem.innerHTML = PAW;
+        cell.append(el("span", "no", no(name)), emblem, el("small", "", tr("hidden_unlocks", { date: dateText(unlockAt(name)) })));
+      } else {
+        if (fresh.includes(name)) cell.append(el("span", "new", "NEW"));
+        const art = el("div", "art");
+        const img = el("img");
+        img.src = src(name, "stand");
+        img.alt = "";
+        art.append(img);
+        cell.append(el("span", "no", no(name)), art, el("b", "", state === "seen" ? label(name) : "？？？"));
+        if (state === "nearby") cell.append(el("small", "", tr("hidden_nearby")));
+      }
+      if (state === "seen") {
+        cell.addEventListener("click", () => viewCard(name));
+        if (!still) {
+          cell.addEventListener("pointermove", (e) => {
+            const r = cell.getBoundingClientRect();
+            const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+            cell.style.setProperty("--mx", `${x * 100}%`);
+            cell.style.setProperty("--my", `${y * 100}%`);
+            cell.style.transform = `rotateX(${(0.5 - y) * 14}deg) rotateY(${(x - 0.5) * 16}deg) translateZ(6px)`;
+          });
+          cell.addEventListener("pointerleave", () => { cell.style.transform = ""; });
+        }
+      }
+      grid.append(cell);
+    }
+    const done = seen.length === HIDDEN_ORDER.length;
+    card.classList.toggle("done", done);
+    const foot = el("p", "pal-dex-foot", next ? tr("hidden_next", { date: dateText(unlockAt(next)) }) : tr(done ? "hidden_done" : "hidden_all"));
+    card.append(close, head, bar, grid, foot);
+    dex.replaceChildren(card);
+    dex.hidden = false;
+    if (fresh.length) {
+      fresh = [];
+      saveList("usage-felt-hidden-fresh", fresh);
+      renderBook();
+    }
+  }
+  // A collected card opens full size; any click puts it back.
+  function viewCard(name) {
+    const view = el("div", "pal-view");
+    const card = buildCard(name);
+    card.classList.add("show");
+    card.querySelector(".shine").remove();
+    view.append(card);
+    view.addEventListener("click", () => view.remove());
+    document.body.appendChild(view);
+  }
+  book.addEventListener("click", openDex);
+  dex.addEventListener("click", (e) => {
+    if (e.target === dex || e.target.classList.contains("pal-dex-x")) dex.hidden = true;
+  });
+
+  function sparkle(p) {
+    for (let i = 0; i < 14; i++) {
+      const s = el("i", "pal-spark");
+      s.style.setProperty("--a", `${i * (360 / 14)}deg`);
+      s.style.setProperty("--d", `${30 + Math.random() * 16}px`);
+      p.wrap.appendChild(s);
+      setTimeout(() => s.remove(), 1400);
+    }
+  }
+
+  function buildCard(name) {
+    const card = el("div", "pal-card");
+    card.style.setProperty("--tone", TONE[name] || "#e8b86a");
+    const flip = el("div", "flip");
+    const back = el("div", "face back");
+    const emblem = el("div", "emblem");
+    emblem.innerHTML = PAW;
+    back.append(emblem, el("span", "brand", "PLUSH PALS"));
+    const front = el("div", "face front");
+    const top = el("div", "top");
+    top.append(el("span", "", no(name)), el("span", "tag", tr("hidden_tag")));
+    const art = el("div", "art");
+    const img = el("img");
+    img.src = src(name, "cheer") || src(name, "stand");
+    img.alt = "";
+    art.append(img);
+    const plate = el("div", "plate");
+    plate.append(el("b", "", label(name)), el("small", "", tr("hidden_added")));
+    front.append(top, art, plate, el("i", "shine"));
+    flip.append(back, front);
+    card.append(flip);
+    return card;
+  }
+  async function flyCard(name) {
+    const card = buildCard(name);
+    document.body.appendChild(card);
+    await card.animate([{ transform: "translateY(40px) rotate(-8deg) scale(.6)", opacity: 0 }, { transform: "none", opacity: 1 }],
+      { duration: 420, easing: "cubic-bezier(.2,1.3,.4,1)", fill: "forwards" }).finished;
+    await wait(250);
+    card.classList.add("show");
+    await wait(2300);
+    const r = card.getBoundingClientRect(), t = book.getBoundingClientRect();
+    const dx = t.left + t.width / 2 - (r.left + r.width / 2), dy = t.top + t.height / 2 - (r.top + r.height / 2);
+    await card.animate([{ transform: "none", opacity: 1 }, { transform: `translate(${dx}px, ${dy}px) scale(.1) rotate(-14deg)`, opacity: 0.3 }],
+      { duration: 620, easing: "cubic-bezier(.5,0,.8,.5)", fill: "forwards" }).finished;
+    card.remove();
+  }
+
+  // Record first, so closing the panel mid-effect never replays the card.
+  async function meet(p) {
+    if (!HIDDEN.has(p.name) || seen.includes(p.name)) return;
+    seen.push(p.name);
+    fresh.push(p.name);
+    saveList("usage-felt-hidden-seen", seen);
+    saveList("usage-felt-hidden-fresh", fresh);
+    renderBook();
+    if (still || hidden() || book.hidden) return bumpBook();
+    while (p.busy) await wait(100);
+    if (p.offstage) return bumpBook();
+    p.busy = true;
+    sparkle(p);
+    const card = flyCard(p.name);
+    await jump(p, p.x, p.y, 20, { air: "cheer", land: "cheer" });
+    await wait(300);
+    await jump(p, p.x, p.y, 12, { air: "cheer", land: "cheer" });
+    await card;
+    pose(p, rest(p));
+    idle(p);
+    free(p);
+    bumpBook();
+  }
+  renderBook();
+  if (guest) setTimeout(() => meet(guest), 2500);
 
   function pose(p, name) {
     const use = aspect[`${p.name}_${name}`] ? name : "stand";
@@ -2038,6 +2321,9 @@ body {
   // Line rotation: the back pal hops offstage to the right and the longest-waiting offstage pal takes its place.
   let rotating = false;
   async function rotate() {
+    for (const p of pals) {
+      if (HIDDEN.has(p.name) && p.offstage && !vault.includes(p) && unlocked(p.name)) vault.push(p);
+    }
     if (rotating || !(offstage.length || vault.length) || !queue.length) return;
     const out = queue[queue.length - 1];
     const incoming = vault.length && Math.random() < RARE ? vault[Math.floor(Math.random() * vault.length)] : offstage[0];
@@ -2079,6 +2365,7 @@ body {
       draw(incoming, incoming.x, incoming.y);
       rotating = false;
       free(incoming);
+      meet(incoming);
       return;
     }
     incoming.x = offX;
@@ -2102,6 +2389,7 @@ body {
 
     rotating = false;
     free(incoming);
+    meet(incoming);
   }
   window.__feltRotate = () => rotate();
 
