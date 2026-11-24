@@ -8,7 +8,7 @@
 
 `usage` puts your 5-hour and weekly limits in the macOS menu bar or Windows system tray, and turns a quota red as it nears its limit. Hitting the limit halfway through a long refactor is a bad way to find out you were running low. Now you see it coming. There's nothing to run and no page to open.
 
-[繁體中文](docs/README.zh-TW.md) · [简体中文](docs/README.zh-CN.md) · English · [日本語](docs/README.ja.md) · [한국어](docs/README.ko.md) &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [Landing page](https://aqua5230.github.io/usage/)
+[繁體中文](docs/README.zh-TW.md) · [简体中文](docs/README.zh-CN.md) · English · [日本語](docs/README.ja.md) · [한국어](docs/README.ko.md) &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [Landing page](https://aqua5230.github.io/usage/) &nbsp;|&nbsp; [Blog](https://aqua5230.github.io/usage/blog/)
 
 [Install](#install) · [Features](#what-you-get) · [Side pane](#claude-code-side-pane) · [Themes](#theme-gallery) · [Comparison](#comparison) · [Privacy](#privacy--data-sources) · [Troubleshooting](#troubleshooting)
 
