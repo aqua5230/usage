@@ -1130,7 +1130,7 @@ footer .kofi:hover { background: var(--accent-hover); }
     </div>
     <p class="cta-more" data-i18n="cta_more">Windows 앱, 터미널 전용 <code>uvx usage-cli</code> → <a href="#install">모든 설치 방법</a></p>
     <div class="shot">
-      <img width="1448" height="1086" fetchpriority="high" decoding="async" src="../showcase-v3.en.webp" srcset="../showcase-v3.en-800.webp 800w, ../showcase-v3.en.webp 1448w" sizes="(max-width: 1080px) 100vw, 1030px" data-i18n-attr="alt:hero_img_alt" alt="macOS 메뉴 막대에서 실행 중인 usage와 MacBook에 열린 할당량 패널" />
+      <img width="1448" height="1086" fetchpriority="high" decoding="async" src="../showcase-v4.en.webp" srcset="../showcase-v4.en-800.webp 800w, ../showcase-v4.en.webp 1448w" sizes="(max-width: 1080px) 100vw, 1030px" data-i18n-attr="alt:hero_img_alt" alt="macOS 메뉴 막대에서 실행 중인 usage와 MacBook에 열린 할당량 패널" />
     </div>
   </div>
 </section>
@@ -1334,7 +1334,7 @@ footer .kofi:hover { background: var(--accent-hover); }
         <div class="panel-chips" id="panel-chips" role="group" data-i18n-attr="aria-label:screen_h2" aria-label="마음에 드는 패널을 골라보세요."></div>
       </div>
       <div class="panel-fan" id="panel-fan">
-        <div class="panel-stage" tabindex="0"><img class="panel-poster" id="panel-poster" width="300" loading="lazy" decoding="async" src="../fan/classic.en.webp" alt=""><iframe id="panel-stage" title="usage 패널 미리보기" data-i18n-attr="title:preview_title" loading="lazy" scrolling="no"></iframe></div>
+        <div class="panel-stage" tabindex="0"><img class="panel-poster" id="panel-poster" width="300" loading="lazy" decoding="async" src="../fan/felt.en.webp" alt=""><iframe id="panel-stage" title="usage 패널 미리보기" data-i18n-attr="title:preview_title" loading="lazy" scrolling="no"></iframe></div>
       </div>
     </div>
   </div>
@@ -2572,7 +2572,8 @@ if (!prefersReducedMotion && 'IntersectionObserver' in window) {
       fan.append(card);
       cards.push(card);
     });
-    show(panels[0].id);
+    // 預設先秀羊毛氈：會動的寵物最能看出主題差別，也不跟首屏的經典面板重複；清單沒有它就退回第一個。
+    show(panels.some(p => p.id === 'felt') ? 'felt' : panels[0].id);
     updateChipFade();
   }).catch(function () { /* 面板展示載不到就留空，不影響頁面其他部分 */ });
 })();
