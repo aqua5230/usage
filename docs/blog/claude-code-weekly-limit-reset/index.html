@@ -413,7 +413,7 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   color: var(--fg-dimmer);
   margin-bottom: 10px;
 }
-.toc-list { list-style: none; display: grid; gap: 6px; }
+.toc-list { list-style: none; display: grid; gap: 8px; }
 .toc-list a {
   display: block;
   font-size: 13px;
@@ -425,28 +425,21 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
 }
 .toc-list a:hover { color: var(--fg); }
 .toc-list a[aria-current="location"] { color: var(--accent); font-weight: 600; }
-.news-card {
-  padding: 18px;
-  border-radius: 14px;
-  border: 1px solid var(--border);
-  background: var(--bg-card);
-}
 .news-title {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  color: var(--fg);
-  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fg-dimmer);
+  margin-bottom: 4px;
 }
-.news-list { display: grid; gap: 10px; }
+.news-list { display: grid; }
 .news-item {
   display: block;
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.02);
-  transition: border-color 140ms ease;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
 }
-.news-item:hover { border-color: rgba(255, 140, 66, 0.45); }
+.news-item:hover .news-item-name { color: var(--accent); }
 .news-item-head {
   display: flex;
   align-items: baseline;
@@ -454,7 +447,12 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   gap: 8px;
   margin-bottom: 4px;
 }
-.news-item-name { font-size: 12.5px; font-weight: 600; color: var(--fg); }
+.news-item-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--fg);
+  transition: color 140ms ease;
+}
 .news-item-date {
   font-family: var(--mono);
   font-size: 11.5px;
@@ -498,7 +496,7 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
 @media (min-width: 1440px) {
   .wrap-article { max-width: 1440px; }
   .article-layout {
-    grid-template-columns: 200px 40px minmax(0, 772px) 32px 280px;
+    grid-template-columns: 240px 40px minmax(0, 772px) 40px 240px;
     column-gap: 0;
     justify-content: center;
   }
