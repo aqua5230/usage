@@ -1085,8 +1085,13 @@ body {
 // A shared speech queue shows one bubble at a time and pauses while the panel is hidden.
 // The line greets visitors, occasionally chats or naps, and gets a tree and snow in December.
 (() => {
-  const NAMES = ["redpanda", "frog", "penguin", "rabbit", "raccoon", "piglet", "elephant", "bear", "puppy", "chick", "kitten", "hedgehog", "otter", "snail", "crab", "pufferfish", "cockatoo"];
-  const POSES = ["stand", "jump", "worried", "sleep", "cheer"];
+  const NAMES = ["redpanda", "frog", "penguin", "rabbit", "raccoon", "piglet", "elephant", "bear", "puppy", "chick", "kitten", "hedgehog", "otter", "snail", "crab", "pufferfish", "cockatoo",
+    "bobo", "tuanli", "starpup", "tantan", "minto", "shandou", "nibo", "boqi", "zapi"];
+  // Hidden pals stay out of the normal rotation and only rarely take a turn in line.
+  const HIDDEN = new Set(["bobo", "tuanli", "starpup", "tantan", "minto", "shandou", "nibo", "boqi", "zapi"]);
+  const RARE = 0.1;
+  // Every pal has the first five poses; the rest are optional extras, and a pal without one keeps its current pose.
+  const POSES = ["stand", "jump", "worried", "sleep", "cheer", "wave", "stretch", "run", "surprised", "signature"];
   // Display height of each pose relative to standing: sitting is shorter, arms up is a little taller.
   const HEIGHT = { sleep: 0.82, cheer: 1.06 };
   const SIZE = 40;
@@ -1263,6 +1268,96 @@ body {
     cockatoo_worried: "{{ASSET:panels/felt/pals/cockatoo_worried.webp}}",
     cockatoo_sleep: "{{ASSET:panels/felt/pals/cockatoo_sleep.webp}}",
     cockatoo_cheer: "{{ASSET:panels/felt/pals/cockatoo_cheer.webp}}",
+    bobo_stand: "{{ASSET:panels/felt/pals/bobo_stand.webp}}",
+    bobo_jump: "{{ASSET:panels/felt/pals/bobo_jump.webp}}",
+    bobo_worried: "{{ASSET:panels/felt/pals/bobo_worried.webp}}",
+    bobo_sleep: "{{ASSET:panels/felt/pals/bobo_sleep.webp}}",
+    bobo_cheer: "{{ASSET:panels/felt/pals/bobo_cheer.webp}}",
+    bobo_wave: "{{ASSET:panels/felt/pals/bobo_wave.webp}}",
+    bobo_stretch: "{{ASSET:panels/felt/pals/bobo_stretch.webp}}",
+    bobo_run: "{{ASSET:panels/felt/pals/bobo_run.webp}}",
+    bobo_surprised: "{{ASSET:panels/felt/pals/bobo_surprised.webp}}",
+    bobo_signature: "{{ASSET:panels/felt/pals/bobo_signature.webp}}",
+    tuanli_stand: "{{ASSET:panels/felt/pals/tuanli_stand.webp}}",
+    tuanli_jump: "{{ASSET:panels/felt/pals/tuanli_jump.webp}}",
+    tuanli_worried: "{{ASSET:panels/felt/pals/tuanli_worried.webp}}",
+    tuanli_sleep: "{{ASSET:panels/felt/pals/tuanli_sleep.webp}}",
+    tuanli_cheer: "{{ASSET:panels/felt/pals/tuanli_cheer.webp}}",
+    tuanli_wave: "{{ASSET:panels/felt/pals/tuanli_wave.webp}}",
+    tuanli_stretch: "{{ASSET:panels/felt/pals/tuanli_stretch.webp}}",
+    tuanli_run: "{{ASSET:panels/felt/pals/tuanli_run.webp}}",
+    tuanli_surprised: "{{ASSET:panels/felt/pals/tuanli_surprised.webp}}",
+    tuanli_signature: "{{ASSET:panels/felt/pals/tuanli_signature.webp}}",
+    starpup_stand: "{{ASSET:panels/felt/pals/starpup_stand.webp}}",
+    starpup_jump: "{{ASSET:panels/felt/pals/starpup_jump.webp}}",
+    starpup_worried: "{{ASSET:panels/felt/pals/starpup_worried.webp}}",
+    starpup_sleep: "{{ASSET:panels/felt/pals/starpup_sleep.webp}}",
+    starpup_cheer: "{{ASSET:panels/felt/pals/starpup_cheer.webp}}",
+    starpup_wave: "{{ASSET:panels/felt/pals/starpup_wave.webp}}",
+    starpup_stretch: "{{ASSET:panels/felt/pals/starpup_stretch.webp}}",
+    starpup_run: "{{ASSET:panels/felt/pals/starpup_run.webp}}",
+    starpup_surprised: "{{ASSET:panels/felt/pals/starpup_surprised.webp}}",
+    starpup_signature: "{{ASSET:panels/felt/pals/starpup_signature.webp}}",
+    tantan_stand: "{{ASSET:panels/felt/pals/tantan_stand.webp}}",
+    tantan_jump: "{{ASSET:panels/felt/pals/tantan_jump.webp}}",
+    tantan_worried: "{{ASSET:panels/felt/pals/tantan_worried.webp}}",
+    tantan_sleep: "{{ASSET:panels/felt/pals/tantan_sleep.webp}}",
+    tantan_cheer: "{{ASSET:panels/felt/pals/tantan_cheer.webp}}",
+    tantan_wave: "{{ASSET:panels/felt/pals/tantan_wave.webp}}",
+    tantan_stretch: "{{ASSET:panels/felt/pals/tantan_stretch.webp}}",
+    tantan_run: "{{ASSET:panels/felt/pals/tantan_run.webp}}",
+    tantan_surprised: "{{ASSET:panels/felt/pals/tantan_surprised.webp}}",
+    tantan_signature: "{{ASSET:panels/felt/pals/tantan_signature.webp}}",
+    minto_stand: "{{ASSET:panels/felt/pals/minto_stand.webp}}",
+    minto_jump: "{{ASSET:panels/felt/pals/minto_jump.webp}}",
+    minto_worried: "{{ASSET:panels/felt/pals/minto_worried.webp}}",
+    minto_sleep: "{{ASSET:panels/felt/pals/minto_sleep.webp}}",
+    minto_cheer: "{{ASSET:panels/felt/pals/minto_cheer.webp}}",
+    minto_wave: "{{ASSET:panels/felt/pals/minto_wave.webp}}",
+    minto_stretch: "{{ASSET:panels/felt/pals/minto_stretch.webp}}",
+    minto_run: "{{ASSET:panels/felt/pals/minto_run.webp}}",
+    minto_surprised: "{{ASSET:panels/felt/pals/minto_surprised.webp}}",
+    minto_signature: "{{ASSET:panels/felt/pals/minto_signature.webp}}",
+    shandou_stand: "{{ASSET:panels/felt/pals/shandou_stand.webp}}",
+    shandou_jump: "{{ASSET:panels/felt/pals/shandou_jump.webp}}",
+    shandou_worried: "{{ASSET:panels/felt/pals/shandou_worried.webp}}",
+    shandou_sleep: "{{ASSET:panels/felt/pals/shandou_sleep.webp}}",
+    shandou_cheer: "{{ASSET:panels/felt/pals/shandou_cheer.webp}}",
+    shandou_wave: "{{ASSET:panels/felt/pals/shandou_wave.webp}}",
+    shandou_stretch: "{{ASSET:panels/felt/pals/shandou_stretch.webp}}",
+    shandou_run: "{{ASSET:panels/felt/pals/shandou_run.webp}}",
+    shandou_surprised: "{{ASSET:panels/felt/pals/shandou_surprised.webp}}",
+    shandou_signature: "{{ASSET:panels/felt/pals/shandou_signature.webp}}",
+    nibo_stand: "{{ASSET:panels/felt/pals/nibo_stand.webp}}",
+    nibo_jump: "{{ASSET:panels/felt/pals/nibo_jump.webp}}",
+    nibo_worried: "{{ASSET:panels/felt/pals/nibo_worried.webp}}",
+    nibo_sleep: "{{ASSET:panels/felt/pals/nibo_sleep.webp}}",
+    nibo_cheer: "{{ASSET:panels/felt/pals/nibo_cheer.webp}}",
+    nibo_wave: "{{ASSET:panels/felt/pals/nibo_wave.webp}}",
+    nibo_stretch: "{{ASSET:panels/felt/pals/nibo_stretch.webp}}",
+    nibo_run: "{{ASSET:panels/felt/pals/nibo_run.webp}}",
+    nibo_surprised: "{{ASSET:panels/felt/pals/nibo_surprised.webp}}",
+    nibo_signature: "{{ASSET:panels/felt/pals/nibo_signature.webp}}",
+    boqi_stand: "{{ASSET:panels/felt/pals/boqi_stand.webp}}",
+    boqi_jump: "{{ASSET:panels/felt/pals/boqi_jump.webp}}",
+    boqi_worried: "{{ASSET:panels/felt/pals/boqi_worried.webp}}",
+    boqi_sleep: "{{ASSET:panels/felt/pals/boqi_sleep.webp}}",
+    boqi_cheer: "{{ASSET:panels/felt/pals/boqi_cheer.webp}}",
+    boqi_wave: "{{ASSET:panels/felt/pals/boqi_wave.webp}}",
+    boqi_stretch: "{{ASSET:panels/felt/pals/boqi_stretch.webp}}",
+    boqi_run: "{{ASSET:panels/felt/pals/boqi_run.webp}}",
+    boqi_surprised: "{{ASSET:panels/felt/pals/boqi_surprised.webp}}",
+    boqi_signature: "{{ASSET:panels/felt/pals/boqi_signature.webp}}",
+    zapi_stand: "{{ASSET:panels/felt/pals/zapi_stand.webp}}",
+    zapi_jump: "{{ASSET:panels/felt/pals/zapi_jump.webp}}",
+    zapi_worried: "{{ASSET:panels/felt/pals/zapi_worried.webp}}",
+    zapi_sleep: "{{ASSET:panels/felt/pals/zapi_sleep.webp}}",
+    zapi_cheer: "{{ASSET:panels/felt/pals/zapi_cheer.webp}}",
+    zapi_wave: "{{ASSET:panels/felt/pals/zapi_wave.webp}}",
+    zapi_stretch: "{{ASSET:panels/felt/pals/zapi_stretch.webp}}",
+    zapi_run: "{{ASSET:panels/felt/pals/zapi_run.webp}}",
+    zapi_surprised: "{{ASSET:panels/felt/pals/zapi_surprised.webp}}",
+    zapi_signature: "{{ASSET:panels/felt/pals/zapi_signature.webp}}",
   };
   const src = (name, pose) => PAL_IMG[`${name}_${pose}`];
   const rand = (a, b) => a + Math.random() * (b - a);
@@ -1394,6 +1489,7 @@ body {
   const aspect = {};
   for (const name of NAMES) {
     for (const pz of POSES) {
+      if (!src(name, pz)) continue;
       const im = new Image();
       im.onload = () => {
         aspect[`${name}_${pz}`] = im.naturalWidth / im.naturalHeight;
@@ -1434,6 +1530,22 @@ body {
     const j = Math.floor(Math.random() * (i + 1));
     [pals[i], pals[j]] = [pals[j], pals[i]];
   }
+  // Hidden pals wait in the vault; rarely one starts at the front of the line.
+  const vault = pals.filter((p) => HIDDEN.has(p.name));
+  const guest = Math.random() < RARE ? vault[Math.floor(Math.random() * vault.length)] : null;
+  if (guest) {
+    vault.splice(vault.indexOf(guest), 1);
+    pals.splice(pals.indexOf(guest), 1);
+    pals.unshift(guest);
+  }
+  for (const p of vault) {
+    p.offstage = true;
+    p.wrap.style.display = "none";
+    p.shadow.style.display = "none";
+  }
+  // A pal leaving the line goes back to the vault if it is hidden, otherwise to the end of the offstage queue.
+  const park = (p) => (HIDDEN.has(p.name) ? vault : offstage).push(p);
+  const has = (p, pz) => Boolean(aspect[`${p.name}_${pz}`]);
 
   function pose(p, name) {
     const use = aspect[`${p.name}_${name}`] ? name : "stand";
@@ -1797,7 +1909,10 @@ body {
     const heart = bubble(p, "pal-heart", "♥", SIZE * p.scale + 2, dir * 12 - 9);
     setTimeout(() => heart.remove(), 1900);
     await Promise.all([jump(p, p.x, p.y, 10), jump(mate, mate.x, mate.y, 10)]);
-    await wait(500);
+    const waving = [p, mate].filter((o) => has(o, "wave"));
+    waving.forEach((o) => pose(o, "wave"));
+    await wait(waving.length ? 900 : 500);
+    waving.forEach((o) => pose(o, rest(o)));
     await Promise.all([turn(p, -1), turn(mate, -1)]);
     idle(p);
     idle(mate);
@@ -1818,6 +1933,7 @@ body {
       return;
     }
     // In line: hop on the spot, glance back, or greet a neighbour; always face the front again.
+    if (has(p, "signature") && Math.random() < 0.25) return signature(p);
     const roll = Math.random();
     if (roll < 0.4) return jump(p, p.x, p.y, rand(7, 13));
     if (roll < 0.7) {
@@ -1922,9 +2038,9 @@ body {
   // Line rotation: the back pal hops offstage to the right and the longest-waiting offstage pal takes its place.
   let rotating = false;
   async function rotate() {
-    if (rotating || !offstage.length || !queue.length) return;
+    if (rotating || !(offstage.length || vault.length) || !queue.length) return;
     const out = queue[queue.length - 1];
-    const incoming = offstage[0];
+    const incoming = vault.length && Math.random() < RARE ? vault[Math.floor(Math.random() * vault.length)] : offstage[0];
     if (!out || out.busy || speaking?.p === out || !incoming || incoming.busy) return;
     rotating = true;
     out.busy = true;
@@ -1939,14 +2055,17 @@ body {
     const outIdx = queue.indexOf(out);
     if (outIdx >= 0) queue.splice(outIdx, 1);
     toOffstage(out);
-    offstage.push(out);
+    park(out);
     out.busy = false;
 
-    const inIdx = offstage.indexOf(incoming);
-    if (inIdx >= 0) offstage.splice(inIdx, 1);
+    for (const list of [offstage, vault]) {
+      const inIdx = list.indexOf(incoming);
+      if (inIdx >= 0) list.splice(inIdx, 1);
+    }
     const ground = slot(0).y;
     if (queue.length >= lineCap()) {
-      offstage.unshift(incoming);
+      if (HIDDEN.has(incoming.name)) vault.push(incoming);
+      else offstage.unshift(incoming);
       incoming.busy = false;
       rotating = false;
       schedule();
@@ -2028,7 +2147,7 @@ body {
       if (queue[i].busy) continue;
       const [p] = queue.splice(i, 1);
       toOffstage(p);
-      offstage.push(p);
+      park(p);
     }
     while (queue.length < cap && offstage.length) {
       const p = offstage.find((o) => !o.busy);
@@ -2295,15 +2414,27 @@ body {
     return chosen.emptyText ? tr("say_pace_time", { time: chosen.emptyText }) || undefined : undefined;
   }
 
+  // A pal with its own signature move strikes it for a moment, then settles back.
+  async function signature(p) {
+    pose(p, "signature");
+    await play(500, (k) => {
+      const s = Math.sin(Math.PI * k);
+      draw(p, p.x, p.y, 1 + 0.05 * s, 1 - 0.05 * s);
+    }, p);
+    await wait(rand(1400, 2200));
+    pose(p, rest(p));
+    idle(p);
+  }
+
   async function startle(p) {
     p.busy = true;
-    await jump(p, p.x, p.y, 14);
+    await jump(p, p.x, p.y, 14, { air: has(p, "surprised") ? "surprised" : "jump" });
     free(p);
   }
 
   async function stretch(p) {
     p.busy = true;
-    pose(p, "stand");
+    pose(p, has(p, "stretch") ? "stretch" : "stand");
     await play(600, (k) => {
       const s = Math.sin(2 * Math.PI * k) * Math.sin(Math.PI * k);
       draw(p, p.x, p.y, 1 - 0.07 * s, 1 + 0.12 * s);
@@ -2337,6 +2468,7 @@ body {
     const action = { sweat, moving: true };
     const cancelled = () => p.hurry !== action;
     p.hurry = action;
+    if (has(p, "run")) pose(p, "run");
     setTimeout(() => {
       sweat.remove();
       if (!cancelled() && !action.moving) p.hurry = null;
