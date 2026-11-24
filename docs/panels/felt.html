@@ -2353,13 +2353,17 @@ body {
 
   // Line rotation: the back pal hops offstage to the right and the longest-waiting offstage pal takes its place.
   let rotating = false;
-  async function rotate() {
+  // Hidden pals that unlocked since the panel loaded join the vault.
+  function fillVault() {
     for (const p of pals) {
       if (HIDDEN.has(p.name) && p.offstage && !vault.includes(p) && unlocked(p.name)) vault.push(p);
     }
+  }
+  async function rotate(pick) {
+    fillVault();
     if (rotating || !(offstage.length || vault.length) || !queue.length) return;
     const out = queue[queue.length - 1];
-    const incoming = vault.length && Math.random() < RARE ? vault[Math.floor(Math.random() * vault.length)] : offstage[0];
+    const incoming = pick || (vault.length && Math.random() < RARE ? vault[Math.floor(Math.random() * vault.length)] : offstage[0]);
     if (!out || out.busy || speaking?.p === out || !incoming || incoming.busy) return;
     rotating = true;
     out.busy = true;
@@ -2425,6 +2429,17 @@ body {
     meet(incoming);
   }
   window.__feltRotate = () => rotate();
+  // A hidden pal that has unlocked but not been met yet hops in the next time the panel opens, so a new unlock is
+  // never left to chance; pals already met keep their rare random turns. Retries while the line is busy.
+  async function welcome() {
+    fillVault();
+    const p = vault.find((o) => !seen.includes(o.name));
+    for (let i = 0; p && i < 6 && vault.includes(p); i++) {
+      await wait(i ? 2000 : 1500);
+      if (hidden()) return;
+      await rotate(p);
+    }
+  }
 
   function settle() {
     const b = bars();
@@ -3054,7 +3069,10 @@ body {
     setInterval(() => { if (!hidden()) { refreshChristmas(); schedule(); checkLate(); } }, 30000);
     refreshChristmas();
     settle();
-    if (!hidden()) beginVisit();
+    if (!hidden()) {
+      beginVisit();
+      welcome();
+    }
     if (still) {
       pals.forEach((p) => p.body.classList.remove("idle", "dozing"));
       return;
@@ -3097,6 +3115,7 @@ body {
     schedule();
     beginVisit();
     startMotion();
+    welcome();
   });
   reducedMotion.addEventListener("change", () => {
     still = reducedMotion.matches;
