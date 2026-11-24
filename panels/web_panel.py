@@ -32,6 +32,7 @@ from panels.payload import (
     _row_payload,
     _state_payload,
 )
+from panels.share_card import share_pal_card
 from panels.window_drag import inject_window_drag_script
 from usage_common.i18n import _load_i18n_bundle
 
@@ -187,6 +188,9 @@ class UsageScriptBridge(NSObject):
                         state = getattr(self.delegate, "latest_state", None)
                         if state is not None:
                             state.card_order = order
+                    return
+                if parsed["action"] == "share_pal_card":
+                    share_pal_card(self.web_view, parsed)
                     return
                 if parsed["action"] == "set_panel_flavor":
                     _save_panel_flavor(parsed.get("flavor"))

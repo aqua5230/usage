@@ -1248,6 +1248,31 @@ body {
     .pal-dex-card.done{box-shadow:inset 0 0 0 3px #f2c43d,0 10px 30px rgba(50,30,10,.35)}
     .pal-dex-card.done .pal-dex-foot{font-weight:800;color:#9a6512;opacity:1}
     .pal-dex-foot{margin:12px 0 0;text-align:center;font-size:11.5px;font-weight:600;opacity:.7}
+    .pal-dex-cell .share{position:absolute;right:5px;bottom:5px;z-index:3;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;
+      transform:translateZ(32px);color:#fffaf0;background:#d9a93a;box-shadow:0 1px 3px rgba(60,35,10,.3)}
+    .pal-dex-cell .share svg{width:11px;height:11px}
+    .pal-dex-cell.shareable{cursor:pointer}
+    .pal-card{transition:scale .35s cubic-bezier(.3,1.3,.5,1),translate .35s cubic-bezier(.3,1.3,.5,1)}
+    .pal-card.over-dex{z-index:52}
+    .pal-card.hold .plate small{font-size:7.4px;letter-spacing:0;white-space:nowrap;opacity:.7}
+    .pal-dim{position:fixed;inset:0;z-index:47;background:rgba(40,26,14,.42);opacity:0;transition:opacity .3s}
+    .pal-dim.on{opacity:1}
+    .pal-dim.over-dex{z-index:51}
+    .pal-share{position:fixed;display:flex;gap:8px;z-index:49;opacity:0;translate:0 6px;transition:opacity .25s,translate .25s}
+    .pal-share.on{opacity:1;translate:0 0}
+    .pal-share.over-dex{z-index:53}
+    .pal-share>button{display:flex;align-items:center;gap:5px;padding:7px 15px;border:0;border-radius:99px;cursor:pointer;white-space:nowrap;
+      font:800 12.5px/16px ui-rounded,-apple-system,"PingFang TC",sans-serif;box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 3px 8px rgba(40,25,10,.3)}
+    .pal-share .go{color:#fffaf0;background:#d9a93a}
+    .pal-share .go.done{background:#5b9a5b}
+    .pal-share .keep{color:#4a2a04;background:#fbf3e4}
+    .pal-share svg{width:13px;height:13px}
+    .pal-share-menu{position:fixed;z-index:70;min-width:180px;padding:5px;border-radius:10px;background:rgba(246,244,242,.97);
+      box-shadow:0 0 0 .5px rgba(0,0,0,.25),0 10px 30px rgba(0,0,0,.28);font:13px/1 -apple-system,"PingFang TC",sans-serif;color:#1d1d1f}
+    .pal-share-menu button{display:flex;align-items:center;gap:9px;width:100%;padding:6px 9px;border:0;border-radius:6px;background:none;color:inherit;font:inherit;text-align:left}
+    .pal-share-menu button:hover{background:#0a63d8;color:#fff}
+    .pal-share-menu i{display:grid;place-items:center;width:20px;height:20px;border-radius:5px;font-style:normal;font-size:11px;font-weight:700;color:#fff}
+    .pal-share-menu hr{height:1px;margin:4px 6px;border:0;background:rgba(0,0,0,.12)}
     .pal-hit{position:absolute;bottom:0;left:${-SIZE * 0.4}px;width:${SIZE * 0.8}px;height:${SIZE}px;pointer-events:auto;cursor:pointer}
     .pal-say.paused{animation-play-state:paused}
     .pal-tree{position:absolute;right:0;bottom:${LINE_GROUND}px;height:50px;pointer-events:none;z-index:1}
@@ -1262,6 +1287,7 @@ body {
     @media (prefers-reduced-motion: reduce){
       .pal-body.idle .pal-img,.pal-body.dozing .pal-img,.pal-badge.on,.pal-say,.pal-name,.pal-heart,.pal-dust,.pal-sweat,.pal-spark,.pal-book.bump,.pal-dex-card,.pal-dex-cell.seen img{animation:none}
       .pal-z.on{animation:none;opacity:1}.pal-z.on+.pal-z.on{display:none}
+      .pal-card,.pal-card .flip,.pal-dim,.pal-share{transition:none}
       .pal-snow{display:none}}`;
   document.head.appendChild(css);
   const layer = document.createElement("div");
@@ -1490,6 +1516,18 @@ body {
     banban_run: "{{ASSET:panels/felt/pals/banban_run.webp}}",
     banban_surprised: "{{ASSET:panels/felt/pals/banban_surprised.webp}}",
     banban_signature: "{{ASSET:panels/felt/pals/banban_signature.webp}}",
+    tuanli_card: "{{ASSET:panels/felt/pals/tuanli_card.webp}}",
+    zapi_card: "{{ASSET:panels/felt/pals/zapi_card.webp}}",
+    bobo_card: "{{ASSET:panels/felt/pals/bobo_card.webp}}",
+    nibo_card: "{{ASSET:panels/felt/pals/nibo_card.webp}}",
+    tantan_card: "{{ASSET:panels/felt/pals/tantan_card.webp}}",
+    starpup_card: "{{ASSET:panels/felt/pals/starpup_card.webp}}",
+    shandou_card: "{{ASSET:panels/felt/pals/shandou_card.webp}}",
+    minto_card: "{{ASSET:panels/felt/pals/minto_card.webp}}",
+    boqi_card: "{{ASSET:panels/felt/pals/boqi_card.webp}}",
+    leituan_card: "{{ASSET:panels/felt/pals/leituan_card.webp}}",
+    wuqiu_card: "{{ASSET:panels/felt/pals/wuqiu_card.webp}}",
+    banban_card: "{{ASSET:panels/felt/pals/banban_card.webp}}",
   };
   const src = (name, pose) => PAL_IMG[`${name}_${pose}`];
   const rand = (a, b) => a + Math.random() * (b - a);
@@ -1759,6 +1797,13 @@ body {
         if (state === "nearby") cell.append(el("small", "", tr("hidden_nearby")));
       }
       if (state === "seen") {
+        if (canShare()) {
+          const badge = el("span", "share");
+          badge.innerHTML = SHARE_ICON;
+          cell.classList.add("shareable");
+          cell.append(badge);
+          cell.addEventListener("click", () => reopenCard(name));
+        }
         if (!still) {
           cell.addEventListener("pointermove", (e) => {
             const r = cell.getBoundingClientRect();
@@ -1812,7 +1857,7 @@ body {
     top.append(el("span", "", no(name)), el("span", "tag", tr("hidden_tag")));
     const art = el("div", "art");
     const img = el("img");
-    img.src = src(name, "cheer") || src(name, "stand");
+    img.src = src(name, "card") || src(name, "cheer") || src(name, "stand");
     img.alt = "";
     art.append(img);
     const plate = el("div", "plate");
@@ -1829,11 +1874,194 @@ body {
       { duration: 420, easing: "cubic-bezier(.2,1.3,.4,1)", fill: "forwards" }).finished;
     await wait(250);
     card.classList.add("show");
-    await wait(2300);
+    await wait(900);
+    await holdCard(card, name);
     const r = card.getBoundingClientRect(), t = book.getBoundingClientRect();
     const dx = t.left + t.width / 2 - (r.left + r.width / 2), dy = t.top + t.height / 2 - (r.top + r.height / 2);
     await card.animate([{ transform: "none", opacity: 1 }, { transform: `translate(${dx}px, ${dy}px) scale(.1) rotate(-14deg)`, opacity: 0.3 }],
       { duration: 620, easing: "cubic-bezier(.5,0,.8,.5)", fill: "forwards" }).finished;
+    card.remove();
+  }
+
+  // Sharing needs the macOS app (clipboard, Downloads, share menu). Windows loads the same panel through pywebview without it.
+  const shareBridge = () => window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.usage;
+  const canShare = () => !window.pywebview && typeof shareBridge()?.postMessage === "function";
+  const SHARE_LINK = "github.com/aqua5230/usage";
+  const SHARE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
+  const SHARE_TARGETS = [["threads", "#111", "@"], ["x", "#111", "X"], null, ["copy", "#8e8e93", "⧉"], ["save", "#3a8ef0", "↓"], null, ["more", "#c7c3be", "⋯"]];
+
+  // The shared picture is the card itself, drawn at 6x on a 4:5 felt-coloured sheet: Threads and Instagram crop to 4:5,
+  // and a transparent PNG turns black there. Layout numbers mirror the .pal-card CSS (136×190).
+  async function cardPng(name) {
+    const S = 6, W = 1080, H = 1350, c = Object.assign(document.createElement("canvas"), { width: W, height: H });
+    const g = c.getContext("2d");
+    const font = (weight, px) => `${weight} ${px}px ui-rounded,-apple-system,"PingFang TC",sans-serif`;
+    const box = (x, y, w, h, r) => {
+      g.beginPath();
+      g.moveTo(x + r, y);
+      g.arcTo(x + w, y, x + w, y + h, r);
+      g.arcTo(x + w, y + h, x, y + h, r);
+      g.arcTo(x, y + h, x, y, r);
+      g.arcTo(x, y, x + w, y, r);
+      g.closePath();
+    };
+    const img = new Image();
+    img.src = src(name, "card") || src(name, "cheer");
+    await img.decode();
+    g.fillStyle = "#f3e6d0";
+    g.fillRect(0, 0, W, H);
+    g.translate((W - 136 * S) / 2, (H - 190 * S) / 2);
+    g.scale(S, S);
+    g.shadowColor = "rgba(50,28,8,.4)";
+    g.shadowBlur = 60;
+    g.shadowOffsetY = 40;
+    box(0, 0, 136, 190, 12);
+    g.fillStyle = "#d9a93a";
+    g.fill();
+    g.shadowColor = "transparent";
+    const face = g.createLinearGradient(80, 0, 56, 190);
+    face.addColorStop(0, "#fffaf0");
+    face.addColorStop(1, "#f1dfbd");
+    box(3, 3, 130, 184, 9);
+    g.fillStyle = face;
+    g.fill();
+    box(4, 4, 128, 182, 8);
+    g.strokeStyle = "#fff4d6";
+    g.lineWidth = 2;
+    g.stroke();
+    g.textBaseline = "middle";
+    g.font = font(800, 9);
+    g.fillStyle = "#8a5a10";
+    g.fillText(no(name), 11, 17.5);
+    const tag = tr("hidden_tag"), tagW = g.measureText(tag).width + 12;
+    box(125 - tagW, 11, tagW, 13, 6.5);
+    g.fillStyle = "#d9a93a";
+    g.fill();
+    g.fillStyle = "#fffaf0";
+    g.textAlign = "center";
+    g.fillText(tag, 125 - tagW / 2, 17.5);
+    g.save();
+    box(11, 30, 114, 104, 7);
+    g.clip();
+    const glow = g.createRadialGradient(68, 67.4, 0, 68, 67.4, 131);
+    glow.addColorStop(0, "#fff");
+    glow.addColorStop(1, TONE[name] || "#e8b86a");
+    g.fillStyle = glow;
+    g.fillRect(11, 30, 114, 104);
+    g.beginPath();
+    g.ellipse(68, 123, 28, 4, 0, 0, Math.PI * 2);
+    g.fillStyle = "rgba(60,38,20,.22)";
+    g.fill();
+    const iw = (img.naturalWidth / img.naturalHeight) * 84;
+    g.drawImage(img, 68 - iw / 2, 41, iw, 84);
+    g.restore();
+    box(11.5, 30.5, 113, 103, 7);
+    g.strokeStyle = "rgba(80,50,10,.12)";
+    g.lineWidth = 1;
+    g.stroke();
+    g.fillStyle = "#4a2a04";
+    g.font = font(900, 15);
+    g.fillText(label(name), 68, 149);
+    g.fillStyle = "rgba(74,42,4,.7)";
+    g.font = font(700, 7.4);
+    g.fillText(SHARE_LINK, 68, 163);
+    return c.toDataURL("image/png").split(",")[1];
+  }
+
+  // The card waits until 分享 or 收下 (or a click outside), grown to fill the panel and centred above its buttons.
+  // Positions are in the zoomed root's units: getBoundingClientRect() reports zoomed pixels.
+  function holdCard(card, name, inDex = false) {
+    return new Promise((done) => {
+      const z = zoomScale(), viewH = innerHeight / z, r0 = card.getBoundingClientRect(), h = r0.height / z;
+      const small = card.querySelector(".plate small");
+      small.textContent = SHARE_LINK;
+      const layerCls = inDex ? " over-dex" : "";
+      const dim = el("div", `pal-dim${layerCls}`);
+      document.body.appendChild(dim);
+      card.style.translate = `0 ${(viewH - 56) / 2 - (r0.top / z + h / 2)}px`;
+      card.style.scale = String(Math.min(1.8, (viewH - 120) / h));
+      card.classList.add("hold");
+      requestAnimationFrame(() => dim.classList.add("on"));
+      const row = el("div", `pal-share${layerCls}`);
+      const go = el("button", "go");
+      go.type = "button";
+      go.innerHTML = SHARE_ICON;
+      go.append(el("span", "", tr("hidden_share")));
+      const keep = el("button", "keep", tr(inDex ? "hidden_close" : "hidden_keep"));
+      keep.type = "button";
+      if (canShare()) row.append(go);
+      row.append(keep);
+      let menu = null;
+      const closeMenu = () => {
+        menu?.remove();
+        menu = null;
+      };
+      const finish = async (ms = 0) => {
+        closeMenu();
+        await wait(ms);
+        row.remove();
+        dim.classList.remove("on");
+        card.classList.remove("hold");
+        card.style.scale = card.style.translate = "";
+        small.textContent = tr("hidden_added");
+        setTimeout(() => dim.remove(), 300);
+        await wait(350);
+        done();
+      };
+      keep.addEventListener("click", () => finish());
+      dim.addEventListener("click", () => finish());
+      const share = async (target) => {
+        closeMenu();
+        const a = go.getBoundingClientRect();
+        shareBridge().postMessage(JSON.stringify({ action: "share_pal_card", target, name, png: await cardPng(name),
+          text: tr("hidden_share_text", { name: label(name) }), anchor: { x: a.left, y: a.top, w: a.width, h: a.height } }));
+        if (target === "more") return;
+        go.classList.add("done");
+        go.querySelector("span").textContent = tr(`hidden_shared_${target}`);
+        keep.remove();
+        finish(1600);
+      };
+      go.addEventListener("click", () => {
+        if (menu) return closeMenu();
+        menu = el("div", "pal-share-menu");
+        for (const t of SHARE_TARGETS) {
+          if (!t) {
+            menu.append(el("hr"));
+            continue;
+          }
+          const [target, color, glyph] = t;
+          const item = el("button");
+          item.type = "button";
+          const icon = el("i", "", glyph);
+          icon.style.background = color;
+          item.append(icon, tr(`hidden_share_${target}`));
+          item.addEventListener("click", () => share(target));
+          menu.append(item);
+        }
+        document.body.appendChild(menu);
+        const b = go.getBoundingClientRect();
+        const below = b.bottom / z + 6 + menu.offsetHeight <= viewH;
+        menu.style.left = `${b.left / z}px`;
+        menu.style.top = `${below ? b.bottom / z + 6 : b.top / z - 6 - menu.offsetHeight}px`;
+      });
+      setTimeout(() => {
+        document.body.appendChild(row);
+        const r = card.getBoundingClientRect();
+        row.style.left = `${(r.left + r.width / 2) / z - row.offsetWidth / 2}px`;
+        row.style.top = `${r.bottom / z + 12}px`;
+        requestAnimationFrame(() => row.classList.add("on"));
+      }, still ? 0 : 380);
+    });
+  }
+
+  // A found pal in the book reopens its card, so sharing is never a one-time chance.
+  async function reopenCard(name) {
+    const card = buildCard(name);
+    card.classList.add("over-dex");
+    document.body.appendChild(card);
+    requestAnimationFrame(() => requestAnimationFrame(() => card.classList.add("show")));
+    await wait(still ? 0 : 750);
+    await holdCard(card, name, true);
     card.remove();
   }
 
