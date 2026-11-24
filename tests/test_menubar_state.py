@@ -8,8 +8,10 @@ from __future__ import annotations
 
 import time
 from collections.abc import Callable
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path, PurePosixPath, PureWindowsPath
+from types import SimpleNamespace
 from typing import Any, cast
 
 import pytest
@@ -17,6 +19,7 @@ import pytest
 from loaders import codex_loader, grok_loader, muse_loader
 from loaders.history_loader import UsageEntry
 from menubar import state as menubar_state
+from panels.payload import _state_payload
 from quota.burn_rate import BurnRateTracker
 
 
@@ -695,6 +698,66 @@ def test_history_exception_returns_partial_entries_without_caching(
     assert menubar_state.app_load_history_entries(app, scan=scan) == [entry] * 4
     assert app._history_entries_cache == [entry] * 4
     assert attempts == dict.fromkeys(["claude", "codex", "grok", "muse"], 2)
+
+
+def test_today_breakdown_uses_cached_loader_sources_and_omits_zero(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    entry = UsageEntry(
+        timestamp=datetime.now(tz=UTC),
+        session_id="session",
+        message_id="message",
+        request_id="request",
+        model="claude-sonnet-4-5",
+        input_tokens=280_100_000,
+        output_tokens=0,
+        cache_creation_tokens=0,
+        cache_read_tokens=0,
+        cost_usd=0.01,
+        project="test",
+    )
+    # All loaders can be handed the same model name. The provider is the loader.
+    monkeypatch.setattr(menubar_state, "load_entries", lambda **kwargs: [entry])
+    monkeypatch.setattr(
+        codex_loader, "load_entries", lambda **kwargs: [replace(entry, input_tokens=3_900)]
+    )
+    monkeypatch.setattr(
+        grok_loader,
+        "load_entries",
+        lambda **kwargs: [
+            replace(entry, input_tokens=0),
+            replace(entry, timestamp=entry.timestamp - timedelta(days=1)),
+        ],
+    )
+    monkeypatch.setattr(muse_loader, "load_entries", lambda **kwargs: [])
+    app = SimpleNamespace(
+        mock=False,
+        _history_entries_cache=None,
+        _history_entries_cache_fingerprint=None,
+        _history_load_error_key=None,
+    )
+    scan = menubar_state.HistorySourceScan((), (), ())
+    fresh = menubar_state.app_load_history_entries(app, scan=scan)
+    cached = menubar_state.app_load_history_entries(app, scan=scan)
+    assert cached == fresh
+    assert cached is not fresh
+    state = menubar_state._empty_state()
+    state.today_total, state.today_by_service = menubar_state._today_usage(entries=cached)
+    assert state.today_total == menubar_state._today_total(entries=fresh)
+    assert state.today_total == menubar_state.PeriodTotal(tokens=280_103_900, cost=0.03)
+    today = cast(dict[str, Any], _state_payload(state)["footer"])["today"]
+    assert sum(row["tokens"] for row in today["byService"]) == state.today_total.tokens
+    assert today["byService"] == [
+        {"card": "claude", "tokens": 280_100_000, "tokensText": "280.1M"},
+        {"card": "codex", "tokens": 3_900, "tokensText": "3.9K"},
+    ]
+
+
+def test_mock_today_breakdown_sums_to_unchanged_total() -> None:
+    total, services = menubar_state._today_usage(mock=True)
+    assert total == menubar_state.PeriodTotal(tokens=50_193_442, cost=45.20)
+    assert len(services) > 1
+    assert sum(tokens for _, tokens in services) == total.tokens
 
 
 @pytest.mark.skipif(not hasattr(time, "tzset"), reason="requires time.tzset")

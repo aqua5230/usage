@@ -2689,6 +2689,7 @@ def test_refresh_error_preserves_project_usage(monkeypatch: pytest.MonkeyPatch) 
     assert state.projects_30d == [("Eric-Tools", 165, 0.01)]
     assert state.projects_all == [("Eric-Tools", 165, 0.01)]
     assert state.today_total.tokens == 165
+    assert state.today_by_service == (("codex", 165),)
 
 
 def test_refresh_success_builds_popover_state_and_pings_window_keeper(

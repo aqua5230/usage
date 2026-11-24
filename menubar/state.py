@@ -10,9 +10,11 @@ import logging
 import os
 import threading
 import time
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from datetime import time as datetime_time
+from itertools import islice
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, NotRequired, Protocol, TypedDict, cast
 
@@ -166,6 +168,7 @@ class PopoverState:
     status_text: str
     today_total: PeriodTotal
     yesterday_total: PeriodTotal
+    today_by_service: tuple[tuple[str, int], ...] = field(default=(), kw_only=True)
     service_alerts: tuple[str, ...] = ()
     # Card ids ("claude", "codex") behind service_alerts, for panels that react per card.
     service_alert_cards: tuple[str, ...] = ()
@@ -440,6 +443,20 @@ def app_history_source_scan(app: _HistoryApp) -> HistorySourceScan:
     return cast(HistorySourceScan, app._history_source_tracker.scan())
 
 
+class _HistoryEntries(list[UsageEntry]):
+    """Keep loader boundaries alongside the flat list shared by history consumers."""
+
+    def __init__(
+        self, entries: Iterable[UsageEntry] = (), source_ends: tuple[tuple[str, int], ...] = ()
+    ) -> None:
+        super().__init__(entries)
+        self.source_ends = source_ends
+
+    def extend_source(self, card: str, entries: Iterable[UsageEntry]) -> None:
+        self.extend(entries)
+        self.source_ends += ((card, len(self)),)
+
+
 def app_load_history_entries(
     app: _HistoryApp,
     *,
@@ -454,40 +471,46 @@ def app_load_history_entries(
         app._history_entries_cache is not None
         and app._history_entries_cache_fingerprint == fingerprint
     ):
-        return list(app._history_entries_cache)
+        cached = app._history_entries_cache
+        if isinstance(cached, _HistoryEntries):
+            return _HistoryEntries(cached, cached.source_ends)
+        return list(cached)
 
-    entries: list[UsageEntry] = []
+    entries = _HistoryEntries()
     error_key: str | None = None
     read_failures: list[Path] = []
     try:
-        entries.extend(
-            load_entries(hours_back=0, jsonl_paths=scan.claude_paths, read_failures=read_failures)
+        entries.extend_source(
+            "claude",
+            load_entries(hours_back=0, jsonl_paths=scan.claude_paths, read_failures=read_failures),
         )
     except Exception as exc:
         if os.environ.get("USAGE_DEBUG") == "1":
             logger.warning("Claude project usage load failed", exc_info=True)
         error_key = _classify_history_load_error(exc)
     try:
-        entries.extend(codex_loader.load_entries(hours_back=0, jsonl_paths=scan.codex_paths))
+        entries.extend_source(
+            "codex", codex_loader.load_entries(hours_back=0, jsonl_paths=scan.codex_paths)
+        )
     except Exception as exc:
         if os.environ.get("USAGE_DEBUG") == "1":
             logger.warning("Codex project usage load failed", exc_info=True)
         error_key = _classify_history_load_error(exc)
     try:
-        entries.extend(grok_loader.load_entries(hours_back=0))
+        entries.extend_source("grok", grok_loader.load_entries(hours_back=0))
     except Exception as exc:
         if os.environ.get("USAGE_DEBUG") == "1":
             logger.warning("Grok project usage load failed", exc_info=True)
         error_key = _classify_history_load_error(exc)
     try:
-        entries.extend(muse_loader.load_entries(hours_back=0))
+        entries.extend_source("muse", muse_loader.load_entries(hours_back=0))
     except Exception as exc:
         if os.environ.get("USAGE_DEBUG") == "1":
             logger.warning("Muse project usage load failed", exc_info=True)
         error_key = _classify_history_load_error(exc)
     app._history_load_error_key = error_key
     if error_key is None and not read_failures:
-        app._history_entries_cache = list(entries)
+        app._history_entries_cache = _HistoryEntries(entries, entries.source_ends)
         app._history_entries_cache_fingerprint = fingerprint
     return entries
 
@@ -885,6 +908,7 @@ def build_popover_state(
     burn_rate_trackers: dict[str, BurnRateTracker],
     today_total: PeriodTotal,
     yesterday_total: PeriodTotal,
+    today_by_service: tuple[tuple[str, int], ...] = (),
     show_install_button: bool,
     hide_claude: bool,
     hide_codex: bool,
@@ -1040,6 +1064,7 @@ def build_popover_state(
         status_text=status_text,
         today_total=today_total,
         yesterday_total=yesterday_total,
+        today_by_service=today_by_service,
         totals_ready=history_error is None,
         service_alerts=service_alerts,
         service_alert_cards=service_alert_cards,
@@ -1301,7 +1326,7 @@ def _error_state(message: str, mock: bool, language: str = "en") -> PopoverState
         "status_text",
         value=_t(language, "status_error", message=message),
     )
-    state.today_total = _today_total(mock)
+    state.today_total, state.today_by_service = _today_usage(mock)
     state.yesterday_total = _yesterday_total(mock)
     state.show_install_button = False
     return state
@@ -1311,8 +1336,42 @@ def _today_total(
     mock: bool = False,
     entries: list[UsageEntry] | None = None,
 ) -> PeriodTotal:
+    return _today_usage(mock, entries)[0]
+
+
+def _history_entries_with_source(
+    entries: list[UsageEntry],
+) -> Iterator[tuple[UsageEntry, str]]:
+    if isinstance(entries, _HistoryEntries):
+        remaining = iter(entries)
+        start = 0
+        for card, end in entries.source_ends:
+            for entry in islice(remaining, end - start):
+                yield entry, card
+            start = end
+        return
+
+    for entry in entries:
+        model = entry.model.rsplit("/", 1)[-1].lower()
+        if model.startswith(("gpt-", "codex")):
+            yield entry, "codex"
+        elif model.startswith("gemini"):
+            yield entry, "agy"
+        else:
+            service = model.split("-", 1)[0]
+            yield entry, service if service in ("claude", "grok", "muse") else ""
+
+
+def _today_usage(
+    mock: bool = False,
+    entries: list[UsageEntry] | None = None,
+) -> tuple[PeriodTotal, tuple[tuple[str, int], ...]]:
     if mock:
-        return PeriodTotal(tokens=50_193_442, cost=45.20)
+        return PeriodTotal(tokens=50_193_442, cost=45.20), (
+            ("claude", 34_865_000),
+            ("codex", 12_528_442),
+            ("agy", 2_800_000),
+        )
 
     try:
         today = datetime.now().astimezone().date()
@@ -1320,23 +1379,31 @@ def _today_total(
         end = datetime.combine(today + timedelta(days=1), datetime_time.min).astimezone(UTC)
         total_tokens = 0
         total_cost = 0.0
+        service_tokens: dict[str, int] = {}
 
-        all_entries = (
-            entries
-            if entries is not None
-            else list(load_entries(hours_back=24)) + codex_loader.load_entries(hours_back=24)
-        )
-        for entry in all_entries:
+        if entries is None:
+            fallback = _HistoryEntries()
+            fallback.extend_source("claude", load_entries(hours_back=24))
+            fallback.extend_source("codex", codex_loader.load_entries(hours_back=24))
+            entries = fallback
+        for entry, card in _history_entries_with_source(entries):
             if not start <= entry.timestamp < end:
                 continue
-            total_tokens += entry.total_tokens
+            tokens = entry.total_tokens
+            total_tokens += tokens
             total_cost += calculate_cost(entry)
+            if card:
+                service_tokens[card] = service_tokens.get(card, 0) + tokens
     except Exception:
         if os.environ.get("USAGE_DEBUG") == "1":
             logger.warning("today totals load failed", exc_info=True)
-        return PeriodTotal()
+        return PeriodTotal(), ()
 
-    return PeriodTotal(tokens=total_tokens, cost=total_cost)
+    breakdown = tuple((card, tokens) for card, tokens in service_tokens.items() if tokens > 0)
+    # An unclassified entry still counts toward the total, so omit an incomplete breakdown.
+    if sum(tokens for _, tokens in breakdown) != total_tokens:
+        breakdown = ()
+    return PeriodTotal(tokens=total_tokens, cost=total_cost), breakdown
 
 
 def _yesterday_total(
