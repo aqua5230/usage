@@ -1066,6 +1066,54 @@ footer .kofi:hover { background: var(--accent-hover); }
   #latest-posts { padding: 56px 0 8px; }
   .data-row { grid-template-columns: minmax(0, 1fr); gap: 10px; }
 }
+
+#plush-pals {
+  padding: 96px 0;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+}
+#plush-pals .pals-layout {
+  display: flex; flex-direction: column; align-items: center; gap: 28px; text-align: center;
+}
+#plush-pals .pals-intro { max-width: 720px; padding-top: 18px; }
+#plush-pals h2 { text-align: center; }
+#plush-pals .subtitle { margin: 0 auto 24px; }
+#plush-pals .pals-board { width: 100%; display: flex; justify-content: center; }
+#plush-pals .pals-zoom {
+  --s: 2.25;
+  width: calc(400px * var(--s)); height: calc(290px * var(--s));
+  overflow: hidden; border-radius: 28px; background: #efe6da;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+}
+#plush-pals .pals-frame {
+  display: block; width: 400px; height: 290px; border: 0;
+  transform: scale(var(--s)); transform-origin: 0 0;
+}
+#plush-pals .pals-actions {
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  min-width: 0;
+}
+#plush-pals .pals-options {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; max-width: 900px;
+}
+#plush-pals .pals-options .btn { width: auto; padding-inline: 20px; border-radius: 999px; }
+#plush-pals .pals-options [aria-pressed="true"] {
+  border-color: var(--accent); background: var(--accent-soft); color: var(--fg);
+}
+#plush-pals .pals-start-over {
+  background: transparent; border: 0; color: var(--fg-dim);
+  font: inherit; font-size: 14px; text-decoration: underline; text-underline-offset: 4px;
+  min-height: 32px; margin-top: 10px; padding: 4px 2px;
+}
+#plush-pals .pals-start-over:hover { color: var(--fg); }
+@media (max-width: 760px) {
+  #plush-pals .pals-intro { padding-top: 0; }
+  #plush-pals .subtitle { margin-bottom: 0; }
+  #plush-pals .pals-actions { width: min(100%, 414px); }
+}
+@media (max-width: 640px) {
+  #plush-pals { padding: 56px 0; }
+}
 </style>
 </head>
 <body>
@@ -1214,6 +1262,31 @@ footer .kofi:hover { background: var(--accent-hover); }
           <img data-shot src="statusline.en.gif" data-img-en="statusline.en.gif" data-img-cjk="statusline.gif" data-size-en="1950x165" data-size-cjk="1950x165" width="1950" height="165" loading="lazy" decoding="async" data-i18n-attr="alt:statusline_alt" alt="Claude Code status line recording showing quota, reset countdowns, context usage, and prompt cache warnings" />
         </div>
       </div>
+    </div>
+  </div>
+</section>
+
+<section id="plush-pals" aria-labelledby="plush-pals-title">
+  <div class="wrap pals-layout">
+    <div class="pals-intro">
+      <h2 id="plush-pals-title" data-i18n="pals_title">Plush Pals keep an eye on your quota</h2>
+      <p class="subtitle" data-i18n="pals_lead">A row of felt animals lives at the bottom of the panel and reacts to your quota: they run when you burn through it too fast, warn you when it's nearly gone, cheer when it resets, and tell you to go to bed if you're still at it in the middle of the night. Press a button below to try it.</p>
+    </div>
+    <div class="pals-board">
+      <div class="pals-zoom"><iframe class="pals-frame" title="Plush Pals interactive demo" data-i18n-attr="title:pals_frame_title" width="400" height="290" loading="lazy" scrolling="no"></iframe></div>
+    </div>
+    <div class="pals-actions">
+      <div class="pals-options">
+        <button class="btn btn-secondary" type="button" data-scene="pace" aria-pressed="false"><span data-i18n="pals_pace">Burning fast</span></button>
+        <button class="btn btn-secondary" type="button" data-scene="near" aria-pressed="false"><span data-i18n="pals_near">Almost out</span></button>
+        <button class="btn btn-secondary" type="button" data-scene="reset" aria-pressed="false"><span data-i18n="pals_reset">Quota resets</span></button>
+        <button class="btn btn-secondary" type="button" data-scene="outage" aria-pressed="false"><span data-i18n="pals_outage">Service outage</span></button>
+        <button class="btn btn-secondary" type="button" data-scene="record" aria-pressed="false"><span data-i18n="pals_record">Busier than yesterday</span></button>
+        <button class="btn btn-secondary" type="button" data-scene="hello" aria-pressed="false"><span data-i18n="pals_hello">Good morning</span></button>
+        <button class="btn btn-secondary" type="button" data-scene="late" aria-pressed="false"><span data-i18n="pals_late">1:30 a.m.</span></button>
+        <button class="btn btn-secondary" type="button" data-scene="christmas" aria-pressed="false"><span data-i18n="pals_christmas">Christmas</span></button>
+      </div>
+      <button class="pals-start-over" type="button" data-i18n="pals_restart">Start over</button>
     </div>
   </div>
 </section>
@@ -1491,6 +1564,24 @@ footer .kofi:hover { background: var(--accent-hover); }
 <script>
 const T = {
   'en': {
+    pals_title: 'Plush Pals keep an eye on your quota',
+    pals_lead: 'A row of felt animals lives at the bottom of the panel and reacts to your quota: they run when you burn through it too fast, warn you when it&#39;s nearly gone, cheer when it resets, and tell you to go to bed if you&#39;re still at it in the middle of the night. Press a button below to try it.',
+    pals_pace: 'Burning fast',
+    pals_near: 'Almost out',
+    pals_reset: 'Quota resets',
+    pals_outage: 'Service outage',
+    pals_record: 'Busier than yesterday',
+    pals_hello: 'Good morning',
+    pals_late: '1:30 a.m.',
+    pals_christmas: 'Christmas',
+    pals_restart: 'Start over',
+    pals_frame_title: 'Plush Pals interactive demo',
+    pals_demo_pace: 'At this pace, empty in about 2 hours',
+    pals_demo_two_hours: '2 hours',
+    pals_demo_one_hour: 'Resets in 1 hour',
+    pals_demo_nine_minutes: 'Resets in 9 minutes',
+    pals_demo_five_hours: 'Resets in 5 hours',
+    pals_demo_outage: 'Claude service status: Major outage',
     side_pane_label: 'INSIDE CLAUDE CODE',
     side_pane_h2: 'Your quota, right inside Claude Code',
     side_pane_lead: 'On macOS and Windows, see your quotas, conversations, and background jobs—including subagents started with the Agent tool and their status—inside Claude Code. Conversations waiting for your permission or MCP input are marked in yellow. After enabling the pane, it opens on the right automatically at terminal widths ≥144 columns; otherwise, enter <code>/usage-dash</code>. A notification appears when another Claude conversation finishes or starts waiting for you.',
@@ -1635,6 +1726,24 @@ const T = {
     latest_all: 'All posts →',
   },
   'zh-TW': {
+    pals_title: '絨毛小夥伴，陪你看額度',
+    pals_lead: '一排羊毛氈小動物住在面板底部，跟著你的額度反應：用得太快會跑起來，快用完會提醒你，重置時會歡呼，半夜還在用會催你去睡。按下面的按鈕試試看。',
+    pals_pace: '用得太快',
+    pals_near: '快用完了',
+    pals_reset: '額度重置',
+    pals_outage: '官方出狀況',
+    pals_record: '今天用比較多',
+    pals_hello: '早安',
+    pals_late: '凌晨 1:30',
+    pals_christmas: '聖誕節',
+    pals_restart: '重來',
+    pals_frame_title: '絨毛小夥伴互動展示',
+    pals_demo_pace: '照目前速度，約 2 小時後用完',
+    pals_demo_two_hours: '2 小時',
+    pals_demo_one_hour: '1 小時後重置',
+    pals_demo_nine_minutes: '9 分鐘後重置',
+    pals_demo_five_hours: '5 小時後重置',
+    pals_demo_outage: 'Claude 服務異常：重大中斷',
     side_pane_label: '在 CLAUDE CODE 裡',
     side_pane_h2: '你的額度，就在 Claude Code 裡',
     side_pane_lead: '在 macOS 與 Windows 的 Claude Code 裡看額度、對話與背景工作，包含 Agent 工具開的子代理及其狀態。等你回覆權限確認或 MCP 輸入的對話會標黃色。開啟面板後，終端機寬度 ≥144 欄會自動在右邊打開；比較窄時輸入 <code>/usage-dash</code>。別的 Claude 對話完成或開始等你時，會跳出通知。',
@@ -1779,6 +1888,24 @@ const T = {
     latest_all: '看全部文章 →',
   },
   'zh-CN': {
+    pals_title: '绒毛小伙伴，陪你看额度',
+    pals_lead: '一排羊毛毡小动物住在面板底部，跟着你的额度反应：用得太快会跑起来，快用完会提醒你，重置时会欢呼，半夜还在用会催你去睡。按下面的按钮试试看。',
+    pals_pace: '用得太快',
+    pals_near: '快用完了',
+    pals_reset: '额度重置',
+    pals_outage: '官方出状况',
+    pals_record: '今天用得比较多',
+    pals_hello: '早上好',
+    pals_late: '凌晨 1:30',
+    pals_christmas: '圣诞节',
+    pals_restart: '重来',
+    pals_frame_title: '绒毛小伙伴互动展示',
+    pals_demo_pace: '照目前速度，约 2 小时后用完',
+    pals_demo_two_hours: '2 小时',
+    pals_demo_one_hour: '1 小时后重置',
+    pals_demo_nine_minutes: '9 分钟后重置',
+    pals_demo_five_hours: '5 小时后重置',
+    pals_demo_outage: 'Claude 服务异常：重大中断',
     side_pane_label: '在 CLAUDE CODE 中',
     side_pane_h2: '你的额度，就在 Claude Code 中',
     side_pane_lead: '在 macOS 和 Windows 的 Claude Code 中查看额度、对话和后台任务，包括 Agent 工具启动的子代理及其状态。等待你确认权限或提供 MCP 输入的对话会标为黄色。启用面板后，终端宽度 ≥144 列时会自动在右侧打开；较窄时输入 <code>/usage-dash</code>。其他 Claude 对话完成或开始等待你时，会弹出通知。',
@@ -1923,6 +2050,24 @@ const T = {
     latest_all: '查看全部文章 →',
   },
   'ja': {
+    pals_title: 'ぬいぐるみのなかまが、残量を見守ります',
+    pals_lead: 'パネルの下に、フェルトの小さな動物たちが並んでいます。使うペースが速すぎると走り出し、残りが少なくなると知らせ、リセットされると喜び、真夜中まで使っていると早く寝るよう声をかけます。下のボタンを押して試してみてください。',
+    pals_pace: 'ペースが速い',
+    pals_near: 'もうすぐ上限',
+    pals_reset: 'リセット',
+    pals_outage: '障害発生',
+    pals_record: '昨日より多い',
+    pals_hello: 'おはよう',
+    pals_late: '深夜 1:30',
+    pals_christmas: 'クリスマス',
+    pals_restart: '最初から',
+    pals_frame_title: 'ぬいぐるみのなかまの体験デモ',
+    pals_demo_pace: 'このペースでは、あと約2時間で上限に達します',
+    pals_demo_two_hours: '2時間',
+    pals_demo_one_hour: '1時間後にリセット',
+    pals_demo_nine_minutes: '9分後にリセット',
+    pals_demo_five_hours: '5時間後にリセット',
+    pals_demo_outage: 'Claude のサービス状況：大規模障害',
     side_pane_label: 'CLAUDE CODE の中で',
     side_pane_h2: '使用量を Claude Code の中で確認',
     side_pane_lead: 'macOS と Windows の Claude Code 内で、使用量、会話、バックグラウンド作業を確認できます。Agent ツールで起動したサブエージェントとその状態も表示します。権限の確認や MCP への入力を待つ会話は黄色で表示。有効にすると、ターミナル幅が144列以上なら右側に自動で開きます。狭い場合は <code>/usage-dash</code> を入力してください。他の Claude の会話が完了したときや、あなたの入力を待ち始めたときに通知します。',
@@ -2067,6 +2212,24 @@ const T = {
     latest_all: 'すべての記事 →',
   },
   'ko': {
+    pals_title: '봉제 친구들이 사용량을 지켜봐요',
+    pals_lead: '패널 아래쪽에 펠트 동물들이 줄지어 살고 있어요. 너무 빨리 쓰면 뛰어다니고, 거의 다 쓰면 알려 주고, 리셋되면 환호하고, 한밤중까지 쓰고 있으면 이제 자라고 재촉해요. 아래 버튼을 눌러 보세요.',
+    pals_pace: '너무 빨리 씀',
+    pals_near: '거의 다 씀',
+    pals_reset: '리셋',
+    pals_outage: '서비스 장애',
+    pals_record: '어제보다 많이 씀',
+    pals_hello: '좋은 아침',
+    pals_late: '새벽 1:30',
+    pals_christmas: '크리스마스',
+    pals_restart: '처음부터',
+    pals_frame_title: '봉제 친구들 체험 데모',
+    pals_demo_pace: '이 속도라면 약 2시간 후에 사용량이 소진됩니다',
+    pals_demo_two_hours: '2시간',
+    pals_demo_one_hour: '1시간 후 리셋',
+    pals_demo_nine_minutes: '9분 후 리셋',
+    pals_demo_five_hours: '5시간 후 리셋',
+    pals_demo_outage: 'Claude 서비스 상태: 대규모 장애',
     side_pane_label: 'CLAUDE CODE 안에서',
     side_pane_h2: '사용량을 Claude Code 안에서 바로 확인',
     side_pane_lead: 'macOS와 Windows의 Claude Code 안에서 사용량, 대화, 백그라운드 작업을 확인하세요. Agent 도구로 시작한 하위 에이전트와 상태도 표시됩니다. 권한 확인이나 MCP 입력을 기다리는 대화는 노란색으로 표시됩니다. 패널을 켜면 터미널 너비가 144열 이상일 때 오른쪽에 자동으로 열립니다. 좁으면 <code>/usage-dash</code>를 입력하세요. 다른 Claude 대화가 끝나거나 내 입력을 기다리기 시작하면 알림이 뜹니다.',
@@ -2296,6 +2459,7 @@ function applyLang(lang) {
   });
 
   if (typeof window.usagePanelsSetLanguage === 'function') window.usagePanelsSetLanguage(lang);
+  if (typeof window.usagePalsSetLanguage === 'function') window.usagePalsSetLanguage(lang);
 
   const postGroups = [...document.querySelectorAll('.latest-posts[data-posts-lang]')];
   if (postGroups.length) {
@@ -2485,6 +2649,7 @@ if (!prefersReducedMotion && 'IntersectionObserver' in window) {
   window.addEventListener('resize', fit);
 
   window.addEventListener('message', function (event) {
+    if (event.source !== stage.contentWindow) return;
     const height = event.data && event.data.usagePanelHeight;
     if (height) setNaturalHeight(height);
   });
@@ -2670,6 +2835,226 @@ document.querySelectorAll('.copy-btn').forEach(function (button) {
     try { sessionStorage.setItem('usage-stars', String(stars)); } catch (e) { /* ignore */ }
     show(stars);
   }).catch(function () { /* ignore */ });
+})();
+
+(() => {
+  const section = document.getElementById('plush-pals');
+  const frame = section.querySelector('iframe');
+  const zoom = section.querySelector('.pals-zoom');
+  const buttons = [...section.querySelectorAll('[data-scene]')];
+  const startOver = section.querySelector('.pals-start-over');
+  const demoUrl = ROOT + 'pals/felt-demo.html';
+  const now = () => Date.now() / 1000;
+  const known = ['claude', 'codex'];
+  const replayOn = new Set();
+  let language = detectLang();
+  let panel, state, afterLoad, pending;
+
+  function fit() {
+    const width = zoom.parentElement.clientWidth;
+    zoom.style.setProperty('--s', Math.min(2.25, width / 400).toFixed(3));
+  }
+
+  function setEnabled(enabled) {
+    for (const button of [...buttons, startOver]) button.disabled = !enabled;
+  }
+
+  function setRow(card, row, percent, resetsAt) {
+    const quota = state[card][row];
+    quota.percent = percent;
+    quota.percentText = quota.percentText.replace(/[0-9.]+%/, percent + '%');
+    quota.percentTextCompact = percent + '%';
+    if (resetsAt !== undefined) quota.resetsAt = resetsAt;
+  }
+
+  function setSession(percent, seconds, resetText) {
+    setRow('claude', 'session', percent, now() + seconds);
+    Object.assign(state.claude.session, { resetText, resetTextCompact: resetText });
+  }
+
+  const apply = () => panel.usageApplyState(structuredClone(state));
+  const sendLanguage = () => panel.postMessage({ usageDemoLanguage: language }, '*');
+
+  function initScene(event) {
+    if (event.source !== window || event.data?.usageDemoLanguage !== language) return;
+    // The released panel applies its default payload when it receives the language.
+    // Restore the scene baseline after the panel has handled that same message.
+    state = structuredClone(panel.usageDemoPayloads[language]);
+    state.footer.totalsReady = true;
+    state.footer.serviceAlertCards = [];
+    state.footer.serviceKnownCards = known;
+    state.footer.serviceOperationalCards = known;
+    for (const card of ['claude', 'codex', 'agy', 'muse']) {
+      for (const row of ['session', 'weekly']) {
+        if (state[card][row]) state[card][row].resetsAt = now() + 3 * 3600;
+      }
+    }
+    setRow('claude', 'session', 20);
+    setRow('claude', 'weekly', 38);
+    setRow('codex', 'session', 45);
+    replayOn.clear();
+    apply();
+    setEnabled(true);
+    const resume = afterLoad;
+    afterLoad = undefined;
+    resume?.();
+  }
+
+  function reopen(fake, greet = false, resume) {
+    window.__fake = fake;
+    if (greet) {
+      try {
+        panel.localStorage.removeItem('usage-felt-hello');
+        panel.localStorage.removeItem('usage-felt-late');
+      } catch (error) {
+        if (error.name !== 'SecurityError') throw error;
+      }
+    }
+    setEnabled(false);
+    panel = state = undefined;
+    afterLoad = resume;
+    frame.src = demoUrl;
+  }
+
+  function mark(scene) {
+    for (const button of buttons) {
+      button.setAttribute('aria-pressed', String(button.dataset.scene === scene));
+    }
+  }
+
+  function clearPace() {
+    Object.assign(state.claude.session, { warning: false, emptyText: null });
+  }
+
+  function setTokens(amount) {
+    const count = amount.toLocaleString('en-US');
+    const today = state.footer.today;
+    Object.assign(today, { tokensCount: count, tokensText: `${count} ${today.tokensUnit}` });
+  }
+
+  function bringReactionIntoView(scene) {
+    const line = ['hello', 'christmas', 'record'].includes(scene);
+    const target = panel.document.querySelector(line ? '.pals-line' : '[data-card="claude"]');
+    if (!target) return;
+    const stage = frame.getBoundingClientRect();
+    const rect = target.getBoundingClientRect();
+    const scale = stage.width / frame.offsetWidth;
+    const top = document.querySelector('.topbar').offsetHeight;
+    const start = stage.top + rect.top * scale;
+    const end = stage.top + rect.bottom * scale;
+    if (start < top + 12 || end > innerHeight - 12) {
+      window.scrollBy({ top: (start + end - top - innerHeight) / 2, behavior: 'instant' });
+    }
+  }
+
+  function play(scene) {
+    clearTimeout(pending);
+    mark(scene);
+    const show = () => bringReactionIntoView(scene);
+    if (['hello', 'late', 'christmas'].includes(scene)) {
+      const today = new Date();
+      const tomorrow = new Date(Date.now() + 864e5);
+      const fake = {
+        hello: { month: today.getMonth() + 1, day: today.getDate(), hour: 10 },
+        late: { month: tomorrow.getMonth() + 1, day: tomorrow.getDate(), hour: 1 },
+        christmas: { month: 12, day: 24, hour: 10 },
+      };
+      reopen(fake[scene], true, show);
+      return;
+    }
+    if (replayOn.has(scene)) {
+      reopen(window.__fake, false, () => play(scene));
+      return;
+    }
+    const t = T[language];
+    switch (scene) {
+      case 'pace':
+        if (state.claude.session.percent >= 100) setRow('claude', 'session', 20, now() + 3 * 3600);
+        Object.assign(state.claude.session, {
+          warning: true, emptyText: t.pals_demo_two_hours,
+          resetText: t.pals_demo_pace, resetTextCompact: t.pals_demo_pace,
+        });
+        apply();
+        replayOn.add(scene);
+        break;
+      case 'near':
+        clearPace();
+        setSession(100, 3600, t.pals_demo_one_hour);
+        apply();
+        pending = setTimeout(() => {
+          setSession(100, 540, t.pals_demo_nine_minutes);
+          apply();
+          replayOn.add(scene);
+        }, 3000);
+        break;
+      case 'reset': {
+        clearPace();
+        const reset = () => {
+          setSession(0, 5 * 3600, t.pals_demo_five_hours);
+          apply();
+        };
+        if (state.claude.session.percent < 70) {
+          // Give a standalone reset a visible drop from the demo's 20% starting state.
+          setSession(72, 3600, t.pals_demo_one_hour);
+          apply();
+          pending = setTimeout(reset, 650);
+        } else {
+          reset();
+        }
+        break;
+      }
+      case 'outage': {
+        const active = state.footer.serviceAlertCards.length === 0;
+        state.footer.serviceAlertCards = active ? ['claude'] : [];
+        state.footer.serviceAlerts = active ? [t.pals_demo_outage] : [];
+        if (!active) mark();
+        apply();
+        break;
+      }
+      case 'record': {
+        const yesterday = Number(state.footer.yesterday.tokensCount.replace(/\D/g, ''));
+        setTokens(yesterday - 200000);
+        apply();
+        pending = setTimeout(() => {
+          setTokens(yesterday + 350000);
+          apply();
+        }, 1200);
+        break;
+      }
+    }
+    show();
+  }
+
+  window.usagePalsSetLanguage = function (next) {
+    if (next === language) return;
+    language = next;
+    if (!panel) return;
+    clearTimeout(pending);
+    mark();
+    setEnabled(false);
+    sendLanguage();
+  };
+
+  frame.addEventListener('load', () => {
+    const loaded = frame.contentWindow;
+    if (!loaded?.usageDemoPayloads) return;
+    panel = loaded;
+    panel.addEventListener('message', initScene);
+    sendLanguage();
+  });
+  for (const button of buttons) {
+    button.addEventListener('click', () => play(button.dataset.scene));
+  }
+  startOver.addEventListener('click', () => {
+    clearTimeout(pending);
+    mark();
+    reopen(null);
+  });
+
+  fit();
+  window.addEventListener('resize', fit);
+  setEnabled(false);
+  frame.src = demoUrl;
 })();
 
 applyLang(detectLang());
