@@ -86,7 +86,7 @@ uvx usage-cli
 ### 屏幕显示
 
 - **菜单栏监视器：** 配额快用完时变红提醒。点击即可查看完整的会话、每周和各项目明细。macOS 菜单栏最多显示会话用量最高的三家，按 Claude → Codex → Antigravity → Grok → Muse 排列；面板仍显示全部。配额用完后，菜单栏和状态栏改为显示距离恢复的倒计时。
-- **Antigravity 卡片：** 默认显示 Gemini 配额池。点击“Gemini ⇄”标签可依次切换到独立的 Claude / GPT 与 Gemini 4 Argon 配额池，选择会被记住。Argon 只有每周限额。
+- **Antigravity 卡片：** 默认显示 Gemini 配额池。点击“Gemini ⇄”标签可在 Gemini 和 Claude / GPT 之间切换。卡片会记住你的选择。两个配额池各有每周和 5 小时限额。Gemini 4 Argon 与其他 Gemini 模型共享这两种限额。
 - **Grok CLI 卡片：** 从 Grok CLI 本地调试日志读取的每周配额百分比。其 token 用量也会计入费用与项目总计。
 - **Muse Code 卡片：** 显示 5 小时（Session）与每周额度、重置倒计时。15 款额度主题都有，支持菜单栏项目，以及可选的即将耗尽、已耗尽与已恢复通知。没装 Muse 就自动隐藏。token 与费用仍计入今日费用、项目总计、报告与 CLI。
 - **服务故障警示：** 当 Claude Code、Claude API 或 Codex API 发生故障或性能降级时显示橘红横幅，读取自其公开状态页。

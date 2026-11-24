@@ -86,7 +86,7 @@ uvx usage-cli
 ### 畫面上
 
 - **選單列監控：** 額度常駐選單列，快用完時轉紅提醒。點開能看 Session、每週與各專案用量。macOS 選單列最多顯示 Session 用量最高的三家，依 Claude → Codex → Antigravity → Grok → Muse 排列；面板仍顯示全部。額度用完後，選單列與狀態列改顯示距離恢復的倒數。
-- **Antigravity 卡片：** 預設顯示 Gemini 額度。點標題旁的「Gemini ⇄」標籤，會依序切到另外的 Claude / GPT 與 Gemini 4 Argon 額度，選擇會記住。Argon 只有每週限額。
+- **Antigravity 卡片：** 預設顯示 Gemini 額度池。點標題旁的「Gemini ⇄」標籤，可以在 Gemini 和 Claude / GPT 之間切換。卡片會記住你的選擇。兩個額度池各有每週和 5 小時額度。Gemini 4 Argon 與其他 Gemini 模型共用這兩種額度。
 - **Grok CLI 卡片：** 讀 Grok CLI 寫在本機的除錯紀錄，算出每週額度百分比。它的 token 也會算進花費與專案總計。
 - **Muse Code 卡片：** 顯示 5 小時（Session）與每週額度、重置倒數。15 款額度主題都有，支援選單列項目，以及可選的快用完、已用完與已恢復通知。沒裝 Muse 就自動隱藏。token 與花費仍計入今日花費、專案總計、報表與 CLI。
 - **故障警示：** Claude Code、Claude API 或 Codex API 故障或效能降級時，會顯示橘紅警示橫幅，資料讀自官方公開狀態頁。

@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from adapters import rate_limits
+from adapters import agy, rate_limits
 from adapters.types import UsageEntry
 from analyzer import dispatch_ledger as ledger
 from loaders import agy_loader, agy_quota_probe, cache_quarantine, codex_loader
@@ -209,6 +209,68 @@ def test_agy_models_share_group_denominator() -> None:
     estimates, resets = ledger.estimate_sessions(entries, windows, NOW)
     assert estimates[("antigravity", "flash", "antigravity:GEMINI MODELS")] == pytest.approx(20)
     assert estimates[("antigravity", "pro", "antigravity:GEMINI MODELS")] == pytest.approx(40)
+
+
+@pytest.mark.parametrize("previous_argon_pool", [False, True])
+def test_agy_shared_gemini_pool_includes_argon(
+    monkeypatch: pytest.MonkeyPatch, previous_argon_pool: bool
+) -> None:
+    now = datetime.now(UTC)
+    monkeypatch.setattr(rate_limits, "load_rate_limits", lambda: None)
+    monkeypatch.setattr(codex_loader, "load_rate_limits", lambda: None)
+    monkeypatch.setattr(agy_quota_probe, "_group_seen_at", {})
+    if previous_argon_pool:
+        window = agy_quota_probe.AgyQuotaWindow(0, "2h 0m", 120)
+        previous = agy_quota_probe.AgyQuotaResult(
+            [agy_quota_probe.AgyQuotaGroup("GEMINI 4 ARGON", ["Gemini 4 Argon"], window, None)],
+            (now - timedelta(minutes=6)).isoformat(),
+        )
+        agy_quota_probe._carry_missing_groups(previous, None)
+        agy_quota_probe._write_cache(previous)
+
+    probed = agy_quota_probe._build_result(
+        [
+            {
+                "name": "Gemini Models",
+                "description": (
+                    "Models within this group: Gemini 4 Argon, Orchestrator (Carbon), "
+                    "Gemini 3.8 Flash"
+                ),
+                "buckets": [
+                    {
+                        "window": "weekly",
+                        "remaining_fraction": 0.6,
+                        "reset_time": (now + timedelta(days=6)).isoformat(),
+                    }
+                ],
+            }
+        ]
+    )
+    assert probed is not None
+    monkeypatch.setattr(agy_quota_probe, "probe_quota", lambda: probed)
+    loaded = agy_quota_probe.load_quota()
+    assert loaded is not None
+    assert [group.name for group in loaded.groups] == ["GEMINI MODELS"]
+
+    entries = [
+        replace(
+            _entry(now, session, tokens), agent_id="antigravity", model=agy._normalize_model(model)
+        )
+        for session, tokens, model in (
+            ("argon", 8000, "gemini-4-argon-high"),
+            ("flash", 1000, "gemini-3.8-flash-high"),
+            ("orchestrator", 1000, "gemini-pro-orchestrator"),
+        )
+    ]
+    estimates, resets = ledger.estimate_sessions(entries, ledger.load_windows(), now)
+    assert estimates == pytest.approx(
+        {
+            ("antigravity", "argon", "antigravity:GEMINI MODELS"): 32,
+            ("antigravity", "flash", "antigravity:GEMINI MODELS"): 4,
+            ("antigravity", "orchestrator", "antigravity:GEMINI MODELS"): 4,
+        }
+    )
+    assert not resets
 
 
 def test_agy_hyphenated_group_model_matches(

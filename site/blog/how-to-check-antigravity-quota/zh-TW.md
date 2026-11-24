@@ -1,16 +1,13 @@
 ---
 title: 怎麼查 Antigravity（agy）剩多少額度？
-description: 在 Antigravity CLI 輸入 /usage，或在終端機跑 agy -p /usage --output-format json，不用呼叫模型就能查額度。這篇說明三個額度池和重置時間。
+description: 在 Antigravity CLI 輸入 /usage，或在終端機跑 agy -p /usage --output-format json，不用呼叫模型就能查額度。這篇說明兩個額度池各有哪些模型，以及額度何時重置。
 date: 2026-11-23
+updated: 2026-11-24
 tool: antigravity
 related: claude-code-weekly-limit-reset, codex-weekly-limit-early-reset
 ---
 
-**想查 Antigravity（`agy`）剩多少額度，可以在 CLI 裡輸入 `/usage`，或在終端機執行 `agy -p /usage --output-format json`**。第二種方法不會呼叫模型，大約 6 秒就有結果。你的額度分成三個額度池：Gemini Models、Claude and GPT models，以及 Gemini 4 Argon。每個額度池各自計時。2026-11-23 查證。
-
-- `agy -p /usage --output-format json` 會用 JSON 格式列出你的額度，而且不會用掉任何模型額度。
-- Gemini Models 和 Claude and GPT models 各有每週額度和 5 小時額度；Gemini 4 Argon 只有每週額度。
-- 我們實測，5 小時額度從你當天第一次使用時開始計時。Google 的文件沒有寫這一點。
+**想查 Antigravity（`agy`）剩多少額度，可以在 CLI 裡輸入 `/usage`，或在終端機執行 `agy -p /usage --output-format json`**。第二種方法不會呼叫模型，大約 6 秒就有結果。
 
 ## 怎麼在 CLI 或 app 裡查額度？
 
@@ -30,19 +27,18 @@ agy -p /usage --output-format json
 
 我們實測，這個指令不會呼叫模型，大約 6 秒就有結果。Google 的文件分別介紹了互動式的 `/usage`，以及 `agy -p` 搭配 `--output-format json` 的用法，但沒有寫到兩者一起用，也沒有說明存放額度池的 `command.data.groups` 欄位。
 
-![Antigravity 的 JSON 輸出用 groups 列出三個額度池，並用 window、remaining_fraction 和 reset_time 表示額度週期、剩餘比例和補滿時間。](usage-json.svg)
+![Antigravity 的 JSON 輸出用 groups 列出兩個額度池，並顯示 Gemini 每週額度的週期、剩餘比例和補滿時間。](usage-json.svg)
 
-## 三個額度池怎麼分？計時會互相影響嗎？
+## 哪些模型共用額度？
 
-`command.data.groups` 欄位裡列了三個額度池，每個都各自計時：
+`command.data.groups` 欄位列出兩個額度池。同一池的模型共用每週和 5 小時額度。兩個額度池各自計時。我們在 2026-11-24 用 Antigravity CLI 1.5.16 確認了這份分組。
 
-| 額度池 | 有哪些額度 | 和其他額度池共用計時嗎？ | Google 文件有說明嗎？ |
-| --- | --- | --- | --- |
-| `Gemini Models` | 每週和 5 小時 | 不共用 | 部分有。文件說 Gemini Flash 和 Pro 共用額度 |
-| `Claude and GPT models` | 每週和 5 小時 | 不共用 | 部分有。文件說 Claude 和 GPT 模型共用額度 |
-| `Gemini 4 Argon` | 只有每週 | 不共用 | 沒有 |
+| 額度池 | 模型 | 共用額度 |
+| --- | --- | --- |
+| `Gemini Models` | Gemini 4 Neon、Gemini 4 Carbon、Gemini 4 Argon、Gemini 4 Hydrogen、Orchestrator（Neon、Carbon、Argon）、Gemini 3.8 Flash | 每週和 5 小時 |
+| `Claude and GPT models` | Claude Opus 5.5、Claude Sonnet 5.5、GPT-OSS 120B | 每週和 5 小時 |
 
-所以就算你用完了 Gemini Models 的 5 小時額度，Claude and GPT models 和 Gemini 4 Argon 的額度還是滿的。
+例如，如果你用 Neon 耗盡 Gemini 額度池的 5 小時額度，Argon 也會達到上限。Claude 和 GPT 模型仍可使用自己額度池的剩餘額度。
 
 ## 5 小時和每週額度什麼時候重置？
 
@@ -59,14 +55,14 @@ Google 也說，額度用掉的速度要看代理做了多少工作：簡單的�
 有兩種官方的免費查法。想讓數字一直顯示在畫面上，還有第三種做法：
 
 - **`/usage` 或 Settings**：在 `agy` 輸入 `/usage` 打開 Models & Quota 面板，或打開 app 的 Settings 頁面。
-- **`agy -p /usage --output-format json`**：從 `command.data.groups` 讀三個額度池。
-- **usage**：`usage` 是免費開源的 app。它用 `agy -p /usage` 讀額度；如果讀不到，就改用 Antigravity CLI 已經存好的登入資料，向 Google 的額度服務查詢。它會把 5 小時和每週額度連同倒數，顯示在 macOS 選單列或 Windows 系統匣。Antigravity 卡片預設顯示 Gemini 額度池；點一下 `Gemini ⇄` 標籤，可以切換到 Claude / GPT 或 Gemini 4 Argon 額度池，卡片會記住你的選擇。額度快用完時數字會變紅；你也可以在用到 50%、70%、80%、90% 或 95% 時收到通知，預設是 90%。
+- **`agy -p /usage --output-format json`**。從 `command.data.groups` 讀取兩個額度池。
+- **usage**。`usage` 是免費開源的 app。它用 `agy -p /usage` 讀額度；如果讀不到，就改用 Antigravity CLI 已經存好的登入資料，向 Google 的額度服務查詢。它會把 5 小時和每週額度連同倒數，顯示在 macOS 選單列或 Windows 系統匣。Antigravity 卡片預設顯示 Gemini 額度池。點一下 `Gemini ⇄` 標籤，可以在 Gemini 和 Claude / GPT 之間切換。卡片會記住你的選擇。額度快用完時數字會變紅；你也可以在用到 50%、70%、80%、90% 或 95% 時收到通知，預設是 90%。
 
 ## 重點整理
 
 - 在 Antigravity CLI 輸入 `/usage` 可以打開額度面板；執行 `agy -p /usage --output-format json`，不用呼叫模型就能拿到一樣的資料。
-- 額度分成三個額度池：Gemini Models 和 Claude and GPT models 有每週和 5 小時額度，Gemini 4 Argon 只有每週額度。每個額度池各自計時。
-- 我們實測，5 小時額度從當天第一次使用開始計時。`usage` 會把三個額度池連同倒數，顯示在選單列或系統匣。
+- Gemini Models 和 Claude and GPT models 各有每週和 5 小時額度。Gemini 4 Argon 與其他 Gemini 模型共用這兩種額度。
+- `usage` 會在選單列或系統匣顯示兩個額度池和重置倒數。
 
 ## 資料來源
 

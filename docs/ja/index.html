@@ -1180,8 +1180,8 @@ footer .kofi:hover { background: var(--accent-hover); }
       </div>
       <div class="card bento-item">
         <span class="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h16m-4-4 4 4-4 4M20 17H4m4-4-4 4 4 4"/></svg></span>
-        <h3 data-i18n="pools_h">Antigravityの3つのクォータプール</h3>
-        <p data-i18n="pools_p">既定でGeminiプールを表示します。<code>Gemini ⇄</code> タグをタップするたびに独立したClaude / GPTプール、Gemini 4 Argonプールへ順に切り替わり、選択は記憶されます。Argonは週ごとの上限のみです。</p>
+        <h3 data-i18n="pools_h">Antigravityの2つのクォータプール</h3>
+        <p data-i18n="pools_p">既定でGeminiプールを表示します。<code>Gemini ⇄</code> タグをタップすると、GeminiプールとClaude / GPTプールを切り替えられます。カードは選択を記憶します。各プールに週ごとと5時間ごとの上限があります。Gemini 4 Argonは他のGeminiモデルと両方の上限を共有します。</p>
       </div>
       <div class="card bento-item">
         <span class="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 10 18H2L12 3Z"/><path d="M12 9v4m0 4h.01"/></svg></span>
@@ -1395,7 +1395,7 @@ footer .kofi:hover { background: var(--accent-hover); }
       <a class="latest-post" href="../blog/how-to-check-antigravity-quota/">
         <time datetime="2026-11-23">2026-11-23</time>
         <h3>How to Check Your Antigravity (agy) Quota</h3>
-        <p>Type /usage in the Antigravity CLI, or run agy -p /usage --output-format json to get your quota without calling a model. Here are the three quota pools and when they reset.</p>
+        <p>Type /usage in the Antigravity CLI, or run agy -p /usage --output-format json to get your quota without calling a model. See which models share each of the two quota pools and when they reset.</p>
       </a>
       <a class="latest-post" href="../blog/codex-weekly-limit-early-reset/">
         <time datetime="2026-11-23">2026-11-23</time>
@@ -1571,8 +1571,8 @@ const T = {
     nav_blog_href: 'blog/',
     grp_panel_h: 'Menu bar &amp; panel',
     grp_panel_sub: 'More than a percentage',
-    pools_h: 'Antigravity’s three quota pools',
-    pools_p: 'The card shows the Gemini pool by default. Tap the <code>Gemini ⇄</code> tag to cycle through the separate Claude / GPT and Gemini 4 Argon pools; the choice is remembered. Argon has a weekly limit only.',
+    pools_h: 'Antigravity’s two quota pools',
+    pools_p: 'The card shows the Gemini pool by default. Tap the <code>Gemini ⇄</code> tag to switch between Gemini and Claude / GPT. The card remembers your choice. Both pools have weekly and 5-hour limits. Gemini 4 Argon shares both limits with the other Gemini models.',
     outage_h: 'Outage alerts',
     outage_p: 'An orange-red banner appears when Claude Code, Claude API, or Codex API is down or degraded, read from their public status pages. Antigravity has no public status page, so it isn’t covered.',
     notifications_h: 'Quota notifications at thresholds you pick',
@@ -1715,8 +1715,8 @@ const T = {
     nav_blog_href: 'zh-TW/blog/',
     grp_panel_h: '選單列與面板',
     grp_panel_sub: '除了百分比，還會告訴你這些',
-    pools_h: 'Antigravity 的三個額度池',
-    pools_p: '卡片預設顯示 Gemini 額度。點標題旁的「Gemini ⇄」標籤，會依序切到另外的 Claude / GPT 與 Gemini 4 Argon 額度，選擇會記住。Argon 只有每週限額。',
+    pools_h: 'Antigravity 的兩個額度池',
+    pools_p: '卡片預設顯示 Gemini 額度池。點標題旁的「Gemini ⇄」標籤，可以在 Gemini 和 Claude / GPT 之間切換。卡片會記住你的選擇。兩個額度池各有每週和 5 小時額度。Gemini 4 Argon 與其他 Gemini 模型共用這兩種額度。',
     outage_h: '故障警示',
     outage_p: 'Claude Code、Claude API 或 Codex API 故障或效能降級時，會顯示橘紅警示橫幅，資料讀自官方公開狀態頁。Antigravity 沒有公開狀態頁，所以不涵蓋。',
     notifications_h: '額度通知，門檻自己選',
@@ -1859,8 +1859,8 @@ const T = {
     nav_blog_href: 'blog/',
     grp_panel_h: '菜单栏与面板',
     grp_panel_sub: '除了百分比，还会告诉你这些',
-    pools_h: 'Antigravity 的三个配额池',
-    pools_p: '卡片默认显示 Gemini 配额池。点击“Gemini ⇄”标签可依次切换到独立的 Claude / GPT 与 Gemini 4 Argon 配额池，选择会被记住。Argon 只有每周限额。',
+    pools_h: 'Antigravity 的两个配额池',
+    pools_p: '卡片默认显示 Gemini 配额池。点击“Gemini ⇄”标签可在 Gemini 和 Claude / GPT 之间切换。卡片会记住你的选择。两个配额池各有每周和 5 小时限额。Gemini 4 Argon 与其他 Gemini 模型共享这两种限额。',
     outage_h: '服务故障警示',
     outage_p: '当 Claude Code、Claude API 或 Codex API 发生故障或性能降级时显示橘红横幅，读取自其公开状态页。Antigravity 没有公开状态页，因此不在覆盖范围内。',
     notifications_h: '额度通知，阈值自己选',
@@ -2003,8 +2003,8 @@ const T = {
     nav_blog_href: 'blog/',
     grp_panel_h: 'メニューバーとパネル',
     grp_panel_sub: '割合だけではわからないことも',
-    pools_h: 'Antigravityの3つのクォータプール',
-    pools_p: '既定でGeminiプールを表示します。<code>Gemini ⇄</code> タグをタップするたびに独立したClaude / GPTプール、Gemini 4 Argonプールへ順に切り替わり、選択は記憶されます。Argonは週ごとの上限のみです。',
+    pools_h: 'Antigravityの2つのクォータプール',
+    pools_p: '既定でGeminiプールを表示します。<code>Gemini ⇄</code> タグをタップすると、GeminiプールとClaude / GPTプールを切り替えられます。カードは選択を記憶します。各プールに週ごとと5時間ごとの上限があります。Gemini 4 Argonは他のGeminiモデルと両方の上限を共有します。',
     outage_h: '障害アラート',
     outage_p: 'Claude Code、Claude API、またはCodex APIで障害やパフォーマンス低下が発生した場合、公開ステータスページから読み取ってオレンジ赤色のバナーを表示します。Antigravityには公開ステータスページがないため、対象外です。',
     notifications_h: 'しきい値を選べるクォータ通知',
@@ -2147,8 +2147,8 @@ const T = {
     nav_blog_href: 'blog/',
     grp_panel_h: '메뉴 막대와 패널',
     grp_panel_sub: '사용률 외에도 알려 주는 것들',
-    pools_h: 'Antigravity의 세 가지 할당량 풀',
-    pools_p: '기본적으로 Gemini 풀을 표시합니다. <code>Gemini ⇄</code> 태그를 누를 때마다 별도의 Claude / GPT 풀과 Gemini 4 Argon 풀로 차례로 전환되며 선택이 기억됩니다. Argon은 주간 한도만 있습니다.',
+    pools_h: 'Antigravity의 두 가지 할당량 풀',
+    pools_p: '기본적으로 Gemini 풀을 표시합니다. <code>Gemini ⇄</code> 태그를 누르면 Gemini 풀과 Claude / GPT 풀 사이를 전환할 수 있습니다. 카드는 선택을 기억합니다. 각 풀에는 주간 한도와 5시간 한도가 있습니다. Gemini 4 Argon은 다른 Gemini 모델과 두 한도를 모두 공유합니다.',
     outage_h: '서비스 장애 경고',
     outage_p: 'Claude Code, Claude API 또는 Codex API에 장애나 성능 저하가 발생하면 공개 상태 페이지에서 읽어온 주황색/빨간색 경고 배너가 표시됩니다. Antigravity는 공개 상태 페이지가 없어 대상에 포함되지 않습니다.',
     notifications_h: '기준을 직접 고르는 할당량 알림',

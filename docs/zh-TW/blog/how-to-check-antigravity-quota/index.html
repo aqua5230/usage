@@ -6,9 +6,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <meta name="theme-color" content="#0a0a0a" />
 <title>怎麼查 Antigravity（agy）剩多少額度？ — usage</title>
-<meta name="description" content="在 Antigravity CLI 輸入 /usage，或在終端機跑 agy -p /usage --output-format json，不用呼叫模型就能查額度。這篇說明三個額度池和重置時間。" />
+<meta name="description" content="在 Antigravity CLI 輸入 /usage，或在終端機跑 agy -p /usage --output-format json，不用呼叫模型就能查額度。這篇說明兩個額度池各有哪些模型，以及額度何時重置。" />
 <meta property="og:title" content="怎麼查 Antigravity（agy）剩多少額度？ — usage" />
-<meta property="og:description" content="在 Antigravity CLI 輸入 /usage，或在終端機跑 agy -p /usage --output-format json，不用呼叫模型就能查額度。這篇說明三個額度池和重置時間。" />
+<meta property="og:description" content="在 Antigravity CLI 輸入 /usage，或在終端機跑 agy -p /usage --output-format json，不用呼叫模型就能查額度。這篇說明兩個額度池各有哪些模型，以及額度何時重置。" />
 <meta property="og:image" content="https://aqua5230.github.io/usage/og-image.jpg?v=20261120b" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
@@ -27,10 +27,10 @@
   "@context": "https://schema.org",
   "@type": "Article",
   "headline": "怎麼查 Antigravity（agy）剩多少額度？",
-  "description": "在 Antigravity CLI 輸入 /usage，或在終端機跑 agy -p /usage --output-format json，不用呼叫模型就能查額度。這篇說明三個額度池和重置時間。",
+  "description": "在 Antigravity CLI 輸入 /usage，或在終端機跑 agy -p /usage --output-format json，不用呼叫模型就能查額度。這篇說明兩個額度池各有哪些模型，以及額度何時重置。",
   "image": "https://aqua5230.github.io/usage/og-image.jpg?v=20261120b",
   "datePublished": "2026-11-23",
-  "dateModified": "2026-11-23",
+  "dateModified": "2026-11-24",
   "inLanguage": "zh-TW",
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -574,7 +574,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
         <ol class="toc-list">
           <li><a href="#怎麼在-cli-或-app-裡查額度">怎麼在 CLI 或 app 裡查額度？</a></li>
           <li><a href="#怎麼不呼叫模型直接拿到-json-格式的額度">怎麼不呼叫模型，直接拿到 JSON 格式的額度？</a></li>
-          <li><a href="#三個額度池怎麼分計時會互相影響嗎">三個額度池怎麼分？計時會互相影響嗎？</a></li>
+          <li><a href="#哪些模型共用額度">哪些模型共用額度？</a></li>
           <li><a href="#5-小時和每週額度什麼時候重置">5 小時和每週額度什麼時候重置？</a></li>
           <li><a href="#怎麼讓-antigravity-的額度一直顯示在畫面上">怎麼讓 Antigravity 的額度一直顯示在畫面上？</a></li>
           <li><a href="#重點整理">重點整理</a></li>
@@ -586,9 +586,10 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
         <header class="post-header">
           <div class="post-meta">
             <span>發布於 <time datetime="2026-11-23">2026-11-23</time></span>
+            <span>更新於 <time datetime="2026-11-24">2026-11-24</time></span>
           </div>
           <h1>怎麼查 Antigravity（agy）剩多少額度？</h1>
-          <p class="post-desc">在 Antigravity CLI 輸入 /usage，或在終端機跑 agy -p /usage --output-format json，不用呼叫模型就能查額度。這篇說明三個額度池和重置時間。</p>
+          <p class="post-desc">在 Antigravity CLI 輸入 /usage，或在終端機跑 agy -p /usage --output-format json，不用呼叫模型就能查額度。這篇說明兩個額度池各有哪些模型，以及額度何時重置。</p>
         </header>
         <details class="toc-mobile">
           <summary>本文目錄</summary>
@@ -596,7 +597,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
         <ol class="toc-list">
           <li><a href="#怎麼在-cli-或-app-裡查額度">怎麼在 CLI 或 app 裡查額度？</a></li>
           <li><a href="#怎麼不呼叫模型直接拿到-json-格式的額度">怎麼不呼叫模型，直接拿到 JSON 格式的額度？</a></li>
-          <li><a href="#三個額度池怎麼分計時會互相影響嗎">三個額度池怎麼分？計時會互相影響嗎？</a></li>
+          <li><a href="#哪些模型共用額度">哪些模型共用額度？</a></li>
           <li><a href="#5-小時和每週額度什麼時候重置">5 小時和每週額度什麼時候重置？</a></li>
           <li><a href="#怎麼讓-antigravity-的額度一直顯示在畫面上">怎麼讓 Antigravity 的額度一直顯示在畫面上？</a></li>
           <li><a href="#重點整理">重點整理</a></li>
@@ -605,7 +606,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
           </nav>
         </details>
         <div class="prose">
-<p><strong>想查 Antigravity（<code>agy</code>）剩多少額度，可以在 CLI 裡輸入 <code>/usage</code>，或在終端機執行 <code>agy -p /usage --output-format json</code></strong>。第二種方法不會呼叫模型，大約 6 秒就有結果。你的額度分成三個額度池：Gemini Models、Claude and GPT models，以及 Gemini 4 Argon。每個額度池各自計時。2026-11-23 查證。</p>
+<p><strong>想查 Antigravity（<code>agy</code>）剩多少額度，可以在 CLI 裡輸入 <code>/usage</code>，或在終端機執行 <code>agy -p /usage --output-format json</code></strong>。第二種方法不會呼叫模型，大約 6 秒就有結果。</p>
 <aside class="blog-cta-card">
   <h2>在選單列掌握你的 AI 開發配額</h2>
   <p>usage 是一款免費、開源（AGPL-3.0）的用量工具，提供 macOS 選單列、Windows 系統匣與終端機 TUI，支援 Claude Code、Codex、Antigravity、Grok 與 Muse。</p>
@@ -614,11 +615,6 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
     <a class="btn btn-secondary" href="https://github.com/aqua5230/usage" target="_blank" rel="noopener">GitHub</a>
   </div>
 </aside>
-<ul>
-<li><code>agy -p /usage --output-format json</code> 會用 JSON 格式列出你的額度，而且不會用掉任何模型額度。</li>
-<li>Gemini Models 和 Claude and GPT models 各有每週額度和 5 小時額度；Gemini 4 Argon 只有每週額度。</li>
-<li>我們實測，5 小時額度從你當天第一次使用時開始計時。Google 的文件沒有寫這一點。</li>
-</ul>
 <h2 id="怎麼在-cli-或-app-裡查額度">怎麼在 CLI 或 app 裡查額度？</h2>
 <p>Google 的文件提供兩種內建查法，可以看基本額度和 AI 點數。</p>
 <p>第一種在 CLI 裡。在互動模式輸入 <code>/usage</code>（或 <code>/quota</code>）再按 Enter。Google 的 CLI 文件說，這個指令會從伺服器重新抓額度，然後打開 <strong>Models &amp; Quota</strong> 面板。你可以用方向鍵或 <code>J</code>、<code>K</code> 捲動，用 <code>G</code> 和 <code>Shift + G</code> 跳到最上面或最下面，按 <code>Esc</code> 或 <code>Q</code> 關掉面板。狀態列右邊也會顯示你還剩多少 AI 點數，快用完時會特別標出來。想看點數的詳細面板，就輸入 <code>/credits</code>。</p>
@@ -628,40 +624,31 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <pre><code class="language-bash">agy -p /usage --output-format json
 </code></pre>
 <p>我們實測，這個指令不會呼叫模型，大約 6 秒就有結果。Google 的文件分別介紹了互動式的 <code>/usage</code>，以及 <code>agy -p</code> 搭配 <code>--output-format json</code> 的用法，但沒有寫到兩者一起用，也沒有說明存放額度池的 <code>command.data.groups</code> 欄位。</p>
-<p><img src="../../../blog/how-to-check-antigravity-quota/usage-json.svg" alt="Antigravity 的 JSON 輸出用 groups 列出三個額度池，並用 window、remaining_fraction 和 reset_time 表示額度週期、剩餘比例和補滿時間。" /></p>
-<h2 id="三個額度池怎麼分計時會互相影響嗎">三個額度池怎麼分？計時會互相影響嗎？</h2>
-<p><code>command.data.groups</code> 欄位裡列了三個額度池，每個都各自計時：</p>
+<p><img src="../../../blog/how-to-check-antigravity-quota/usage-json.svg" alt="Antigravity 的 JSON 輸出用 groups 列出兩個額度池，並顯示 Gemini 每週額度的週期、剩餘比例和補滿時間。" /></p>
+<h2 id="哪些模型共用額度">哪些模型共用額度？</h2>
+<p><code>command.data.groups</code> 欄位列出兩個額度池。同一池的模型共用每週和 5 小時額度。兩個額度池各自計時。我們在 2026-11-24 用 Antigravity CLI 1.5.16 確認了這份分組。</p>
 <table>
 <thead>
 <tr>
 <th>額度池</th>
-<th>有哪些額度</th>
-<th>和其他額度池共用計時嗎？</th>
-<th>Google 文件有說明嗎？</th>
+<th>模型</th>
+<th>共用額度</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>Gemini Models</code></td>
+<td>Gemini 4 Neon、Gemini 4 Carbon、Gemini 4 Argon、Gemini 4 Hydrogen、Orchestrator（Neon、Carbon、Argon）、Gemini 3.8 Flash</td>
 <td>每週和 5 小時</td>
-<td>不共用</td>
-<td>部分有。文件說 Gemini Flash 和 Pro 共用額度</td>
 </tr>
 <tr>
 <td><code>Claude and GPT models</code></td>
+<td>Claude Opus 5.5、Claude Sonnet 5.5、GPT-OSS 120B</td>
 <td>每週和 5 小時</td>
-<td>不共用</td>
-<td>部分有。文件說 Claude 和 GPT 模型共用額度</td>
-</tr>
-<tr>
-<td><code>Gemini 4 Argon</code></td>
-<td>只有每週</td>
-<td>不共用</td>
-<td>沒有</td>
 </tr>
 </tbody>
 </table>
-<p>所以就算你用完了 Gemini Models 的 5 小時額度，Claude and GPT models 和 Gemini 4 Argon 的額度還是滿的。</p>
+<p>例如，如果你用 Neon 耗盡 Gemini 額度池的 5 小時額度，Argon 也會達到上限。Claude 和 GPT 模型仍可使用自己額度池的剩餘額度。</p>
 <h2 id="5-小時和每週額度什麼時候重置">5 小時和每週額度什麼時候重置？</h2>
 <p>Google 的 <strong>Plans</strong> 頁面說，重置頻率要看你的 Google AI 方案：</p>
 <ul>
@@ -674,14 +661,14 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <p>有兩種官方的免費查法。想讓數字一直顯示在畫面上，還有第三種做法：</p>
 <ul>
 <li><strong><code>/usage</code> 或 Settings</strong>：在 <code>agy</code> 輸入 <code>/usage</code> 打開 Models &amp; Quota 面板，或打開 app 的 Settings 頁面。</li>
-<li><strong><code>agy -p /usage --output-format json</code></strong>：從 <code>command.data.groups</code> 讀三個額度池。</li>
-<li><strong>usage</strong>：<code>usage</code> 是免費開源的 app。它用 <code>agy -p /usage</code> 讀額度；如果讀不到，就改用 Antigravity CLI 已經存好的登入資料，向 Google 的額度服務查詢。它會把 5 小時和每週額度連同倒數，顯示在 macOS 選單列或 Windows 系統匣。Antigravity 卡片預設顯示 Gemini 額度池；點一下 <code>Gemini ⇄</code> 標籤，可以切換到 Claude / GPT 或 Gemini 4 Argon 額度池，卡片會記住你的選擇。額度快用完時數字會變紅；你也可以在用到 50%、70%、80%、90% 或 95% 時收到通知，預設是 90%。</li>
+<li><strong><code>agy -p /usage --output-format json</code></strong>。從 <code>command.data.groups</code> 讀取兩個額度池。</li>
+<li><strong>usage</strong>。<code>usage</code> 是免費開源的 app。它用 <code>agy -p /usage</code> 讀額度；如果讀不到，就改用 Antigravity CLI 已經存好的登入資料，向 Google 的額度服務查詢。它會把 5 小時和每週額度連同倒數，顯示在 macOS 選單列或 Windows 系統匣。Antigravity 卡片預設顯示 Gemini 額度池。點一下 <code>Gemini ⇄</code> 標籤，可以在 Gemini 和 Claude / GPT 之間切換。卡片會記住你的選擇。額度快用完時數字會變紅；你也可以在用到 50%、70%、80%、90% 或 95% 時收到通知，預設是 90%。</li>
 </ul>
 <h2 id="重點整理">重點整理</h2>
 <ul>
 <li>在 Antigravity CLI 輸入 <code>/usage</code> 可以打開額度面板；執行 <code>agy -p /usage --output-format json</code>，不用呼叫模型就能拿到一樣的資料。</li>
-<li>額度分成三個額度池：Gemini Models 和 Claude and GPT models 有每週和 5 小時額度，Gemini 4 Argon 只有每週額度。每個額度池各自計時。</li>
-<li>我們實測，5 小時額度從當天第一次使用開始計時。<code>usage</code> 會把三個額度池連同倒數，顯示在選單列或系統匣。</li>
+<li>Gemini Models 和 Claude and GPT models 各有每週和 5 小時額度。Gemini 4 Argon 與其他 Gemini 模型共用這兩種額度。</li>
+<li><code>usage</code> 會在選單列或系統匣顯示兩個額度池和重置倒數。</li>
 </ul>
 <h2 id="資料來源">資料來源</h2>
 <ul>

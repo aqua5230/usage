@@ -6,9 +6,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <meta name="theme-color" content="#0a0a0a" />
 <title>How to Check Your Antigravity (agy) Quota — usage</title>
-<meta name="description" content="Type /usage in the Antigravity CLI, or run agy -p /usage --output-format json to get your quota without calling a model. Here are the three quota pools and when they reset." />
+<meta name="description" content="Type /usage in the Antigravity CLI, or run agy -p /usage --output-format json to get your quota without calling a model. See which models share each of the two quota pools and when they reset." />
 <meta property="og:title" content="How to Check Your Antigravity (agy) Quota — usage" />
-<meta property="og:description" content="Type /usage in the Antigravity CLI, or run agy -p /usage --output-format json to get your quota without calling a model. Here are the three quota pools and when they reset." />
+<meta property="og:description" content="Type /usage in the Antigravity CLI, or run agy -p /usage --output-format json to get your quota without calling a model. See which models share each of the two quota pools and when they reset." />
 <meta property="og:image" content="https://aqua5230.github.io/usage/og-image.jpg?v=20261120b" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
@@ -27,10 +27,10 @@
   "@context": "https://schema.org",
   "@type": "Article",
   "headline": "How to Check Your Antigravity (agy) Quota",
-  "description": "Type /usage in the Antigravity CLI, or run agy -p /usage --output-format json to get your quota without calling a model. Here are the three quota pools and when they reset.",
+  "description": "Type /usage in the Antigravity CLI, or run agy -p /usage --output-format json to get your quota without calling a model. See which models share each of the two quota pools and when they reset.",
   "image": "https://aqua5230.github.io/usage/og-image.jpg?v=20261120b",
   "datePublished": "2026-11-23",
-  "dateModified": "2026-11-23",
+  "dateModified": "2026-11-24",
   "inLanguage": "en",
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -574,7 +574,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
         <ol class="toc-list">
           <li><a href="#how-do-you-check-your-quota-in-the-cli-or-the-app">How do you check your quota in the CLI or the app?</a></li>
           <li><a href="#how-do-you-get-your-quota-as-json-without-calling-a-model">How do you get your quota as JSON without calling a model?</a></li>
-          <li><a href="#what-are-the-three-quota-pools-and-do-they-share-a-timer">What are the three quota pools, and do they share a timer?</a></li>
+          <li><a href="#which-models-share-quota">Which models share quota?</a></li>
           <li><a href="#when-do-the-5-hour-and-weekly-limits-reset">When do the 5-hour and weekly limits reset?</a></li>
           <li><a href="#how-can-you-keep-your-antigravity-quota-on-screen">How can you keep your Antigravity quota on screen?</a></li>
           <li><a href="#key-takeaways">Key takeaways</a></li>
@@ -586,9 +586,10 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
         <header class="post-header">
           <div class="post-meta">
             <span>Published <time datetime="2026-11-23">2026-11-23</time></span>
+            <span>Updated <time datetime="2026-11-24">2026-11-24</time></span>
           </div>
           <h1>How to Check Your Antigravity (agy) Quota</h1>
-          <p class="post-desc">Type /usage in the Antigravity CLI, or run agy -p /usage --output-format json to get your quota without calling a model. Here are the three quota pools and when they reset.</p>
+          <p class="post-desc">Type /usage in the Antigravity CLI, or run agy -p /usage --output-format json to get your quota without calling a model. See which models share each of the two quota pools and when they reset.</p>
         </header>
         <details class="toc-mobile">
           <summary>In this article</summary>
@@ -596,7 +597,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
         <ol class="toc-list">
           <li><a href="#how-do-you-check-your-quota-in-the-cli-or-the-app">How do you check your quota in the CLI or the app?</a></li>
           <li><a href="#how-do-you-get-your-quota-as-json-without-calling-a-model">How do you get your quota as JSON without calling a model?</a></li>
-          <li><a href="#what-are-the-three-quota-pools-and-do-they-share-a-timer">What are the three quota pools, and do they share a timer?</a></li>
+          <li><a href="#which-models-share-quota">Which models share quota?</a></li>
           <li><a href="#when-do-the-5-hour-and-weekly-limits-reset">When do the 5-hour and weekly limits reset?</a></li>
           <li><a href="#how-can-you-keep-your-antigravity-quota-on-screen">How can you keep your Antigravity quota on screen?</a></li>
           <li><a href="#key-takeaways">Key takeaways</a></li>
@@ -605,7 +606,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
           </nav>
         </details>
         <div class="prose">
-<p><strong>To check your Antigravity (<code>agy</code>) quota, type <code>/usage</code> in the CLI, or run <code>agy -p /usage --output-format json</code> in your terminal.</strong> The second command does not call a model, and it returns in about 6 seconds. Your quota is split into three pools: Gemini Models, Claude and GPT models, and Gemini 4 Argon. Each pool keeps its own timer. Checked on 2026-11-23.</p>
+<p><strong>To check your Antigravity (<code>agy</code>) quota, type <code>/usage</code> in the CLI, or run <code>agy -p /usage --output-format json</code> in your terminal.</strong> The second command does not call a model, and it returns in about 6 seconds.</p>
 <aside class="blog-cta-card">
   <h2>Track your AI coding quotas in the menu bar</h2>
   <p>usage is a free, open-source (AGPL-3.0) app for macOS menu bar, Windows tray, and terminal TUI supporting Claude Code, Codex, Antigravity, Grok, and Muse.</p>
@@ -614,11 +615,6 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
     <a class="btn btn-secondary" href="https://github.com/aqua5230/usage" target="_blank" rel="noopener">GitHub</a>
   </div>
 </aside>
-<ul>
-<li><code>agy -p /usage --output-format json</code> gives you your quota as JSON, and it does not use any model quota.</li>
-<li>Gemini Models and Claude and GPT models each have a weekly limit and a 5-hour limit. Gemini 4 Argon has a weekly limit only.</li>
-<li>In our testing, the 5-hour window starts with your first use of the day. Google's docs don't say this.</li>
-</ul>
 <h2 id="how-do-you-check-your-quota-in-the-cli-or-the-app">How do you check your quota in the CLI or the app?</h2>
 <p>Google documents two built-in ways to see your baseline quota and your AI credits.</p>
 <p>The first is the CLI. In an interactive session, type <code>/usage</code> (or <code>/quota</code>) and press Enter. Google's CLI docs say this refreshes your quota from the backend and opens a <strong>Models &amp; Quota</strong> panel. You can scroll with the arrow keys or <code>J</code> and <code>K</code>, jump with <code>G</code> and <code>Shift + G</code>, and close the panel with <code>Esc</code> or <code>Q</code>. The right side of the status line also shows how many AI credits you have left, and it highlights the number when you are running low. To open a separate credits panel, type <code>/credits</code>.</p>
@@ -628,40 +624,31 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <pre><code class="language-bash">agy -p /usage --output-format json
 </code></pre>
 <p>In our testing, this command makes no model call and returns in about 6 seconds. Google documents <code>/usage</code> as an interactive command, and it documents <code>agy -p</code> with <code>--output-format json</code>. It does not document using the two together, and it does not describe the <code>command.data.groups</code> field that holds the pools.</p>
-<p><img src="usage-json-en.svg" alt="Antigravity’s JSON output lists three quota pools in groups and reports the quota window, fraction remaining, and refill time in window, remaining_fraction, and reset_time." /></p>
-<h2 id="what-are-the-three-quota-pools-and-do-they-share-a-timer">What are the three quota pools, and do they share a timer?</h2>
-<p>The <code>command.data.groups</code> field lists three pools. Each one keeps its own timer:</p>
+<p><img src="usage-json-en.svg" alt="Antigravity’s JSON output lists two quota pools in groups and shows the window, fraction remaining, and refill time for the Gemini weekly limit." /></p>
+<h2 id="which-models-share-quota">Which models share quota?</h2>
+<p>The <code>command.data.groups</code> field lists two pools. Models in the same pool share a weekly limit and a 5-hour limit. Each pool resets on its own schedule. We verified the groups with Antigravity CLI 1.5.16 on 2026-11-24.</p>
 <table>
 <thead>
 <tr>
 <th>Pool</th>
-<th>Limits</th>
-<th>Shares a timer with the others?</th>
-<th>Covered in Google's docs?</th>
+<th>Models</th>
+<th>Shared limits</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>Gemini Models</code></td>
+<td>Gemini 4 Neon, Gemini 4 Carbon, Gemini 4 Argon, Gemini 4 Hydrogen, Orchestrator (Neon, Carbon, Argon), Gemini 3.8 Flash</td>
 <td>Weekly and 5-hour</td>
-<td>No</td>
-<td>Partly. The docs say Gemini Flash and Pro share limits</td>
 </tr>
 <tr>
 <td><code>Claude and GPT models</code></td>
+<td>Claude Opus 5.5, Claude Sonnet 5.5, GPT-OSS 120B</td>
 <td>Weekly and 5-hour</td>
-<td>No</td>
-<td>Partly. The docs say Claude and GPT models share limits</td>
-</tr>
-<tr>
-<td><code>Gemini 4 Argon</code></td>
-<td>Weekly only</td>
-<td>No</td>
-<td>No</td>
 </tr>
 </tbody>
 </table>
-<p>So if you use up the 5-hour limit on Gemini Models, your Claude and GPT models pool and your Gemini 4 Argon pool are still full.</p>
+<p>For example, if Neon uses up the Gemini pool's 5-hour quota, Argon hits that limit too. The Claude and GPT pool keeps whatever quota it had left.</p>
 <h2 id="when-do-the-5-hour-and-weekly-limits-reset">When do the 5-hour and weekly limits reset?</h2>
 <p>Google's <strong>Plans</strong> page says the refresh schedule depends on your Google AI plan:</p>
 <ul>
@@ -674,14 +661,14 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <p>There are two free official ways, and a third option if you want the number on screen all the time:</p>
 <ul>
 <li><strong><code>/usage</code> or Settings.</strong> Type <code>/usage</code> in <code>agy</code> to open the Models &amp; Quota panel, or open the Settings page in the app.</li>
-<li><strong><code>agy -p /usage --output-format json</code>.</strong> Read the three pools from <code>command.data.groups</code>.</li>
-<li><strong>The <code>usage</code> app.</strong> <code>usage</code> is free and open source. It reads your quota with <code>agy -p /usage</code>. If that fails, it falls back to Google's quota endpoint, using the sign-in that the Antigravity CLI already saved. It shows your 5-hour and weekly limits, with countdowns, in the macOS menu bar or the Windows system tray. The Antigravity card shows the Gemini pool first. Tap the <code>Gemini ⇄</code> tag to switch to the Claude / GPT pool or the Gemini 4 Argon pool, and the card remembers your choice. A limit turns red as it gets close, and you can get a notification at 50%, 70%, 80%, 90%, or 95%. The default is 90%.</li>
+<li><strong><code>agy -p /usage --output-format json</code>.</strong> Read both pools from <code>command.data.groups</code>.</li>
+<li><strong>The <code>usage</code> app.</strong> <code>usage</code> is free and open source. It reads your quota with <code>agy -p /usage</code>. If that fails, it falls back to Google's quota endpoint, using the sign-in that the Antigravity CLI already saved. It shows your 5-hour and weekly limits, with countdowns, in the macOS menu bar or the Windows system tray. The Antigravity card shows the Gemini pool first. Tap the <code>Gemini ⇄</code> tag to switch between Gemini and Claude / GPT. The card remembers your choice. A limit turns red as it gets close, and you can get a notification at 50%, 70%, 80%, 90%, or 95%. The default is 90%.</li>
 </ul>
 <h2 id="key-takeaways">Key takeaways</h2>
 <ul>
 <li>Type <code>/usage</code> in the Antigravity CLI to open the quota panel. Run <code>agy -p /usage --output-format json</code> to get the same data as JSON without calling a model.</li>
-<li>There are three pools. Gemini Models and Claude and GPT models have weekly and 5-hour limits. Gemini 4 Argon has a weekly limit only. Each pool keeps its own timer.</li>
-<li>In our testing, the 5-hour window starts with your first use of the day. <code>usage</code> shows all three pools, with countdowns, in your menu bar or tray.</li>
+<li>Gemini Models and Claude and GPT models each have a weekly and a 5-hour limit. Gemini 4 Argon shares both limits with the other Gemini models.</li>
+<li><code>usage</code> shows both pools, with countdowns, in your menu bar or tray.</li>
 </ul>
 <h2 id="sources">Sources</h2>
 <ul>

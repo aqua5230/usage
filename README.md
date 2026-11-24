@@ -86,7 +86,7 @@ Once set up, the bottom of the Claude Code window will show a status line like t
 ### On Screen
 
 - **Menu bar monitor:** A quota turns red as it nears its limit. Click for the full session, weekly, and per-project breakdown. On macOS, the menu bar keeps at most three tools with the highest Session usage, in Claude → Codex → Antigravity → Grok → Muse order; the panel still shows all tools. When a quota is used up, the menu bar and status line count down to its recovery instead.
-- **Antigravity card:** Shows the Gemini pool by default. Tap the `Gemini ⇄` tag to cycle through the separate Claude / GPT and Gemini 4 Argon pools; the choice is remembered. Argon has a weekly limit only.
+- **Antigravity card:** Shows the Gemini pool by default. Tap the `Gemini ⇄` tag to switch between Gemini and Claude / GPT. The card remembers your choice. Both pools have weekly and 5-hour limits. Gemini 4 Argon shares both limits with the other Gemini models.
 - **Grok CLI card:** The weekly credit percentage from Grok CLI's local debug log. Its tokens also count toward cost and project totals.
 - **Muse Code card:** Shows 5-hour (Session) and weekly quota with reset countdowns. Available in all 15 quota themes, with a menu bar item and optional low, exhausted, and recovered quota notifications. Hidden automatically when Muse is not installed. Tokens and cost still count toward today's cost, project totals, reports, and the CLI.
 - **Outage alerts:** An orange-red banner when Claude Code, Claude API, or Codex API is down or degraded, read from their public status pages.

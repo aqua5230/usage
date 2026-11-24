@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 512" role="img" aria-label="Antigravity’s JSON output lists three quota pools in groups and reports the quota window, fraction remaining, and refill time in window, remaining_fraction, and reset_time." font-family="Noto Sans TC, -apple-system, sans-serif">
-<title>Antigravity’s JSON output lists three quota pools in groups and reports the quota window, fraction remaining, and refill time in window, remaining_fraction, and reset_time.</title>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 512" role="img" aria-label="Antigravity’s JSON output lists two quota pools in groups and shows the window, fraction remaining, and refill time for the Gemini weekly limit." font-family="Noto Sans TC, -apple-system, sans-serif">
+<title>Antigravity’s JSON output lists two quota pools in groups and shows the window, fraction remaining, and refill time for the Gemini weekly limit.</title>
 <defs>
 <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#A9CFC0"/><stop offset=".55" stop-color="#6E9E8E"/><stop offset="1" stop-color="#3F6E61"/></linearGradient>
 <radialGradient id="g1" cx=".1" cy=".95" r=".6"><stop offset="0" stop-color="#E8D9B5" stop-opacity=".55"/><stop offset="1" stop-color="#E8D9B5" stop-opacity="0"/></radialGradient>
@@ -17,27 +17,27 @@
 <text x="69.6" y="157">"<tspan fill="#9FD3BD">groups</tspan>": [</text>
 <text x="86.4" y="183">{ "name": "Gemini Models",</text>
 <text x="103.2" y="204">"buckets": [</text>
-<text x="120" y="225">{ "<tspan fill="#8AB4F8">window</tspan>": "weekly", "<tspan fill="#F2C46D">remaining_fraction</tspan>": 0.77,</text>
-<text x="136.8" y="251">"<tspan fill="#F6A9A2">reset_time</tspan>": "2026-11-28T10:00:11Z" },</text>
-<text x="120" y="277">{ "<tspan fill="#8AB4F8">window</tspan>": "5h",</text>
-<text x="136.8" y="298">"<tspan fill="#F2C46D">remaining_fraction</tspan>": 0.95, … } ] },</text>
-<text x="86.4" y="319">{ "name": "Claude and GPT models", … },</text>
-<text x="86.4" y="340">{ "name": "Gemini 4 Argon", … } ] } }</text>
+<text x="120" y="225">{ "<tspan fill="#8AB4F8">window</tspan>": "weekly",</text>
+<text x="136.8" y="251">"<tspan fill="#F2C46D">remaining_fraction</tspan>": 0.958730936050415,</text>
+<text x="136.8" y="277">"<tspan fill="#F6A9A2">reset_time</tspan>": "2026-11-30T22:13:16Z" },</text>
+<text x="120" y="303">{ "<tspan fill="#8AB4F8">window</tspan>": "5h", … } ] },</text>
+<text x="86.4" y="322">{ "name": "Claude and GPT models", … }</text>
+<text x="69.6" y="340">] } }</text>
 </g>
 <g fill="none" stroke-width="1.6" stroke-linecap="round">
 <path d="M78 162V167H129V162" stroke="#7FB59F"/>
 <path d="M146 230V235H196V230" stroke="#8AB4F8"/>
-<path d="M314 230V235H466V230" stroke="#F2C46D"/>
-<path d="M146 256V261H230V256" stroke="#F28B82"/>
+<path d="M146 256V261H297V256" stroke="#F2C46D"/>
+<path d="M146 282V287H230V282" stroke="#F28B82"/>
 </g>
 <path d="M36 359H564" stroke="#FFFFFF1A"/>
 <g font-size="15">
 <text x="36" y="388" fill="#9FD3BD" font-family="Menlo, Consolas, monospace">groups</text>
-<text x="36" y="410" fill="#F2F2F2">Three quota pools</text>
+<text x="36" y="410" fill="#F2F2F2">Two quota pools</text>
 <text x="302" y="388" fill="#8AB4F8" font-family="Menlo, Consolas, monospace">window</text>
 <text x="302" y="410" fill="#F2F2F2">weekly = weekly limit, 5h = 5 hours</text>
 <text x="36" y="451" fill="#F2C46D" font-family="Menlo, Consolas, monospace">remaining_fraction</text>
-<text x="36" y="473" fill="#F2F2F2">0.77 means 77% left</text>
+<text x="36" y="473" fill="#F2F2F2">About 96% left in this example</text>
 <text x="302" y="451" fill="#F6A9A2" font-family="Menlo, Consolas, monospace">reset_time</text>
 <text x="302" y="473" fill="#F2F2F2">Refill time (UTC)</text>
 </g>
