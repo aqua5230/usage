@@ -4339,3 +4339,10 @@ def test_windows_empty_state_marks_totals_not_ready() -> None:
     state = controller._empty_state()
 
     assert state.totals_ready is False
+
+
+def test_shim_marks_windows_before_panel_scripts_run() -> None:
+    # The felt panel decides at load whether to offer sharing; window.pywebview arrives later.
+    html = wintray.panel_html("felt.html")
+    marker = html.index('window.usageHost = "windows";')
+    assert marker < html.index("const canShare")
