@@ -465,3 +465,18 @@ def test_panel_tokens_keep_full_count_with_separate_unit(tokens: int, count: str
         "tokensCount": count,
         "tokensUnit": "tokens",
     }
+
+
+def test_bridge_hands_share_pal_card_to_the_share_module(monkeypatch: pytest.MonkeyPatch) -> None:
+    import panels.web_panel as web_panel
+
+    calls: list[dict[str, object]] = []
+    monkeypatch.setattr(web_panel, "share_pal_card", lambda view, message: calls.append(message))
+    bridge = UsageScriptBridge.alloc().init()
+
+    bridge.userContentController_didReceiveScriptMessage_(
+        None,
+        SimpleNamespace(body=lambda: '{"action":"share_pal_card","target":"copy","name":"zapi"}'),
+    )
+
+    assert calls == [{"action": "share_pal_card", "target": "copy", "name": "zapi"}]
