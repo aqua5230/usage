@@ -30,7 +30,7 @@
   "description": "Codex weekly limits often reset days before resets_at because OpenAI runs global resets. Ten weeks of data from one Plus account, the official reset rules, and how to check.",
   "image": "https://aqua5230.github.io/usage/og-image.jpg?v=20261120b",
   "datePublished": "2026-11-23",
-  "dateModified": "2026-11-23",
+  "dateModified": "2026-11-24",
   "inLanguage": "en",
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -568,6 +568,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
         <header class="post-header">
           <div class="post-meta">
             <span>Published <time datetime="2026-11-23">2026-11-23</time></span>
+            <span>Updated <time datetime="2026-11-24">2026-11-24</time></span>
           </div>
           <h1>Why Did My Codex Weekly Limit Reset Early?</h1>
           <p class="post-desc">Codex weekly limits often reset days before resets_at because OpenAI runs global resets. Ten weeks of data from one Plus account, the official reset rules, and how to check.</p>
@@ -598,7 +599,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 </aside>
 <ul>
 <li>Tibo, who leads Codex at OpenAI (<code>@thsottiaux</code> on X), resets usage for everyone from time to time. He usually announces it on X first.</li>
-<li>On the author's own ChatGPT Plus account, all 10 weekly periods between 2026-08-29 and 2026-10-06 ended 1 to 5 days before <code>resets_at</code>. In 3 of them, the author had already used 100%.</li>
+<li>On the author's own ChatGPT Plus account, 9 of the 10 weekly periods between 2026-08-29 and 2026-10-07 ended before <code>resets_at</code>: 7 hit a global reset, and 2 ended when the author used a banked reset. Only 1 lasted until <code>resets_at</code>.</li>
 <li>After a reset, your next refresh date moves. The new date replaces the old one.</li>
 </ul>
 <h2 id="why-does-the-codex-weekly-limit-reset-before-the-scheduled-time">Why does the Codex weekly limit reset before the scheduled time?</h2>
@@ -606,10 +607,11 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <p>Normally the weekly limit refills at <code>resets_at</code>. But OpenAI often applies what its help center calls an &quot;OpenAI-granted automatic reset&quot;, also known as a global reset. OpenAI applies it to selected accounts directly, and you don't have to claim anything. Tibo usually announces these resets on X. His posts give reasons such as fixing usage problems, reaching a user milestone, or launching a new model.</p>
 <p>A global reset does not show up in your reset <strong>History</strong>. So what you notice is this: your used percentage drops to zero, and your next refresh date moves later.</p>
 <h2 id="how-often-does-an-early-reset-happen">How often does an early reset happen?</h2>
-<p>The author tracked their own ChatGPT Plus account from 2026-08-29 to 2026-10-06. That period covered 10 weekly periods, and none of them lasted until <code>resets_at</code>:</p>
+<p>The author tracked their own ChatGPT Plus account from 2026-08-29 to 2026-10-07. That period covered 10 weekly periods, and only 1 lasted until <code>resets_at</code>:</p>
 <ul>
-<li>All 10 ended <strong>1 to 5 days early</strong>, and a new period started right away.</li>
-<li>In <strong>3</strong> of the 10, the author had already used <strong>100%</strong>. The early reset let them keep working.</li>
+<li><strong>7</strong> hit a global reset and ended <strong>1 to 6 days early</strong>, and a new period started right away. Each one ended on the day a global reset was announced.</li>
+<li><strong>2</strong> ended 2 to 3 days early because the author used a banked reset.</li>
+<li>In <strong>3</strong> of the 10, the author had already used <strong>100%</strong>. Twice a banked reset let them keep working; once they waited for <code>resets_at</code>.</li>
 </ul>
 <p>An unofficial site, <a href="https://codex-resets.com/">codex-resets.com</a>, follows <code>@thsottiaux</code> on X and logs each reset. As of 2026-11-23 it had logged 72 resets. The average wait between them was 5.9 days, and the longest was 67.7 days. The site notes that an AI sorts its entries, and that nothing on it is a promise from OpenAI. OpenAI also says that free resets are promotional and have no fixed schedule.</p>
 <h2 id="what-is-the-difference-between-a-global-reset-and-a-banked-reset">What is the difference between a global reset and a banked reset?</h2>
@@ -659,7 +661,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <h2 id="key-takeaways">Key takeaways</h2>
 <ul>
 <li>A Codex weekly limit resets early because OpenAI ran a global reset. You get a full limit back and a new weekly period.</li>
-<li>On the author's own Plus account, all 10 weekly periods from 2026-08-29 to 2026-10-06 ended 1 to 5 days before <code>resets_at</code>. In 3 of them, the author had used 100%.</li>
+<li>On the author's own Plus account, of the 10 weekly periods from 2026-08-29 to 2026-10-07, 7 ended 1 to 6 days early after a global reset, 2 ended when the author used a banked reset, and only 1 lasted until <code>resets_at</code>.</li>
 <li><code>resets_at</code> is the latest time your limit will refill. To see the current number, use the usage dashboard, <code>/status</code>, or the <code>usage</code> app.</li>
 </ul>
 <h2 id="sources">Sources</h2>
