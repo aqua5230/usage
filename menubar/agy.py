@@ -46,6 +46,7 @@ AGY_SESSION_FORECAST_MIN_SPAN_SECONDS = 15 * 60
 AGY_WEEKLY_FORECAST_MIN_SPAN_SECONDS = 30 * 60
 AGY_WEEKLY_WARNING_MAX_SECONDS = 24 * 3600
 _last_quota: AgyQuotaResult | None = None
+_tracked_group: str | None = None  # the group the burn-rate trackers hold samples for
 
 
 @dataclass(slots=True)
@@ -110,6 +111,13 @@ def project_quota(
         except (TypeError, ValueError):
             pass
         else:
+            global _tracked_group
+            if selected.name != _tracked_group:
+                # Another pool's samples would read as a sudden burn (e.g. after Argon merged
+                # into the Gemini pool and an "argon" preference fell back to Gemini).
+                burn_rate_trackers["agy_session"] = BurnRateTracker()
+                burn_rate_trackers["agy_weekly"] = BurnRateTracker()
+                _tracked_group = selected.name
             session_tracker = burn_rate_trackers["agy_session"]
             weekly_tracker = burn_rate_trackers["agy_weekly"]
             if selected.five_hour is not None and (

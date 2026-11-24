@@ -697,3 +697,43 @@ def test_missing_gemini_fallback_prefers_claude_over_argon() -> None:
     projection = menubar_agy.project_quota(quota, "en", now=1_767_225_600.0)
     assert projection is not None
     assert projection.group_name == "CLAUDE AND GPT MODELS"
+
+
+def test_project_quota_restarts_burn_rate_when_preferred_group_disappears(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(menubar_agy, "auth_expired", lambda: False)
+    monkeypatch.setattr(menubar_agy, "_tracked_group", None)
+    trackers = _burn_rate_trackers()
+    started_at = datetime(2026, 11, 24, 6, tzinfo=UTC)
+    gemini = AgyQuotaGroup(
+        "GEMINI MODELS",
+        ["Gemini Flash"],
+        AgyQuotaWindow(45.0, "4d", 5760),
+        AgyQuotaWindow(85.0, "2h", 120),
+    )
+    argon = AgyQuotaGroup(
+        "GEMINI 4 ARGON", ["Gemini 4 Argon"], AgyQuotaWindow(90.0, "4d", 5760), None
+    )
+    for index in range(6):
+        fetched_at = started_at + timedelta(minutes=5 * index)
+        menubar_agy.project_quota(
+            AgyQuotaResult([gemini, argon], fetched_at.isoformat()),
+            "en",
+            now=fetched_at.timestamp(),
+            burn_rate_trackers=trackers,
+            group_preference="argon",
+        )
+    merged_at = started_at + timedelta(minutes=30)
+
+    projection = menubar_agy.project_quota(
+        AgyQuotaResult([gemini], merged_at.isoformat()),
+        "en",
+        now=merged_at.timestamp(),
+        burn_rate_trackers=trackers,
+        group_preference="argon",
+    )
+
+    assert projection is not None
+    assert projection.group_name == "GEMINI MODELS"
+    assert projection.weekly.warning is False

@@ -295,7 +295,7 @@ def _quota_keys(data: Dict[str, Any]) -> Tuple[str, str]:
     name = str(_as_dict(data.get("model")).get("id") or "").lower()
     if "argon" in name:
         return "argon-5h", "argon-weekly"
-    if "gemini" in name:
+    if "gemini" in name or "orchestrator" in name:
         return "gemini-5h", "gemini-weekly"
     return "3p-5h", "3p-weekly"
 
@@ -351,6 +351,9 @@ def _quota_parts(data: Dict[str, Any], bar_width: int) -> List[Tuple[str, str, s
     lang = _detect_lang()
     parts: List[Tuple[str, str, str]] = []
     five_hour_key, weekly_key = _quota_keys(data)
+    # agy 1.5.16 moved Argon into the Gemini pool, so no argon-* bucket exists anymore.
+    if weekly_key == "argon-weekly" and weekly_key not in quota:
+        five_hour_key, weekly_key = "gemini-5h", "gemini-weekly"
     for key, label in (
         (five_hour_key, _t("five_hour")),
         (weekly_key, _t("weekly")),

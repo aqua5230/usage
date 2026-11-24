@@ -134,6 +134,8 @@ def test_render_fixture_contains_expected_status(monkeypatch: pytest.MonkeyPatch
     ("model_id", "expected_five", "expected_weekly"),
     [
         ("Gemini 3.6 Flash", "10%", "20%"),
+        ("Orchestrator (Neon)", "10%", "20%"),
+        ("Orchestrator (Carbon)", "10%", "20%"),
         ("Claude Opus 4.5", "70%", "80%"),
         ("Orchestrator (Argon)", "40%", "50%"),
         ("Gemini 4 Argon", "40%", "50%"),
@@ -162,6 +164,22 @@ def test_render_selects_quota_bucket_for_model(
 
     assert expected_five in output
     assert expected_weekly in output
+
+
+def test_render_argon_falls_back_to_shared_gemini_pool(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("USAGE_LANG", "en")
+    data = _fixture_data()
+    data["terminal_width"] = 300
+    data["model"]["id"] = "Gemini 4 Argon"
+    data["quota"] = {
+        "gemini-5h": {"remaining_fraction": 0.9},
+        "gemini-weekly": {"remaining_fraction": 0.8},
+    }
+
+    output = usage_statusline_agy.render(data)
+
+    assert "10%" in output
+    assert "20%" in output
 
 
 def test_render_degrades_when_quota_and_context_are_missing(

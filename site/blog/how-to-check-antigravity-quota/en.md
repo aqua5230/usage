@@ -1,16 +1,13 @@
 ---
 title: How to Check Your Antigravity (agy) Quota
-description: Type /usage in the Antigravity CLI, or run agy -p /usage --output-format json to get your quota without calling a model. Here are the three quota pools and when they reset.
+description: Type /usage in the Antigravity CLI, or run agy -p /usage --output-format json to get your quota without calling a model. See which models share each of the two quota pools and when they reset.
 date: 2026-11-23
+updated: 2026-11-24
 tool: antigravity
 related: claude-code-weekly-limit-reset, codex-weekly-limit-early-reset
 ---
 
-**To check your Antigravity (`agy`) quota, type `/usage` in the CLI, or run `agy -p /usage --output-format json` in your terminal.** The second command does not call a model, and it returns in about 6 seconds. Your quota is split into three pools: Gemini Models, Claude and GPT models, and Gemini 4 Argon. Each pool keeps its own timer. Checked on 2026-11-23.
-
-- `agy -p /usage --output-format json` gives you your quota as JSON, and it does not use any model quota.
-- Gemini Models and Claude and GPT models each have a weekly limit and a 5-hour limit. Gemini 4 Argon has a weekly limit only.
-- In our testing, the 5-hour window starts with your first use of the day. Google's docs don't say this.
+**To check your Antigravity (`agy`) quota, type `/usage` in the CLI, or run `agy -p /usage --output-format json` in your terminal.** The second command does not call a model, and it returns in about 6 seconds.
 
 ## How do you check your quota in the CLI or the app?
 
@@ -30,19 +27,18 @@ agy -p /usage --output-format json
 
 In our testing, this command makes no model call and returns in about 6 seconds. Google documents `/usage` as an interactive command, and it documents `agy -p` with `--output-format json`. It does not document using the two together, and it does not describe the `command.data.groups` field that holds the pools.
 
-![Antigravity’s JSON output lists three quota pools in groups and reports the quota window, fraction remaining, and refill time in window, remaining_fraction, and reset_time.](usage-json-en.svg)
+![Antigravity’s JSON output lists two quota pools in groups and shows the window, fraction remaining, and refill time for the Gemini weekly limit.](usage-json-en.svg)
 
-## What are the three quota pools, and do they share a timer?
+## Which models share quota?
 
-The `command.data.groups` field lists three pools. Each one keeps its own timer:
+The `command.data.groups` field lists two pools. Models in the same pool share a weekly limit and a 5-hour limit. Each pool resets on its own schedule. We verified the groups with Antigravity CLI 1.5.16 on 2026-11-24.
 
-| Pool | Limits | Shares a timer with the others? | Covered in Google's docs? |
-| --- | --- | --- | --- |
-| `Gemini Models` | Weekly and 5-hour | No | Partly. The docs say Gemini Flash and Pro share limits |
-| `Claude and GPT models` | Weekly and 5-hour | No | Partly. The docs say Claude and GPT models share limits |
-| `Gemini 4 Argon` | Weekly only | No | No |
+| Pool | Models | Shared limits |
+| --- | --- | --- |
+| `Gemini Models` | Gemini 4 Neon, Gemini 4 Carbon, Gemini 4 Argon, Gemini 4 Hydrogen, Orchestrator (Neon, Carbon, Argon), Gemini 3.8 Flash | Weekly and 5-hour |
+| `Claude and GPT models` | Claude Opus 5.5, Claude Sonnet 5.5, GPT-OSS 120B | Weekly and 5-hour |
 
-So if you use up the 5-hour limit on Gemini Models, your Claude and GPT models pool and your Gemini 4 Argon pool are still full.
+For example, if Neon uses up the Gemini pool's 5-hour quota, Argon hits that limit too. The Claude and GPT pool keeps whatever quota it had left.
 
 ## When do the 5-hour and weekly limits reset?
 
@@ -59,14 +55,14 @@ Google also says that how fast you use quota depends on how much work the agent 
 There are two free official ways, and a third option if you want the number on screen all the time:
 
 - **`/usage` or Settings.** Type `/usage` in `agy` to open the Models & Quota panel, or open the Settings page in the app.
-- **`agy -p /usage --output-format json`.** Read the three pools from `command.data.groups`.
-- **The `usage` app.** `usage` is free and open source. It reads your quota with `agy -p /usage`. If that fails, it falls back to Google's quota endpoint, using the sign-in that the Antigravity CLI already saved. It shows your 5-hour and weekly limits, with countdowns, in the macOS menu bar or the Windows system tray. The Antigravity card shows the Gemini pool first. Tap the `Gemini ⇄` tag to switch to the Claude / GPT pool or the Gemini 4 Argon pool, and the card remembers your choice. A limit turns red as it gets close, and you can get a notification at 50%, 70%, 80%, 90%, or 95%. The default is 90%.
+- **`agy -p /usage --output-format json`.** Read both pools from `command.data.groups`.
+- **The `usage` app.** `usage` is free and open source. It reads your quota with `agy -p /usage`. If that fails, it falls back to Google's quota endpoint, using the sign-in that the Antigravity CLI already saved. It shows your 5-hour and weekly limits, with countdowns, in the macOS menu bar or the Windows system tray. The Antigravity card shows the Gemini pool first. Tap the `Gemini ⇄` tag to switch between Gemini and Claude / GPT. The card remembers your choice. A limit turns red as it gets close, and you can get a notification at 50%, 70%, 80%, 90%, or 95%. The default is 90%.
 
 ## Key takeaways
 
 - Type `/usage` in the Antigravity CLI to open the quota panel. Run `agy -p /usage --output-format json` to get the same data as JSON without calling a model.
-- There are three pools. Gemini Models and Claude and GPT models have weekly and 5-hour limits. Gemini 4 Argon has a weekly limit only. Each pool keeps its own timer.
-- In our testing, the 5-hour window starts with your first use of the day. `usage` shows all three pools, with countdowns, in your menu bar or tray.
+- Gemini Models and Claude and GPT models each have a weekly and a 5-hour limit. Gemini 4 Argon shares both limits with the other Gemini models.
+- `usage` shows both pools, with countdowns, in your menu bar or tray.
 
 ## Sources
 

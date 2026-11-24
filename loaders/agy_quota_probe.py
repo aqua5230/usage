@@ -423,8 +423,8 @@ def _age_window(window: AgyQuotaWindow | None, elapsed: int) -> AgyQuotaWindow |
 def _carry_missing_groups(probed: AgyQuotaResult, cached: AgyQuotaResult | None) -> AgyQuotaResult:
     """Keep a group the API skipped this once, so the group toggle has something to show.
 
-    A group is carried only while the API last returned it within the grace window, so a
-    group Google really removes drops out instead of living on in the cache forever.
+    Carry groups seen within the grace window unless their models now belong to
+    groups in the latest response.
     """
     now = datetime.now(UTC)
     for group in probed.groups:
@@ -432,6 +432,7 @@ def _carry_missing_groups(probed: AgyQuotaResult, cached: AgyQuotaResult | None)
     if cached is None:
         return probed
     names = {group.name for group in probed.groups}
+    current_models = {model for group in probed.groups for model in group.models}
     grace = timedelta(minutes=_MISSING_GROUP_GRACE_MINUTES)
     missing = [
         group
@@ -439,6 +440,7 @@ def _carry_missing_groups(probed: AgyQuotaResult, cached: AgyQuotaResult | None)
         if group.name not in names
         and group.name in _group_seen_at
         and now - _group_seen_at[group.name] <= grace
+        and (not group.models or not current_models.issuperset(group.models))
     ]
     if not missing:
         return probed
@@ -794,6 +796,7 @@ def _build_result(
 ) -> AgyQuotaResult | None:
     """Classify buckets into the Gemini / Claude-GPT groups UI expects."""
     windows: dict[str, dict[str, AgyQuotaWindow]] = {}
+    group_models: dict[str, list[str]] = {}
     for group in groups_raw:
         group_id = _group_id(group)
         if group_id is None:
@@ -801,6 +804,12 @@ def _build_result(
         buckets = group.get("buckets")
         if not isinstance(buckets, list):
             continue
+        description = _coerce_str(group.get("description")) or ""
+        prefix, _, model_list = description.partition(":")
+        if prefix == "Models within this group":
+            models = [model for part in model_list.split(",") if (model := part.strip())]
+            if models:
+                group_models.setdefault(group_id, models)
         slot = windows.setdefault(group_id, {})
         for bucket in buckets:
             if not isinstance(bucket, dict) or _bucket_disabled(bucket):
@@ -812,7 +821,7 @@ def _build_result(
             if window is None:
                 continue
             slot[period] = window
-    result_groups = _assemble_groups(windows)
+    result_groups = _assemble_groups(windows, group_models)
     if not any(_group_id(group) == "gemini" for group in groups_raw):
         gemini = _gemini_group_from_models(models_raw)
         if gemini is not None:
@@ -862,8 +871,10 @@ def _gemini_group_from_models(raw: object) -> AgyQuotaGroup | None:
 
 def _assemble_groups(
     windows: dict[str, dict[str, AgyQuotaWindow]],
+    group_models: dict[str, list[str]] | None = None,
 ) -> list[AgyQuotaGroup]:
     """Lay out UI groups in fixed order; Argon has no five-hour window."""
+    group_models = group_models or {}
     full = AgyQuotaWindow(100.0, None, None)
     layout = (
         ("gemini", "GEMINI MODELS", ["Gemini Flash", "Gemini Pro"]),
@@ -878,7 +889,10 @@ def _assemble_groups(
         groups.append(
             AgyQuotaGroup(
                 name=name,
-                models=list(models),
+                # Keep the generic names too: the ledger matches every word of a name inside
+                # a session's model id, and "Claude Sonnet 5.5" or "Orchestrator (Carbon)"
+                # never match "claude-sonnet-5-5" or "gemini-pro-orchestrator".
+                models=list(dict.fromkeys([*group_models.get(group_id, []), *models])),
                 weekly=slot.get("weekly", full),
                 five_hour=None if group_id == "argon" else slot.get("session", full),
             )
