@@ -8,7 +8,7 @@
 
 `usage` 把 5 小時與每週限額放在 macOS 選單列或 Windows 系統匣，額度快用完時轉紅提醒。重構做到一半才發現額度用完，很難受；現在你會先看到。不用跑指令，也不用開頁面。
 
-繁體中文 · [简体中文](README.zh-CN.md) · [English](../README.md) · [日本語](README.ja.md) · [한국어](README.ko.md) &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [官方介紹頁](https://aqua5230.github.io/usage/)
+繁體中文 · [简体中文](README.zh-CN.md) · [English](../README.md) · [日本語](README.ja.md) · [한국어](README.ko.md) &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [官方介紹頁](https://aqua5230.github.io/usage/) &nbsp;|&nbsp; [部落格](https://aqua5230.github.io/usage/zh-TW/blog/)
 
 [安裝](#安裝) · [功能](#你會得到什麼) · [側邊面板](#claude-code-側邊面板) · [主題](#主題展示) · [比較](#跟其他工具比較) · [隱私](#隱私與資料來源) · [排錯](#常見問題排查)
 

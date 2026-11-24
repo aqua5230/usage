@@ -8,7 +8,7 @@
 
 `usage`는 5시간 및 주간 한도를 macOS 메뉴 막대나 Windows 시스템 트레이에 표시하고, 한도에 가까워지면 빨간색으로 알려 줍니다. 긴 리팩터링 도중에 한도에 부딪혀서야 잔여량이 부족했다는 걸 알게 되는 건 난감한 일입니다. 이제 미리 확인할 수 있습니다. 실행할 명령도, 열 페이지도 없습니다.
 
-[繁體中文](README.zh-TW.md) · [简体中文](README.zh-CN.md) · [English](../README.md) · [日本語](README.ja.md) · 한국어 &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [공식 사이트](https://aqua5230.github.io/usage/)
+[繁體中文](README.zh-TW.md) · [简体中文](README.zh-CN.md) · [English](../README.md) · [日本語](README.ja.md) · 한국어 &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [공식 사이트](https://aqua5230.github.io/usage/) &nbsp;|&nbsp; [블로그(영어)](https://aqua5230.github.io/usage/blog/)
 
 [설치](#설치) · [기능](#제공-기능) · [사이드 패널](#claude-code-사이드-패널) · [테마](#테마-갤러리) · [비교](#비교) · [개인정보](#개인정보-보호와-데이터-소스) · [문제 해결](#문제-해결)
 
