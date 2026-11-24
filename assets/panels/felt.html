@@ -1086,10 +1086,11 @@ body {
 // The line greets visitors, occasionally chats or naps, and gets a tree and snow in December.
 (() => {
   const NAMES = ["redpanda", "frog", "penguin", "rabbit", "raccoon", "piglet", "elephant", "bear", "puppy", "chick", "kitten", "hedgehog", "otter", "snail", "crab", "pufferfish", "cockatoo",
-    "bobo", "tuanli", "starpup", "tantan", "minto", "shandou", "nibo", "boqi", "zapi"];
+    "bobo", "tuanli", "starpup", "tantan", "minto", "shandou", "nibo", "boqi", "zapi",
+    "leituan", "wuqiu", "banban"];
   // Hidden pals stay out of the normal rotation and only rarely take a turn in line. One unlocks each week in this
   // order, from local midnight on HIDDEN_START; a pal that is not unlocked yet never appears.
-  const HIDDEN_ORDER = ["tuanli", "zapi", "bobo", "nibo", "tantan", "starpup", "shandou", "minto", "boqi"];
+  const HIDDEN_ORDER = ["tuanli", "zapi", "bobo", "nibo", "tantan", "starpup", "shandou", "minto", "boqi", "leituan", "wuqiu", "banban"];
   const HIDDEN = new Set(HIDDEN_ORDER);
   const unlockAt = (name) => new Date(2026, 11, 1 + HIDDEN_ORDER.indexOf(name) * 7);
   const unlocked = (name, now = new Date()) => unlockAt(name) <= now;
@@ -1193,7 +1194,7 @@ body {
     @keyframes pal-shine{to{transform:translateX(130%)}}
     .pal-dex{position:fixed;inset:0;display:grid;place-items:center;background:rgba(70,45,25,.34);z-index:50}
     .pal-dex[hidden]{display:none}
-    .pal-dex-card{position:relative;width:min(92vw,440px);box-sizing:border-box;padding:18px 20px 16px;border-radius:14px;
+    .pal-dex-card{position:relative;width:min(92vw,440px);max-height:calc(100vh - 24px);overflow-y:auto;overscroll-behavior:contain;box-sizing:border-box;padding:18px 20px 16px;border-radius:14px;
       background:var(--card,#fbf5ec);color:var(--text,#4a3a2e);box-shadow:0 10px 30px rgba(50,30,10,.35);
       font-family:ui-rounded,-apple-system,"PingFang TC",sans-serif;animation:pal-open .28s ease-out}
     @keyframes pal-open{from{transform:translateY(10px) scale(.96);opacity:0}}
@@ -1215,12 +1216,26 @@ body {
     .pal-dex-cell small{font-size:9.5px;font-weight:700;text-align:center;color:#4a2a04;opacity:.6}
     .pal-dex-cell .new{position:absolute;top:-6px;right:-6px;z-index:2;padding:0 6px;border-radius:99px;font-size:9px;font-weight:800;line-height:15px;
       color:#7a4a08;background:#f4c24a;box-shadow:0 1px 3px rgba(90,50,5,.35)}
-    .pal-dex-cell.seen{cursor:pointer;transform-style:preserve-3d}
+    .pal-dex-cell.seen{transform-style:preserve-3d}
     .pal-dex-cell.seen::after{content:"";position:absolute;inset:0;border-radius:7px;pointer-events:none;opacity:0;transition:opacity .2s;mix-blend-mode:soft-light;
       background:radial-gradient(circle at var(--mx,50%) var(--my,30%),rgba(255,255,255,.9),transparent 45%),
         linear-gradient(115deg,#ff9ac1,#ffe48a,#9df0c8,#8fc8ff,#d3a6ff)}
     .pal-dex-cell.seen:hover{box-shadow:inset 0 0 0 1.5px #fff4d6,0 8px 18px rgba(60,35,10,.28)}
     .pal-dex-cell.seen:hover::after{opacity:.75}
+    /* A found pal stands out of its frame on a little floor, floats in front of the card when it tilts, and bobs gently. */
+    .pal-dex-grid:has(.seen){row-gap:18px;padding-top:12px}
+    .pal-dex-cell.seen .art{overflow:visible;transform-style:preserve-3d;
+      background:radial-gradient(ellipse 70% 22% at 50% 88%,rgba(255,255,255,.55),transparent 70%),radial-gradient(circle at 50% 30%,#fff 0,var(--tone) 150%)}
+    .pal-dex-cell.seen .art::before{content:"";position:absolute;inset:0;border-radius:5px;pointer-events:none;box-shadow:inset 0 3px 6px rgba(60,32,8,.3)}
+    .pal-dex-cell.seen .art::after{content:"";position:absolute;left:20%;right:20%;bottom:5%;height:10%;border-radius:50%;
+      background:radial-gradient(closest-side,rgba(40,22,6,.5),rgba(40,22,6,0));transform:translateZ(1px)}
+    .pal-dex-cell.seen img{z-index:2;height:108%;max-width:108%;object-fit:contain;object-position:50% 100%;bottom:8%;transform:translateZ(26px);
+      filter:drop-shadow(0 1px 0 rgba(255,255,255,.6)) drop-shadow(0 6px 5px rgba(40,22,6,.38));animation:pal-dex-bob 3.2s ease-in-out infinite}
+    .pal-dex-cell.seen:nth-child(3n+2) img{animation-delay:-1.1s}
+    .pal-dex-cell.seen:nth-child(3n) img{animation-delay:-2.1s}
+    @keyframes pal-dex-bob{50%{translate:-50% -3px}}
+    .pal-dex-cell.seen .no{position:absolute;top:-7px;left:-5px;z-index:3;transform:translateZ(32px);padding:1px 6px;border-radius:99px;
+      background:#d9a93a;color:#fff;box-shadow:0 2px 3px rgba(60,35,10,.3)}
     .pal-dex-cell.nearby .art{background:radial-gradient(circle at 50% 36%,#fff 0,#cdbfa8 150%)}
     .pal-dex-cell.nearby img{filter:brightness(0);opacity:.55}
     .pal-dex-cell.locked{justify-content:center;gap:8px;border:2px solid #e6d6bd;
@@ -1232,8 +1247,6 @@ body {
     .pal-dex-cell.locked .no{position:absolute;top:9px;left:10px;color:rgba(143,116,84,.75)}
     .pal-dex-card.done{box-shadow:inset 0 0 0 3px #f2c43d,0 10px 30px rgba(50,30,10,.35)}
     .pal-dex-card.done .pal-dex-foot{font-weight:800;color:#9a6512;opacity:1}
-    .pal-view{position:fixed;inset:0;z-index:55;display:grid;place-items:center;background:rgba(40,25,10,.45);cursor:pointer}
-    .pal-view .pal-card{position:relative;left:auto;bottom:auto;margin:0;transform:scale(1.45);pointer-events:auto}
     .pal-dex-foot{margin:12px 0 0;text-align:center;font-size:11.5px;font-weight:600;opacity:.7}
     .pal-hit{position:absolute;bottom:0;left:${-SIZE * 0.4}px;width:${SIZE * 0.8}px;height:${SIZE}px;pointer-events:auto;cursor:pointer}
     .pal-say.paused{animation-play-state:paused}
@@ -1247,7 +1260,7 @@ body {
     html.pal-paused .pal-dust,html.pal-paused .pal-sweat,html.pal-paused .pal-flake,
     html.pal-paused .card[data-critical="true"]::after{animation-play-state:paused}
     @media (prefers-reduced-motion: reduce){
-      .pal-body.idle .pal-img,.pal-body.dozing .pal-img,.pal-badge.on,.pal-say,.pal-name,.pal-heart,.pal-dust,.pal-sweat,.pal-spark,.pal-book.bump,.pal-dex-card{animation:none}
+      .pal-body.idle .pal-img,.pal-body.dozing .pal-img,.pal-badge.on,.pal-say,.pal-name,.pal-heart,.pal-dust,.pal-sweat,.pal-spark,.pal-book.bump,.pal-dex-card,.pal-dex-cell.seen img{animation:none}
       .pal-z.on{animation:none;opacity:1}.pal-z.on+.pal-z.on{display:none}
       .pal-snow{display:none}}`;
   document.head.appendChild(css);
@@ -1447,6 +1460,36 @@ body {
     zapi_run: "{{ASSET:panels/felt/pals/zapi_run.webp}}",
     zapi_surprised: "{{ASSET:panels/felt/pals/zapi_surprised.webp}}",
     zapi_signature: "{{ASSET:panels/felt/pals/zapi_signature.webp}}",
+    leituan_stand: "{{ASSET:panels/felt/pals/leituan_stand.webp}}",
+    leituan_jump: "{{ASSET:panels/felt/pals/leituan_jump.webp}}",
+    leituan_worried: "{{ASSET:panels/felt/pals/leituan_worried.webp}}",
+    leituan_sleep: "{{ASSET:panels/felt/pals/leituan_sleep.webp}}",
+    leituan_cheer: "{{ASSET:panels/felt/pals/leituan_cheer.webp}}",
+    leituan_wave: "{{ASSET:panels/felt/pals/leituan_wave.webp}}",
+    leituan_stretch: "{{ASSET:panels/felt/pals/leituan_stretch.webp}}",
+    leituan_run: "{{ASSET:panels/felt/pals/leituan_run.webp}}",
+    leituan_surprised: "{{ASSET:panels/felt/pals/leituan_surprised.webp}}",
+    leituan_signature: "{{ASSET:panels/felt/pals/leituan_signature.webp}}",
+    wuqiu_stand: "{{ASSET:panels/felt/pals/wuqiu_stand.webp}}",
+    wuqiu_jump: "{{ASSET:panels/felt/pals/wuqiu_jump.webp}}",
+    wuqiu_worried: "{{ASSET:panels/felt/pals/wuqiu_worried.webp}}",
+    wuqiu_sleep: "{{ASSET:panels/felt/pals/wuqiu_sleep.webp}}",
+    wuqiu_cheer: "{{ASSET:panels/felt/pals/wuqiu_cheer.webp}}",
+    wuqiu_wave: "{{ASSET:panels/felt/pals/wuqiu_wave.webp}}",
+    wuqiu_stretch: "{{ASSET:panels/felt/pals/wuqiu_stretch.webp}}",
+    wuqiu_run: "{{ASSET:panels/felt/pals/wuqiu_run.webp}}",
+    wuqiu_surprised: "{{ASSET:panels/felt/pals/wuqiu_surprised.webp}}",
+    wuqiu_signature: "{{ASSET:panels/felt/pals/wuqiu_signature.webp}}",
+    banban_stand: "{{ASSET:panels/felt/pals/banban_stand.webp}}",
+    banban_jump: "{{ASSET:panels/felt/pals/banban_jump.webp}}",
+    banban_worried: "{{ASSET:panels/felt/pals/banban_worried.webp}}",
+    banban_sleep: "{{ASSET:panels/felt/pals/banban_sleep.webp}}",
+    banban_cheer: "{{ASSET:panels/felt/pals/banban_cheer.webp}}",
+    banban_wave: "{{ASSET:panels/felt/pals/banban_wave.webp}}",
+    banban_stretch: "{{ASSET:panels/felt/pals/banban_stretch.webp}}",
+    banban_run: "{{ASSET:panels/felt/pals/banban_run.webp}}",
+    banban_surprised: "{{ASSET:panels/felt/pals/banban_surprised.webp}}",
+    banban_signature: "{{ASSET:panels/felt/pals/banban_signature.webp}}",
   };
   const src = (name, pose) => PAL_IMG[`${name}_${pose}`];
   const rand = (a, b) => a + Math.random() * (b - a);
@@ -1645,7 +1688,8 @@ body {
 
   // Hidden pals: the first time one comes onstage, a collectible card flips up and files itself into the book.
   const TONE = { tuanli: "#f2c43d", zapi: "#2bb3a8", bobo: "#f08a3c", nibo: "#8a63d9", tantan: "#16747a", starpup: "#a58be0",
-    shandou: "#3b4a72", minto: "#8fd8c0", boqi: "#2ec4b6" };
+    shandou: "#3b4a72", minto: "#8fd8c0", boqi: "#2ec4b6",
+    leituan: "#ffd84a", wuqiu: "#b9e86a", banban: "#9fd6f0" };
   const PAW = '<svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="16.2" rx="5.2" ry="4.3"/><ellipse cx="5.6" cy="10.4" rx="2.1" ry="2.7"/><ellipse cx="9.6" cy="6.6" rx="2.1" ry="2.8"/><ellipse cx="14.4" cy="6.6" rx="2.1" ry="2.8"/><ellipse cx="18.4" cy="10.4" rx="2.1" ry="2.7"/></svg>';
   const loadList = (key) => {
     try {
@@ -1715,7 +1759,6 @@ body {
         if (state === "nearby") cell.append(el("small", "", tr("hidden_nearby")));
       }
       if (state === "seen") {
-        cell.addEventListener("click", () => viewCard(name));
         if (!still) {
           cell.addEventListener("pointermove", (e) => {
             const r = cell.getBoundingClientRect();
@@ -1740,16 +1783,6 @@ body {
       saveList("usage-felt-hidden-fresh", fresh);
       renderBook();
     }
-  }
-  // A collected card opens full size; any click puts it back.
-  function viewCard(name) {
-    const view = el("div", "pal-view");
-    const card = buildCard(name);
-    card.classList.add("show");
-    card.querySelector(".shine").remove();
-    view.append(card);
-    view.addEventListener("click", () => view.remove());
-    document.body.appendChild(view);
   }
   book.addEventListener("click", openDex);
   dex.addEventListener("click", (e) => {
@@ -2320,13 +2353,17 @@ body {
 
   // Line rotation: the back pal hops offstage to the right and the longest-waiting offstage pal takes its place.
   let rotating = false;
-  async function rotate() {
+  // Hidden pals that unlocked since the panel loaded join the vault.
+  function fillVault() {
     for (const p of pals) {
       if (HIDDEN.has(p.name) && p.offstage && !vault.includes(p) && unlocked(p.name)) vault.push(p);
     }
+  }
+  async function rotate(pick) {
+    fillVault();
     if (rotating || !(offstage.length || vault.length) || !queue.length) return;
     const out = queue[queue.length - 1];
-    const incoming = vault.length && Math.random() < RARE ? vault[Math.floor(Math.random() * vault.length)] : offstage[0];
+    const incoming = pick || (vault.length && Math.random() < RARE ? vault[Math.floor(Math.random() * vault.length)] : offstage[0]);
     if (!out || out.busy || speaking?.p === out || !incoming || incoming.busy) return;
     rotating = true;
     out.busy = true;
@@ -2392,6 +2429,17 @@ body {
     meet(incoming);
   }
   window.__feltRotate = () => rotate();
+  // A hidden pal that has unlocked but not been met yet hops in the next time the panel opens, so a new unlock is
+  // never left to chance; pals already met keep their rare random turns. Retries while the line is busy.
+  async function welcome() {
+    fillVault();
+    const p = vault.find((o) => !seen.includes(o.name));
+    for (let i = 0; p && i < 6 && vault.includes(p); i++) {
+      await wait(i ? 2000 : 1500);
+      if (hidden()) return;
+      await rotate(p);
+    }
+  }
 
   function settle() {
     const b = bars();
@@ -3021,7 +3069,10 @@ body {
     setInterval(() => { if (!hidden()) { refreshChristmas(); schedule(); checkLate(); } }, 30000);
     refreshChristmas();
     settle();
-    if (!hidden()) beginVisit();
+    if (!hidden()) {
+      beginVisit();
+      welcome();
+    }
     if (still) {
       pals.forEach((p) => p.body.classList.remove("idle", "dozing"));
       return;
@@ -3064,6 +3115,7 @@ body {
     schedule();
     beginVisit();
     startMotion();
+    welcome();
   });
   reducedMotion.addEventListener("change", () => {
     still = reducedMotion.matches;
