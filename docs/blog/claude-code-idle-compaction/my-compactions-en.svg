@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 425" role="img" aria-labelledby="title desc" xml:lang="en" font-family="Noto Sans TC, -apple-system, sans-serif">
+<title id="title">My 49 automatic compactions</title>
+<desc id="desc">2026-09-10 to 2026-11-23 / Context before compaction (tokens) / Minutes away before compaction / Idle threshold: 200K / Full: about 967K</desc>
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#A9CFC0"/><stop offset=".55" stop-color="#6E9E8E"/><stop offset="1" stop-color="#3F6E61"/></linearGradient><radialGradient id="g1" cx=".1" cy=".95" r=".6"><stop offset="0" stop-color="#E8D9B5" stop-opacity=".55"/><stop offset="1" stop-color="#E8D9B5" stop-opacity="0"/></radialGradient><filter id="sh" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#0B2A22" flood-opacity=".38"/></filter></defs>
+<rect width="600" height="425" rx="16" fill="url(#bg)"/>
+<rect width="600" height="425" rx="16" fill="url(#g1)"/>
+<g filter="url(#sh)"><rect x="20" y="20" width="560" height="385" rx="14" fill="#1E2228" stroke="#FFFFFF1A"/></g>
+<text x="38" y="53" fill="#F2F2F2" font-size="21" text-anchor="start" font-weight="700">My 49 automatic compactions</text>
+<text x="38" y="77" fill="#8A939E" font-size="14" text-anchor="start" font-weight="400">2026-09-10 to 2026-11-23</text>
+<text x="186.8" y="102" fill="#9FD3BD" font-size="14" text-anchor="middle" font-weight="600">Idle threshold: 200K</text>
+<text x="550" y="102" fill="#F2C46D" font-size="14" text-anchor="end" font-weight="600">Full: about 967K</text>
+<text x="47" y="227" fill="#F2F2F2" font-size="14" text-anchor="middle" font-weight="400" transform="rotate(-90 47 227)">Minutes away before compaction</text>
+<path d="M96 337H550" fill="none" stroke="#FFFFFF1A" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="84" y="342" fill="#8A939E" font-size="14" text-anchor="end" font-weight="400">50</text>
+<path d="M96 293H550" fill="none" stroke="#FFFFFF1A" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="84" y="298" fill="#8A939E" font-size="14" text-anchor="end" font-weight="400">52</text>
+<path d="M96 249H550" fill="none" stroke="#FFFFFF1A" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="84" y="254" fill="#8A939E" font-size="14" text-anchor="end" font-weight="400">54</text>
+<path d="M96 205H550" fill="none" stroke="#FFFFFF1A" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="84" y="210" fill="#8A939E" font-size="14" text-anchor="end" font-weight="400">56</text>
+<path d="M96 161H550" fill="none" stroke="#FFFFFF1A" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="84" y="166" fill="#8A939E" font-size="14" text-anchor="end" font-weight="400">58</text>
+<path d="M96 117H550" fill="none" stroke="#FFFFFF1A" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="84" y="122" fill="#8A939E" font-size="14" text-anchor="end" font-weight="400">60</text>
+<path d="M96 337v5" fill="none" stroke="#8A939E" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="96" y="360" fill="#8A939E" font-size="14" text-anchor="middle" font-weight="400">0</text>
+<path d="M186.8 337v5" fill="none" stroke="#8A939E" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="186.8" y="360" fill="#8A939E" font-size="14" text-anchor="middle" font-weight="400">200K</text>
+<path d="M277.6 337v5" fill="none" stroke="#8A939E" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="277.6" y="360" fill="#8A939E" font-size="14" text-anchor="middle" font-weight="400">400K</text>
+<path d="M368.4 337v5" fill="none" stroke="#8A939E" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="368.4" y="360" fill="#8A939E" font-size="14" text-anchor="middle" font-weight="400">600K</text>
+<path d="M459.2 337v5" fill="none" stroke="#8A939E" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="459.2" y="360" fill="#8A939E" font-size="14" text-anchor="middle" font-weight="400">800K</text>
+<path d="M550 337v5" fill="none" stroke="#8A939E" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="550" y="360" fill="#8A939E" font-size="14" text-anchor="middle" font-weight="400">1,000K</text>
+<path d="M96 117V337H550" fill="none" stroke="#8A939E" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M186.8 110V337" fill="none" stroke="#9FD3BD" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4 5"/>
+<path d="M535.018 110V337" fill="none" stroke="#F2C46D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4 5"/>
+<text x="323.0" y="388" fill="#F2F2F2" font-size="15" text-anchor="middle" font-weight="400">Context before compaction (tokens)</text>
+<g id="compactions" fill="#8AB4F8" fill-opacity=".64">
+<circle cx="418.080312" cy="241.872" r="4"/>
+<circle cx="199.297712" cy="227.088" r="4"/>
+<circle cx="207.058388" cy="230.476" r="4"/>
+<circle cx="220.36422" cy="227.506" r="4"/>
+<circle cx="289.788084" cy="220.576" r="4"/>
+<circle cx="212.529088" cy="241.740" r="4"/>
+<circle cx="321.150858" cy="228.540" r="4"/>
+<circle cx="220.032346" cy="226.494" r="4"/>
+<circle cx="218.49147" cy="245.502" r="4"/>
+<circle cx="200.232044" cy="236.306" r="4"/>
+<circle cx="228.74733" cy="232.038" r="4"/>
+<circle cx="259.982984" cy="226.648" r="4"/>
+<circle cx="279.728806" cy="232.544" r="4"/>
+<circle cx="293.791456" cy="240.992" r="4"/>
+<circle cx="208.375442" cy="240.134" r="4"/>
+<circle cx="384.318602" cy="241.124" r="4"/>
+<circle cx="307.53222" cy="238.792" r="4"/>
+<circle cx="246.397034" cy="222.446" r="4"/>
+<circle cx="231.722392" cy="240.376" r="4"/>
+<circle cx="205.191086" cy="233.820" r="4"/>
+<circle cx="297.727636" cy="232.302" r="4"/>
+<circle cx="190.300794" cy="237.956" r="4"/>
+<circle cx="295.14256" cy="221.324" r="4"/>
+<circle cx="215.816502" cy="232.808" r="4"/>
+<circle cx="289.389472" cy="239.738" r="4"/>
+<circle cx="189.756902" cy="237.736" r="4"/>
+<circle cx="225.692364" cy="239.210" r="4"/>
+<circle cx="197.755474" cy="228.716" r="4"/>
+<circle cx="204.879188" cy="241.608" r="4"/>
+<circle cx="208.98698" cy="234.766" r="4"/>
+<circle cx="206.963956" cy="228.320" r="4"/>
+<circle cx="219.39266" cy="207.728" r="4"/>
+<circle cx="277.201388" cy="222.248" r="4"/>
+<circle cx="207.5932" cy="227.418" r="4"/>
+<circle cx="210.865178" cy="205.858" r="4"/>
+<circle cx="285.675752" cy="231.312" r="4"/>
+<circle cx="240.742918" cy="223.348" r="4"/>
+<circle cx="228.814976" cy="229.442" r="4"/>
+<circle cx="242.924842" cy="231.994" r="4"/>
+<circle cx="206.09273" cy="231.884" r="4"/>
+<circle cx="188.328164" cy="229.970" r="4"/>
+<circle cx="196.800258" cy="227.968" r="4"/>
+<circle cx="196.71309" cy="230.982" r="4"/>
+<circle cx="191.056704" cy="228.518" r="4"/>
+<circle cx="195.603968" cy="226.362" r="4"/>
+<circle cx="191.515244" cy="234.172" r="4"/>
+<circle cx="188.389908" cy="225.592" r="4"/>
+<circle cx="246.475122" cy="225.064" r="4"/>
+<circle cx="189.962564" cy="231.532" r="4"/>
+</g>
+</svg>

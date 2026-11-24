@@ -66,17 +66,31 @@
 <!-- blog:start -->
   <url>
     <loc>https://aqua5230.github.io/usage/blog/</loc>
-    <lastmod>2026-11-24</lastmod>
+    <lastmod>2026-11-25</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://aqua5230.github.io/usage/blog/"/>
     <xhtml:link rel="alternate" hreflang="zh-TW" href="https://aqua5230.github.io/usage/zh-TW/blog/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://aqua5230.github.io/usage/blog/"/>
   </url>
   <url>
     <loc>https://aqua5230.github.io/usage/zh-TW/blog/</loc>
-    <lastmod>2026-11-24</lastmod>
+    <lastmod>2026-11-25</lastmod>
     <xhtml:link rel="alternate" hreflang="en" href="https://aqua5230.github.io/usage/blog/"/>
     <xhtml:link rel="alternate" hreflang="zh-TW" href="https://aqua5230.github.io/usage/zh-TW/blog/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://aqua5230.github.io/usage/blog/"/>
+  </url>
+  <url>
+    <loc>https://aqua5230.github.io/usage/blog/claude-code-idle-compaction/</loc>
+    <lastmod>2026-11-25</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aqua5230.github.io/usage/blog/claude-code-idle-compaction/"/>
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://aqua5230.github.io/usage/zh-TW/blog/claude-code-idle-compaction/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aqua5230.github.io/usage/blog/claude-code-idle-compaction/"/>
+  </url>
+  <url>
+    <loc>https://aqua5230.github.io/usage/zh-TW/blog/claude-code-idle-compaction/</loc>
+    <lastmod>2026-11-25</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aqua5230.github.io/usage/blog/claude-code-idle-compaction/"/>
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://aqua5230.github.io/usage/zh-TW/blog/claude-code-idle-compaction/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aqua5230.github.io/usage/blog/claude-code-idle-compaction/"/>
   </url>
   <url>
     <loc>https://aqua5230.github.io/usage/blog/what-is-cli/</loc>
