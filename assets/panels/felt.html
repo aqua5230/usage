@@ -1273,6 +1273,30 @@ body {
     .pal-share-menu button:hover{background:#0a63d8;color:#fff}
     .pal-share-menu i{display:grid;place-items:center;width:20px;height:20px;border-radius:5px;font-style:normal;font-size:11px;font-weight:700;color:#fff}
     .pal-share-menu hr{height:1px;margin:4px 6px;border:0;background:rgba(0,0,0,.12)}
+    .footer.has-day-share .today{padding-right:32px}
+    .pal-day-share{position:absolute;right:15px;z-index:2;display:grid;place-items:center;width:26px;height:26px;padding:0;border:1px solid var(--line);border-radius:50%;
+      cursor:pointer;color:var(--muted);background:color-mix(in srgb,var(--button) 70%,transparent);box-shadow:0 1px 2px rgba(70,45,25,.15)}
+    .pal-day-share:hover{color:var(--text)}
+    .pal-day-share svg{width:13px;height:13px}
+    .pal-card.day{width:168px;height:236px;margin-left:-84px}
+    .pal-day{position:absolute;inset:0;box-sizing:border-box;display:flex;flex-direction:column;padding:9px 10px 8px;border-radius:12px;border:3px solid #d9a93a;
+      background:linear-gradient(160deg,#fffaf0,#f1dfbd);box-shadow:inset 0 0 0 2px #fff4d6,0 10px 26px rgba(50,28,8,.45);
+      font-family:ui-rounded,-apple-system,"PingFang TC",sans-serif;color:#4a2a04}
+    .pal-day .hero{position:relative;display:grid;place-items:end center;height:70px;margin-top:6px;border-radius:8px;overflow:hidden;
+      background:radial-gradient(circle at 50% 34%,#fff 0,#f2c9a0 150%);box-shadow:inset 0 0 0 1px rgba(80,50,10,.12)}
+    .pal-day .hero::after{content:"";position:absolute;bottom:5px;left:50%;width:44px;height:6px;margin-left:-22px;border-radius:50%;background:rgba(60,38,20,.2)}
+    .pal-day .hero img{position:relative;z-index:1;height:58px;margin-bottom:7px}
+    .pal-day .num{margin-top:7px;text-align:center}
+    .pal-day .num span{display:block;font-size:8px;font-weight:800;letter-spacing:.12em;color:#8a5a10;opacity:.8}
+    .pal-day .num b{display:block;font-size:20px;font-weight:900;line-height:1.05;font-variant-numeric:tabular-nums;letter-spacing:-.4px;white-space:nowrap}
+    .pal-day .rows{display:grid;gap:4px;margin-top:8px}
+    .pal-day .drow{display:grid;grid-template-columns:58px 1fr 24px;align-items:center;gap:5px;font-size:8px;font-weight:800}
+    .pal-day .drow span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .pal-day .bar{height:6px;border-radius:99px;background:rgba(120,85,40,.16);overflow:hidden}
+    .pal-day .bar i{display:block;height:100%;border-radius:99px}
+    .pal-day .drow em{font-style:normal;text-align:right;font-variant-numeric:tabular-nums;opacity:.8}
+    .pal-day .cap{margin-top:3px;font-size:7.5px;font-weight:700;opacity:.5;text-align:right}
+    .pal-day .link{margin-top:auto;text-align:center;font-size:7.4px;font-weight:700;opacity:.7;white-space:nowrap}
     .pal-hit{position:absolute;bottom:0;left:${-SIZE * 0.4}px;width:${SIZE * 0.8}px;height:${SIZE}px;pointer-events:auto;cursor:pointer}
     .pal-say.paused{animation-play-state:paused}
     .pal-tree{position:absolute;right:0;bottom:${LINE_GROUND}px;height:50px;pointer-events:none;z-index:1}
@@ -1517,6 +1541,17 @@ body {
     banban_surprised: "{{ASSET:panels/felt/pals/banban_surprised.webp}}",
     banban_signature: "{{ASSET:panels/felt/pals/banban_signature.webp}}",
     tuanli_card: "{{ASSET:panels/felt/pals/tuanli_card.webp}}",
+    bear_card: "{{ASSET:panels/felt/pals/bear_card.webp}}",
+    elephant_card: "{{ASSET:panels/felt/pals/elephant_card.webp}}",
+    penguin_card: "{{ASSET:panels/felt/pals/penguin_card.webp}}",
+    piglet_card: "{{ASSET:panels/felt/pals/piglet_card.webp}}",
+    puppy_card: "{{ASSET:panels/felt/pals/puppy_card.webp}}",
+    raccoon_card: "{{ASSET:panels/felt/pals/raccoon_card.webp}}",
+    redpanda_card: "{{ASSET:panels/felt/pals/redpanda_card.webp}}",
+    cockatoo_card: "{{ASSET:panels/felt/pals/cockatoo_card.webp}}",
+    crab_card: "{{ASSET:panels/felt/pals/crab_card.webp}}",
+    pufferfish_card: "{{ASSET:panels/felt/pals/pufferfish_card.webp}}",
+    snail_card: "{{ASSET:panels/felt/pals/snail_card.webp}}",
     zapi_card: "{{ASSET:panels/felt/pals/zapi_card.webp}}",
     bobo_card: "{{ASSET:panels/felt/pals/bobo_card.webp}}",
     nibo_card: "{{ASSET:panels/felt/pals/nibo_card.webp}}",
@@ -1875,7 +1910,7 @@ body {
     await wait(250);
     card.classList.add("show");
     await wait(900);
-    await holdCard(card, name);
+    await holdPalCard(card, name);
     const r = card.getBoundingClientRect(), t = book.getBoundingClientRect();
     const dx = t.left + t.width / 2 - (r.left + r.width / 2), dy = t.top + t.height / 2 - (r.top + r.height / 2);
     await card.animate([{ transform: "none", opacity: 1 }, { transform: `translate(${dx}px, ${dy}px) scale(.1) rotate(-14deg)`, opacity: 0.3 }],
@@ -1883,98 +1918,123 @@ body {
     card.remove();
   }
 
-  // Sharing needs the macOS app (clipboard, Downloads, share menu). Windows loads the same panel through pywebview without it.
+  // Sharing needs the macOS app (clipboard, Downloads, share menu). Windows loads the same panel with a bridge shim that
+  // marks itself in <head> before this runs; window.pywebview itself arrives later, so it cannot be checked at load.
   const shareBridge = () => window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.usage;
-  const canShare = () => !window.pywebview && typeof shareBridge()?.postMessage === "function";
+  const canShare = () => window.usageHost !== "windows" && !window.pywebview && typeof shareBridge()?.postMessage === "function";
   const SHARE_LINK = "github.com/aqua5230/usage";
   const SHARE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
   const SHARE_TARGETS = [["threads", "#111", "@"], ["x", "#111", "X"], null, ["copy", "#8e8e93", "⧉"], ["save", "#3a8ef0", "↓"], null, ["more", "#c7c3be", "⋯"]];
 
+  const loadImg = async (url) => {
+    const img = new Image();
+    img.src = url;
+    await img.decode();
+    return img;
+  };
   // The shared picture is the card itself, drawn at 6x on a 4:5 felt-coloured sheet: Threads and Instagram crop to 4:5,
-  // and a transparent PNG turns black there. Layout numbers mirror the .pal-card CSS (136×190).
-  async function cardPng(name) {
-    const S = 6, W = 1080, H = 1350, c = Object.assign(document.createElement("canvas"), { width: W, height: H });
+  // and a transparent PNG turns black there. draw() lays out the inside in the card's CSS pixels.
+  function sheetPng(w, h, draw) {
+    // Up to 6x, keeping at least 80 px of sheet around the card.
+    const W = 1080, H = 1350, S = Math.min(6, (W - 160) / w, (H - 160) / h);
+    const c = Object.assign(document.createElement("canvas"), { width: W, height: H });
     const g = c.getContext("2d");
     const font = (weight, px) => `${weight} ${px}px ui-rounded,-apple-system,"PingFang TC",sans-serif`;
-    const box = (x, y, w, h, r) => {
+    const box = (x, y, bw, bh, r) => {
       g.beginPath();
       g.moveTo(x + r, y);
-      g.arcTo(x + w, y, x + w, y + h, r);
-      g.arcTo(x + w, y + h, x, y + h, r);
-      g.arcTo(x, y + h, x, y, r);
-      g.arcTo(x, y, x + w, y, r);
+      g.arcTo(x + bw, y, x + bw, y + bh, r);
+      g.arcTo(x + bw, y + bh, x, y + bh, r);
+      g.arcTo(x, y + bh, x, y, r);
+      g.arcTo(x, y, x + bw, y, r);
       g.closePath();
     };
-    const img = new Image();
-    img.src = src(name, "card") || src(name, "cheer");
-    await img.decode();
     g.fillStyle = "#f3e6d0";
     g.fillRect(0, 0, W, H);
-    g.translate((W - 136 * S) / 2, (H - 190 * S) / 2);
+    g.translate((W - w * S) / 2, (H - h * S) / 2);
     g.scale(S, S);
     g.shadowColor = "rgba(50,28,8,.4)";
     g.shadowBlur = 60;
     g.shadowOffsetY = 40;
-    box(0, 0, 136, 190, 12);
+    box(0, 0, w, h, 12);
     g.fillStyle = "#d9a93a";
     g.fill();
     g.shadowColor = "transparent";
-    const face = g.createLinearGradient(80, 0, 56, 190);
+    const face = g.createLinearGradient(w * 0.59, 0, w * 0.41, h);
     face.addColorStop(0, "#fffaf0");
     face.addColorStop(1, "#f1dfbd");
-    box(3, 3, 130, 184, 9);
+    box(3, 3, w - 6, h - 6, 9);
     g.fillStyle = face;
     g.fill();
-    box(4, 4, 128, 182, 8);
+    box(4, 4, w - 8, h - 8, 8);
     g.strokeStyle = "#fff4d6";
     g.lineWidth = 2;
     g.stroke();
     g.textBaseline = "middle";
-    g.font = font(800, 9);
-    g.fillStyle = "#8a5a10";
-    g.fillText(no(name), 11, 17.5);
-    const tag = tr("hidden_tag"), tagW = g.measureText(tag).width + 12;
-    box(125 - tagW, 11, tagW, 13, 6.5);
+    draw(g, box, font);
+    return c.toDataURL("image/png").split(",")[1];
+  }
+  // A tag pill ending at x = right, like .pal-card .tag.
+  const drawTag = (g, box, text, right) => {
+    const w = g.measureText(text).width + 12;
+    box(right - w, 11, w, 13, 6.5);
     g.fillStyle = "#d9a93a";
     g.fill();
     g.fillStyle = "#fffaf0";
     g.textAlign = "center";
-    g.fillText(tag, 125 - tagW / 2, 17.5);
-    g.save();
-    box(11, 30, 114, 104, 7);
-    g.clip();
-    const glow = g.createRadialGradient(68, 67.4, 0, 68, 67.4, 131);
-    glow.addColorStop(0, "#fff");
-    glow.addColorStop(1, TONE[name] || "#e8b86a");
-    g.fillStyle = glow;
-    g.fillRect(11, 30, 114, 104);
-    g.beginPath();
-    g.ellipse(68, 123, 28, 4, 0, 0, Math.PI * 2);
-    g.fillStyle = "rgba(60,38,20,.22)";
-    g.fill();
-    const iw = (img.naturalWidth / img.naturalHeight) * 84;
-    g.drawImage(img, 68 - iw / 2, 41, iw, 84);
-    g.restore();
-    box(11.5, 30.5, 113, 103, 7);
-    g.strokeStyle = "rgba(80,50,10,.12)";
-    g.lineWidth = 1;
-    g.stroke();
-    g.fillStyle = "#4a2a04";
-    g.font = font(900, 15);
-    g.fillText(label(name), 68, 149);
-    g.fillStyle = "rgba(74,42,4,.7)";
-    g.font = font(700, 7.4);
-    g.fillText(SHARE_LINK, 68, 163);
-    return c.toDataURL("image/png").split(",")[1];
+    g.fillText(text, right - w / 2, 17.5);
+  };
+
+  // Layout numbers mirror the .pal-card CSS (136×190).
+  async function cardPng(name) {
+    const img = await loadImg(src(name, "card") || src(name, "cheer"));
+    return sheetPng(136, 190, (g, box, font) => {
+      g.font = font(800, 9);
+      g.fillStyle = "#8a5a10";
+      g.fillText(no(name), 11, 17.5);
+      drawTag(g, box, tr("hidden_tag"), 125);
+      g.save();
+      box(11, 30, 114, 104, 7);
+      g.clip();
+      const glow = g.createRadialGradient(68, 67.4, 0, 68, 67.4, 131);
+      glow.addColorStop(0, "#fff");
+      glow.addColorStop(1, TONE[name] || "#e8b86a");
+      g.fillStyle = glow;
+      g.fillRect(11, 30, 114, 104);
+      g.beginPath();
+      g.ellipse(68, 123, 28, 4, 0, 0, Math.PI * 2);
+      g.fillStyle = "rgba(60,38,20,.22)";
+      g.fill();
+      const iw = (img.naturalWidth / img.naturalHeight) * 84;
+      g.drawImage(img, 68 - iw / 2, 41, iw, 84);
+      g.restore();
+      box(11.5, 30.5, 113, 103, 7);
+      g.strokeStyle = "rgba(80,50,10,.12)";
+      g.lineWidth = 1;
+      g.stroke();
+      g.fillStyle = "#4a2a04";
+      g.font = font(900, 15);
+      g.fillText(label(name), 68, 149);
+      g.fillStyle = "rgba(74,42,4,.7)";
+      g.font = font(700, 7.4);
+      g.fillText(SHARE_LINK, 68, 163);
+    });
   }
 
-  // The card waits until 分享 or 收下 (or a click outside), grown to fill the panel and centred above its buttons.
+  // A collectible card shows the link while it waits, since the link is what the shared picture carries.
+  async function holdPalCard(card, name, inDex = false) {
+    const small = card.querySelector(".plate small");
+    small.textContent = SHARE_LINK;
+    await holdCard(card, { name, inDex, keep: inDex ? "hidden_close" : "hidden_keep", png: () => cardPng(name),
+      text: tr("hidden_share_text", { name: label(name) }) });
+    small.textContent = tr("hidden_added");
+  }
+
+  // The card waits until 分享 or 收下/關閉 (or a click outside), grown to fill the panel and centred above its buttons.
   // Positions are in the zoomed root's units: getBoundingClientRect() reports zoomed pixels.
-  function holdCard(card, name, inDex = false) {
+  function holdCard(card, { name, inDex = false, keep: keepKey, png, text }) {
     return new Promise((done) => {
       const z = zoomScale(), viewH = innerHeight / z, r0 = card.getBoundingClientRect(), h = r0.height / z;
-      const small = card.querySelector(".plate small");
-      small.textContent = SHARE_LINK;
       const layerCls = inDex ? " over-dex" : "";
       const dim = el("div", `pal-dim${layerCls}`);
       document.body.appendChild(dim);
@@ -1987,7 +2047,7 @@ body {
       go.type = "button";
       go.innerHTML = SHARE_ICON;
       go.append(el("span", "", tr("hidden_share")));
-      const keep = el("button", "keep", tr(inDex ? "hidden_close" : "hidden_keep"));
+      const keep = el("button", "keep", tr(keepKey));
       keep.type = "button";
       if (canShare()) row.append(go);
       row.append(keep);
@@ -2003,7 +2063,6 @@ body {
         dim.classList.remove("on");
         card.classList.remove("hold");
         card.style.scale = card.style.translate = "";
-        small.textContent = tr("hidden_added");
         setTimeout(() => dim.remove(), 300);
         await wait(350);
         done();
@@ -2013,8 +2072,8 @@ body {
       const share = async (target) => {
         closeMenu();
         const a = go.getBoundingClientRect();
-        shareBridge().postMessage(JSON.stringify({ action: "share_pal_card", target, name, png: await cardPng(name),
-          text: tr("hidden_share_text", { name: label(name) }), anchor: { x: a.left, y: a.top, w: a.width, h: a.height } }));
+        shareBridge().postMessage(JSON.stringify({ action: "share_pal_card", target, name, png: await png(), text,
+          anchor: { x: a.left, y: a.top, w: a.width, h: a.height } }));
         if (target === "more") return;
         go.classList.add("done");
         go.querySelector("span").textContent = tr(`hidden_shared_${target}`);
@@ -2054,6 +2113,152 @@ body {
     });
   }
 
+  // Today's usage as a card, opened from the footer. Project names stay off it: they are often a client's or employer's.
+  // Each service shows its 5-hour window, coloured like its quota card; the pal is the first onstage one with card art
+  // (six regular pals have no art sharp enough for the 6x picture).
+  function dayData() {
+    const onstage = pals.filter((p) => !p.offstage);
+    const pal = onstage.find((p) => src(p.name, "card")) || pals.find((p) => src(p.name, "card") && (!HIDDEN.has(p.name) || seen.includes(p.name)));
+    const rows = visibleCards().map((card) => {
+      const row = latest?.[card.dataset.card]?.session;
+      if (!available(row)) return null;
+      return { name: card.querySelector("h1")?.textContent.trim() || card.dataset.card, percent: clamp(Math.round(row.percent), 0, 100),
+        color: getComputedStyle(card).getPropertyValue("--accent").trim() || "#d9a93a" };
+    }).filter(Boolean);
+    return { tokens: latest?.footer?.today?.tokensCount || "0", rows, pal: pal?.name, date: dateText(new Date()) };
+  }
+  function buildDayCard(d) {
+    const card = el("div", "pal-card day");
+    const face = el("div", "pal-day");
+    const top = el("div", "top");
+    top.append(el("span", "", tr("today_title")), el("span", "tag", d.date));
+    const hero = el("div", "hero");
+    if (d.pal) {
+      const img = el("img");
+      img.src = src(d.pal, "card");
+      img.alt = "";
+      hero.append(img);
+    }
+    const num = el("div", "num");
+    num.append(el("span", "", tr("today_tokens")), el("b", "", d.tokens));
+    const rows = el("div", "rows");
+    for (const r of d.rows) {
+      const row = el("div", "drow");
+      const bar = el("div", "bar");
+      const fill = el("i");
+      fill.style.cssText = `width:${r.percent}%;background:${r.color}`;
+      bar.append(fill);
+      row.append(el("span", "", r.name), bar, el("em", "", `${r.percent}%`));
+      rows.append(row);
+    }
+    face.append(top, hero, num, rows);
+    if (d.rows.length) face.append(el("div", "cap", tr("today_quota")));
+    face.append(el("div", "link", `usage · ${SHARE_LINK}`));
+    card.append(face);
+    return card;
+  }
+  // Layout numbers mirror the .pal-day CSS (168×236; content box from x 13 to 155).
+  async function dayPng(d) {
+    const img = d.pal ? await loadImg(src(d.pal, "card")) : null;
+    return sheetPng(168, 236, (g, box, font) => {
+      g.font = font(800, 9);
+      g.fillStyle = "#8a5a10";
+      g.fillText(tr("today_title"), 13, 18.5);
+      drawTag(g, box, d.date, 155);
+      g.save();
+      box(13, 31, 142, 70, 8);
+      g.clip();
+      const glow = g.createRadialGradient(84, 54.8, 0, 84, 54.8, 127);
+      glow.addColorStop(0, "#fff");
+      glow.addColorStop(1, "#f2c9a0");
+      g.fillStyle = glow;
+      g.fillRect(13, 31, 142, 70);
+      g.beginPath();
+      g.ellipse(84, 93, 22, 3, 0, 0, Math.PI * 2);
+      g.fillStyle = "rgba(60,38,20,.2)";
+      g.fill();
+      if (img) {
+        const iw = (img.naturalWidth / img.naturalHeight) * 58;
+        g.drawImage(img, 84 - iw / 2, 36, iw, 58);
+      }
+      g.restore();
+      box(13.5, 31.5, 141, 69, 8);
+      g.strokeStyle = "rgba(80,50,10,.12)";
+      g.lineWidth = 1;
+      g.stroke();
+      g.textAlign = "center";
+      g.fillStyle = "rgba(138,90,16,.8)";
+      g.font = font(800, 8);
+      g.fillText(tr("today_tokens"), 84, 113);
+      g.fillStyle = "#4a2a04";
+      let size = 20;
+      g.font = font(900, size);
+      while (g.measureText(d.tokens).width > 142 && size > 12) g.font = font(900, --size);
+      g.fillText(d.tokens, 84, 129);
+      let y = 152;
+      g.font = font(800, 8);
+      for (const r of d.rows) {
+        g.textAlign = "left";
+        g.fillStyle = "#4a2a04";
+        g.fillText(r.name, 13, y, 58);
+        box(76, y - 3, 50, 6, 3);
+        g.fillStyle = "rgba(120,85,40,.16)";
+        g.fill();
+        if (r.percent > 0) {
+          box(76, y - 3, Math.max(6, (50 * r.percent) / 100), 6, 3);
+          g.fillStyle = r.color;
+          g.fill();
+        }
+        g.textAlign = "right";
+        g.fillStyle = "rgba(74,42,4,.8)";
+        g.fillText(`${r.percent}%`, 155, y);
+        y += 14;
+      }
+      if (d.rows.length) {
+        g.font = font(700, 7.5);
+        g.fillStyle = "rgba(74,42,4,.5)";
+        g.fillText(tr("today_quota"), 155, y - 1);
+      }
+      g.textAlign = "center";
+      g.fillStyle = "rgba(74,42,4,.7)";
+      g.font = font(700, 7.4);
+      g.fillText(`usage · ${SHARE_LINK}`, 84, 220);
+    });
+  }
+  let dayOpen = false;
+  async function openDayCard() {
+    if (dayOpen) return;
+    dayOpen = true;
+    const d = dayData();
+    const card = buildDayCard(d);
+    document.body.appendChild(card);
+    // Very large totals shrink to fit the card instead of running past its edge.
+    const b = card.querySelector(".num b");
+    for (let px = 20; b.scrollWidth > b.clientWidth && px > 12; ) b.style.fontSize = `${--px}px`;
+    if (!still) {
+      await card.animate([{ transform: "translateY(40px) scale(.6)", opacity: 0 }, { transform: "none", opacity: 1 }],
+        { duration: 380, easing: "cubic-bezier(.2,1.3,.4,1)" }).finished;
+    }
+    await holdCard(card, { name: "today", keep: "hidden_close", png: () => dayPng(d),
+      text: tr("today_share_text", { tokens: d.tokens }) });
+    card.remove();
+    dayOpen = false;
+  }
+  const footerEl = document.querySelector(".footer");
+  const todayEl = document.querySelector('[data-footer="today"]');
+  const dayButton = el("button", "pal-day-share");
+  dayButton.type = "button";
+  dayButton.innerHTML = SHARE_ICON;
+  dayButton.addEventListener("click", openDayCard);
+  // Kept level with the today line, whose height changes with the service alerts above it.
+  const placeDayButton = () => {
+    dayButton.style.top = `${todayEl.offsetTop + todayEl.offsetHeight / 2 - 13}px`;
+  };
+  if (canShare() && footerEl && todayEl) {
+    footerEl.classList.add("has-day-share");
+    footerEl.appendChild(dayButton);
+  }
+
   // A found pal in the book reopens its card, so sharing is never a one-time chance.
   async function reopenCard(name) {
     const card = buildCard(name);
@@ -2061,7 +2266,7 @@ body {
     document.body.appendChild(card);
     requestAnimationFrame(() => requestAnimationFrame(() => card.classList.add("show")));
     await wait(still ? 0 : 750);
-    await holdCard(card, name, true);
+    await holdPalCard(card, name, true);
     card.remove();
   }
 
@@ -3249,6 +3454,10 @@ body {
   }
 
   function onState(state) {
+    if (dayButton.isConnected) {
+      dayButton.title = dayButton.ariaLabel = tr("today_share");
+      placeDayButton();
+    }
     const alerts = new Set(state.footer?.serviceAlertCards);
     const operational = new Set(state.footer?.serviceOperationalCards);
     for (const id of state.footer?.serviceKnownCards ?? []) {

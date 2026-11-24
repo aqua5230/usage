@@ -211,6 +211,8 @@ _RPC_E_CHANGED_MODE = -2147417850
 
 JS_SHIM = """
 <script>
+// The shared panels read this to hide what needs the macOS app, such as sharing.
+window.usageHost = "windows";
 window.webkit = window.webkit || {};
 window.webkit.messageHandlers = window.webkit.messageHandlers || {};
 window.webkit.messageHandlers.usage = {
