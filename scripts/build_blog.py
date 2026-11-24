@@ -73,7 +73,6 @@ UI_STRINGS: dict[str, dict[str, str]] = {
         "toc_title": "In this article",
         "news_title": "AI Update Daily",
         "news_all": "See all updates →",
-        "read_more": "Read article →",
         "footer_tag_pre": "Built by",
         "footer_tag_post": "· AGPL-3.0 · No uploads. No tracking. Just yours.",
     },
@@ -99,7 +98,6 @@ UI_STRINGS: dict[str, dict[str, str]] = {
         "toc_title": "本文目錄",
         "news_title": "AI 更新日報",
         "news_all": "看全部更新 →",
-        "read_more": "閱讀全文 →",
         "footer_tag_pre": "作者：",
         "footer_tag_post": "· AGPL-3.0 · 不上傳、不追蹤，只屬於你。",
     },
@@ -125,7 +123,6 @@ UI_STRINGS: dict[str, dict[str, str]] = {
         "toc_title": "本文目录",
         "news_title": "AI 更新日报",
         "news_all": "查看全部更新 →",
-        "read_more": "阅读全文 →",
         "footer_tag_pre": "作者：",
         "footer_tag_post": "· AGPL-3.0 · 不上传、不追踪，只属于你。",
     },
@@ -151,7 +148,6 @@ UI_STRINGS: dict[str, dict[str, str]] = {
         "toc_title": "この記事の内容",
         "news_title": "AI更新日報",
         "news_all": "すべての更新を見る →",
-        "read_more": "記事を読む →",
         "footer_tag_pre": "制作：",
         "footer_tag_post": "· AGPL-3.0 · アップロードなし、トラッキングなし。あなただけのもの。",
     },
@@ -177,7 +173,6 @@ UI_STRINGS: dict[str, dict[str, str]] = {
         "toc_title": "이 글의 내용",
         "news_title": "AI 업데이트 데일리",
         "news_all": "모든 업데이트 보기 →",
-        "read_more": "글 읽기 →",
         "footer_tag_pre": "제작:",
         "footer_tag_post": "· AGPL-3.0 · 업로드 없음, 추적 없음. 온전히 당신의 것.",
     },
@@ -342,24 +337,44 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   overflow-wrap: anywhere;
 }
 .blog-hero { margin-bottom: 36px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
-.post-list { display: grid; gap: 16px; }
+.post-list { display: grid; }
 .post-card {
+  position: relative;
   display: block;
-  padding: 24px;
-  border-radius: 14px;
+  padding: 22px 40px 22px 0;
+  border-bottom: 1px solid var(--border);
+}
+.post-card:first-child { padding-top: 0; }
+.post-card::after {
+  content: "→";
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  font-size: 18px;
+  color: var(--fg-dimmer);
+  transform: translateY(-50%);
+  transition: color 140ms ease, transform 140ms ease;
+}
+.post-card:hover::after { color: var(--accent); transform: translate(3px, -50%); }
+.post-card:first-child::after { top: calc(50% - 11px); }
+.post-card .post-meta { align-items: center; margin-bottom: 8px; }
+.post-tool {
+  font-size: 12px;
+  line-height: 1.6;
+  padding: 0 8px;
+  border-radius: 999px;
   border: 1px solid var(--border);
-  background: var(--bg-card);
-  transition: border-color 150ms ease, transform 150ms ease;
-}
-.post-card:hover { border-color: rgba(255, 140, 66, 0.4); transform: translateY(-1px); }
-.post-card h2 { font-size: 21px; line-height: 1.35; margin: 6px 0 10px; overflow-wrap: anywhere; }
-.post-card p {
-  font-size: 15px;
   color: var(--fg-dim);
-  margin-bottom: 12px;
-  overflow-wrap: anywhere;
 }
-.post-card .read-more { font-size: 14px; font-weight: 600; color: var(--accent); }
+.post-card h2 {
+  font-size: 21px;
+  line-height: 1.35;
+  margin-bottom: 8px;
+  overflow-wrap: anywhere;
+  transition: color 140ms ease;
+}
+.post-card:hover h2 { color: var(--accent); }
+.post-card p { font-size: 15px; color: var(--fg-dim); overflow-wrap: anywhere; }
 .prose { font-size: 16.5px; line-height: 1.75; color: var(--fg); }
 .prose > * + * { margin-top: 1.15em; }
 .prose h2 {
@@ -638,6 +653,15 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 """
 
 
+TOOL_LABELS = {
+    "claude-code": "Claude Code",
+    "codex": "Codex",
+    "antigravity": "Antigravity",
+    "grok": "Grok",
+    "muse": "Muse",
+}
+
+
 @dataclass(frozen=True)
 class Article:
     slug: str
@@ -649,6 +673,7 @@ class Article:
     related: tuple[str, ...]
     body_markdown: str
     image: str | None = None
+    tool: str | None = None
 
     @property
     def lastmod(self) -> str:
@@ -793,6 +818,7 @@ def load_articles(source_dir: Path) -> dict[str, dict[str, Article]]:
                 related=related,
                 body_markdown=body,
                 image=image,
+                tool=meta.get("tool", "").strip() or None,
             )
         if per_lang:
             articles[slug] = per_lang
@@ -1364,13 +1390,14 @@ def render_list_page(
     cards: list[str] = []
     for post in posts:
         post_href = f"{post.slug}/"
+        tool_label = TOOL_LABELS.get(post.tool or "")
+        tool_html = f'<span class="post-tool">{tool_label}</span>' if tool_label else ""
         cards.append(
             f'      <a class="post-card" href="{html.escape(post_href, quote=True)}">\n'
             f'        <div class="post-meta">'
-            f'<time datetime="{post.date}">{post.date}</time></div>\n'
+            f'<time datetime="{post.date}">{post.date}</time>{tool_html}</div>\n'
             f"        <h2>{html.escape(post.title)}</h2>\n"
             f"        <p>{html.escape(post.description)}</p>\n"
-            f'        <span class="read-more">{html.escape(ui["read_more"])}</span>\n'
             "      </a>"
         )
 

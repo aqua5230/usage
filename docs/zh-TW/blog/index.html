@@ -201,24 +201,44 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   overflow-wrap: anywhere;
 }
 .blog-hero { margin-bottom: 36px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
-.post-list { display: grid; gap: 16px; }
+.post-list { display: grid; }
 .post-card {
+  position: relative;
   display: block;
-  padding: 24px;
-  border-radius: 14px;
+  padding: 22px 40px 22px 0;
+  border-bottom: 1px solid var(--border);
+}
+.post-card:first-child { padding-top: 0; }
+.post-card::after {
+  content: "→";
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  font-size: 18px;
+  color: var(--fg-dimmer);
+  transform: translateY(-50%);
+  transition: color 140ms ease, transform 140ms ease;
+}
+.post-card:hover::after { color: var(--accent); transform: translate(3px, -50%); }
+.post-card:first-child::after { top: calc(50% - 11px); }
+.post-card .post-meta { align-items: center; margin-bottom: 8px; }
+.post-tool {
+  font-size: 12px;
+  line-height: 1.6;
+  padding: 0 8px;
+  border-radius: 999px;
   border: 1px solid var(--border);
-  background: var(--bg-card);
-  transition: border-color 150ms ease, transform 150ms ease;
-}
-.post-card:hover { border-color: rgba(255, 140, 66, 0.4); transform: translateY(-1px); }
-.post-card h2 { font-size: 21px; line-height: 1.35; margin: 6px 0 10px; overflow-wrap: anywhere; }
-.post-card p {
-  font-size: 15px;
   color: var(--fg-dim);
-  margin-bottom: 12px;
-  overflow-wrap: anywhere;
 }
-.post-card .read-more { font-size: 14px; font-weight: 600; color: var(--accent); }
+.post-card h2 {
+  font-size: 21px;
+  line-height: 1.35;
+  margin-bottom: 8px;
+  overflow-wrap: anywhere;
+  transition: color 140ms ease;
+}
+.post-card:hover h2 { color: var(--accent); }
+.post-card p { font-size: 15px; color: var(--fg-dim); overflow-wrap: anywhere; }
 .prose { font-size: 16.5px; line-height: 1.75; color: var(--fg); }
 .prose > * + * { margin-top: 1.15em; }
 .prose h2 {
@@ -521,28 +541,24 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
     </section>
     <div class="post-list">
       <a class="post-card" href="what-is-cli/">
-        <div class="post-meta"><time datetime="2026-11-24">2026-11-24</time></div>
+        <div class="post-meta"><time datetime="2026-11-24">2026-11-24</time><span class="post-tool">Claude Code</span></div>
         <h2>CLI 是什麼？從 Claude Code 看懂終端機</h2>
         <p>CLI 是用打字下命令操作電腦的方式。這篇用一個真的做出來的網頁，說明 CLI 和按按鈕差在哪、Claude Code 怎麼替你打指令，以及它要動你的檔案前，你該看懂哪一行。</p>
-        <span class="read-more">閱讀全文 →</span>
       </a>
       <a class="post-card" href="how-to-check-antigravity-quota/">
-        <div class="post-meta"><time datetime="2026-11-23">2026-11-23</time></div>
+        <div class="post-meta"><time datetime="2026-11-23">2026-11-23</time><span class="post-tool">Antigravity</span></div>
         <h2>怎麼查 Antigravity（agy）剩多少額度？</h2>
         <p>在 Antigravity CLI 輸入 /usage，或在終端機跑 agy -p /usage --output-format json，不用呼叫模型就能查額度。這篇說明三個額度池和重置時間。</p>
-        <span class="read-more">閱讀全文 →</span>
       </a>
       <a class="post-card" href="codex-weekly-limit-early-reset/">
-        <div class="post-meta"><time datetime="2026-11-23">2026-11-23</time></div>
+        <div class="post-meta"><time datetime="2026-11-23">2026-11-23</time><span class="post-tool">Codex</span></div>
         <h2>Codex 每週額度為什麼提早重置？</h2>
         <p>Codex 的每週額度常比 resets_at 早好幾天重置，原因是 OpenAI 會全體重置。附一個 Plus 帳號 10 週的實際紀錄、官方規則和查法。</p>
-        <span class="read-more">閱讀全文 →</span>
       </a>
       <a class="post-card" href="claude-code-weekly-limit-reset/">
-        <div class="post-meta"><time datetime="2026-11-23">2026-11-23</time></div>
+        <div class="post-meta"><time datetime="2026-11-23">2026-11-23</time><span class="post-tool">Claude Code</span></div>
         <h2>Claude Code 每週額度什麼時候重置？</h2>
         <p>Claude Code 的每週額度在帳號固定的星期與時間重置。這篇說明它和 5 小時額度的差別，以及怎麼看重置倒數。</p>
-        <span class="read-more">閱讀全文 →</span>
       </a>
     </div>
   </div>

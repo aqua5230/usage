@@ -201,24 +201,44 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   overflow-wrap: anywhere;
 }
 .blog-hero { margin-bottom: 36px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
-.post-list { display: grid; gap: 16px; }
+.post-list { display: grid; }
 .post-card {
+  position: relative;
   display: block;
-  padding: 24px;
-  border-radius: 14px;
+  padding: 22px 40px 22px 0;
+  border-bottom: 1px solid var(--border);
+}
+.post-card:first-child { padding-top: 0; }
+.post-card::after {
+  content: "→";
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  font-size: 18px;
+  color: var(--fg-dimmer);
+  transform: translateY(-50%);
+  transition: color 140ms ease, transform 140ms ease;
+}
+.post-card:hover::after { color: var(--accent); transform: translate(3px, -50%); }
+.post-card:first-child::after { top: calc(50% - 11px); }
+.post-card .post-meta { align-items: center; margin-bottom: 8px; }
+.post-tool {
+  font-size: 12px;
+  line-height: 1.6;
+  padding: 0 8px;
+  border-radius: 999px;
   border: 1px solid var(--border);
-  background: var(--bg-card);
-  transition: border-color 150ms ease, transform 150ms ease;
-}
-.post-card:hover { border-color: rgba(255, 140, 66, 0.4); transform: translateY(-1px); }
-.post-card h2 { font-size: 21px; line-height: 1.35; margin: 6px 0 10px; overflow-wrap: anywhere; }
-.post-card p {
-  font-size: 15px;
   color: var(--fg-dim);
-  margin-bottom: 12px;
-  overflow-wrap: anywhere;
 }
-.post-card .read-more { font-size: 14px; font-weight: 600; color: var(--accent); }
+.post-card h2 {
+  font-size: 21px;
+  line-height: 1.35;
+  margin-bottom: 8px;
+  overflow-wrap: anywhere;
+  transition: color 140ms ease;
+}
+.post-card:hover h2 { color: var(--accent); }
+.post-card p { font-size: 15px; color: var(--fg-dim); overflow-wrap: anywhere; }
 .prose { font-size: 16.5px; line-height: 1.75; color: var(--fg); }
 .prose > * + * { margin-top: 1.15em; }
 .prose h2 {
@@ -521,28 +541,24 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
     </section>
     <div class="post-list">
       <a class="post-card" href="what-is-cli/">
-        <div class="post-meta"><time datetime="2026-11-24">2026-11-24</time></div>
+        <div class="post-meta"><time datetime="2026-11-24">2026-11-24</time><span class="post-tool">Claude Code</span></div>
         <h2>What Is a CLI? Understanding the Terminal Through Claude Code</h2>
         <p>A CLI is a way to control a computer by typing commands. Using a web page that was actually built with one typed sentence, this post explains how a CLI differs from clicking buttons, how Claude Code types commands for you, and which line to read before it touches your files.</p>
-        <span class="read-more">Read article →</span>
       </a>
       <a class="post-card" href="how-to-check-antigravity-quota/">
-        <div class="post-meta"><time datetime="2026-11-23">2026-11-23</time></div>
+        <div class="post-meta"><time datetime="2026-11-23">2026-11-23</time><span class="post-tool">Antigravity</span></div>
         <h2>How to Check Your Antigravity (agy) Quota</h2>
         <p>Type /usage in the Antigravity CLI, or run agy -p /usage --output-format json to get your quota without calling a model. Here are the three quota pools and when they reset.</p>
-        <span class="read-more">Read article →</span>
       </a>
       <a class="post-card" href="codex-weekly-limit-early-reset/">
-        <div class="post-meta"><time datetime="2026-11-23">2026-11-23</time></div>
+        <div class="post-meta"><time datetime="2026-11-23">2026-11-23</time><span class="post-tool">Codex</span></div>
         <h2>Why Did My Codex Weekly Limit Reset Early?</h2>
         <p>Codex weekly limits often reset days before resets_at because OpenAI runs global resets. Ten weeks of data from one Plus account, the official reset rules, and how to check.</p>
-        <span class="read-more">Read article →</span>
       </a>
       <a class="post-card" href="claude-code-weekly-limit-reset/">
-        <div class="post-meta"><time datetime="2026-11-23">2026-11-23</time></div>
+        <div class="post-meta"><time datetime="2026-11-23">2026-11-23</time><span class="post-tool">Claude Code</span></div>
         <h2>When Does the Claude Code Weekly Limit Reset?</h2>
         <p>Claude Code&#x27;s weekly limit resets at a fixed day and time assigned to your account. Here is how that works with the 5-hour limit, and how to see your countdown.</p>
-        <span class="read-more">Read article →</span>
       </a>
     </div>
   </div>
