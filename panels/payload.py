@@ -49,9 +49,9 @@ def _new_state_payload(view: Any, payload: dict[str, object]) -> str | None:
 @cache
 def _load_panel_html(filename: str) -> str:
     html = Path(resolve_resource(f"panels/{filename}")).read_text(encoding="utf-8")
-    html = re.sub(r"\{\{ASSET:([^{}]+)\}\}", lambda match: _encode_asset(match[1]), html)
     return (
-        html.replace("{{CLAUDE_ICON}}", _data_uri("claude.webp"))
+        _embed_assets(html)
+        .replace("{{CLAUDE_ICON}}", _data_uri("claude.webp"))
         .replace("{{CODEX_ICON}}", _data_uri("codex.webp"))
         .replace("{{CORE_SCRIPT}}", _load_core_script())
         .replace("{{I18N_BUNDLE}}", json.dumps(_load_i18n_bundle(), ensure_ascii=False))
@@ -60,7 +60,11 @@ def _load_panel_html(filename: str) -> str:
 
 @lru_cache(maxsize=1)
 def _load_core_script() -> str:
-    return Path(resolve_resource(CORE_SCRIPT_FILENAME)).read_text(encoding="utf-8")
+    return _embed_assets(Path(resolve_resource(CORE_SCRIPT_FILENAME)).read_text(encoding="utf-8"))
+
+
+def _embed_assets(source: str) -> str:
+    return re.sub(r"\{\{ASSET:([^{}]+)\}\}", lambda match: _encode_asset(match[1]), source)
 
 
 @lru_cache(maxsize=4)
@@ -177,7 +181,14 @@ def _state_payload(
         "footer": {
             "rate": state.rate_text,
             "status": state.status_text,
-            "today": _period_payload(state.today_total, state.language),
+            "today": {
+                **_period_payload(state.today_total, state.language),
+                "byService": [
+                    {"card": card, "tokens": tokens, "tokensText": _compact_tokens(tokens)}
+                    for card, tokens in state.today_by_service
+                    if tokens > 0
+                ],
+            },
             "yesterday": _period_payload(state.yesterday_total, state.language),
             "totalsReady": state.totals_ready,
             "serviceAlerts": list(state.service_alerts),
@@ -202,6 +213,16 @@ def _token_fields(tokens: int, language: str) -> dict[str, str]:
 
 def _fmt_cost(cost: float | None) -> str:
     return "--" if cost is None else f"${cost:.2f}"
+
+
+def _compact_tokens(tokens: int) -> str:
+    if tokens >= 999_950_000:
+        return f"{tokens / 1_000_000_000:.2f}B"
+    if tokens >= 999_950:
+        return f"{tokens / 1_000_000:.1f}M"
+    if tokens >= 1_000:
+        return f"{tokens / 1_000:.1f}K"
+    return str(tokens)
 
 
 def _period_payload(total: PeriodTotal, language: str) -> dict[str, str]:
