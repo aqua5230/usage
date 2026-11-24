@@ -7,6 +7,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+- **Nine hidden Plush Pals: Bobo, Zippy, Twinkle, Tantan, Minto, Shandou, Nibo, Boqi and Zapi.** They stay out of the normal line-up. When the panel loads there is a 1 in 10 chance one of them starts at the front, and each time the line rotates there is a 1 in 10 chance one of them hops in instead of the next regular pal. Each has ten poses: the usual five, plus waving to a neighbour, a big stretch, running when quota burns fast, a startled jump and a signature move it strikes now and then while waiting.
+
 ## [0.35.1] - 2026-11-23
 
 ### Added
