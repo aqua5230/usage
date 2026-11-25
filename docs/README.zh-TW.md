@@ -259,9 +259,9 @@ Windows 可完整使用核心功能：系統匣 UI（與 macOS 相同的 18 款�
 <details>
 <summary>Claude 桌面版額度怎麼讀</summary>
 
-沒有可用的 Claude Code 額度檔時，usage 會讀取 Claude 桌面版的本機 `plan-usage-history.json`，Windows 的 Microsoft Store 安裝版也支援。如果本機 Chromium 區塊檔案 HTTP 快取中有較新的額度回應，且組織一致，還會讀取準確的會話與每週重置時間。較新的快取觀察優先於有取樣延遲的歷史紀錄；較舊的快取須與百分比一致。快取缺失、格式不支援、過期或資料不一致時，倒數保持未知。
+沒有可用的 Claude Code 額度檔時，usage 會讀取 Claude 桌面版的本機 `plan-usage-history.json`，Windows 的 Microsoft Store 安裝版也支援。如果本機 Chromium HTTP 快取中有較新的額度回應，且組織一致，還會讀取準確的會話與每週重置時間。Chromium 的兩種快取格式都能讀：區塊檔案快取，以及新版 macOS 桌面版使用的簡易快取。沒有歷史檔時，usage 只靠這份快取讀額度，但只讀 Claude Code 登入的那個組織，而且回應要在兩小時內。較新的快取觀察優先於有取樣延遲的歷史紀錄；較舊的快取須與百分比一致。快取缺失、格式不支援、過期或資料不一致時，倒數保持未知。
 
-桌面版通常每 5–15 分鐘更新；面板顯示資料更新時間，超過 30 分鐘標示過期，超過兩小時停止顯示。採用最新一筆組織資料，不會搜尋自訂桌面設定檔。這些額度快取沒有各專案的 token 明細；若桌面工作階段也在 `~/.claude/projects/` 寫入相容的 Claude Code 日誌，原有專案與 token 報表仍會統計。
+桌面版通常每 5–15 分鐘更新；面板顯示資料更新時間，超過 30 分鐘標示過期，超過兩小時停止顯示。Claude Code 有登入時，只採用該組織的資料；沒有登入時採用最新一筆。不會搜尋自訂桌面設定檔。這些額度快取沒有各專案的 token 明細；若桌面工作階段也在 `~/.claude/projects/` 寫入相容的 Claude Code 日誌，原有專案與 token 報表仍會統計。
 
 </details>
 

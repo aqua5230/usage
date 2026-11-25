@@ -259,9 +259,9 @@ Windows 原生支持完整核心功能：提供与 macOS 相同的 18 款主题�
 <details>
 <summary>Claude 桌面版额度的读取方式</summary>
 
-没有可用的 Claude Code 额度文件时，`usage` 会读取 Claude 桌面版的本地 `plan-usage-history.json`，Windows 的 Microsoft Store 安装版也支持。如果本地 Chromium 块文件 HTTP 缓存中有较新的额度响应，且组织一致，还会读取准确的会话与每周重置时间。较新的缓存观察优先于有采样延迟的历史记录；较旧的缓存须与百分比一致。缓存缺失、格式不支持、过期或数据不一致时，倒计时保持未知。
+没有可用的 Claude Code 额度文件时，`usage` 会读取 Claude 桌面版的本地 `plan-usage-history.json`，Windows 的 Microsoft Store 安装版也支持。如果本地 Chromium HTTP 缓存中有较新的额度响应，且组织一致，还会读取准确的会话与每周重置时间。Chromium 的两种缓存格式都能读：块文件缓存，以及新版 macOS 桌面版使用的简易缓存。没有历史文件时，`usage` 只靠这份缓存读取额度，但只读 Claude Code 登录的那个组织，而且响应要在两小时内。较新的缓存观察优先于有采样延迟的历史记录；较旧的缓存须与百分比一致。缓存缺失、格式不支持、过期或数据不一致时，倒计时保持未知。
 
-桌面版通常每 5–15 分钟更新；面板显示数据更新时间，超过 30 分钟标记过期，超过两小时停止显示。采用最新一条组织数据，不会搜索自定义桌面配置目录。这些额度缓存没有各项目的 token 明细；如果桌面会话也在 `~/.claude/projects/` 写入兼容的 Claude Code 日志，原有项目与 token 报表仍会统计。
+桌面版通常每 5–15 分钟更新；面板显示数据更新时间，超过 30 分钟标记过期，超过两小时停止显示。Claude Code 已登录时，只采用该组织的数据；未登录时采用最新一条。不会搜索自定义桌面配置目录。这些额度缓存没有各项目的 token 明细；如果桌面会话也在 `~/.claude/projects/` 写入兼容的 Claude Code 日志，原有项目与 token 报表仍会统计。
 
 </details>
 
