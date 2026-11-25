@@ -287,8 +287,8 @@ def test_bilingual_article_renders_seo_cards_escaping_and_sitemap(
     en_list = (docs_dir / "blog" / "index.html").read_text(encoding="utf-8")
     tw_list = (docs_dir / "zh-TW" / "blog" / "index.html").read_text(encoding="utf-8")
     assert en_list.index("new-post/") < en_list.index("older-post/")
-    assert "<p>New post summary</p>" in en_list
-    assert "<p>繁體中文摘要</p>" in tw_list
+    assert '<p class="post-summary">New post summary</p>' in en_list
+    assert '<p class="post-summary">繁體中文摘要</p>' in tw_list
     older_html = (docs_dir / "blog" / "older-post" / "index.html").read_text(encoding="utf-8")
     assert 'class="related-section"' not in older_html
 
@@ -510,8 +510,173 @@ def test_article_ui_strings_exist_for_all_langs() -> None:
             "categories",
             "categories_and_toc",
             "breadcrumb",
+            "categories_intro",
+            "category_latest",
+            "category_count",
+            "category_count_one",
+            "all_articles",
+            "articles_order",
+            "filter_articles",
+            "filter_all",
+            "reading_time",
+            "footer_categories",
+            "footer_latest",
+            "footer_languages",
         ):
             assert ui[key]
+        for category in ("getting-started", "claude-code", "codex", "antigravity"):
+            assert ui[f"{category}_desc"]
+
+
+def test_c2_list_categories_filters_and_shared_footer(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    source_dir, docs_dir, _ = _setup_workspace(tmp_path, monkeypatch)
+    records = (
+        ("the-basics", None, "Start here"),
+        ("claude-old", "claude-code", "An older title"),
+        ("claude-new", "claude-code", "Latest & <Claude>"),
+        ("codex-weekly", "codex", "A Codex title"),
+        ("antigravity-quota", "antigravity", "An Antigravity title"),
+        ("grok-post", "grok", "A Grok title"),
+    )
+    for day, (slug, tool, title) in enumerate(records, start=1):
+        _write_post(
+            source_dir,
+            slug,
+            "en",
+            title=title,
+            description="Fixture summary",
+            date=f"2026-11-{day:02d}",
+            tool=tool,
+            body="word " * 221,
+        )
+    for lang in ("zh-TW", "zh-CN", "ja", "ko"):
+        _write_post(
+            source_dir,
+            "the-basics",
+            lang,
+            title=f"Fixture {lang}",
+            description="Fixture summary",
+            date="2026-11-01",
+            body="內" * 451,
+        )
+    assert build_blog.main([]) == 0
+    assert build_blog.main(["--check"]) == 0
+
+    en = (docs_dir / "blog/index.html").read_text(encoding="utf-8")
+    categories = dict(
+        re.findall(r'<a class="category-tile category-([^"]+)"[^>]*>(.*?)</a>', en, re.S)
+    )
+    assert list(categories) == ["getting-started", "claude-code", "codex", "antigravity"]
+    for category, count, latest_title in (
+        ("getting-started", "1 post", "Start here"),
+        ("claude-code", "2 posts", "Latest &amp; &lt;Claude&gt;"),
+        ("codex", "1 post", "A Codex title"),
+        ("antigravity", "1 post", "An Antigravity title"),
+    ):
+        assert f'<span class="category-count">{count}</span>' in categories[category]
+        assert f'title="{latest_title}">Latest: {latest_title}</span>' in categories[category]
+    assert "An older title" not in categories["claude-code"]
+    assert 'class="post-card" data-category="grok" href="grok-post/"' in en
+    assert "<span>· About 2 min read</span>" in en
+
+    for lang in build_blog.LANGS:
+        page = build_blog.list_output_path(docs_dir, lang).read_text(encoding="utf-8")
+        footer = page.split('<footer class="site-footer">', 1)[1]
+        for column in (
+            'class="footer-brand"',
+            'class="footer-links footer-categories"',
+            'class="footer-links footer-latest"',
+            'class="footer-links footer-usage"',
+        ):
+            assert column in footer
+        assert 'class="footer-install" href="../#install"' in footer
+        assert 'href="https://aqua5230.github.io/ai-updates/" target="_blank"' in footer
+        assert '<nav class="lang-links"' in footer
+        assert f'href="#main-content" hreflang="{lang}" aria-current="page"' in footer
+        header = page.split("<header", 1)[1].split("</header>", 1)[0]
+        for lang_link in re.findall(r'<a href="[^"]+" hreflang="[^"]+"[^>]*>.*?</a>', header):
+            assert lang_link in footer
+
+        filters = page.split('<nav class="article-filters"', 1)[1].split("</nav>", 1)[0]
+        assert re.findall(r'href="#([^"]+)"', filters) == ["all", *categories]
+        for category in categories:
+            assert f'class="article-filter-target" id="{category}"' in page
+            assert f".articles:has(#{category}:target) .post-card" in page
+        assert "file:///" not in page
+        if lang != "en":
+            reading_time = build_blog.UI_STRINGS[lang]["reading_time"].format(minutes=2)
+            assert f"<span>· {reading_time}</span>" in page
+            tile = re.search(r'class="category-tile category-codex".*?</a>', page, re.S)
+            assert tile is not None
+            assert "category-latest" not in tile[0]
+            assert build_blog.UI_STRINGS[lang]["category_count"].format(count=0) in tile[0]
+
+    latest = en.split('class="footer-links footer-latest"', 1)[1].split("</nav>", 1)[0]
+    assert re.findall(r'<li><a href="([^"]+)"', latest) == [
+        "grok-post/",
+        "antigravity-quota/",
+        "codex-weekly/",
+    ]
+    article = (docs_dir / "zh-TW/blog/the-basics/index.html").read_text(encoding="utf-8")
+    article_footer = article.split('<footer class="site-footer">', 1)[1].split("</footer>", 1)[0]
+    assert 'class="footer-install" href="../../#install"' in article_footer
+    assert 'href="../#getting-started"' in article_footer
+    assert 'href="../the-basics/" title="Fixture zh-TW"' in article_footer
+    assert 'href="../../../blog/the-basics/" hreflang="en"' in article_footer
+    assert '<meta name="theme-color" content="#141312" />' in article
+    assert "--bg-soft: #1b1917;" in article
+    assert "--bg-card: #1e1c1a;" in article
+    assert "family=Noto+Serif+TC:wght@600" in article
+    assert re.search(
+        r"\.post-header h1, \.prose :is\(h2, h3\) \{[^}]*font-family: var\(--display\)", article
+    )
+    assert "family=Source+Serif+4:wght@600" in en
+    assert "linear-gradient(" not in article
+
+    for filename in (
+        "claude_color_menubar.png",
+        "codex_color_menubar.png",
+        "agy_color_menubar.png",
+    ):
+        output = docs_dir / "blog" / "icons" / filename
+        assert output.read_bytes() == (build_blog.REPO_ROOT / "assets" / filename).read_bytes()
+        assert f'src="../blog/icons/{filename}"' in en
+        assert f'src="../../../blog/icons/{filename}"' in article_footer
+    stale_icon = docs_dir / "blog/icons/agy_color_menubar.png"
+    stale_icon.write_bytes(b"stale icon")
+    capsys.readouterr()
+    assert build_blog.main(["--check"]) == 1
+    assert str(stale_icon) in capsys.readouterr().out
+
+
+def test_what_is_cli_still_renders_after_tool_is_removed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _, docs_dir, _ = _setup_workspace(tmp_path, monkeypatch)
+    source_dir = build_blog.REPO_ROOT / "site" / "blog"
+    posts = build_blog.load_articles(source_dir)["what-is-cli"]
+    outputs, sitemap, homepage = build_blog.build_outputs(
+        source_dir, docs_dir, SITEMAP_TEMPLATE, INDEX_TEMPLATE
+    )
+    for lang in ("en", "zh-TW"):
+        post = posts[lang]
+        assert post.tool is None
+        assert post.related
+        page = outputs[build_blog.article_output_path(docs_dir, post.slug, lang)]
+        listing = outputs[build_blog.list_output_path(docs_dir, lang)]
+        assert isinstance(page, str)
+        assert isinstance(listing, str)
+        assert 'class="post-card" data-category="getting-started" href="what-is-cli/"' in listing
+        assert 'class="related-section"' in page
+        sidebar = page.split('<aside class="left-rail">', 1)[1].split("</aside>", 1)[0]
+        selected = sidebar.split('<details class="category" open>', 1)[1].split("</details>", 1)[0]
+        assert f"{build_blog.UI_STRINGS[lang]['getting_started']}</summary>" in selected
+        assert 'href="../what-is-cli/" aria-current="page"' in selected
+        assert f"<loc>{build_blog.article_url(post.slug, lang)}</loc>" in sitemap
+        post_href = "blog/what-is-cli/" if lang == "en" else "zh-TW/blog/what-is-cli/"
+        assert f'<a class="latest-post" href="{post_href}">' in homepage
 
 
 def test_homepage_latest_posts_top_three_hrefs_hidden_and_language_pages(
@@ -696,6 +861,12 @@ def test_images_copied_once_as_bytes_and_rewritten_per_language(
     assert '<img src="Diagram.SVG" alt="Diagram" />' in en_html
     assert '<img src="../../../blog/pond-post/pond.jpg" alt="池塘" />' in tw_html
     assert '<img src="../../../blog/pond-post/Diagram.SVG" alt="圖表" />' in tw_html
+    en_list = (docs_dir / "blog/index.html").read_text(encoding="utf-8")
+    tw_list = (docs_dir / "zh-TW/blog/index.html").read_text(encoding="utf-8")
+    assert '<img class="post-cover" src="../blog/pond-post/pond.jpg"' in en_list
+    assert '<img class="post-cover" src="../../blog/pond-post/pond.jpg"' in tw_list
+    assert "Diagram.SVG" not in en_list
+    assert "Diagram.SVG" not in tw_list
 
 
 def test_external_and_root_relative_image_srcs_left_untouched(
@@ -723,6 +894,8 @@ def test_external_and_root_relative_image_srcs_left_untouched(
     assert '<img src="https://example.com/a.png" alt="HTTPS" />' in tw_html
     assert '<img src="http://example.com/b.jpg" alt="HTTP" />' in tw_html
     assert '<img src="/assets/c.webp" alt="Root" />' in tw_html
+    tw_list = (docs_dir / "zh-TW/blog/index.html").read_text(encoding="utf-8")
+    assert '<img class="post-cover" src="https://example.com/a.png"' in tw_list
 
 
 def test_missing_body_or_frontmatter_image_raises_value_error(
@@ -767,6 +940,7 @@ def test_frontmatter_image_overrides_og_twitter_jsonld_and_omits_dimensions(
     source_dir, docs_dir, _ = _setup_workspace(tmp_path, monkeypatch)
     (source_dir / "with-cover").mkdir(parents=True)
     (source_dir / "with-cover" / "cover.PNG").write_bytes(b"\x89PNG\r\n\x1a\n")
+    (source_dir / "with-cover" / "body.svg").write_bytes(b"<svg></svg>")
 
     _write_post(
         source_dir,
@@ -776,7 +950,7 @@ def test_frontmatter_image_overrides_og_twitter_jsonld_and_omits_dimensions(
         description="自訂封面",
         date="2026-11-24",
         image="cover.PNG",
-        body="內文。\n",
+        body="內文。\n\n![文章內的圖片](body.svg)\n",
     )
     _write_post(
         source_dir,
@@ -803,6 +977,9 @@ def test_frontmatter_image_overrides_og_twitter_jsonld_and_omits_dimensions(
         block for block in _parse_json_ld(with_cover_html) if block["@type"] == "Article"
     )
     assert article_ld["image"] == cover_url
+    tw_list = (docs_dir / "zh-TW/blog/index.html").read_text(encoding="utf-8")
+    assert '<img class="post-cover" src="../../blog/with-cover/cover.PNG"' in tw_list
+    assert "body.svg" not in tw_list
 
     default_url = f"{site}{build_blog.OG_IMAGE_PATH}"
     no_cover_html = (docs_dir / "blog" / "no-cover" / "index.html").read_text(encoding="utf-8")
