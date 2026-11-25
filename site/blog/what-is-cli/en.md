@@ -1,6 +1,6 @@
 ---
 title: What Is a CLI? Learn How the Terminal Works with Claude Code
-description: A CLI is a way to control a computer by typing commands. Using a web page that was actually built with one typed sentence, this post explains how a CLI differs from a graphical user interface (GUI), why AI assistants work in the terminal, how Claude Code types commands for you, and which line to read before it touches your files.
+description: A CLI is a way to control a computer by typing commands. Using a web page that was actually built with one typed sentence, this post explains how a CLI differs from a graphical user interface (GUI), why many AI assistants work in the terminal, how Claude Code types commands for you, and which line to read before it touches your files.
 date: 2026-11-24
 updated: 2026-11-25
 tool: claude-code
@@ -12,7 +12,7 @@ related: claude-code-weekly-limit-reset
 
 - Buttons only cover what engineers built in advance. Typing lets you ask for almost anything the computer can do.
 - A terminal only understands specific commands. One wrong letter and it says it can't find the command, and deleted files skip the trash. That is why terminal users used to be mostly engineers.
-- AI reads and writes text. A terminal takes text in and gives text back, so most AI assistants are built to work in it.
+- AI reads and writes text. A terminal takes text in and gives text back, so many AI assistants are built to work in it.
 - Claude Code is an AI assistant that works inside the terminal. You describe what you want in plain language; it types the commands, writes the code, and saves the result straight into your folder.
 
 ![A pond at night with a red-and-white koi swimming. Click the water to make ripples.](pond.html)
@@ -82,7 +82,7 @@ You may have used the Claude or ChatGPT chat apps. Ask one for the same page and
 
 So Claude Code can reach the files on your computer: it can read them, write them, and delete them. That is what makes it useful, and it is also what you need to watch.
 
-## Why are AI assistants built to work in the terminal?
+## Why are many AI assistants built to work in the terminal?
 
 A terminal takes text in and gives text back. That's what AI is good at.
 
@@ -90,17 +90,13 @@ People use a GUI by looking for a button, moving to it, and clicking. AI reads a
 
 AI can use a GUI too. It takes a screenshot, finds the button, then moves to it and clicks. It has to look at the screen again at every step. If a button moves, a pop-up gets in the way, or the app changes its layout, the AI might click the wrong thing. Commands work independently of what's on the screen.
 
-That's why more apps offer their own CLI so AI can use them by typing commands. One example is Feishu's `lark-cli`. Once it's installed, AI can use commands to read and write Feishu documents, calendars, and messages.
+That's why more apps offer their own CLI so AI can use them by typing commands.
 
 ## How does AI learn to use a new CLI?
 
 Every CLI has its own command names, and AI may never have seen them. It can type `--help`, a help option most CLIs have, to look up how to use it. Starting from scratch each time can take several extra rounds.
 
 Another way is to give it a skill, a set of instructions written for AI. The first sentence or two says when to use it. The rest lists the commands and explains how to use them. Claude Code usually reads just the first sentence or two of each skill. When a task calls for one, it reads the whole thing.
-
-The Feishu CLI comes with 28 skills. Approvals, calendars, documents, and messages each have one. The opening of the document skill says, roughly, that it can read, create, and edit Feishu documents and that you use it when the user gives you a document URL.
-
-While writing this post, I asked Claude Code to use the Feishu CLI to read WaytoAGI, a public Chinese-language AI knowledge base hosted on Feishu. The home page linked to 72 pages. Claude Code ran `lark-cli docs +fetch` once for each page, got 66 pages back, and looked through them for articles about CLIs. It never opened a browser.
 
 ## Does Claude Code ask before it touches your files?
 
@@ -110,7 +106,7 @@ If it wants to create `pond.html`, you see a screen like the one below. I captur
 
 ![Claude Code asking before it creates pond.html: 1. Yes means yes, this time; 2. Yes, and switch to accept edits means it stops asking even before ordinary deletions; 3. No means no](ask-write-en.svg)
 
-The one thing to understand is what it is about to do. Be careful with option 2: once you choose it, it won't ask again even before ordinary file deletions in this folder.
+The one thing to understand is what it is about to do. Be careful with option 2: once you choose it, it won't ask again even before ordinary file deletions in this folder. If you're not sure, choose 1.
 
 When it built the pond, it never asked me anything. I ran it without the interactive screen (`claude -p`, which hands over the whole task in one command), and I had allowed only file writes before starting. I was comfortable doing that because it was a brand-new, empty folder with nothing to break. In any normal folder, I read every prompt.
 
@@ -122,13 +118,11 @@ One more thing to know: since Claude Code 2.1.283, a session started in the term
 
 When the pond was finished, Claude Code told me: "I've written pond.html, but I haven't run it. This environment doesn't allow opening a browser or running scripts, so I only checked it line by line." It wrote 476 lines without ever seeing the result, because I had only allowed it to save files, not to open a browser or run programs.
 
-So I checked twice myself. First, I opened the file: the fish was swimming, and clicking the water made ripples. Second, I asked it in plain language whether the page used any images. It needed to run a command, so it stopped to ask me first:
+So I checked twice myself. First, I opened the file: the fish was swimming, and clicking the water made ripples. Second, I asked it in plain language whether the page used any images. It needed to run a command, so it stopped to ask me first. Newer versions of Claude Code run read-only commands like this without asking; you see this kind of prompt for commands that change something:
 
 ![Claude Code asking before it runs a command: four steps, cd moves into the pond folder, ls -la lists the files, wc -l counts the lines, grep searches for images or URLs; option 2 stops asking before cd in this project, option 3 switches to auto mode](ask-bash-en.svg)
 
 All four steps only look and search; none of them edits or deletes anything, so I pressed 1. If you can't tell what a step does, choose No to decline, ask it to explain the command piece by piece, and then decide.
-
-Newer versions of Claude Code run read-only commands like these without asking, so this prompt no longer appears.
 
 It replied: "No. pond.html doesn't use any image files or URLs." The search found no image files or URLs.
 
@@ -153,7 +147,7 @@ Windows (PowerShell):
 irm https://claude.ai/install.ps1 | iex
 ```
 
-After installing, close the terminal window and open a new one. Otherwise, typing `claude` may say the command isn't found.
+After installing, close the terminal window and open a new one. Otherwise, typing `claude` may say the command isn't found. That doesn't mean the install failed; the old window just doesn't know the new command yet.
 
 **Open Claude Code in an empty folder.** If an empty folder gets messy, nothing is lost. Press Enter after each line:
 
@@ -168,8 +162,8 @@ Each line does one thing:
 
 1. `mkdir first-try`: creates a new folder called "first-try". It prints nothing when it works, and that's normal. If it says `File exists`, a folder with that name is already there. Replace "first-try" in all four lines with another name and type them again.
 2. `cd first-try`: moves into that folder. Claude Code works in the folder where you start it, so you need to be inside first.
-3. `pwd`: asks the terminal which folder you're in. It replies with a path. If the path ends in "first-try", you're in the right place.
-4. `claude`: starts Claude Code. The first time, it asks you to log in and asks whether you trust this folder. It's the empty folder you just made, so choose to trust it.
+3. `pwd`: asks the terminal which folder you're in. It replies with a path, such as `/Users/your-name/first-try` on a Mac or `C:\Users\your-name\first-try` on Windows. If the path ends in "first-try", you're in the right place.
+4. `claude`: starts Claude Code. The first time, it asks you to log in: it opens your browser, you sign in to your Claude account, and then you return to the terminal. Next it asks whether you trust this folder. It's the empty folder you just made, so choose to trust it. Starting it this way uses auto mode; if you want it to ask before every change, type `claude --permission-mode manual` instead.
 
 **Start with something small.** Replace March 14 with your own birthday and type:
 
