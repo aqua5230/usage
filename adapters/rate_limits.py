@@ -59,12 +59,14 @@ def load_rate_limits() -> RateLimits | None:
         snapshot = usage_client.read_quota_fallback(lambda: cached_snapshot)
         if snapshot is not None:
             return _snapshot_rate_limits(snapshot)
-    elif cached_snapshot is not None:
-        hook_snapshot = usage_client._build_snapshot(data)
-        if hook_snapshot is not None and usage_client._should_prefer_claude_json(
+    elif (hook_snapshot := usage_client._build_snapshot(data)) is not None:
+        if cached_snapshot is not None and usage_client._should_prefer_claude_json(
             data, hook_snapshot, cached_snapshot, now_ts
         ):
             return _snapshot_rate_limits(cached_snapshot)
+        desktop_snapshot = usage_client._newer_desktop_snapshot(data, hook_snapshot, now_ts)
+        if desktop_snapshot is not None:
+            return _snapshot_rate_limits(desktop_snapshot)
 
     rl = usage_client._as_dict(data.get("rate_limits"))
     five = usage_client._as_dict(rl.get("five_hour"))
