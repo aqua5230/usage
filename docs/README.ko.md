@@ -111,6 +111,8 @@ Codex를 사용한 적이 있다면 `usage`가 기록을 자동으로 가져옵�
 - **터미널 통합:** `usage status --json`은 Claude Code, Codex, Antigravity, Grok, Muse 할당량을 Starship, tmux 또는 자체 스크립트에 전달합니다. [미리 준비된 스니펫](DEVELOPMENT.md#quota-status-for-other-tools-usage-status).
 - **AI 업데이트 일보:** 매일 공개되는 [웹 페이지](https://aqua5230.github.io/ai-updates/)에서 Claude Code, Codex, Antigravity, Grok Build, Muse Code, GitHub CLI 및 usage 자체의 변경 사항을 5개 언어의 알기 쉬운 요약으로 제공합니다.
 - **자유로운 레이아웃:** 패널을 원하는 위치로 드래그하고, 할당량 카드를 드래그해 순서를 바꾸며, **⚙ 설정 → 패널 전환**에서 18가지 테마를 전환할 수 있습니다. UI는 시스템 언어(번체 중국어, 간체 중국어, 영어, 일본어, 한국어)를 따릅니다. 할당량 카드가 4개 이상이면 모두 간결한 레이아웃으로 바뀌며, 3개 이하면 기존 레이아웃을 유지합니다.
+- **봉제 친구들 컬렉션:** 봉제 친구들 테마에는 숨은 친구 12명이 있습니다. 12월 1일부터 매주 한 명씩 잠금 해제되고, 다음에 패널을 열면 줄에 합류합니다. 만난 친구는 컬렉션 북에 모입니다.
+- **공유 카드(macOS):** 오늘의 사용량이나 찾은 숨은 친구를 이미지 카드로 만들어 Threads, X에 올리거나, 클립보드에 복사하거나, 다운로드 폴더에 저장할 수 있습니다. 사용량 카드에는 프로젝트 이름과 비용이 들어가지 않으며, 월드컵 2026을 제외한 모든 패널에서 쓸 수 있습니다.
 
 <details>
 <summary>임계값, 버전 및 세부 사항</summary>
