@@ -111,6 +111,8 @@ Once set up, the bottom of the Claude Code window will show a status line like t
 - **Terminal integration:** `usage status --json` hands your Claude Code, Codex, Antigravity, Grok, and Muse quota to Starship, tmux, or your own scripts. [Ready-made snippets](docs/DEVELOPMENT.md#quota-status-for-other-tools-usage-status).
 - **AI Update Daily:** A daily public [page](https://aqua5230.github.io/ai-updates/) of changes to Claude Code, Codex, Antigravity, Grok Build, Muse Code, GitHub CLI, and usage itself, with plain-language summaries in five languages.
 - **Your layout:** Drag the panel anywhere, drag quota cards to reorder them, and switch among 18 themes from **⚙ Settings → Switch Panel**. The UI follows your system language: Traditional Chinese, Simplified Chinese, English, Japanese, or Korean. With four or more quota cards visible, all cards switch to a compact layout; three or fewer keep the usual layout.
+- **Plush Pals collection:** The Plush Pals theme hides 12 extra pals. From December 1, one unlocks each week and hops into the line the next time you open the panel. Every pal you meet is filed into a collector's book.
+- **Share cards (macOS):** Turn today's usage, or a hidden pal you found, into a picture card for Threads, X, the clipboard, or Downloads. The usage card leaves out project names and costs, and works on every panel except World Cup 2026.
 
 <details>
 <summary>Thresholds, versions, and fine print</summary>

@@ -111,6 +111,8 @@ uvx usage-cli
 - **終端機整合：** `usage status --json` 把 Claude Code、Codex、Antigravity、Grok 與 Muse 的額度交給 Starship、tmux 或你自己的腳本。[現成的設定片段](DEVELOPMENT.zh-TW.md#給其他工具讀的配額狀態usage-status)。
 - **AI 更新日報：** 每天更新的公開[網頁](https://aqua5230.github.io/ai-updates/)，整理 Claude Code、Codex、Antigravity、Grok Build、Muse Code、GitHub CLI 與 usage 本身的更新，附五種語言的白話摘要。
 - **照你的習慣擺：** 面板拖到哪都行，額度卡拖曳排序，18 款主題隨時從「⚙ 設定 → 更換面板」切換。介面跟隨系統語言：繁中、簡中、英、日、韓。同時顯示四張以上額度卡時，全部自動改用精簡版面；三張以下維持原樣。
+- **絨毛小夥伴收藏：** 絨毛小夥伴主題藏了 12 隻隱藏版小夥伴。12 月 1 日起每週解鎖一隻，下次打開面板時就會跳進隊伍。遇過的小夥伴都會收進收藏冊。
+- **分享卡片（macOS）：** 把今天的用量或找到的隱藏版小夥伴做成圖卡，分享到 Threads、X，或複製、存到「下載項目」。用量卡不含專案名稱與花費，除了世界盃 2026，每款面板都能用。
 
 <details>
 <summary>門檻、版本與細節</summary>
