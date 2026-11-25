@@ -5,10 +5,10 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <meta name="theme-color" content="#0a0a0a" />
-<title>What Is a CLI? Understanding the Terminal Through Claude Code — usage</title>
-<meta name="description" content="A CLI is a way to control a computer by typing commands. Using a web page that was actually built with one typed sentence, this post explains how a CLI differs from clicking buttons, how Claude Code types commands for you, and which line to read before it touches your files." />
-<meta property="og:title" content="What Is a CLI? Understanding the Terminal Through Claude Code — usage" />
-<meta property="og:description" content="A CLI is a way to control a computer by typing commands. Using a web page that was actually built with one typed sentence, this post explains how a CLI differs from clicking buttons, how Claude Code types commands for you, and which line to read before it touches your files." />
+<title>What Is a CLI? Learn How the Terminal Works with Claude Code — usage</title>
+<meta name="description" content="A CLI is a way to control a computer by typing commands. Using a web page that was actually built with one typed sentence, this post explains how a CLI differs from a graphical user interface (GUI), why AI assistants work in the terminal, how Claude Code types commands for you, and which line to read before it touches your files." />
+<meta property="og:title" content="What Is a CLI? Learn How the Terminal Works with Claude Code — usage" />
+<meta property="og:description" content="A CLI is a way to control a computer by typing commands. Using a web page that was actually built with one typed sentence, this post explains how a CLI differs from a graphical user interface (GUI), why AI assistants work in the terminal, how Claude Code types commands for you, and which line to read before it touches your files." />
 <meta property="og:image" content="https://aqua5230.github.io/usage/blog/what-is-cli/pond-poster.jpg" />
 <meta property="og:url" content="https://aqua5230.github.io/usage/blog/what-is-cli/" />
 <meta property="og:type" content="article" />
@@ -24,11 +24,11 @@
 {
   "@context": "https://schema.org",
   "@type": "Article",
-  "headline": "What Is a CLI? Understanding the Terminal Through Claude Code",
-  "description": "A CLI is a way to control a computer by typing commands. Using a web page that was actually built with one typed sentence, this post explains how a CLI differs from clicking buttons, how Claude Code types commands for you, and which line to read before it touches your files.",
+  "headline": "What Is a CLI? Learn How the Terminal Works with Claude Code",
+  "description": "A CLI is a way to control a computer by typing commands. Using a web page that was actually built with one typed sentence, this post explains how a CLI differs from a graphical user interface (GUI), why AI assistants work in the terminal, how Claude Code types commands for you, and which line to read before it touches your files.",
   "image": "https://aqua5230.github.io/usage/blog/what-is-cli/pond-poster.jpg",
   "datePublished": "2026-11-24",
-  "dateModified": "2026-11-24",
+  "dateModified": "2026-11-25",
   "inLanguage": "en",
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -66,7 +66,7 @@
     {
       "@type": "ListItem",
       "position": 3,
-      "name": "What Is a CLI? Understanding the Terminal Through Claude Code",
+      "name": "What Is a CLI? Learn How the Terminal Works with Claude Code",
       "item": "https://aqua5230.github.io/usage/blog/what-is-cli/"
     }
   ]
@@ -577,9 +577,11 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
           <p class="toc-title">In this article</p>
         <ol class="toc-list">
           <li><a href="#what-did-that-one-sentence-look-like">What did that one sentence look like?</a></li>
-          <li><a href="#how-is-a-cli-different-from-clicking-buttons">How is a CLI different from clicking buttons?</a></li>
+          <li><a href="#how-is-a-cli-different-from-a-gui">How is a CLI different from a GUI?</a></li>
           <li><a href="#if-typing-is-so-flexible-why-did-so-few-people-use-it">If typing is so flexible, why did so few people use it?</a></li>
           <li><a href="#can-you-use-a-terminal-without-memorizing-commands">Can you use a terminal without memorizing commands?</a></li>
+          <li><a href="#why-are-ai-assistants-built-to-work-in-the-terminal">Why are AI assistants built to work in the terminal?</a></li>
+          <li><a href="#how-does-ai-learn-to-use-a-new-cli">How does AI learn to use a new CLI?</a></li>
           <li><a href="#does-claude-code-ask-before-it-touches-your-files">Does Claude Code ask before it touches your files?</a></li>
           <li><a href="#when-it-says-its-done-is-it-really-done">When it says it&#x27;s done, is it really done?</a></li>
           <li><a href="#try-it-yourself">Try it yourself</a></li>
@@ -592,18 +594,21 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
         <header class="post-header">
           <div class="post-meta">
             <span>Published <time datetime="2026-11-24">2026-11-24</time></span>
+            <span>Updated <time datetime="2026-11-25">2026-11-25</time></span>
           </div>
-          <h1>What Is a CLI? Understanding the Terminal Through Claude Code</h1>
-          <p class="post-desc">A CLI is a way to control a computer by typing commands. Using a web page that was actually built with one typed sentence, this post explains how a CLI differs from clicking buttons, how Claude Code types commands for you, and which line to read before it touches your files.</p>
+          <h1>What Is a CLI? Learn How the Terminal Works with Claude Code</h1>
+          <p class="post-desc">A CLI is a way to control a computer by typing commands. Using a web page that was actually built with one typed sentence, this post explains how a CLI differs from a graphical user interface (GUI), why AI assistants work in the terminal, how Claude Code types commands for you, and which line to read before it touches your files.</p>
         </header>
         <details class="toc-mobile">
           <summary>In this article</summary>
           <nav aria-label="In this article">
         <ol class="toc-list">
           <li><a href="#what-did-that-one-sentence-look-like">What did that one sentence look like?</a></li>
-          <li><a href="#how-is-a-cli-different-from-clicking-buttons">How is a CLI different from clicking buttons?</a></li>
+          <li><a href="#how-is-a-cli-different-from-a-gui">How is a CLI different from a GUI?</a></li>
           <li><a href="#if-typing-is-so-flexible-why-did-so-few-people-use-it">If typing is so flexible, why did so few people use it?</a></li>
           <li><a href="#can-you-use-a-terminal-without-memorizing-commands">Can you use a terminal without memorizing commands?</a></li>
+          <li><a href="#why-are-ai-assistants-built-to-work-in-the-terminal">Why are AI assistants built to work in the terminal?</a></li>
+          <li><a href="#how-does-ai-learn-to-use-a-new-cli">How does AI learn to use a new CLI?</a></li>
           <li><a href="#does-claude-code-ask-before-it-touches-your-files">Does Claude Code ask before it touches your files?</a></li>
           <li><a href="#when-it-says-its-done-is-it-really-done">When it says it&#x27;s done, is it really done?</a></li>
           <li><a href="#try-it-yourself">Try it yourself</a></li>
@@ -625,38 +630,42 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <ul>
 <li>Buttons only cover what engineers built in advance. Typing lets you ask for almost anything the computer can do.</li>
 <li>A terminal only understands specific commands. One wrong letter and it says it can't find the command, and deleted files skip the trash. That is why terminal users used to be mostly engineers.</li>
+<li>AI reads and writes text. A terminal takes text in and gives text back, so most AI assistants are built to work in it.</li>
 <li>Claude Code is an AI assistant that works inside the terminal. You describe what you want in plain language; it types the commands, writes the code, and saves the result straight into your folder.</li>
 </ul>
-<p><img src="pond-poster.jpg" alt="A dark blue pond at night with the moon reflected on the water, a red-and-white koi swimming through the reflection, and a few lily pads" /></p>
-<p>The pond above is a web page. The fish, the moon, and the lily pads are all drawn by code, and the page contains no image files. I didn't write any code. I typed one sentence in a terminal. The rest of this post uses that example to explain what a CLI is, how Claude Code works, and which line to read when it wants to touch your files.</p>
+<p><span class="embed"><iframe src="pond.html" title="A pond at night with a red-and-white koi swimming. Click the water to make ripples." loading="lazy"></iframe><a href="pond.html" target="_blank" rel="noopener">Open full screen ↗</a></span></p>
+<p>The pond above is a web page. Try clicking the water. When the fish swims through the moon's reflection, the reflection breaks up and sways. The fish, the moon, and the lily pads are all drawn by code, and the page contains no image files. I didn't write any code. I typed one sentence in a terminal. The rest of this post uses that example to explain what a CLI is, how Claude Code works, and which line to read when it wants to touch your files.</p>
 <h2 id="what-did-that-one-sentence-look-like">What did that one sentence look like?</h2>
-<p>On September 19, 2026, I opened Claude Code in the Mac terminal and typed this (originally in Chinese):</p>
+<p>I opened Claude Code in the Mac terminal and typed this:</p>
+<p><img src="typing.gif" alt="The Claude Code start screen showing a prompt typed in Chinese after ❯. It asks for a pond at night with a small fish that disturbs the moon's reflection and water that ripples when clicked. It asks for everything to be drawn with code, without images, and saved as pond.html." /></p>
+<p>Here's the English translation of what I typed.</p>
 <pre><code>Make a web page: a pond at night with a small fish swimming.
 When the fish swims through the moon's reflection, the reflection
 breaks up and sways; clicking the water sends out ripples. Don't use any
 images; draw everything with code and save it as pond.html.
 </code></pre>
-<p>After pressing Enter, I didn't touch the keyboard again. Nineteen minutes later, a file called <code>pond.html</code> appeared in the folder, and opening it showed the pond. In those 19 minutes, Claude Code went through 28 rounds on its own: take a step, check the result, decide the next step. It ended up writing 476 lines of code.</p>
+<p>After pressing Enter, I didn't touch the keyboard again. 19 minutes later, a file called <code>pond.html</code> appeared in the folder, and opening it showed the pond. In those 19 minutes, Claude Code went through 28 rounds on its own: take a step, check the result, decide the next step. It ended up writing 476 lines of code.</p>
 <p>Those three numbers are for the first version. Afterwards I asked it to turn the fish into a red-and-white koi and brighten the lily pads; the picture above shows that revised version. The model was Claude Opus 5, and at pay-as-you-go API prices the run would have cost about $5.16.</p>
-<h2 id="how-is-a-cli-different-from-clicking-buttons">How is a CLI different from clicking buttons?</h2>
-<p>The buttons and icons on your phone and computer are all part of a graphical user interface. A terminal is different: the window is all text, with no buttons at all. You tell the computer what to do by typing a line, and that is what a CLI is.</p>
+<h2 id="how-is-a-cli-different-from-a-gui">How is a CLI different from a GUI?</h2>
+<p>On a phone or computer, the screens you see and tap or click make up the graphical user interface (GUI). The screen shows you what you can do. A terminal window is all text, with no options laid out for you. You tell the computer what to do by typing a line, and that is what a CLI is.</p>
 <p>Both ways can do the same job. Take creating a folder called &quot;practice&quot;:</p>
 <ul>
-<li>Clicking: right-click the desktop, choose New Folder, and name it &quot;practice&quot;.</li>
-<li>Typing: in the terminal, type <code>cd Desktop</code> and press Enter to move to the desktop, then type <code>mkdir practice</code> and press Enter. The folder is created wherever the terminal currently is.</li>
+<li>Using a GUI: right-click the desktop, choose New Folder, and name it &quot;practice&quot;.</li>
+<li>Using a CLI: in the terminal, type <code>cd Desktop</code> and press Enter to move to the desktop, then type <code>mkdir practice</code> and press Enter. The folder is created wherever the terminal currently is.</li>
 </ul>
 <p><img src="twoways-en.svg" alt="Two ways to make a folder on the desktop: (1) right-click the desktop and choose New Folder, (2) move Terminal to the desktop and type mkdir practice. Both arrows point to the same practice folder in the top-right corner of the desktop." /></p>
 <p>Either way, you end up with a folder called &quot;practice&quot;. When <code>mkdir</code> succeeds, it prints nothing; if a folder with that name already exists, it replies <code>File exists</code>.</p>
-<p>If clicking works, why type at all? Because buttons only cover what engineers thought of in advance. Your photo app can sort pictures by date because an engineer thought of it; if nobody thought of something, there is no button for it. Typing has no such limit. Almost anything the computer can do, you can ask for by typing.</p>
+<p>If a GUI can do the job, why use a CLI? Think about two ways to order at a stir-fry restaurant. You can look at the menu and point to a dish, but you can only order what's listed. Regulars can skip the menu and tell the owner what they want. They can order anything the kitchen can make, as long as they know how to ask for it.</p>
+<p>A GUI is like that menu. You can only click the buttons the engineers put there. A CLI is like talking to the owner. You can type a request for almost anything the computer can do, but you have to know how to ask.</p>
 <h2 id="if-typing-is-so-flexible-why-did-so-few-people-use-it">If typing is so flexible, why did so few people use it?</h2>
 <p>Because a terminal only understands specific words, called commands. It treats the first word you type, up to the first space, as the command name. Misspell the command name by one letter, or type a plain sentence, and it says the command doesn't exist:</p>
 <p><img src="notfound-en.svg" alt="A terminal window. The first line is you@MacBook pond % followed by the typed text build me a pond web page, with labels for the user, the computer, the folder, and what you typed. The second line is the terminal's reply: zsh: command not found: build" /></p>
-<p>The <code>zsh</code> at the start of the reply is the program in the Mac terminal that receives commands. It takes the first word, <code>build</code>, as the command name and can't find it. <code>mkdir practice</code> works because <code>mkdir</code> is the command and <code>practice</code> is just the folder name.</p>
+<p>The <code>zsh</code> at the start of the reply is the program in the Mac terminal that receives commands. It takes the first word, <code>build</code>, as the command name and can't find it. <code>mkdir practice</code> works because <code>mkdir</code> is the command and practice is just the folder name.</p>
 <p>The command for deleting files is <code>rm</code>, and it doesn't ask before it acts. A photo you delete on your phone goes to Recently Deleted first and only disappears later. A file deleted with <code>rm</code> skips the trash and is gone immediately. You had to memorize commands and type them without mistakes, so the people who used terminals were mostly engineers.</p>
 <h2 id="can-you-use-a-terminal-without-memorizing-commands">Can you use a terminal without memorizing commands?</h2>
 <p>Yes, with AI: let it type for you. Claude Code is an AI assistant made by Anthropic. It works in the terminal and understands plain language. You say what you want, and it decides which commands to run and what code to write.</p>
 <p>Once Claude Code is installed (the steps are in &quot;Try it yourself&quot; at the end), type <code>claude</code> in the terminal and press Enter. The first time, it asks you to sign in; after that, you see a screen like this. At the terminal's own <code>%</code> prompt you type commands; at Claude Code's <code>❯</code> prompt you describe what you want in plain language:</p>
-<p><img src="claude-start-en.svg" alt="The Claude Code start screen: Opus 5 · Claude Pro is the AI model and your plan, ~/pond is the folder it is working in, and you type what you want after ❯" /></p>
+<p><img src="claude-start-en.svg" alt="The Claude Code start screen: Opus 5.5 with high effort · Claude Pro is the AI model and your plan, ~/pond is the folder it is working in, and you type what you want after ❯" /></p>
 <p>The <code>~</code> before the folder name is your home folder, which holds Desktop, Documents, and Downloads.</p>
 <p>You may have used the Claude or ChatGPT chat apps. Ask one for the same page and it can write the code too. The difference is where the result ends up:</p>
 <ul>
@@ -664,6 +673,16 @@ images; draw everything with code and save it as pond.html.
 <li>Claude Code: it saves the file straight into a folder on your computer. When you want a change, it edits that file directly.</li>
 </ul>
 <p>So Claude Code can reach the files on your computer: it can read them, write them, and delete them. That is what makes it useful, and it is also what you need to watch.</p>
+<h2 id="why-are-ai-assistants-built-to-work-in-the-terminal">Why are AI assistants built to work in the terminal?</h2>
+<p>A terminal takes text in and gives text back. That's what AI is good at.</p>
+<p>People use a GUI by looking for a button, moving to it, and clicking. AI reads and writes text. In a terminal, it types a command and the computer prints the result as text. The AI reads the result and decides what to type next. That's how it built the pond, one round at a time for 28 rounds.</p>
+<p>AI can use a GUI too. It takes a screenshot, finds the button, then moves to it and clicks. It has to look at the screen again at every step. If a button moves, a pop-up gets in the way, or the app changes its layout, the AI might click the wrong thing. Commands work independently of what's on the screen.</p>
+<p>That's why more apps offer their own CLI so AI can use them by typing commands. One example is Feishu's <code>lark-cli</code>. Once it's installed, AI can use commands to read and write Feishu documents, calendars, and messages.</p>
+<h2 id="how-does-ai-learn-to-use-a-new-cli">How does AI learn to use a new CLI?</h2>
+<p>Every CLI has its own command names, and AI may never have seen them. It can type <code>--help</code>, a help option most CLIs have, to look up how to use it. Starting from scratch each time can take several extra rounds.</p>
+<p>Another way is to give it a skill, a set of instructions written for AI. The first sentence or two says when to use it. The rest lists the commands and explains how to use them. Claude Code usually reads just the first sentence or two of each skill. When a task calls for one, it reads the whole thing.</p>
+<p>The Feishu CLI comes with 28 skills. Approvals, calendars, documents, and messages each have one. The opening of the document skill says, roughly, that it can read, create, and edit Feishu documents and that you use it when the user gives you a document URL.</p>
+<p>While writing this post, I asked Claude Code to use the Feishu CLI to read WaytoAGI, a public Chinese-language AI knowledge base hosted on Feishu. The home page linked to 72 pages. Claude Code ran <code>lark-cli docs +fetch</code> once for each page, got 66 pages back, and looked through them for articles about CLIs. It never opened a browser.</p>
 <h2 id="does-claude-code-ask-before-it-touches-your-files">Does Claude Code ask before it touches your files?</h2>
 <p>It can. Claude Code has a permission mode called Manual. In this mode, it stops and asks you before it creates a file, edits a file, or runs most commands. Simply reading files in the folder usually doesn't prompt.</p>
 <p>If it wants to create <code>pond.html</code>, you see a screen like the one below. I captured it when I asked it to create a test file, then replaced the file name and contents with <code>pond.html</code>:</p>
@@ -696,25 +715,33 @@ images; draw everything with code and save it as pond.html.
 <p><strong>Open Claude Code in an empty folder.</strong> If an empty folder gets messy, nothing is lost. Press Enter after each line:</p>
 <pre><code>mkdir first-try
 cd first-try
+pwd
 claude --permission-mode manual
 </code></pre>
-<p>The first line creates a folder called &quot;first-try&quot;, the second moves into it, and the third starts Claude Code set to ask you before any change or command. If the first line says <code>File exists</code>, a folder with that name is already there; pick another name and type all three lines again. The first time, it opens a browser so you can log in, and asks whether you trust this folder. It's the empty folder you just made, so choose to trust it. Type <code>/exit</code> to leave.</p>
+<p>The first line creates a folder called &quot;first-try&quot;, and the second moves into it. The third line, <code>pwd</code>, prints the folder you're in. Check that it ends in &quot;first-try&quot; before going on. This matters because Claude Code works in the folder where you start it. The fourth line starts Claude Code set to ask you before any change or command. If the first line says <code>File exists</code>, a folder with that name is already there. Pick another name and type all four lines again. The first time, it opens a browser so you can log in, and asks whether you trust this folder. It's the empty folder you just made, so choose to trust it. Type <code>/exit</code> to leave.</p>
 <p><strong>Start with something small.</strong> Replace March 14 with your own birthday and type:</p>
 <pre><code>Make a web page that counts down to my birthday (March 14) and save it as birthday.html.
 </code></pre>
+<p>If it's going in the wrong direction, press Esc to stop it. The work it's already done stays in place. Tell it in plain language what to change.</p>
 <p>When it says it's done, ask it to open the page. It will ask before running the command that opens the file; if you can see it's only opening the file, choose Yes. Then check the countdown yourself. I tried this sentence on October 2, 2026. When it finished, it said it &quot;couldn't verify the date logic&quot;, so I counted the days myself. It was correct.</p>
 <h2 id="where-the-screens-in-this-post-came-from">Where the screens in this post came from</h2>
 <ul>
 <li>The pond was made on September 19, 2026, on macOS, with Claude Code's non-interactive mode <code>claude -p</code>, so no permission prompt appeared at the time. The birthday page was made the same way on October 2, 2026.</li>
-<li>The three Claude Code screens are copied from real screens in version 2.1.277 and redrawn as images; the colored labels are mine. Folder names and paths were changed, long lines were wrapped the way the terminal wraps them, a few lines in the middle were left out, and the sentences I typed were translated from Chinese. The file-creation screen came up when I asked it to create a test file (I pressed No); the file name and contents were replaced with the first three lines of <code>pond.html</code>, and &quot;473 more lines&quot; was added by me.</li>
+<li>The Claude Code start screen is drawn from a screen recording of version 2.1.332 made on 2026-11-25; the sentence was translated from Chinese, and the labels are mine.</li>
+<li>The two prompt screens are copied from real screens in version 2.1.277 and redrawn as images; the labels are mine. Folder names and paths were changed, long lines were wrapped the way the terminal wraps them, a few lines in the middle were left out, and the sentences I typed were translated from Chinese. The file-creation screen came up when I asked it to create a test file (I pressed No); the file name and contents were replaced with the first three lines of <code>pond.html</code>, and &quot;473 more lines&quot; was added by me.</li>
 <li>Checked against the official docs for version 2.1.330 on 2026-11-24, a few things on screen differ: the default model on the Pro plan is now Opus 5.5; the command prompt now shows the command between dashed lines; and read-only commands such as <code>cd</code>, <code>ls</code>, <code>wc</code>, and <code>grep</code> now run without a prompt in every mode, so asking it to check for images as described above usually won't bring up a prompt.</li>
+<li>I recorded the typing GIF on a Mac on 2026-11-25 with Claude Code 2.1.332. I typed the original pond prompt and stopped before pressing Enter. That's why the version and model on screen differ from the ones I used to make the pond on September 19. I turned off the custom status line I'd installed before recording.</li>
 <li><code>zsh: command not found</code> and <code>mkdir</code> were run on a Mac. The Windows steps were not tested on a Windows computer.</li>
 <li>The install commands, plan requirements, and permission mode details were checked against the official docs on 2026-11-24.</li>
+<li>I ran Feishu CLI 1.0.99 on a Mac on 2026-11-25. Running <code>lark-cli skills list</code> showed 28 skills. Of the 72 pages linked from the WaytoAGI home page, 6 couldn't be fetched.</li>
+<li>On 2026-11-25, I checked the official docs to confirm that Claude Code reads only the opening of a skill until it needs the rest, and that pressing Esc stops work and keeps what's already done.</li>
 </ul>
 <h2 id="sources">Sources</h2>
 <ul>
 <li><a href="https://code.claude.com/docs/en/setup">Set up Claude Code</a></li>
 <li><a href="https://code.claude.com/docs/en/permission-modes">Choose a permission mode</a></li>
+<li><a href="https://code.claude.com/docs/en/skills">Extend Claude with skills</a></li>
+<li><a href="https://code.claude.com/docs/en/interactive-mode">Interactive mode</a></li>
 </ul>
 <aside class="blog-cta-card">
   <h2>Track your AI coding quotas in the menu bar</h2>
