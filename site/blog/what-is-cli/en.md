@@ -116,7 +116,7 @@ When it built the pond, it never asked me anything. I ran it without the interac
 
 ![Three settings compared from top to bottom: Manual usually asks before a change; with accept edits, creating, editing, and ordinary deletions in the folder are allowed without asking; auto mode blocks only actions that look risky.](modes-en.svg)
 
-One more thing to know: since Claude Code 2.1.283, a session started in the terminal begins in auto mode, as long as your model supports it and your organization's admin hasn't turned it off. In auto mode, a second AI model reviews actions instead of you. Actions that look safe go ahead, and actions that look risky are blocked first. If you want it to ask before every change or command, use `--permission-mode manual`, shown in "Try it yourself" below.
+One more thing to know: since Claude Code 2.1.283, a session started in the terminal begins in auto mode, as long as your model supports it and your organization's admin hasn't turned it off. In auto mode, a second AI model reviews actions instead of you. Actions that look safe go ahead, and actions that look risky are blocked first. If you want it to ask before every change or command, start it with `claude --permission-mode manual`.
 
 ## When it says it's done, is it really done?
 
@@ -161,7 +161,7 @@ After installing, close the terminal window and open a new one. Otherwise, typin
 mkdir first-try
 cd first-try
 pwd
-claude --permission-mode manual
+claude
 ```
 
 Each line does one thing:
@@ -169,9 +169,7 @@ Each line does one thing:
 1. `mkdir first-try`: creates a new folder called "first-try". It prints nothing when it works, and that's normal. If it says `File exists`, a folder with that name is already there. Replace "first-try" in all four lines with another name and type them again.
 2. `cd first-try`: moves into that folder. Claude Code works in the folder where you start it, so you need to be inside first.
 3. `pwd`: asks the terminal which folder you're in. It replies with a path. If the path ends in "first-try", you're in the right place.
-4. `claude --permission-mode manual`: starts Claude Code and tells it to ask you before it changes anything or runs a command. Normally you just type `claude`. Setting it this way the first time lets you see the prompts described above, so you know what it's about to do at each step. The first time, it asks you to log in through your browser, then asks whether you trust this folder. It's the empty folder you just made, so choose to trust it.
-
-To leave Claude Code, type `/exit` and press Enter.
+4. `claude`: starts Claude Code. The first time, it asks you to log in and asks whether you trust this folder. It's the empty folder you just made, so choose to trust it.
 
 **Start with something small.** Replace March 14 with your own birthday and type:
 
@@ -181,7 +179,7 @@ Make a web page that counts down to my birthday (March 14) and save it as birthd
 
 If it's going in the wrong direction, press Esc to stop it. The work it's already done stays in place. Tell it in plain language what to change.
 
-When it says it's done, ask it to open the page. It will ask before running the command that opens the file; if you can see it's only opening the file, choose Yes. Then check the countdown yourself. I tried this sentence on October 2, 2026. When it finished, it said it "couldn't verify the date logic", so I counted the days myself. It was correct.
+When it says it's done, ask it to open the page, then check the countdown yourself. I tried this sentence on October 2, 2026. When it finished, it said it "couldn't verify the date logic", so I counted the days myself. It was correct.
 
 If you don't like how it looks, tell it what to change, for example:
 

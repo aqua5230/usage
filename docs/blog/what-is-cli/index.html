@@ -688,7 +688,7 @@ images; draw everything with code and save it as pond.html.
 <p>The one thing to understand is what it is about to do. Be careful with option 2: once you choose it, it won't ask again even before ordinary file deletions in this folder.</p>
 <p>When it built the pond, it never asked me anything. I ran it without the interactive screen (<code>claude -p</code>, which hands over the whole task in one command), and I had allowed only file writes before starting. I was comfortable doing that because it was a brand-new, empty folder with nothing to break. In any normal folder, I read every prompt.</p>
 <p><img src="modes-en.svg" alt="Three settings compared from top to bottom: Manual usually asks before a change; with accept edits, creating, editing, and ordinary deletions in the folder are allowed without asking; auto mode blocks only actions that look risky." /></p>
-<p>One more thing to know: since Claude Code 2.1.283, a session started in the terminal begins in auto mode, as long as your model supports it and your organization's admin hasn't turned it off. In auto mode, a second AI model reviews actions instead of you. Actions that look safe go ahead, and actions that look risky are blocked first. If you want it to ask before every change or command, use <code>--permission-mode manual</code>, shown in &quot;Try it yourself&quot; below.</p>
+<p>One more thing to know: since Claude Code 2.1.283, a session started in the terminal begins in auto mode, as long as your model supports it and your organization's admin hasn't turned it off. In auto mode, a second AI model reviews actions instead of you. Actions that look safe go ahead, and actions that look risky are blocked first. If you want it to ask before every change or command, start it with <code>claude --permission-mode manual</code>.</p>
 <h2 id="when-it-says-its-done-is-it-really-done">When it says it's done, is it really done?</h2>
 <p>When the pond was finished, Claude Code told me: &quot;I've written pond.html, but I haven't run it. This environment doesn't allow opening a browser or running scripts, so I only checked it line by line.&quot; It wrote 476 lines without ever seeing the result, because I had only allowed it to save files, not to open a browser or run programs.</p>
 <p>So I checked twice myself. First, I opened the file: the fish was swimming, and clicking the water made ripples. Second, I asked it in plain language whether the page used any images. It needed to run a command, so it stopped to ask me first:</p>
@@ -714,21 +714,20 @@ images; draw everything with code and save it as pond.html.
 <pre><code>mkdir first-try
 cd first-try
 pwd
-claude --permission-mode manual
+claude
 </code></pre>
 <p>Each line does one thing:</p>
 <ol>
 <li><code>mkdir first-try</code>: creates a new folder called &quot;first-try&quot;. It prints nothing when it works, and that's normal. If it says <code>File exists</code>, a folder with that name is already there. Replace &quot;first-try&quot; in all four lines with another name and type them again.</li>
 <li><code>cd first-try</code>: moves into that folder. Claude Code works in the folder where you start it, so you need to be inside first.</li>
 <li><code>pwd</code>: asks the terminal which folder you're in. It replies with a path. If the path ends in &quot;first-try&quot;, you're in the right place.</li>
-<li><code>claude --permission-mode manual</code>: starts Claude Code and tells it to ask you before it changes anything or runs a command. Normally you just type <code>claude</code>. Setting it this way the first time lets you see the prompts described above, so you know what it's about to do at each step. The first time, it asks you to log in through your browser, then asks whether you trust this folder. It's the empty folder you just made, so choose to trust it.</li>
+<li><code>claude</code>: starts Claude Code. The first time, it asks you to log in and asks whether you trust this folder. It's the empty folder you just made, so choose to trust it.</li>
 </ol>
-<p>To leave Claude Code, type <code>/exit</code> and press Enter.</p>
 <p><strong>Start with something small.</strong> Replace March 14 with your own birthday and type:</p>
 <pre><code>Make a web page that counts down to my birthday (March 14) and save it as birthday.html.
 </code></pre>
 <p>If it's going in the wrong direction, press Esc to stop it. The work it's already done stays in place. Tell it in plain language what to change.</p>
-<p>When it says it's done, ask it to open the page. It will ask before running the command that opens the file; if you can see it's only opening the file, choose Yes. Then check the countdown yourself. I tried this sentence on October 2, 2026. When it finished, it said it &quot;couldn't verify the date logic&quot;, so I counted the days myself. It was correct.</p>
+<p>When it says it's done, ask it to open the page, then check the countdown yourself. I tried this sentence on October 2, 2026. When it finished, it said it &quot;couldn't verify the date logic&quot;, so I counted the days myself. It was correct.</p>
 <p>If you don't like how it looks, tell it what to change, for example:</p>
 <pre><code>Make the background dark blue and the numbers twice as big.
 </code></pre>
