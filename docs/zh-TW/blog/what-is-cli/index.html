@@ -585,7 +585,6 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
           <li><a href="#claude-code-要動你的檔案前會先問你嗎">Claude Code 要動你的檔案前，會先問你嗎？</a></li>
           <li><a href="#它說做好了就真的好了嗎">它說做好了，就真的好了嗎？</a></li>
           <li><a href="#自己試一次">自己試一次</a></li>
-          <li><a href="#這篇的畫面怎麼來的">這篇的畫面怎麼來的</a></li>
           <li><a href="#資料來源">資料來源</a></li>
         </ol>
         </nav>
@@ -612,7 +611,6 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
           <li><a href="#claude-code-要動你的檔案前會先問你嗎">Claude Code 要動你的檔案前，會先問你嗎？</a></li>
           <li><a href="#它說做好了就真的好了嗎">它說做好了，就真的好了嗎？</a></li>
           <li><a href="#自己試一次">自己試一次</a></li>
-          <li><a href="#這篇的畫面怎麼來的">這篇的畫面怎麼來的</a></li>
           <li><a href="#資料來源">資料來源</a></li>
         </ol>
           </nav>
@@ -690,7 +688,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <p>所以我自己查了兩次。第一次，我直接點開檔案：魚在游，點水面會起漣漪。第二次，我用中文請它查有沒有用到圖片。它要執行一行指令，先停下來問我：</p>
 <p><img src="../../../blog/what-is-cli/ask-bash.svg" alt="Claude Code 要執行指令前問你的畫面：指令分成四步，cd 切到池塘資料夾、ls -la 列出檔案、wc -l 數行數、grep 搜尋像圖片或網址的寫法；選項 2 是在這個專案裡以後 cd 都不問，選項 3 是改成自動模式" /></p>
 <p>四個步驟都只是看和找，沒有改檔或刪檔，所以我按了 1。如果有哪一步看不懂，就先選 No 拒絕，請它一段一段解釋，再決定要不要讓它做。</p>
-<p>新版的 Claude Code 會直接執行這類只看不改的指令，不再跳出這個詢問；差異寫在文末。</p>
+<p>新版的 Claude Code 會直接執行這類只看不改的指令，不再跳出這個詢問。</p>
 <p>它回我：「沒有。pond.html 沒用到任何圖片檔，也沒有任何網址。」這次搜尋沒找到圖片檔或網址。</p>
 <h2 id="自己試一次">自己試一次</h2>
 <p><strong>打開終端機</strong>：這一步免費，也不會改到電腦裡的東西。</p>
@@ -718,18 +716,6 @@ claude --permission-mode manual
 </code></pre>
 <p>它做到一半，你覺得方向不對，就按 Esc 讓它停下來。已經做好的部分會留著，你再用中文跟它說要怎麼改。</p>
 <p>它說做好了，就請它幫你打開。它要執行打開檔案的指令時會先問你，看得懂那是「打開」就選 Yes。打開之後，自己算一下天數對不對。我在 2026 年 10 月 2 日照這句話做過一次。它做完自己說「沒能驗證日期邏輯」，所以我自己算了一次天數，它算對了。</p>
-<h2 id="這篇的畫面怎麼來的">這篇的畫面怎麼來的</h2>
-<ul>
-<li>池塘是 2026 年 9 月 19 日在 macOS 上用 Claude Code 的非互動模式 <code>claude -p</code> 做出來的，所以當時沒有經過「先問你」的畫面。生日網頁是 2026 年 10 月 2 日用同樣方式做的。</li>
-<li>Claude Code 剛打開的那張，照 2026-11-25 用 2.1.332 版錄的打字動圖畫成；圖上的標註是我加的。</li>
-<li>兩個詢問畫面照 2.1.277 版的真實畫面抄寫，再畫成圖；圖上的標註是我加的。抄寫時，資料夾名稱和路徑換過，太長的行照終端機的樣子換行，中間省略了幾行。建立檔案那個畫面，是我請它建立測試檔時真的跳出來的（我按了 No），檔名和內容換成 <code>pond.html</code> 的前三行，「後面還有 473 行」是我補的。</li>
-<li>2026-11-24 對照 2.1.330 版的官方文件，畫面有幾處不同：Pro 方案的預設模型改成 Opus 5.5；執行指令的詢問框改用虛線框出指令；<code>cd</code>、<code>ls</code>、<code>wc</code>、<code>grep</code> 這類只看不改的指令，現在任何模式下都直接執行，所以照文中那句請它查圖片，通常不會跳出詢問。</li>
-<li>打字的動圖是 2026-11-25 在 Mac 上用 Claude Code 2.1.332 版實際錄的，打的是池塘那句原文，打完沒按 Enter。所以畫面上的版本和模型，跟 9 月 19 日做池塘時不同。錄影時關掉了我自己裝的狀態列。</li>
-<li><code>zsh: command not found</code> 和 <code>mkdir</code> 在 Mac 上實際跑過；Windows 的步驟沒有在 Windows 電腦上跑過。</li>
-<li>安裝指令、方案需求和權限模式的說明，2026-11-24 對照過官方文件。</li>
-<li>飛書 CLI 是 1.0.99 版，2026-11-25 在 Mac 上跑過；28 份 skill 是 <code>lark-cli skills list</code> 列出來的。WaytoAGI 首頁連出去的 72 頁裡，有 6 頁沒抓到。</li>
-<li>skill 平常只讀開頭、用到才讀整份，以及 Esc 會讓它停下、已做的部分會留著，2026-11-25 對照過官方文件。</li>
-</ul>
 <h2 id="資料來源">資料來源</h2>
 <ul>
 <li><a href="https://code.claude.com/docs/en/setup">Set up Claude Code</a></li>

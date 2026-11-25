@@ -128,7 +128,7 @@ So I checked twice myself. First, I opened the file: the fish was swimming, and 
 
 All four steps only look and search; none of them edits or deletes anything, so I pressed 1. If you can't tell what a step does, choose No to decline, ask it to explain the command piece by piece, and then decide.
 
-Newer versions of Claude Code run read-only commands like these without asking, so this prompt no longer appears; the notes at the end list the differences.
+Newer versions of Claude Code run read-only commands like these without asking, so this prompt no longer appears.
 
 It replied: "No. pond.html doesn't use any image files or URLs." The search found no image files or URLs.
 
@@ -175,18 +175,6 @@ Make a web page that counts down to my birthday (March 14) and save it as birthd
 If it's going in the wrong direction, press Esc to stop it. The work it's already done stays in place. Tell it in plain language what to change.
 
 When it says it's done, ask it to open the page. It will ask before running the command that opens the file; if you can see it's only opening the file, choose Yes. Then check the countdown yourself. I tried this sentence on October 2, 2026. When it finished, it said it "couldn't verify the date logic", so I counted the days myself. It was correct.
-
-## Where the screens in this post came from
-
-- The pond was made on September 19, 2026, on macOS, with Claude Code's non-interactive mode `claude -p`, so no permission prompt appeared at the time. The birthday page was made the same way on October 2, 2026.
-- The Claude Code start screen is drawn from a screen recording of version 2.1.332 made on 2026-11-25; the sentence was translated from Chinese, and the labels are mine.
-- The two prompt screens are copied from real screens in version 2.1.277 and redrawn as images; the labels are mine. Folder names and paths were changed, long lines were wrapped the way the terminal wraps them, a few lines in the middle were left out, and the sentences I typed were translated from Chinese. The file-creation screen came up when I asked it to create a test file (I pressed No); the file name and contents were replaced with the first three lines of `pond.html`, and "473 more lines" was added by me.
-- Checked against the official docs for version 2.1.330 on 2026-11-24, a few things on screen differ: the default model on the Pro plan is now Opus 5.5; the command prompt now shows the command between dashed lines; and read-only commands such as `cd`, `ls`, `wc`, and `grep` now run without a prompt in every mode, so asking it to check for images as described above usually won't bring up a prompt.
-- I recorded the typing GIF on a Mac on 2026-11-25 with Claude Code 2.1.332. I typed the original pond prompt and stopped before pressing Enter. That's why the version and model on screen differ from the ones I used to make the pond on September 19. I turned off the custom status line I'd installed before recording.
-- `zsh: command not found` and `mkdir` were run on a Mac. The Windows steps were not tested on a Windows computer.
-- The install commands, plan requirements, and permission mode details were checked against the official docs on 2026-11-24.
-- I ran Feishu CLI 1.0.99 on a Mac on 2026-11-25. Running `lark-cli skills list` showed 28 skills. Of the 72 pages linked from the WaytoAGI home page, 6 couldn't be fetched.
-- On 2026-11-25, I checked the official docs to confirm that Claude Code reads only the opening of a skill until it needs the rest, and that pressing Esc stops work and keeps what's already done.
 
 ## Sources
 
