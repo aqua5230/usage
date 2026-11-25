@@ -41,7 +41,7 @@ SIMPLE_EOF = 24
 SIMPLE_HAS_CRC32 = 1
 SIMPLE_HAS_KEY_SHA256 = 2
 MAX_SIMPLE_ENTRY = MAX_BODY + 256 * 1024
-MAX_SIMPLE_CANDIDATES = 512
+MAX_SIMPLE_CANDIDATES = 4096
 FRESH_SECONDS = 7200
 
 
@@ -237,15 +237,18 @@ class _SimpleCache:
         self.path = path
 
     def responses(self, url: bytes, earliest: float, now: float) -> list[CachedResponse]:
-        # Entry names hash the full key, which carries a query string and an
-        # isolation prefix we cannot predict, so scan by mtime instead. A file
-        # is rewritten whenever its response is stored, and older responses are
-        # rejected below anyway; the cap bounds the work on a busy profile.
+        # Entry names hash the full key. The plain key (Desktop 7) gives its
+        # file name directly; keys with a query string (Desktop 6, `?via=plan`)
+        # can't be predicted, so also scan by mtime. A busy or freshly installed
+        # profile writes thousands of files in minutes, which is why the direct
+        # name comes first. Older responses are rejected below anyway; the cap
+        # bounds the work.
+        direct = _simple_name(b"1/0/" + url)
         lower = max(earliest, now - FRESH_SECONDS) - 60
         candidates: list[tuple[float, str]] = []
         with os.scandir(self.path) as entries:
             for entry in entries:
-                if len(entry.name) != 18 or not entry.name.endswith("_0"):
+                if len(entry.name) != 18 or not entry.name.endswith("_0") or entry.name == direct:
                     continue
                 try:
                     stat = entry.stat()
@@ -255,7 +258,7 @@ class _SimpleCache:
                     candidates.append((stat.st_mtime, entry.name))
         candidates.sort(reverse=True)
         results = []
-        for _mtime, name in candidates[:MAX_SIMPLE_CANDIDATES]:
+        for name in [direct, *(name for _mtime, name in candidates[:MAX_SIMPLE_CANDIDATES])]:
             try:
                 response = self._response(self.path / name, url, earliest, now)
             except (OSError, ValueError, struct.error, zlib.error, RecursionError):
@@ -303,6 +306,12 @@ class _SimpleCache:
         if not max(earliest, now - FRESH_SECONDS) <= fetched_at <= now + 60:
             return None
         return CachedResponse(_decode(body, headers), fetched_at)
+
+
+def _simple_name(key: bytes) -> str:
+    # Chromium names a simple-cache entry after the first 8 bytes of SHA-1(key).
+    digest = hashlib.sha1(key, usedforsecurity=False).digest()
+    return f"{struct.unpack_from('<Q', digest)[0]:016x}_0"
 
 
 def _simple_key(raw: bytes) -> bytes | None:
