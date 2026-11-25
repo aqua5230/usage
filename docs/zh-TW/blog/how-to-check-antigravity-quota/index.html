@@ -640,19 +640,19 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <li><strong>Google AI Pro</strong>：額度高，每 5 小時補滿一次，直到用完每週上限；每週上限也比較高。</li>
 <li><strong>其他方案</strong>：基本額度每週補滿一次，另有每週上限。</li>
 </ul>
-<p>Google 也說，額度用掉的速度要看代理做了多少工作：簡單的任務可以多問幾次，複雜的任務用得比較快。文件沒有寫 5 小時額度從什麼時候開始算。我們實測，是從你當天第一次使用時開始。</p>
+<p>Google 也說，額度用掉的速度要看代理做了多少工作：簡單的任務可以多問幾次，複雜的任務用得比較快。文件沒有寫 5 小時額度從什麼時候開始算。我們實測，是從你第一次使用時開始。</p>
 <h2 id="怎麼讓-antigravity-的額度一直顯示在畫面上">怎麼讓 Antigravity 的額度一直顯示在畫面上？</h2>
 <p>有兩種官方的免費查法。想讓數字一直顯示在畫面上，還有第三種做法：</p>
 <ul>
 <li><strong><code>/usage</code> 或 Settings</strong>：在 <code>agy</code> 輸入 <code>/usage</code> 打開 Models &amp; Quota 面板，或打開 app 的 Settings 頁面。</li>
 <li><strong><code>agy -p /usage --output-format json</code></strong>。從 <code>command.data.groups</code> 讀取兩個額度池。</li>
-<li><strong>usage</strong>。<code>usage</code> 是免費開源的 app。它用 <code>agy -p /usage</code> 讀額度；如果讀不到，就改用 Antigravity CLI 已經存好的登入資料，向 Google 的額度服務查詢。它會把 5 小時和每週額度連同倒數，顯示在 macOS 選單列或 Windows 系統匣。Antigravity 卡片預設顯示 Gemini 額度池。點一下 <code>Gemini ⇄</code> 標籤，可以在 Gemini 和 Claude / GPT 之間切換。卡片會記住你的選擇。額度快用完時數字會變紅；你也可以在用到 50%、70%、80%、90% 或 95% 時收到通知，預設是 90%。</li>
+<li><strong>usage</strong>。<a href="https://aqua5230.github.io/usage/zh-TW/"><code>usage</code></a> 是免費開源的 app。它用 <code>agy -p /usage</code> 讀額度；如果讀不到，就改用 Antigravity CLI 已經存好的登入資料，向 Google 的額度服務查詢。它會把 5 小時和每週額度連同倒數，顯示在 macOS 選單列或 Windows 系統匣。Antigravity 卡片預設顯示 Gemini 額度池。點一下 <code>Gemini ⇄</code> 標籤，可以在 Gemini 和 Claude / GPT 之間切換。卡片會記住你的選擇。額度快用完時數字會變紅；你也可以在用到 50%、70%、80%、90% 或 95% 時收到通知，預設是 90%。</li>
 </ul>
 <h2 id="重點整理">重點整理</h2>
 <ul>
 <li>在 Antigravity CLI 輸入 <code>/usage</code> 可以打開額度面板；執行 <code>agy -p /usage --output-format json</code>，不用呼叫模型就能拿到一樣的資料。</li>
 <li>Gemini Models 和 Claude and GPT models 各有每週和 5 小時額度。Gemini 4 Argon 與其他 Gemini 模型共用這兩種額度。</li>
-<li><code>usage</code> 會在選單列或系統匣顯示兩個額度池和重置倒數。</li>
+<li><code>usage</code> 會在選單列或系統匣顯示額度和重置倒數，點一下就能在兩個額度池之間切換。</li>
 </ul>
 <h2 id="資料來源">資料來源</h2>
 <ul>
@@ -675,7 +675,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
           <h2>相關文章</h2>
         <ul class="related-list">
           <li><a href="../../../zh-TW/blog/claude-code-weekly-limit-reset/"><span class="related-title">Claude Code 每週額度什麼時候重置？</span><span class="related-desc">Claude Code 的每週額度在帳號固定的星期與時間重置。這篇說明它和 5 小時額度的差別，以及怎麼看重置倒數。</span></a></li>
-          <li><a href="../../../zh-TW/blog/codex-weekly-limit-early-reset/"><span class="related-title">Codex 每週額度為什麼提早重置？</span><span class="related-desc">Codex 的每週額度常比 resets_at 早好幾天重置，原因是 OpenAI 會全體重置。附一個 Plus 帳號 10 週的實際紀錄、官方規則和查法。</span></a></li>
+          <li><a href="../../../zh-TW/blog/codex-weekly-limit-early-reset/"><span class="related-title">Codex 每週額度為什麼提早重置？</span><span class="related-desc">Codex 的每週額度常比 resets_at 早好幾天重置，原因是 OpenAI 會全體重置。附一個 Plus 帳號 10 個週期的實際紀錄、官方規則和查法。</span></a></li>
           <li><a href="../../../zh-TW/blog/what-is-cli/"><span class="related-title">CLI 是什麼？從 Claude Code 看懂終端機</span><span class="related-desc">CLI 是用打字下命令操作電腦的方式。這篇用一個真的做出來的網頁，說明 CLI 和 GUI（圖形介面）差在哪、為什麼很多 AI 助手做在終端機裡、Claude Code 怎麼替你打指令，以及它要動你的檔案前，你該看懂哪一行。</span></a></li>
         </ul>
         </section>
@@ -684,7 +684,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
         <h2 id="related-rail-heading">相關文章</h2>
         <ul class="related-list">
           <li><a href="../../../zh-TW/blog/claude-code-weekly-limit-reset/"><span class="related-title">Claude Code 每週額度什麼時候重置？</span><span class="related-desc">Claude Code 的每週額度在帳號固定的星期與時間重置。這篇說明它和 5 小時額度的差別，以及怎麼看重置倒數。</span></a></li>
-          <li><a href="../../../zh-TW/blog/codex-weekly-limit-early-reset/"><span class="related-title">Codex 每週額度為什麼提早重置？</span><span class="related-desc">Codex 的每週額度常比 resets_at 早好幾天重置，原因是 OpenAI 會全體重置。附一個 Plus 帳號 10 週的實際紀錄、官方規則和查法。</span></a></li>
+          <li><a href="../../../zh-TW/blog/codex-weekly-limit-early-reset/"><span class="related-title">Codex 每週額度為什麼提早重置？</span><span class="related-desc">Codex 的每週額度常比 resets_at 早好幾天重置，原因是 OpenAI 會全體重置。附一個 Plus 帳號 10 個週期的實際紀錄、官方規則和查法。</span></a></li>
           <li><a href="../../../zh-TW/blog/what-is-cli/"><span class="related-title">CLI 是什麼？從 Claude Code 看懂終端機</span><span class="related-desc">CLI 是用打字下命令操作電腦的方式。這篇用一個真的做出來的網頁，說明 CLI 和 GUI（圖形介面）差在哪、為什麼很多 AI 助手做在終端機裡、Claude Code 怎麼替你打指令，以及它要動你的檔案前，你該看懂哪一行。</span></a></li>
         </ul>
       </aside>

@@ -6,9 +6,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <meta name="theme-color" content="#0a0a0a" />
 <title>Codex 每週額度為什麼提早重置？ — usage</title>
-<meta name="description" content="Codex 的每週額度常比 resets_at 早好幾天重置，原因是 OpenAI 會全體重置。附一個 Plus 帳號 10 週的實際紀錄、官方規則和查法。" />
+<meta name="description" content="Codex 的每週額度常比 resets_at 早好幾天重置，原因是 OpenAI 會全體重置。附一個 Plus 帳號 10 個週期的實際紀錄、官方規則和查法。" />
 <meta property="og:title" content="Codex 每週額度為什麼提早重置？ — usage" />
-<meta property="og:description" content="Codex 的每週額度常比 resets_at 早好幾天重置，原因是 OpenAI 會全體重置。附一個 Plus 帳號 10 週的實際紀錄、官方規則和查法。" />
+<meta property="og:description" content="Codex 的每週額度常比 resets_at 早好幾天重置，原因是 OpenAI 會全體重置。附一個 Plus 帳號 10 個週期的實際紀錄、官方規則和查法。" />
 <meta property="og:image" content="https://aqua5230.github.io/usage/og-image.jpg?v=20261120b" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
@@ -27,7 +27,7 @@
   "@context": "https://schema.org",
   "@type": "Article",
   "headline": "Codex 每週額度為什麼提早重置？",
-  "description": "Codex 的每週額度常比 resets_at 早好幾天重置，原因是 OpenAI 會全體重置。附一個 Plus 帳號 10 週的實際紀錄、官方規則和查法。",
+  "description": "Codex 的每週額度常比 resets_at 早好幾天重置，原因是 OpenAI 會全體重置。附一個 Plus 帳號 10 個週期的實際紀錄、官方規則和查法。",
   "image": "https://aqua5230.github.io/usage/og-image.jpg?v=20261120b",
   "datePublished": "2026-11-23",
   "dateModified": "2026-11-24",
@@ -598,9 +598,9 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
           </nav>
         </details>
         <div class="prose">
-<p><strong>OpenAI 對符合資格的帳號做「全體重置」時，你的 Codex 每週額度就會提早重置</strong>。OpenAI 會把你的額度補回 100%，並且當場開始新的一週。你不會損失任何東西，所以提早重置等於多拿一次額度。Codex 顯示的 <code>resets_at</code>，代表額度「最晚」什麼時候會補滿。2026-11-23 查證。</p>
+<p><strong>OpenAI 對選定的帳號做「全體重置」時，你的 Codex 每週額度就會提早重置</strong>。OpenAI 會把你的額度補回 100%，並且當場開始新的一週。你不會損失任何東西，所以提早重置等於提早拿回額度。Codex 顯示的 <code>resets_at</code>，代表額度「最晚」什麼時候會補滿。2026-11-23 查證。</p>
 <ul>
-<li>OpenAI 的 Codex 負責人 Tibo（X 帳號 <code>@thsottiaux</code>）會不定期幫所有人重置用量，通常會先在 X 上預告。</li>
+<li>OpenAI 的 Codex 負責人 Tibo（X 帳號 <code>@thsottiaux</code>）會不定期幫選定的帳號重置用量，通常會先在 X 上預告。</li>
 <li>作者自己的 ChatGPT Plus 帳號，在 2026-08-29 到 2026-10-07 之間經歷了 10 個週期，其中 9 個比 <code>resets_at</code> 提早結束：7 個碰上全體重置，2 個是作者自己用了儲備重置。只有 1 個撐到 <code>resets_at</code>。</li>
 <li>重置之後，下一次補滿的日期會跟著改，新日期會取代舊日期。</li>
 </ul>
@@ -650,7 +650,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 </table>
 <p>假設你先用了一次儲備重置，之後又遇到全體重置。全體重置只會把額度補回 100%，不會疊成 200%。還沒用掉的儲備重置會留在帳號裡。</p>
 <h2 id="既然會提早重置resets_at-還有什麼意義">既然會提早重置，resets_at 還有什麼意義？</h2>
-<p>你可以把 <code>resets_at</code> 當成額度「最晚」補滿的時間。如果中間沒有全體重置，這一週就會在這個時間結束。</p>
+<p>你可以把 <code>resets_at</code> 當成額度「最晚」補滿的時間。如果中間沒有任何重置，這一週就會在這個時間結束。</p>
 <p>如果提早重置了，時間表也會跟著改。OpenAI 舉過一個例子：某個週期原本週五結束，但週二被重置重新開始，那麼下一次補滿就是下週二，原本週五的時間不再適用。</p>
 <p><img src="../../../blog/codex-weekly-limit-early-reset/early-reset.svg" alt="Codex 在週二全體重置時，已用百分比歸零，下一次補滿的時間從原本的週五改成下週二。" /></p>
 <h2 id="怎麼查-codex-還剩多少額度多久重置">怎麼查 Codex 還剩多少額度、多久重置？</h2>
@@ -658,7 +658,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <ul>
 <li><strong>用量頁面</strong>：網頁版打開 <a href="https://chatgpt.com/codex/settings/usage">usage dashboard</a>，桌面版打開 <strong>Settings &gt; Usage &amp; billing</strong>。這裡會顯示剩多少額度、什麼時候補滿，以及 <strong>Available</strong> 底下還有幾次儲備重置。</li>
 <li><strong>Codex CLI</strong>：輸入 <code>/status</code> 看剩多少額度。要使用儲備重置，輸入 <code>/usage</code> 再選 <strong>Redeem reset</strong>。</li>
-<li><strong>usage</strong>：<code>usage</code> 是免費開源的 app。它讀你電腦上的 Codex 紀錄，把 5 小時和每週額度連同倒數，顯示在 macOS 選單列或 Windows 系統匣。額度快用完時數字會變紅；你也可以在用到 50%、70%、80%、90% 或 95% 時收到通知，預設是 90%。遇到全體重置時，不用打開任何頁面，就能看到新的倒數。</li>
+<li><strong>usage</strong>：<a href="https://aqua5230.github.io/usage/zh-TW/"><code>usage</code></a> 是免費開源的 app。它讀你電腦上的 Codex 紀錄，把 5 小時和每週額度連同倒數，顯示在 macOS 選單列或 Windows 系統匣。額度快用完時數字會變紅；你也可以在用到 50%、70%、80%、90% 或 95% 時收到通知，預設是 90%。遇到全體重置時，你下次用 Codex 之後，選單列就會換成新的倒數，不用打開用量頁面。</li>
 </ul>
 <h2 id="重點整理">重點整理</h2>
 <ul>

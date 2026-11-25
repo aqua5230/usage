@@ -694,11 +694,11 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <h2 id="how-to-keep-an-eye-on-the-context">How to keep an eye on the context</h2>
 <ul>
 <li><strong><code>/context</code></strong>: a built-in Claude Code command that lists how much each category takes up.</li>
-<li><strong>usage</strong>: <code>usage</code> is a free, open-source app. Its terminal status line shows what percentage of the context is in use. At 70%, it reminds you to run <code>/clear</code> if you're switching tasks, or <code>/compact</code> to keep the key points if you're continuing. If the context grows quickly, the reminder appears earlier, at 55% to 60%. It also shows <a href="../claude-code-weekly-limit-reset/">Claude Code's 5-hour and weekly limits</a> in the macOS menu bar or the Windows system tray.</li>
+<li><strong>usage</strong>: <a href="https://aqua5230.github.io/usage/"><code>usage</code></a> is a free, open-source app. Its terminal status line shows what percentage of the context is in use. At 70%, it reminds you to run <code>/clear</code> if you're switching tasks, or <code>/compact</code> to keep the key points if you're continuing. If the context grows quickly, the reminder appears earlier, at 55% to 60%. It also shows <a href="../claude-code-weekly-limit-reset/">Claude Code's 5-hour and weekly limits</a> in the macOS menu bar or the Windows system tray.</li>
 </ul>
 <h2 id="where-the-data-comes-from">Where the data comes from</h2>
 <ul>
-<li>The compaction records come from the author's own Claude Code conversation logs on a Mac, from 2026-09-10 to 2026-11-23. A compaction is a line in the logs whose <code>subtype</code> is <code>compact_boundary</code>; when the same compaction appears in several files, it is counted once. Time away is measured from the last message before the compaction to the compaction itself. I counted with my own script, then a separate analysis script counted again independently, and the results matched.</li>
+<li>The compaction records come from the author's own Claude Code conversation logs on a Mac, from 2026-09-10 to 2026-11-23. A compaction is a line in the logs whose <code>subtype</code> is <code>compact_boundary</code>; when the same compaction appears in several files, it is counted once. Time away is measured from the last message before the compaction to the compaction itself.</li>
 <li>Release dates come from the npm publish history of <code>@anthropic-ai/claude-code</code>.</li>
 <li>The documentation was checked on 2026-11-25.</li>
 </ul>

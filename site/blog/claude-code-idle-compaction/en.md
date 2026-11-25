@@ -94,11 +94,11 @@ If the context fills up again right after a compaction, Claude Code stops compac
 ## How to keep an eye on the context
 
 - **`/context`**: a built-in Claude Code command that lists how much each category takes up.
-- **usage**: `usage` is a free, open-source app. Its terminal status line shows what percentage of the context is in use. At 70%, it reminds you to run `/clear` if you're switching tasks, or `/compact` to keep the key points if you're continuing. If the context grows quickly, the reminder appears earlier, at 55% to 60%. It also shows [Claude Code's 5-hour and weekly limits](../claude-code-weekly-limit-reset/) in the macOS menu bar or the Windows system tray.
+- **usage**: [`usage`](https://aqua5230.github.io/usage/) is a free, open-source app. Its terminal status line shows what percentage of the context is in use. At 70%, it reminds you to run `/clear` if you're switching tasks, or `/compact` to keep the key points if you're continuing. If the context grows quickly, the reminder appears earlier, at 55% to 60%. It also shows [Claude Code's 5-hour and weekly limits](../claude-code-weekly-limit-reset/) in the macOS menu bar or the Windows system tray.
 
 ## Where the data comes from
 
-- The compaction records come from the author's own Claude Code conversation logs on a Mac, from 2026-09-10 to 2026-11-23. A compaction is a line in the logs whose `subtype` is `compact_boundary`; when the same compaction appears in several files, it is counted once. Time away is measured from the last message before the compaction to the compaction itself. I counted with my own script, then a separate analysis script counted again independently, and the results matched.
+- The compaction records come from the author's own Claude Code conversation logs on a Mac, from 2026-09-10 to 2026-11-23. A compaction is a line in the logs whose `subtype` is `compact_boundary`; when the same compaction appears in several files, it is counted once. Time away is measured from the last message before the compaction to the compaction itself.
 - Release dates come from the npm publish history of `@anthropic-ai/claude-code`.
 - The documentation was checked on 2026-11-25.
 

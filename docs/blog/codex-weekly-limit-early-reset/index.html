@@ -6,9 +6,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <meta name="theme-color" content="#0a0a0a" />
 <title>Why Did My Codex Weekly Limit Reset Early? — usage</title>
-<meta name="description" content="Codex weekly limits often reset days before resets_at because OpenAI runs global resets. Ten weeks of data from one Plus account, the official reset rules, and how to check." />
+<meta name="description" content="Codex weekly limits often reset days before resets_at because OpenAI runs global resets. Ten weekly periods of data from one Plus account, the official reset rules, and how to check." />
 <meta property="og:title" content="Why Did My Codex Weekly Limit Reset Early? — usage" />
-<meta property="og:description" content="Codex weekly limits often reset days before resets_at because OpenAI runs global resets. Ten weeks of data from one Plus account, the official reset rules, and how to check." />
+<meta property="og:description" content="Codex weekly limits often reset days before resets_at because OpenAI runs global resets. Ten weekly periods of data from one Plus account, the official reset rules, and how to check." />
 <meta property="og:image" content="https://aqua5230.github.io/usage/og-image.jpg?v=20261120b" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
@@ -27,7 +27,7 @@
   "@context": "https://schema.org",
   "@type": "Article",
   "headline": "Why Did My Codex Weekly Limit Reset Early?",
-  "description": "Codex weekly limits often reset days before resets_at because OpenAI runs global resets. Ten weeks of data from one Plus account, the official reset rules, and how to check.",
+  "description": "Codex weekly limits often reset days before resets_at because OpenAI runs global resets. Ten weekly periods of data from one Plus account, the official reset rules, and how to check.",
   "image": "https://aqua5230.github.io/usage/og-image.jpg?v=20261120b",
   "datePublished": "2026-11-23",
   "dateModified": "2026-11-24",
@@ -598,9 +598,9 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
           </nav>
         </details>
         <div class="prose">
-<p><strong>Your Codex weekly limit resets early when OpenAI runs a global reset on eligible accounts.</strong> OpenAI refills your limit to 100% and starts a new weekly period on the spot. You lose nothing, so an early reset works like extra quota. The <code>resets_at</code> time that Codex reports is the latest moment your limit will refill. Checked on 2026-11-23.</p>
+<p><strong>Your Codex weekly limit resets early when OpenAI runs a global reset on selected accounts.</strong> OpenAI refills your limit to 100% and starts a new weekly period on the spot. You lose nothing, so an early reset gives you your quota back early. The <code>resets_at</code> time that Codex reports is the latest moment your limit will refill. Checked on 2026-11-23.</p>
 <ul>
-<li>Tibo, who leads Codex at OpenAI (<code>@thsottiaux</code> on X), resets usage for everyone from time to time. He usually announces it on X first.</li>
+<li>Tibo, who leads Codex at OpenAI (<code>@thsottiaux</code> on X), resets usage for selected accounts from time to time. He usually announces it on X first.</li>
 <li>On the author's own ChatGPT Plus account, 9 of the 10 weekly periods between 2026-08-29 and 2026-10-07 ended before <code>resets_at</code>: 7 hit a global reset, and 2 ended when the author used a banked reset. Only 1 lasted until <code>resets_at</code>.</li>
 <li>After a reset, your next refresh date moves. The new date replaces the old one.</li>
 </ul>
@@ -650,7 +650,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 </table>
 <p>Suppose you use a banked reset, and a global reset arrives later. The global reset brings you back to 100%, not 200%. Banked resets that you haven't used stay in your account.</p>
 <h2 id="what-does-resets_at-mean-if-resets-can-happen-early">What does resets_at mean if resets can happen early?</h2>
-<p>Think of <code>resets_at</code> as the latest time your limit will refill. If no global reset comes first, that is when your week ends.</p>
+<p>Think of <code>resets_at</code> as the latest time your limit will refill. If no reset of any kind comes first, that is when your week ends.</p>
 <p>When a reset does come early, your schedule moves with it. OpenAI gives an example: a weekly period was due to end on Friday, but a reset restarted it on Tuesday. The next refresh is then the following Tuesday, and the Friday date no longer applies.</p>
 <p><img src="early-reset-en.svg" alt="A Codex global reset on Tuesday drops the used percentage to zero and moves the next refill from Friday to the following Tuesday." /></p>
 <h2 id="how-can-you-check-your-codex-limit-and-countdown">How can you check your Codex limit and countdown?</h2>
@@ -658,7 +658,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <ul>
 <li><strong>The usage dashboard.</strong> Open the <a href="https://chatgpt.com/codex/settings/usage">usage dashboard</a> on the web, or <strong>Settings &gt; Usage &amp; billing</strong> in the desktop app. It shows how much you have left, when the limit refills, and any banked resets under <strong>Available</strong>.</li>
 <li><strong>Codex CLI.</strong> Run <code>/status</code> to see how much you have left. To use a banked reset, run <code>/usage</code> and choose <strong>Redeem reset</strong>.</li>
-<li><strong>The <code>usage</code> app.</strong> <code>usage</code> is free and open source. It reads your local Codex logs and shows your 5-hour and weekly limits, with countdowns, in the macOS menu bar or the Windows system tray. A limit turns red as it gets close, and you can get a notification at 50%, 70%, 80%, 90%, or 95%. The default is 90%. When a global reset lands, you see the new countdown without opening anything.</li>
+<li><strong>The <code>usage</code> app.</strong> <a href="https://aqua5230.github.io/usage/"><code>usage</code></a> is free and open source. It reads your local Codex logs and shows your 5-hour and weekly limits, with countdowns, in the macOS menu bar or the Windows system tray. A limit turns red as it gets close, and you can get a notification at 50%, 70%, 80%, 90%, or 95%. The default is 90%. After a global reset, the menu bar switches to the new countdown the next time you use Codex, without opening the usage page.</li>
 </ul>
 <h2 id="key-takeaways">Key takeaways</h2>
 <ul>

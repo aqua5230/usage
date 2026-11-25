@@ -694,11 +694,11 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <h2 id="怎麼隨時看到-context-用了多少">怎麼隨時看到 context 用了多少？</h2>
 <ul>
 <li><strong><code>/context</code></strong>：Claude Code 內建的指令，列出每一類各佔多少。</li>
-<li><strong>usage</strong>：<code>usage</code> 是免費開源的 app。它的終端機狀態列會顯示 context 用了幾 %。用到 70% 時，它會提醒你：要換任務就打 <code>/clear</code>，要接著做就打 <code>/compact</code> 留下重點。如果 context 增加得很快，提醒會提早到 55%～60% 出現。它也會把 <a href="../claude-code-weekly-limit-reset/">Claude Code 的 5 小時和每週額度</a>，顯示在 macOS 選單列或 Windows 系統匣。</li>
+<li><strong>usage</strong>：<a href="https://aqua5230.github.io/usage/zh-TW/"><code>usage</code></a> 是免費開源的 app。它的終端機狀態列會顯示 context 用了幾 %。用到 70% 時，它會提醒你：要換任務就打 <code>/clear</code>，要接著做就打 <code>/compact</code> 留下重點。如果 context 增加得很快，提醒會提早到 55%～60% 出現。它也會把 <a href="../claude-code-weekly-limit-reset/">Claude Code 的 5 小時和每週額度</a>，顯示在 macOS 選單列或 Windows 系統匣。</li>
 </ul>
 <h2 id="資料怎麼來的">資料怎麼來的</h2>
 <ul>
-<li>壓縮紀錄來自作者自己 Mac 上的 Claude Code 對話紀錄，期間是 2026-09-10 到 2026-11-23。壓縮是紀錄裡 <code>subtype</code> 為 <code>compact_boundary</code> 的那一行；同一次壓縮出現在好幾個檔案時，只算一次。離開多久，是從壓縮前最後一則訊息算到壓縮發生的時間。我先用自己的腳本算一次，再用另一個分析程式獨立算一次，兩次結果相同。</li>
+<li>壓縮紀錄來自作者自己 Mac 上的 Claude Code 對話紀錄，期間是 2026-09-10 到 2026-11-23。壓縮是紀錄裡 <code>subtype</code> 為 <code>compact_boundary</code> 的那一行；同一次壓縮出現在好幾個檔案時，只算一次。離開多久，是從壓縮前最後一則訊息算到壓縮發生的時間。</li>
 <li>版本的發布日期來自 npm 上 <code>@anthropic-ai/claude-code</code> 的發布紀錄。</li>
 <li>官方說明在 2026-11-25 對照過。</li>
 </ul>

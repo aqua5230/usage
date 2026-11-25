@@ -610,9 +610,9 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <p><img src="../../../blog/claude-code-weekly-limit-reset/windows.svg" alt="Claude Code 的 5 小時額度在第一則訊息後 5 小時補滿，每週額度則在帳號固定的星期和時間重置。" /></p>
 <h2 id="claude-code-和網頁版桌面版共用額度嗎">Claude Code 和網頁版、桌面版共用額度嗎？</h2>
 <p>共用。你在 claude.ai、Claude Desktop、手機 App 和 Claude Code 用掉的量，都算在同一份額度裡。Claude Code 不管是在終端機跑，還是在 VS Code、Cursor、IntelliJ、PyCharm 這些 IDE 裡跑，都一樣。</p>
-<p>Claude Code 用掉額度的速度通常比聊天快。原因是 Claude Code 每一輪都會把整段對話重新送出去，所以對話越長，每則訊息就越貴。模型也有差：Opus 一輪的用量是 Sonnet 的好幾倍，Sonnet 又比 Haiku 多。Anthropic 建議換新任務時先跑 <code>/clear</code>，繼續長對話時用 <a href="../claude-code-idle-compaction/"><code>/compact</code></a>。放在 Projects 裡重複使用的內容會被快取，算的量也比較少。</p>
+<p>Claude Code 用掉額度的速度通常比聊天快。原因是 Claude Code 每一輪都會把整段對話重新送出去。重複的部分有快取，算得比較少，但對話越長，每則訊息還是越貴。模型也有差：Opus 一輪的用量是 Sonnet 的好幾倍，Sonnet 又比 Haiku 多。Anthropic 建議換新任務時先跑 <code>/clear</code>，繼續長對話時用 <a href="../claude-code-idle-compaction/"><code>/compact</code></a>。放在 Projects 裡重複使用的內容會被快取，算的量也比較少。</p>
 <h2 id="pro-和-max-的額度差多少">Pro 和 Max 的額度差多少？</h2>
-<p>Pro、Max 和 Ultra 都可以用同一個訂閱登入 Claude 和 Claude Code。三者的差別如下：</p>
+<p>Pro、Max 和 Ultra 都可以用同一個訂閱登入 Claude 和 Claude Code。三者的差別如下。最後一欄的「收尾緩衝」，是額度剛好用完時，讓 Claude Code 把手上這一步做完的一小段額度，下一節會細講：</p>
 <table>
 <thead>
 <tr>
@@ -642,9 +642,9 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <td>每週額度還夠時，每次用完 5 小時額度都能用</td>
 </tr>
 <tr>
-<td>已驗證的 Ultra</td>
+<td>Ultra</td>
 <td>以方案頁為準</td>
-<td>沒有 5 小時限制</td>
+<td>完成驗證的帳號沒有 5 小時限制</td>
 <td>固定時間每週重置</td>
 <td>有</td>
 <td>不適用</td>
@@ -658,9 +658,9 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <h2 id="怎麼查每週額度還剩多少什麼時候重置">怎麼查每週額度還剩多少、什麼時候重置？</h2>
 <p>有兩種官方的免費查法。想讓數字一直顯示在畫面上，還有第三種做法：</p>
 <ul>
-<li><strong>Settings &gt; Usage</strong>：在 claude.ai 或 Claude Desktop 打開這一頁，會看到目前 5 小時額度和每週額度的進度條。</li>
-<li><strong>Claude Code 的狀態列資料</strong>：Claude Code 會把 <code>rate_limits.five_hour</code> 和 <code>rate_limits.seven_day</code> 交給狀態列，裡面有已用百分比和重置時間。</li>
-<li><strong>usage</strong>：<code>usage</code> 是免費開源的 app。它讀的是同一份狀態列資料，把 5 小時和每週額度連同倒數，顯示在 macOS 選單列或 Windows 系統匣。沒開 Claude Code 的時候，它也能讀正在執行的 Claude Desktop 留在電腦上的用量紀錄。額度快用完時數字會變紅；你也可以在用到 50%、70%、80%、90% 或 95% 時收到通知，預設是 90%。</li>
+<li><strong>Settings &gt; Usage</strong>：在 claude.ai 或 Claude Desktop 打開這一頁，會看到目前 5 小時額度和每週額度的進度條，還有剩餘時間和下次重置的時間。</li>
+<li><strong>Claude Code 的狀態列</strong>：狀態列是 Claude Code 畫面最下面那一行，要自己設定才會顯示額度。Claude Code 會把 <code>rate_limits.five_hour</code> 和 <code>rate_limits.seven_day</code> 交給它，裡面有已用百分比和重置時間。</li>
+<li><strong>usage</strong>：<a href="https://aqua5230.github.io/usage/zh-TW/"><code>usage</code></a> 是免費開源的 app。它讀的是同一份狀態列資料，把 5 小時和每週額度連同倒數，顯示在 macOS 選單列或 Windows 系統匣。沒開 Claude Code 的時候，它也能讀正在執行的 Claude Desktop 留在電腦上的用量紀錄。額度快用完時數字會變紅；你也可以在用到 50%、70%、80%、90% 或 95% 時收到通知，預設是 90%。</li>
 </ul>
 <h2 id="重點整理">重點整理</h2>
 <ul>
@@ -690,7 +690,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
         <section class="related-section">
           <h2>相關文章</h2>
         <ul class="related-list">
-          <li><a href="../../../zh-TW/blog/codex-weekly-limit-early-reset/"><span class="related-title">Codex 每週額度為什麼提早重置？</span><span class="related-desc">Codex 的每週額度常比 resets_at 早好幾天重置，原因是 OpenAI 會全體重置。附一個 Plus 帳號 10 週的實際紀錄、官方規則和查法。</span></a></li>
+          <li><a href="../../../zh-TW/blog/codex-weekly-limit-early-reset/"><span class="related-title">Codex 每週額度為什麼提早重置？</span><span class="related-desc">Codex 的每週額度常比 resets_at 早好幾天重置，原因是 OpenAI 會全體重置。附一個 Plus 帳號 10 個週期的實際紀錄、官方規則和查法。</span></a></li>
           <li><a href="../../../zh-TW/blog/claude-code-idle-compaction/"><span class="related-title">Claude Code 為什麼自己壓縮對話？</span><span class="related-desc">Claude Code 會在 context 快滿時壓縮對話。2026 年 10 月起，你離開約一小時後，它也會先壓縮。我的 49 次自動壓縮全部屬於後者。這篇說明兩種壓縮的差別、壓縮後會留下什麼，以及怎麼自己控制。</span></a></li>
           <li><a href="../../../zh-TW/blog/how-to-check-antigravity-quota/"><span class="related-title">怎麼查 Antigravity（agy）剩多少額度？</span><span class="related-desc">在 Antigravity CLI 輸入 /usage，或在終端機跑 agy -p /usage --output-format json，不用呼叫模型就能查額度。這篇說明兩個額度池各有哪些模型，以及額度何時重置。</span></a></li>
         </ul>
@@ -699,7 +699,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
       <aside class="related-rail" aria-labelledby="related-rail-heading">
         <h2 id="related-rail-heading">相關文章</h2>
         <ul class="related-list">
-          <li><a href="../../../zh-TW/blog/codex-weekly-limit-early-reset/"><span class="related-title">Codex 每週額度為什麼提早重置？</span><span class="related-desc">Codex 的每週額度常比 resets_at 早好幾天重置，原因是 OpenAI 會全體重置。附一個 Plus 帳號 10 週的實際紀錄、官方規則和查法。</span></a></li>
+          <li><a href="../../../zh-TW/blog/codex-weekly-limit-early-reset/"><span class="related-title">Codex 每週額度為什麼提早重置？</span><span class="related-desc">Codex 的每週額度常比 resets_at 早好幾天重置，原因是 OpenAI 會全體重置。附一個 Plus 帳號 10 個週期的實際紀錄、官方規則和查法。</span></a></li>
           <li><a href="../../../zh-TW/blog/claude-code-idle-compaction/"><span class="related-title">Claude Code 為什麼自己壓縮對話？</span><span class="related-desc">Claude Code 會在 context 快滿時壓縮對話。2026 年 10 月起，你離開約一小時後，它也會先壓縮。我的 49 次自動壓縮全部屬於後者。這篇說明兩種壓縮的差別、壓縮後會留下什麼，以及怎麼自己控制。</span></a></li>
           <li><a href="../../../zh-TW/blog/how-to-check-antigravity-quota/"><span class="related-title">怎麼查 Antigravity（agy）剩多少額度？</span><span class="related-desc">在 Antigravity CLI 輸入 /usage，或在終端機跑 agy -p /usage --output-format json，不用呼叫模型就能查額度。這篇說明兩個額度池各有哪些模型，以及額度何時重置。</span></a></li>
         </ul>

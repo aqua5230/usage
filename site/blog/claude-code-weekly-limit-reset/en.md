@@ -26,17 +26,17 @@ The weekly limit works on a fixed schedule. Anthropic gives every account a week
 
 Yes. Everything you do on claude.ai, Claude Desktop, the mobile apps, and Claude Code counts against the same limits. That includes Claude Code in your terminal and in IDEs such as VS Code, Cursor, IntelliJ, and PyCharm.
 
-Claude Code tends to use up your limit faster than chat does. On every turn, Claude Code sends the whole conversation again, so a long session costs more per message. The model matters too: a turn on Opus costs several times more than a turn on Sonnet, and Sonnet costs more than Haiku. Anthropic suggests running `/clear` when you start a new task and [`/compact`](../claude-code-idle-compaction/) when you continue a long one. Content that you reuse inside Projects is cached, so it counts for less.
+Claude Code tends to use up your limit faster than chat does. On every turn, Claude Code sends the whole conversation again. The repeated part is cached and counts for less, but a longer session still costs more per message. The model matters too: a turn on Opus costs several times more than a turn on Sonnet, and Sonnet costs more than Haiku. Anthropic suggests running `/clear` when you start a new task and [`/compact`](../claude-code-idle-compaction/) when you continue a long one. Content that you reuse inside Projects is cached, so it counts for less.
 
 ## How do the Pro and Max limits compare?
 
-Pro, Max, and Ultra all let you use Claude and Claude Code with one subscription. Here is how their limits differ:
+Pro, Max, and Ultra all let you use Claude and Claude Code with one subscription. Here is how their limits differ. The last column, the wrap-up allowance, is a small allowance that lets Claude Code finish the step it is on when you run out; the next section covers it:
 
 | Plan | Price per month | 5-hour limit | Weekly limit | Separate Fable limit | Wrap-up allowance |
 | --- | --- | --- | --- | --- | --- |
 | Pro | $20 | Refills 5 hours after your first message | Fixed weekly reset | No | Once per weekly period at most |
 | Max | $100 | 5 times Pro | 5 times Pro | Yes | Each time you hit the 5-hour limit, while weekly usage remains |
-| Verified Ultra | See the plan page | None | Fixed weekly reset | Yes | Does not apply |
+| Ultra | See the plan page | None for verified accounts | Fixed weekly reset | Yes | Does not apply |
 
 If you upgrade after you hit a limit, the new plan's limits apply right away.
 
@@ -50,9 +50,9 @@ Anthropic also gives eligible plans a free limit reset from time to time. When y
 
 There are two free official ways, and a third option if you want the number on screen all the time:
 
-- **Settings > Usage.** In claude.ai or Claude Desktop, this page shows progress bars for your current session and your weekly limits.
-- **Claude Code's status line data.** Claude Code sends `rate_limits.five_hour` and `rate_limits.seven_day` to your status line. Each one has a usage percentage and a reset time.
-- **The `usage` app.** `usage` is free and open source. It reads the same status line data and shows your 5-hour and weekly limits, with countdowns, in the macOS menu bar or the Windows system tray. If Claude Code isn't running, it can read the local usage history of a running Claude Desktop instead. A limit turns red as it gets close, and you can get a notification at 50%, 70%, 80%, 90%, or 95%. The default is 90%.
+- **Settings > Usage.** In claude.ai or Claude Desktop, this page shows progress bars for your current session and your weekly limits, along with the time remaining and your next reset time.
+- **Claude Code's status line.** The status line is the bottom line of the Claude Code screen, and it shows your limits only after you set it up. Claude Code sends `rate_limits.five_hour` and `rate_limits.seven_day` to it. Each one has a usage percentage and a reset time.
+- **The `usage` app.** [`usage`](https://aqua5230.github.io/usage/) is free and open source. It reads the same status line data and shows your 5-hour and weekly limits, with countdowns, in the macOS menu bar or the Windows system tray. If Claude Code isn't running, it can read the local usage history of a running Claude Desktop instead. A limit turns red as it gets close, and you can get a notification at 50%, 70%, 80%, 90%, or 95%. The default is 90%.
 
 ## Key takeaways
 

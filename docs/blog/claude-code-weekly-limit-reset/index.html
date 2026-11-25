@@ -610,9 +610,9 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <p><img src="windows-en.svg" alt="Claude Code’s 5-hour limit refills five hours after your first message, and its weekly limit resets at a fixed day and time for your account." /></p>
 <h2 id="does-claude-code-share-its-limits-with-claudeai-and-claude-desktop">Does Claude Code share its limits with claude.ai and Claude Desktop?</h2>
 <p>Yes. Everything you do on claude.ai, Claude Desktop, the mobile apps, and Claude Code counts against the same limits. That includes Claude Code in your terminal and in IDEs such as VS Code, Cursor, IntelliJ, and PyCharm.</p>
-<p>Claude Code tends to use up your limit faster than chat does. On every turn, Claude Code sends the whole conversation again, so a long session costs more per message. The model matters too: a turn on Opus costs several times more than a turn on Sonnet, and Sonnet costs more than Haiku. Anthropic suggests running <code>/clear</code> when you start a new task and <a href="../claude-code-idle-compaction/"><code>/compact</code></a> when you continue a long one. Content that you reuse inside Projects is cached, so it counts for less.</p>
+<p>Claude Code tends to use up your limit faster than chat does. On every turn, Claude Code sends the whole conversation again. The repeated part is cached and counts for less, but a longer session still costs more per message. The model matters too: a turn on Opus costs several times more than a turn on Sonnet, and Sonnet costs more than Haiku. Anthropic suggests running <code>/clear</code> when you start a new task and <a href="../claude-code-idle-compaction/"><code>/compact</code></a> when you continue a long one. Content that you reuse inside Projects is cached, so it counts for less.</p>
 <h2 id="how-do-the-pro-and-max-limits-compare">How do the Pro and Max limits compare?</h2>
-<p>Pro, Max, and Ultra all let you use Claude and Claude Code with one subscription. Here is how their limits differ:</p>
+<p>Pro, Max, and Ultra all let you use Claude and Claude Code with one subscription. Here is how their limits differ. The last column, the wrap-up allowance, is a small allowance that lets Claude Code finish the step it is on when you run out; the next section covers it:</p>
 <table>
 <thead>
 <tr>
@@ -642,9 +642,9 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <td>Each time you hit the 5-hour limit, while weekly usage remains</td>
 </tr>
 <tr>
-<td>Verified Ultra</td>
+<td>Ultra</td>
 <td>See the plan page</td>
-<td>None</td>
+<td>None for verified accounts</td>
 <td>Fixed weekly reset</td>
 <td>Yes</td>
 <td>Does not apply</td>
@@ -658,9 +658,9 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <h2 id="how-can-you-check-your-weekly-limit-and-reset-time">How can you check your weekly limit and reset time?</h2>
 <p>There are two free official ways, and a third option if you want the number on screen all the time:</p>
 <ul>
-<li><strong>Settings &gt; Usage.</strong> In claude.ai or Claude Desktop, this page shows progress bars for your current session and your weekly limits.</li>
-<li><strong>Claude Code's status line data.</strong> Claude Code sends <code>rate_limits.five_hour</code> and <code>rate_limits.seven_day</code> to your status line. Each one has a usage percentage and a reset time.</li>
-<li><strong>The <code>usage</code> app.</strong> <code>usage</code> is free and open source. It reads the same status line data and shows your 5-hour and weekly limits, with countdowns, in the macOS menu bar or the Windows system tray. If Claude Code isn't running, it can read the local usage history of a running Claude Desktop instead. A limit turns red as it gets close, and you can get a notification at 50%, 70%, 80%, 90%, or 95%. The default is 90%.</li>
+<li><strong>Settings &gt; Usage.</strong> In claude.ai or Claude Desktop, this page shows progress bars for your current session and your weekly limits, along with the time remaining and your next reset time.</li>
+<li><strong>Claude Code's status line.</strong> The status line is the bottom line of the Claude Code screen, and it shows your limits only after you set it up. Claude Code sends <code>rate_limits.five_hour</code> and <code>rate_limits.seven_day</code> to it. Each one has a usage percentage and a reset time.</li>
+<li><strong>The <code>usage</code> app.</strong> <a href="https://aqua5230.github.io/usage/"><code>usage</code></a> is free and open source. It reads the same status line data and shows your 5-hour and weekly limits, with countdowns, in the macOS menu bar or the Windows system tray. If Claude Code isn't running, it can read the local usage history of a running Claude Desktop instead. A limit turns red as it gets close, and you can get a notification at 50%, 70%, 80%, 90%, or 95%. The default is 90%.</li>
 </ul>
 <h2 id="key-takeaways">Key takeaways</h2>
 <ul>
@@ -690,7 +690,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
         <section class="related-section">
           <h2>Related Articles</h2>
         <ul class="related-list">
-          <li><a href="../../blog/codex-weekly-limit-early-reset/"><span class="related-title">Why Did My Codex Weekly Limit Reset Early?</span><span class="related-desc">Codex weekly limits often reset days before resets_at because OpenAI runs global resets. Ten weeks of data from one Plus account, the official reset rules, and how to check.</span></a></li>
+          <li><a href="../../blog/codex-weekly-limit-early-reset/"><span class="related-title">Why Did My Codex Weekly Limit Reset Early?</span><span class="related-desc">Codex weekly limits often reset days before resets_at because OpenAI runs global resets. Ten weekly periods of data from one Plus account, the official reset rules, and how to check.</span></a></li>
           <li><a href="../../blog/claude-code-idle-compaction/"><span class="related-title">Why Does Claude Code Compact Your Conversation on Its Own?</span><span class="related-desc">Claude Code compacts a conversation when its context is nearly full. Since October 2026, it also compacts after you&#x27;ve been away for about an hour. All 49 of my automatic compactions were the second kind. This post explains the difference, what survives a compaction, and how to control it.</span></a></li>
           <li><a href="../../blog/how-to-check-antigravity-quota/"><span class="related-title">How to Check Your Antigravity (agy) Quota</span><span class="related-desc">Type /usage in the Antigravity CLI, or run agy -p /usage --output-format json to get your quota without calling a model. See which models share each of the two quota pools and when they reset.</span></a></li>
         </ul>
@@ -699,7 +699,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
       <aside class="related-rail" aria-labelledby="related-rail-heading">
         <h2 id="related-rail-heading">Related Articles</h2>
         <ul class="related-list">
-          <li><a href="../../blog/codex-weekly-limit-early-reset/"><span class="related-title">Why Did My Codex Weekly Limit Reset Early?</span><span class="related-desc">Codex weekly limits often reset days before resets_at because OpenAI runs global resets. Ten weeks of data from one Plus account, the official reset rules, and how to check.</span></a></li>
+          <li><a href="../../blog/codex-weekly-limit-early-reset/"><span class="related-title">Why Did My Codex Weekly Limit Reset Early?</span><span class="related-desc">Codex weekly limits often reset days before resets_at because OpenAI runs global resets. Ten weekly periods of data from one Plus account, the official reset rules, and how to check.</span></a></li>
           <li><a href="../../blog/claude-code-idle-compaction/"><span class="related-title">Why Does Claude Code Compact Your Conversation on Its Own?</span><span class="related-desc">Claude Code compacts a conversation when its context is nearly full. Since October 2026, it also compacts after you&#x27;ve been away for about an hour. All 49 of my automatic compactions were the second kind. This post explains the difference, what survives a compaction, and how to control it.</span></a></li>
           <li><a href="../../blog/how-to-check-antigravity-quota/"><span class="related-title">How to Check Your Antigravity (agy) Quota</span><span class="related-desc">Type /usage in the Antigravity CLI, or run agy -p /usage --output-format json to get your quota without calling a model. See which models share each of the two quota pools and when they reset.</span></a></li>
         </ul>

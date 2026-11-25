@@ -48,7 +48,7 @@ Google's **Plans** page says the refresh schedule depends on your Google AI plan
 - **Google AI Pro:** a high quota, refreshed every five hours until you reach the weekly limit, plus a higher weekly rate limit.
 - **Other plans:** a baseline quota that refreshes weekly, plus a weekly rate limit.
 
-Google also says that how fast you use quota depends on how much work the agent does. Simple tasks let you send more prompts, and complex tasks use more. The docs don't say when the 5-hour window starts. In our testing, it starts with your first use of the day.
+Google also says that how fast you use quota depends on how much work the agent does. Simple tasks let you send more prompts, and complex tasks use more. The docs don't say when the 5-hour window starts. In our testing, it starts with your first use.
 
 ## How can you keep your Antigravity quota on screen?
 
@@ -56,13 +56,13 @@ There are two free official ways, and a third option if you want the number on s
 
 - **`/usage` or Settings.** Type `/usage` in `agy` to open the Models & Quota panel, or open the Settings page in the app.
 - **`agy -p /usage --output-format json`.** Read both pools from `command.data.groups`.
-- **The `usage` app.** `usage` is free and open source. It reads your quota with `agy -p /usage`. If that fails, it falls back to Google's quota endpoint, using the sign-in that the Antigravity CLI already saved. It shows your 5-hour and weekly limits, with countdowns, in the macOS menu bar or the Windows system tray. The Antigravity card shows the Gemini pool first. Tap the `Gemini ⇄` tag to switch between Gemini and Claude / GPT. The card remembers your choice. A limit turns red as it gets close, and you can get a notification at 50%, 70%, 80%, 90%, or 95%. The default is 90%.
+- **The `usage` app.** [`usage`](https://aqua5230.github.io/usage/) is free and open source. It reads your quota with `agy -p /usage`. If that fails, it falls back to Google's quota endpoint, using the sign-in that the Antigravity CLI already saved. It shows your 5-hour and weekly limits, with countdowns, in the macOS menu bar or the Windows system tray. The Antigravity card shows the Gemini pool first. Tap the `Gemini ⇄` tag to switch between Gemini and Claude / GPT. The card remembers your choice. A limit turns red as it gets close, and you can get a notification at 50%, 70%, 80%, 90%, or 95%. The default is 90%.
 
 ## Key takeaways
 
 - Type `/usage` in the Antigravity CLI to open the quota panel. Run `agy -p /usage --output-format json` to get the same data as JSON without calling a model.
 - Gemini Models and Claude and GPT models each have a weekly and a 5-hour limit. Gemini 4 Argon shares both limits with the other Gemini models.
-- `usage` shows both pools, with countdowns, in your menu bar or tray.
+- `usage` shows the quota and countdown in your menu bar or tray, and one click switches between the two pools.
 
 ## Sources
 

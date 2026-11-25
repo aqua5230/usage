@@ -640,19 +640,19 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <li><strong>Google AI Pro:</strong> a high quota, refreshed every five hours until you reach the weekly limit, plus a higher weekly rate limit.</li>
 <li><strong>Other plans:</strong> a baseline quota that refreshes weekly, plus a weekly rate limit.</li>
 </ul>
-<p>Google also says that how fast you use quota depends on how much work the agent does. Simple tasks let you send more prompts, and complex tasks use more. The docs don't say when the 5-hour window starts. In our testing, it starts with your first use of the day.</p>
+<p>Google also says that how fast you use quota depends on how much work the agent does. Simple tasks let you send more prompts, and complex tasks use more. The docs don't say when the 5-hour window starts. In our testing, it starts with your first use.</p>
 <h2 id="how-can-you-keep-your-antigravity-quota-on-screen">How can you keep your Antigravity quota on screen?</h2>
 <p>There are two free official ways, and a third option if you want the number on screen all the time:</p>
 <ul>
 <li><strong><code>/usage</code> or Settings.</strong> Type <code>/usage</code> in <code>agy</code> to open the Models &amp; Quota panel, or open the Settings page in the app.</li>
 <li><strong><code>agy -p /usage --output-format json</code>.</strong> Read both pools from <code>command.data.groups</code>.</li>
-<li><strong>The <code>usage</code> app.</strong> <code>usage</code> is free and open source. It reads your quota with <code>agy -p /usage</code>. If that fails, it falls back to Google's quota endpoint, using the sign-in that the Antigravity CLI already saved. It shows your 5-hour and weekly limits, with countdowns, in the macOS menu bar or the Windows system tray. The Antigravity card shows the Gemini pool first. Tap the <code>Gemini ⇄</code> tag to switch between Gemini and Claude / GPT. The card remembers your choice. A limit turns red as it gets close, and you can get a notification at 50%, 70%, 80%, 90%, or 95%. The default is 90%.</li>
+<li><strong>The <code>usage</code> app.</strong> <a href="https://aqua5230.github.io/usage/"><code>usage</code></a> is free and open source. It reads your quota with <code>agy -p /usage</code>. If that fails, it falls back to Google's quota endpoint, using the sign-in that the Antigravity CLI already saved. It shows your 5-hour and weekly limits, with countdowns, in the macOS menu bar or the Windows system tray. The Antigravity card shows the Gemini pool first. Tap the <code>Gemini ⇄</code> tag to switch between Gemini and Claude / GPT. The card remembers your choice. A limit turns red as it gets close, and you can get a notification at 50%, 70%, 80%, 90%, or 95%. The default is 90%.</li>
 </ul>
 <h2 id="key-takeaways">Key takeaways</h2>
 <ul>
 <li>Type <code>/usage</code> in the Antigravity CLI to open the quota panel. Run <code>agy -p /usage --output-format json</code> to get the same data as JSON without calling a model.</li>
 <li>Gemini Models and Claude and GPT models each have a weekly and a 5-hour limit. Gemini 4 Argon shares both limits with the other Gemini models.</li>
-<li><code>usage</code> shows both pools, with countdowns, in your menu bar or tray.</li>
+<li><code>usage</code> shows the quota and countdown in your menu bar or tray, and one click switches between the two pools.</li>
 </ul>
 <h2 id="sources">Sources</h2>
 <ul>
@@ -675,7 +675,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
           <h2>Related Articles</h2>
         <ul class="related-list">
           <li><a href="../../blog/claude-code-weekly-limit-reset/"><span class="related-title">When Does the Claude Code Weekly Limit Reset?</span><span class="related-desc">Claude Code&#x27;s weekly limit resets at a fixed day and time assigned to your account. Here is how that works with the 5-hour limit, and how to see your countdown.</span></a></li>
-          <li><a href="../../blog/codex-weekly-limit-early-reset/"><span class="related-title">Why Did My Codex Weekly Limit Reset Early?</span><span class="related-desc">Codex weekly limits often reset days before resets_at because OpenAI runs global resets. Ten weeks of data from one Plus account, the official reset rules, and how to check.</span></a></li>
+          <li><a href="../../blog/codex-weekly-limit-early-reset/"><span class="related-title">Why Did My Codex Weekly Limit Reset Early?</span><span class="related-desc">Codex weekly limits often reset days before resets_at because OpenAI runs global resets. Ten weekly periods of data from one Plus account, the official reset rules, and how to check.</span></a></li>
           <li><a href="../../blog/what-is-cli/"><span class="related-title">What Is a CLI? Learn How the Terminal Works with Claude Code</span><span class="related-desc">A CLI is a way to control a computer by typing commands. Using a web page that was actually built with one typed sentence, this post explains how a CLI differs from a graphical user interface (GUI), why many AI assistants work in the terminal, how Claude Code types commands for you, and which line to read before it touches your files.</span></a></li>
         </ul>
         </section>
@@ -684,7 +684,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
         <h2 id="related-rail-heading">Related Articles</h2>
         <ul class="related-list">
           <li><a href="../../blog/claude-code-weekly-limit-reset/"><span class="related-title">When Does the Claude Code Weekly Limit Reset?</span><span class="related-desc">Claude Code&#x27;s weekly limit resets at a fixed day and time assigned to your account. Here is how that works with the 5-hour limit, and how to see your countdown.</span></a></li>
-          <li><a href="../../blog/codex-weekly-limit-early-reset/"><span class="related-title">Why Did My Codex Weekly Limit Reset Early?</span><span class="related-desc">Codex weekly limits often reset days before resets_at because OpenAI runs global resets. Ten weeks of data from one Plus account, the official reset rules, and how to check.</span></a></li>
+          <li><a href="../../blog/codex-weekly-limit-early-reset/"><span class="related-title">Why Did My Codex Weekly Limit Reset Early?</span><span class="related-desc">Codex weekly limits often reset days before resets_at because OpenAI runs global resets. Ten weekly periods of data from one Plus account, the official reset rules, and how to check.</span></a></li>
           <li><a href="../../blog/what-is-cli/"><span class="related-title">What Is a CLI? Learn How the Terminal Works with Claude Code</span><span class="related-desc">A CLI is a way to control a computer by typing commands. Using a web page that was actually built with one typed sentence, this post explains how a CLI differs from a graphical user interface (GUI), why many AI assistants work in the terminal, how Claude Code types commands for you, and which line to read before it touches your files.</span></a></li>
         </ul>
       </aside>
