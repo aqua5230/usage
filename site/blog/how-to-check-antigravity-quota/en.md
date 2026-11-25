@@ -4,7 +4,7 @@ description: Type /usage in the Antigravity CLI, or run agy -p /usage --output-f
 date: 2026-11-23
 updated: 2026-11-24
 tool: antigravity
-related: claude-code-weekly-limit-reset, codex-weekly-limit-early-reset
+related: claude-code-weekly-limit-reset, codex-weekly-limit-early-reset, what-is-cli
 ---
 
 **To check your Antigravity (`agy`) quota, type `/usage` in the CLI, or run `agy -p /usage --output-format json` in your terminal.** The second command does not call a model, and it returns in about 6 seconds.
@@ -13,7 +13,7 @@ related: claude-code-weekly-limit-reset, codex-weekly-limit-early-reset
 
 Google documents two built-in ways to see your baseline quota and your AI credits.
 
-The first is the CLI. In an interactive session, type `/usage` (or `/quota`) and press Enter. Google's CLI docs say this refreshes your quota from the backend and opens a **Models & Quota** panel. You can scroll with the arrow keys or `J` and `K`, jump with `G` and `Shift + G`, and close the panel with `Esc` or `Q`. The right side of the status line also shows how many AI credits you have left, and it highlights the number when you are running low. To open a separate credits panel, type `/credits`.
+The first is the [CLI](../what-is-cli/). In an interactive session, type `/usage` (or `/quota`) and press Enter. Google's CLI docs say this refreshes your quota from the backend and opens a **Models & Quota** panel. You can scroll with the arrow keys or `J` and `K`, jump with `G` and `Shift + G`, and close the panel with `Esc` or `Q`. The right side of the status line also shows how many AI credits you have left, and it highlights the number when you are running low. To open a separate credits panel, type `/credits`.
 
 The second is the app. Google's **Plans** page says you can see your baseline quota on the **Settings** page. If you are on Google AI Pro or Ultra, you can also set **AI Credit Overages** there. **Never** means you wait for your quota to refill. **Always** means Antigravity uses your AI credits once the quota runs out.
 

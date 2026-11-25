@@ -3,7 +3,7 @@ title: Claude Code 每週額度什麼時候重置？
 description: Claude Code 的每週額度在帳號固定的星期與時間重置。這篇說明它和 5 小時額度的差別，以及怎麼看重置倒數。
 date: 2026-11-23
 tool: claude-code
-related: codex-weekly-limit-early-reset, how-to-check-antigravity-quota
+related: codex-weekly-limit-early-reset, claude-code-idle-compaction, how-to-check-antigravity-quota
 ---
 
 **Claude Code 的每週額度每週重置一次，時間是 Anthropic 指定給你帳號的固定星期和時刻**。它不是從你最後一次送出訊息往後算。不管你哪天開始寫程式、哪天訂閱，這個時間都不會變；每到這個時間，整週的額度就會補滿。2026-11-23 查證。
@@ -26,7 +26,7 @@ Claude 的付費方案有兩種額度。一種是每 5 小時重置的對話額�
 
 共用。你在 claude.ai、Claude Desktop、手機 App 和 Claude Code 用掉的量，都算在同一份額度裡。Claude Code 不管是在終端機跑，還是在 VS Code、Cursor、IntelliJ、PyCharm 這些 IDE 裡跑，都一樣。
 
-Claude Code 用掉額度的速度通常比聊天快。原因是 Claude Code 每一輪都會把整段對話重新送出去，所以對話越長，每則訊息就越貴。模型也有差：Opus 一輪的用量是 Sonnet 的好幾倍，Sonnet 又比 Haiku 多。Anthropic 建議換新任務時先跑 `/clear`，繼續長對話時用 `/compact`。放在 Projects 裡重複使用的內容會被快取，算的量也比較少。
+Claude Code 用掉額度的速度通常比聊天快。原因是 Claude Code 每一輪都會把整段對話重新送出去，所以對話越長，每則訊息就越貴。模型也有差：Opus 一輪的用量是 Sonnet 的好幾倍，Sonnet 又比 Haiku 多。Anthropic 建議換新任務時先跑 `/clear`，繼續長對話時用 [`/compact`](../claude-code-idle-compaction/)。放在 Projects 裡重複使用的內容會被快取，算的量也比較少。
 
 ## Pro 和 Max 的額度差多少？
 

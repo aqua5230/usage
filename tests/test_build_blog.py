@@ -150,8 +150,8 @@ def test_bilingual_article_renders_seo_cards_escaping_and_sitemap(
         source_dir,
         "older-post",
         "en",
-        title="Older Post",
-        description="First post summary",
+        title="Older & <Post>",
+        description="First post <summary>",
         date="2026-10-01",
         body="First paragraph.\n\nSecond paragraph.",
     )
@@ -205,25 +205,40 @@ def test_bilingual_article_renders_seo_cards_escaping_and_sitemap(
             f'<link rel="alternate" hreflang="zh-TW" href="{site}zh-TW/blog/new-post/" />' in page
         )
         assert f'<link rel="alternate" hreflang="x-default" href="{site}blog/new-post/" />' in page
-        assert page.count('class="blog-cta-card"') == 2
+        assert page.count('class="blog-cta-card"') == 1
         assert "#install" in page
         assert "https://github.com/aqua5230/usage" in page
+    for page, description in ((en_html, "New post summary"), (tw_html, "繁體中文摘要")):
+        body = page.split("<body>", 1)[1]
+        assert 'class="post-desc"' not in body
+        assert description not in body
+        assert f'<meta name="description" content="{description}" />' in page
+        assert f'<meta property="og:description" content="{description}" />' in page
+        article_ld = next(block for block in _parse_json_ld(page) if block["@type"] == "Article")
+        assert article_ld["description"] == description
 
     # Raw HTML in markdown must be escaped.
     assert "<script>alert(1)</script>" not in en_html
     assert "&lt;script&gt;alert(1)&lt;/script&gt;" in en_html
     assert "<table>" in en_html
 
-    # Download card placement: first after first </p>, second at end before related section.
-    first_p_end = en_html.index("</p>")
-    first_card = en_html.index('class="blog-cta-card"')
-    second_card = en_html.index('class="blog-cta-card"', first_card + 1)
-    related_pos = en_html.index('class="related-section"')
-    assert first_p_end < first_card < second_card < related_pos
+    for page, body_end, href in (
+        (en_html, "</table>", "../../blog/older-post/"),
+        (tw_html, "<p>第二段內容。</p>", "../../../blog/older-post/"),
+    ):
+        prose_end = page.index("        </div>", page.index(body_end))
+        footer = page.index('<section class="related-section">')
+        assert prose_end < page.index('class="blog-cta-card"') < footer
 
-    # Related link falls back to en when target language lacks a translation.
-    assert 'href="../../blog/older-post/"' in en_html
-    assert 'href="../../../blog/older-post/"' in tw_html
+        # Both links wrap the title and description and use English when untranslated.
+        link = (
+            f'<a href="{href}">'
+            '<span class="related-title">Older &amp; &lt;Post&gt;</span>'
+            '<span class="related-desc">First post &lt;summary&gt;</span></a>'
+        )
+        assert link in page[footer : page.index("</section>", footer)]
+        rail = page.index('<aside class="related-rail"')
+        assert link in page[rail : page.index("</aside>", rail)]
 
     # JSON-LD Article + BreadcrumbList parse cleanly.
     ld_blocks = _parse_json_ld(en_html)
@@ -240,7 +255,10 @@ def test_bilingual_article_renders_seo_cards_escaping_and_sitemap(
 
     # List page sorted newest -> oldest, and older-post has no related section.
     en_list = (docs_dir / "blog" / "index.html").read_text(encoding="utf-8")
+    tw_list = (docs_dir / "zh-TW" / "blog" / "index.html").read_text(encoding="utf-8")
     assert en_list.index("new-post/") < en_list.index("older-post/")
+    assert "<p>New post summary</p>" in en_list
+    assert "<p>繁體中文摘要</p>" in tw_list
     older_html = (docs_dir / "blog" / "older-post" / "index.html").read_text(encoding="utf-8")
     assert 'class="related-section"' not in older_html
 
@@ -381,7 +399,7 @@ def test_toc_omitted_when_fewer_than_three_h2s(
     assert '<h2 id="second-section">Second Section</h2>' in article_html
     assert '<aside class="toc-rail">' not in article_html
     assert '<details class="toc-mobile">' not in article_html
-    assert '<aside class="news-rail"' in article_html
+    assert '<aside class="related-rail"' not in article_html
 
 
 def test_toc_links_match_body_h2_and_exclude_related_and_cta(
@@ -431,24 +449,25 @@ def test_toc_links_match_body_h2_and_exclude_related_and_cta(
     assert build_blog.UI_STRINGS["en"]["card_title"] not in toc_block
     assert "<h2>Related Articles</h2>" in article_html
 
-    # List page must not include article rails or news fetch script.
+    # List page has no article rails.
     assert '<aside class="toc-rail">' not in list_html
     assert '<details class="toc-mobile">' not in list_html
+    assert '<aside class="related-rail"' not in list_html
     assert '<aside class="news-rail"' not in list_html
     assert "ai-updates/data.json" not in list_html
 
-    # Article page includes news rail (hidden initially) and matchMedia guard without innerHTML.
-    assert '<aside class="news-rail" aria-label="AI Update Daily" hidden>' in article_html
-    assert 'window.matchMedia("(min-width: 1440px)")' in article_html
-    assert "innerHTML" not in article_html
+    assert '<aside class="related-rail" aria-labelledby="related-rail-heading">' in article_html
+    assert '<h2 id="related-rail-heading">Related Articles</h2>' in article_html
+    assert "news-rail" not in article_html
+    assert "AI Update Daily" not in article_html
+    assert "ai-updates/data.json" not in article_html
 
 
-def test_ui_strings_include_toc_and_news_keys_for_all_langs() -> None:
+def test_ui_strings_include_toc_and_related_keys_for_all_langs() -> None:
     for lang in build_blog.LANGS:
         ui = build_blog.UI_STRINGS[lang]
         assert ui["toc_title"]
-        assert ui["news_title"]
-        assert ui["news_all"]
+        assert ui["related_heading"]
 
 
 def test_homepage_latest_posts_top_three_hrefs_hidden_and_language_pages(

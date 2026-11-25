@@ -4,7 +4,7 @@ description: 在 Antigravity CLI 輸入 /usage，或在終端機跑 agy -p /usag
 date: 2026-11-23
 updated: 2026-11-24
 tool: antigravity
-related: claude-code-weekly-limit-reset, codex-weekly-limit-early-reset
+related: claude-code-weekly-limit-reset, codex-weekly-limit-early-reset, what-is-cli
 ---
 
 **想查 Antigravity（`agy`）剩多少額度，可以在 CLI 裡輸入 `/usage`，或在終端機執行 `agy -p /usage --output-format json`**。第二種方法不會呼叫模型，大約 6 秒就有結果。
@@ -13,7 +13,7 @@ related: claude-code-weekly-limit-reset, codex-weekly-limit-early-reset
 
 Google 的文件提供兩種內建查法，可以看基本額度和 AI 點數。
 
-第一種在 CLI 裡。在互動模式輸入 `/usage`（或 `/quota`）再按 Enter。Google 的 CLI 文件說，這個指令會從伺服器重新抓額度，然後打開 **Models & Quota** 面板。你可以用方向鍵或 `J`、`K` 捲動，用 `G` 和 `Shift + G` 跳到最上面或最下面，按 `Esc` 或 `Q` 關掉面板。狀態列右邊也會顯示你還剩多少 AI 點數，快用完時會特別標出來。想看點數的詳細面板，就輸入 `/credits`。
+第一種在 [CLI](../what-is-cli/) 裡。在互動模式輸入 `/usage`（或 `/quota`）再按 Enter。Google 的 CLI 文件說，這個指令會從伺服器重新抓額度，然後打開 **Models & Quota** 面板。你可以用方向鍵或 `J`、`K` 捲動，用 `G` 和 `Shift + G` 跳到最上面或最下面，按 `Esc` 或 `Q` 關掉面板。狀態列右邊也會顯示你還剩多少 AI 點數，快用完時會特別標出來。想看點數的詳細面板，就輸入 `/credits`。
 
 第二種在 app 裡。Google 的 **Plans** 頁面說，你可以在 **Settings** 頁面看到基本額度。如果你訂的是 Google AI Pro 或 Ultra，還可以在這裡設定 **AI Credit Overages**：選 **Never**，額度用完就等它補滿；選 **Always**，額度用完後會改用你的 AI 點數。
 

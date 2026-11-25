@@ -4,7 +4,7 @@ description: Codex 的每週額度常比 resets_at 早好幾天重置，原因�
 date: 2026-11-23
 updated: 2026-11-24
 tool: codex
-related: claude-code-weekly-limit-reset, how-to-check-antigravity-quota
+related: claude-code-weekly-limit-reset, how-to-check-antigravity-quota, what-is-cli
 ---
 
 **OpenAI 對符合資格的帳號做「全體重置」時，你的 Codex 每週額度就會提早重置**。OpenAI 會把你的額度補回 100%，並且當場開始新的一週。你不會損失任何東西，所以提早重置等於多拿一次額度。Codex 顯示的 `resets_at`，代表額度「最晚」什麼時候會補滿。2026-11-23 查證。

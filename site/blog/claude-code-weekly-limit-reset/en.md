@@ -3,7 +3,7 @@ title: When Does the Claude Code Weekly Limit Reset?
 description: Claude Code's weekly limit resets at a fixed day and time assigned to your account. Here is how that works with the 5-hour limit, and how to see your countdown.
 date: 2026-11-23
 tool: claude-code
-related: codex-weekly-limit-early-reset, how-to-check-antigravity-quota
+related: codex-weekly-limit-early-reset, claude-code-idle-compaction, how-to-check-antigravity-quota
 ---
 
 **Your Claude Code weekly limit resets once a week, on a fixed day and time that Anthropic assigns to your account.** It does not count from your last prompt. The day and time stay the same no matter when you started coding or when you subscribed, and each new week gives you the full allowance again. Checked on 2026-11-23.
@@ -26,7 +26,7 @@ The weekly limit works on a fixed schedule. Anthropic gives every account a week
 
 Yes. Everything you do on claude.ai, Claude Desktop, the mobile apps, and Claude Code counts against the same limits. That includes Claude Code in your terminal and in IDEs such as VS Code, Cursor, IntelliJ, and PyCharm.
 
-Claude Code tends to use up your limit faster than chat does. On every turn, Claude Code sends the whole conversation again, so a long session costs more per message. The model matters too: a turn on Opus costs several times more than a turn on Sonnet, and Sonnet costs more than Haiku. Anthropic suggests running `/clear` when you start a new task and `/compact` when you continue a long one. Content that you reuse inside Projects is cached, so it counts for less.
+Claude Code tends to use up your limit faster than chat does. On every turn, Claude Code sends the whole conversation again, so a long session costs more per message. The model matters too: a turn on Opus costs several times more than a turn on Sonnet, and Sonnet costs more than Haiku. Anthropic suggests running `/clear` when you start a new task and [`/compact`](../claude-code-idle-compaction/) when you continue a long one. Content that you reuse inside Projects is cached, so it counts for less.
 
 ## How do the Pro and Max limits compare?
 

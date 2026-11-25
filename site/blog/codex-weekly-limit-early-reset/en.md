@@ -4,7 +4,7 @@ description: Codex weekly limits often reset days before resets_at because OpenA
 date: 2026-11-23
 updated: 2026-11-24
 tool: codex
-related: claude-code-weekly-limit-reset, how-to-check-antigravity-quota
+related: claude-code-weekly-limit-reset, how-to-check-antigravity-quota, what-is-cli
 ---
 
 **Your Codex weekly limit resets early when OpenAI runs a global reset on eligible accounts.** OpenAI refills your limit to 100% and starts a new weekly period on the spot. You lose nothing, so an early reset works like extra quota. The `resets_at` time that Codex reports is the latest moment your limit will refill. Checked on 2026-11-23.

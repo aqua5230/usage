@@ -253,7 +253,7 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   margin-bottom: 14px;
   overflow-wrap: anywhere;
 }
-.post-desc, .blog-hero p {
+.blog-hero p {
   font-size: 17px;
   color: var(--fg-dim);
   line-height: 1.65;
@@ -409,19 +409,32 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
 .related-section h2 { font-size: 20px; margin-bottom: 14px; }
 .related-list { list-style: none; display: grid; gap: 10px; }
 .related-list a {
-  display: block;
+  display: grid;
+  gap: 4px;
+  overflow-wrap: anywhere;
+}
+.related-section .related-list a {
   padding: 14px 16px;
   border-radius: 10px;
   border: 1px solid var(--border);
   background: var(--bg-card);
-  color: var(--fg);
-  font-weight: 550;
   transition: border-color 140ms ease;
 }
-.related-list a:hover { border-color: rgba(255, 140, 66, 0.45); color: var(--accent); }
+.related-section .related-list a:is(:hover, :focus-visible) { border-color: var(--accent); }
+.related-list a:is(:hover, :focus-visible) .related-title { color: var(--accent); }
+.related-title { font-size: 16px; font-weight: 600; line-height: 1.4; }
+.related-desc { font-size: 14.5px; line-height: 1.55; color: var(--fg-dim); }
+.related-rail .related-list { gap: 0; }
+.related-rail .related-list a {
+  padding: 10px 4px;
+  border-bottom: 1px solid var(--border);
+}
+.related-rail .related-list a:focus-visible { outline-offset: -2px; }
+.related-rail .related-title { font-size: 14px; }
+.related-rail .related-desc { font-size: 13px; line-height: 1.45; }
 .prose h2[id] { scroll-margin-top: 76px; }
 .article-layout { display: block; }
-.toc-rail, .news-rail { display: none; }
+.toc-rail, .related-rail { display: none; }
 .toc-mobile {
   margin-bottom: 28px;
   padding: 14px 16px;
@@ -452,7 +465,7 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   padding-top: 10px;
   border-top: 1px solid var(--border);
 }
-.toc-title {
+.toc-title, .related-rail h2 {
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
@@ -472,54 +485,6 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
 }
 .toc-list a:hover { color: var(--fg); }
 .toc-list a[aria-current="location"] { color: var(--accent); font-weight: 600; }
-.news-title {
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--fg-dimmer);
-  margin-bottom: 4px;
-}
-.news-list { display: grid; }
-.news-item {
-  display: block;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--border);
-}
-.news-item:hover .news-item-name { color: var(--accent); }
-.news-item-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 4px;
-}
-.news-item-name {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--fg);
-  transition: color 140ms ease;
-}
-.news-item-date {
-  font-family: var(--mono);
-  font-size: 11.5px;
-  color: var(--fg-dimmer);
-  white-space: nowrap;
-}
-.news-item-title {
-  font-size: 13px;
-  line-height: 1.45;
-  color: var(--fg-dim);
-  overflow-wrap: anywhere;
-}
-.news-all {
-  display: inline-block;
-  margin-top: 12px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--accent);
-}
-.news-all:hover { color: var(--accent-hover); }
 @media (min-width: 1300px) {
   .wrap-article { max-width: 1300px; }
   .article-layout {
@@ -549,7 +514,7 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   }
   .toc-rail { grid-column: 1; }
   .article-main { grid-column: 3; }
-  .news-rail:not([hidden]) {
+  .related-rail {
     grid-column: 5;
     display: block;
     position: sticky;
@@ -616,7 +581,6 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
             <span>Published <time datetime="2026-11-23">2026-11-23</time></span>
           </div>
           <h1>When Does the Claude Code Weekly Limit Reset?</h1>
-          <p class="post-desc">Claude Code&#x27;s weekly limit resets at a fixed day and time assigned to your account. Here is how that works with the 5-hour limit, and how to see your countdown.</p>
         </header>
         <details class="toc-mobile">
           <summary>In this article</summary>
@@ -634,14 +598,6 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
         </details>
         <div class="prose">
 <p><strong>Your Claude Code weekly limit resets once a week, on a fixed day and time that Anthropic assigns to your account.</strong> It does not count from your last prompt. The day and time stay the same no matter when you started coding or when you subscribed, and each new week gives you the full allowance again. Checked on 2026-11-23.</p>
-<aside class="blog-cta-card">
-  <h2>Track your AI coding quotas in the menu bar</h2>
-  <p>usage is a free, open-source (AGPL-3.0) app for the macOS menu bar and Windows tray, supporting Claude Code, Codex, Antigravity, Grok, and Muse.</p>
-  <div class="blog-cta-actions">
-    <a class="btn btn-primary" href="../../#install">Install usage</a>
-    <a class="btn btn-secondary" href="https://github.com/aqua5230/usage" target="_blank" rel="noopener">GitHub</a>
-  </div>
-</aside>
 <ul>
 <li>The weekly limit resets at the same day and time every week.</li>
 <li>Pro and Max plans also have a 5-hour limit. That clock starts when you send your first message, and the limit refills five hours later.</li>
@@ -654,7 +610,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <p><img src="windows-en.svg" alt="Claude Code’s 5-hour limit refills five hours after your first message, and its weekly limit resets at a fixed day and time for your account." /></p>
 <h2 id="does-claude-code-share-its-limits-with-claudeai-and-claude-desktop">Does Claude Code share its limits with claude.ai and Claude Desktop?</h2>
 <p>Yes. Everything you do on claude.ai, Claude Desktop, the mobile apps, and Claude Code counts against the same limits. That includes Claude Code in your terminal and in IDEs such as VS Code, Cursor, IntelliJ, and PyCharm.</p>
-<p>Claude Code tends to use up your limit faster than chat does. On every turn, Claude Code sends the whole conversation again, so a long session costs more per message. The model matters too: a turn on Opus costs several times more than a turn on Sonnet, and Sonnet costs more than Haiku. Anthropic suggests running <code>/clear</code> when you start a new task and <code>/compact</code> when you continue a long one. Content that you reuse inside Projects is cached, so it counts for less.</p>
+<p>Claude Code tends to use up your limit faster than chat does. On every turn, Claude Code sends the whole conversation again, so a long session costs more per message. The model matters too: a turn on Opus costs several times more than a turn on Sonnet, and Sonnet costs more than Haiku. Anthropic suggests running <code>/clear</code> when you start a new task and <a href="../claude-code-idle-compaction/"><code>/compact</code></a> when you continue a long one. Content that you reuse inside Projects is cached, so it counts for less.</p>
 <h2 id="how-do-the-pro-and-max-limits-compare">How do the Pro and Max limits compare?</h2>
 <p>Pro, Max, and Ultra all let you use Claude and Claude Code with one subscription. Here is how their limits differ:</p>
 <table>
@@ -722,6 +678,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <li><a href="https://support.claude.com/en/articles/17007452-what-is-a-limit-reset">What is a limit reset?</a></li>
 <li><a href="https://support.claude.com/en/articles/14552983-models-usage-and-limits-in-claude-code">Models, usage, and limits in Claude Code</a></li>
 </ul>
+        </div>
 <aside class="blog-cta-card">
   <h2>Track your AI coding quotas in the menu bar</h2>
   <p>usage is a free, open-source (AGPL-3.0) app for the macOS menu bar and Windows tray, supporting Claude Code, Codex, Antigravity, Grok, and Muse.</p>
@@ -730,21 +687,22 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
     <a class="btn btn-secondary" href="https://github.com/aqua5230/usage" target="_blank" rel="noopener">GitHub</a>
   </div>
 </aside>
-        </div>
-    <section class="related-section">
-      <h2>Related Articles</h2>
-      <ul class="related-list">
-      <li><a href="../../blog/codex-weekly-limit-early-reset/">Why Did My Codex Weekly Limit Reset Early?</a></li>
-      <li><a href="../../blog/how-to-check-antigravity-quota/">How to Check Your Antigravity (agy) Quota</a></li>
-      </ul>
-    </section>
+        <section class="related-section">
+          <h2>Related Articles</h2>
+        <ul class="related-list">
+          <li><a href="../../blog/codex-weekly-limit-early-reset/"><span class="related-title">Why Did My Codex Weekly Limit Reset Early?</span><span class="related-desc">Codex weekly limits often reset days before resets_at because OpenAI runs global resets. Ten weeks of data from one Plus account, the official reset rules, and how to check.</span></a></li>
+          <li><a href="../../blog/claude-code-idle-compaction/"><span class="related-title">Why Does Claude Code Compact Your Conversation on Its Own?</span><span class="related-desc">Claude Code compacts a conversation when its context is nearly full. Since October 2026, it also compacts after you&#x27;ve been away for about an hour. All 49 of my automatic compactions were the second kind. This post explains the difference, what survives a compaction, and how to control it.</span></a></li>
+          <li><a href="../../blog/how-to-check-antigravity-quota/"><span class="related-title">How to Check Your Antigravity (agy) Quota</span><span class="related-desc">Type /usage in the Antigravity CLI, or run agy -p /usage --output-format json to get your quota without calling a model. See which models share each of the two quota pools and when they reset.</span></a></li>
+        </ul>
+        </section>
       </article>
-      <aside class="news-rail" aria-label="AI Update Daily" hidden>
-        <div class="news-card">
-          <h2 class="news-title">AI Update Daily</h2>
-          <div class="news-list"></div>
-          <a class="news-all" href="https://aqua5230.github.io/ai-updates/" target="_blank" rel="noopener">See all updates →</a>
-        </div>
+      <aside class="related-rail" aria-labelledby="related-rail-heading">
+        <h2 id="related-rail-heading">Related Articles</h2>
+        <ul class="related-list">
+          <li><a href="../../blog/codex-weekly-limit-early-reset/"><span class="related-title">Why Did My Codex Weekly Limit Reset Early?</span><span class="related-desc">Codex weekly limits often reset days before resets_at because OpenAI runs global resets. Ten weeks of data from one Plus account, the official reset rules, and how to check.</span></a></li>
+          <li><a href="../../blog/claude-code-idle-compaction/"><span class="related-title">Why Does Claude Code Compact Your Conversation on Its Own?</span><span class="related-desc">Claude Code compacts a conversation when its context is nearly full. Since October 2026, it also compacts after you&#x27;ve been away for about an hour. All 49 of my automatic compactions were the second kind. This post explains the difference, what survives a compaction, and how to control it.</span></a></li>
+          <li><a href="../../blog/how-to-check-antigravity-quota/"><span class="related-title">How to Check Your Antigravity (agy) Quota</span><span class="related-desc">Type /usage in the Antigravity CLI, or run agy -p /usage --output-format json to get your quota without calling a model. See which models share each of the two quota pools and when they reset.</span></a></li>
+        </ul>
       </aside>
     </div>
   </div>
@@ -809,118 +767,6 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
       { passive: true }
     );
     pickActive();
-  }
-
-  var rail = document.querySelector(".news-rail");
-  var listEl = rail && rail.querySelector(".news-list");
-  if (!rail || !listEl || !window.matchMedia || !window.fetch) return;
-
-  var mq = window.matchMedia("(min-width: 1440px)");
-  var started = false;
-  var pageLang = document.documentElement.lang || "en";
-
-  function getPeriod(tool) {
-    return (tool && tool.latest && tool.latest.raw && tool.latest.raw.period) || "";
-  }
-
-  function renderNews(tools) {
-    var sorted = tools
-      .filter(function (t) {
-        return t && t.id && t.name && t.latest;
-      })
-      .slice()
-      .sort(function (a, b) {
-        var pa = getPeriod(a);
-        var pb = getPeriod(b);
-        if (pb > pa) return 1;
-        if (pb < pa) return -1;
-        return 0;
-      })
-      .slice(0, 4);
-
-    if (!sorted.length) return;
-
-    while (listEl.firstChild) {
-      listEl.removeChild(listEl.firstChild);
-    }
-
-    sorted.forEach(function (tool) {
-      var version = (tool.latest && tool.latest.version) || "";
-      var period = getPeriod(tool);
-
-      var a = document.createElement("a");
-      a.className = "news-item";
-      a.href =
-        "https://aqua5230.github.io/ai-updates/#" +
-        encodeURIComponent(tool.id) +
-        "/" +
-        encodeURIComponent(version);
-      a.target = "_blank";
-      a.rel = "noopener";
-
-      var head = document.createElement("div");
-      head.className = "news-item-head";
-
-      var nameEl = document.createElement("span");
-      nameEl.className = "news-item-name";
-      nameEl.textContent = version ? tool.name + " " + version : tool.name;
-      head.appendChild(nameEl);
-
-      if (period) {
-        var dateEl = document.createElement("time");
-        dateEl.className = "news-item-date";
-        dateEl.dateTime = period;
-        dateEl.textContent = period;
-        head.appendChild(dateEl);
-      }
-
-      a.appendChild(head);
-
-      var curated = tool.latest && tool.latest.curated;
-      var items = curated && curated.items;
-      var firstItem = Array.isArray(items) && items.length > 0 ? items[0] : null;
-      var titleObj = firstItem && firstItem.title;
-      var headline = titleObj && (titleObj[pageLang] || titleObj.en);
-      if (headline) {
-        var titleEl = document.createElement("p");
-        titleEl.className = "news-item-title";
-        titleEl.textContent = headline;
-        a.appendChild(titleEl);
-      }
-
-      listEl.appendChild(a);
-    });
-
-    rail.hidden = false;
-  }
-
-  function loadNews() {
-    if (started || !mq.matches) return;
-    started = true;
-    if (typeof mq.removeEventListener === "function") {
-      mq.removeEventListener("change", loadNews);
-    } else if (typeof mq.removeListener === "function") {
-      mq.removeListener(loadNews);
-    }
-    fetch("https://aqua5230.github.io/ai-updates/data.json")
-      .then(function (res) {
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        return res.json();
-      })
-      .then(function (data) {
-        if (data && Array.isArray(data.tools)) {
-          renderNews(data.tools);
-        }
-      })
-      .catch(function () {});
-  }
-
-  if (mq.matches) {
-    loadNews();
-  } else if (typeof mq.addEventListener === "function") {
-    mq.addEventListener("change", loadNews);
-  } else if (typeof mq.addListener === "function") {
-    mq.addListener(loadNews);
   }
 })();
 </script>

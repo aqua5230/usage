@@ -5,7 +5,7 @@ date: 2026-11-24
 updated: 2026-11-25
 tool: claude-code
 image: pond-poster.jpg
-related: claude-code-weekly-limit-reset
+related: claude-code-idle-compaction, claude-code-weekly-limit-reset
 ---
 
 **CLI（command-line interface，命令列介面）是用打字下命令來操作電腦的方式**。你在終端機（Terminal，Mac 和 Windows 都內建的打字視窗）打一行字、按 Enter，電腦就照著做。平常用手機和電腦時，看圖示、點按鈕的那一種叫圖形介面（GUI）。
