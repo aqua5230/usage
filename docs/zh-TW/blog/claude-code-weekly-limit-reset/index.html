@@ -424,17 +424,9 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
 .related-list a:is(:hover, :focus-visible) .related-title { color: var(--accent); }
 .related-title { font-size: 16px; font-weight: 600; line-height: 1.4; }
 .related-desc { font-size: 14.5px; line-height: 1.55; color: var(--fg-dim); }
-.related-rail .related-list { gap: 0; }
-.related-rail .related-list a {
-  padding: 10px 4px;
-  border-bottom: 1px solid var(--border);
-}
-.related-rail .related-list a:focus-visible { outline-offset: -2px; }
-.related-rail .related-title { font-size: 14px; }
-.related-rail .related-desc { font-size: 13px; line-height: 1.45; }
 .prose h2[id] { scroll-margin-top: 76px; }
 .article-layout { display: block; }
-.toc-rail, .related-rail { display: none; }
+.toc-rail, .news-rail { display: none; }
 .toc-mobile {
   margin-bottom: 28px;
   padding: 14px 16px;
@@ -465,7 +457,7 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   padding-top: 10px;
   border-top: 1px solid var(--border);
 }
-.toc-title, .related-rail h2 {
+.toc-title {
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
@@ -485,6 +477,54 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
 }
 .toc-list a:hover { color: var(--fg); }
 .toc-list a[aria-current="location"] { color: var(--accent); font-weight: 600; }
+.news-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fg-dimmer);
+  margin-bottom: 4px;
+}
+.news-list { display: grid; }
+.news-item {
+  display: block;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.news-item:hover .news-item-name { color: var(--accent); }
+.news-item-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.news-item-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--fg);
+  transition: color 140ms ease;
+}
+.news-item-date {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--fg-dimmer);
+  white-space: nowrap;
+}
+.news-item-title {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--fg-dim);
+  overflow-wrap: anywhere;
+}
+.news-all {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+}
+.news-all:hover { color: var(--accent-hover); }
 @media (min-width: 1300px) {
   .wrap-article { max-width: 1300px; }
   .article-layout {
@@ -514,7 +554,7 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   }
   .toc-rail { grid-column: 1; }
   .article-main { grid-column: 3; }
-  .related-rail {
+  .news-rail:not([hidden]) {
     grid-column: 5;
     display: block;
     position: sticky;
@@ -696,13 +736,12 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
         </ul>
         </section>
       </article>
-      <aside class="related-rail" aria-labelledby="related-rail-heading">
-        <h2 id="related-rail-heading">相關文章</h2>
-        <ul class="related-list">
-          <li><a href="../../../zh-TW/blog/codex-weekly-limit-early-reset/"><span class="related-title">Codex 每週額度為什麼提早重置？</span><span class="related-desc">Codex 的每週額度常比 resets_at 早好幾天重置，原因是 OpenAI 會全體重置。附一個 Plus 帳號 10 個週期的實際紀錄、官方規則和查法。</span></a></li>
-          <li><a href="../../../zh-TW/blog/claude-code-idle-compaction/"><span class="related-title">Claude Code 為什麼自己壓縮對話？</span><span class="related-desc">Claude Code 會在 context 快滿時壓縮對話。2026 年 10 月起，你離開約一小時後，它也會先壓縮。我的 49 次自動壓縮全部屬於後者。這篇說明兩種壓縮的差別、壓縮後會留下什麼，以及怎麼自己控制。</span></a></li>
-          <li><a href="../../../zh-TW/blog/how-to-check-antigravity-quota/"><span class="related-title">怎麼查 Antigravity（agy）剩多少額度？</span><span class="related-desc">在 Antigravity CLI 輸入 /usage，或在終端機跑 agy -p /usage --output-format json，不用呼叫模型就能查額度。這篇說明兩個額度池各有哪些模型，以及額度何時重置。</span></a></li>
-        </ul>
+      <aside class="news-rail" aria-label="AI 更新日報" hidden>
+        <div class="news-card">
+          <h2 class="news-title">AI 更新日報</h2>
+          <div class="news-list"></div>
+          <a class="news-all" href="https://aqua5230.github.io/ai-updates/" target="_blank" rel="noopener">看全部更新 →</a>
+        </div>
       </aside>
     </div>
   </div>
@@ -767,6 +806,118 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
       { passive: true }
     );
     pickActive();
+  }
+
+  var rail = document.querySelector(".news-rail");
+  var listEl = rail && rail.querySelector(".news-list");
+  if (!rail || !listEl || !window.matchMedia || !window.fetch) return;
+
+  var mq = window.matchMedia("(min-width: 1440px)");
+  var started = false;
+  var pageLang = document.documentElement.lang || "en";
+
+  function getPeriod(tool) {
+    return (tool && tool.latest && tool.latest.raw && tool.latest.raw.period) || "";
+  }
+
+  function renderNews(tools) {
+    var sorted = tools
+      .filter(function (t) {
+        return t && t.id && t.name && t.latest;
+      })
+      .slice()
+      .sort(function (a, b) {
+        var pa = getPeriod(a);
+        var pb = getPeriod(b);
+        if (pb > pa) return 1;
+        if (pb < pa) return -1;
+        return 0;
+      })
+      .slice(0, 4);
+
+    if (!sorted.length) return;
+
+    while (listEl.firstChild) {
+      listEl.removeChild(listEl.firstChild);
+    }
+
+    sorted.forEach(function (tool) {
+      var version = (tool.latest && tool.latest.version) || "";
+      var period = getPeriod(tool);
+
+      var a = document.createElement("a");
+      a.className = "news-item";
+      a.href =
+        "https://aqua5230.github.io/ai-updates/#" +
+        encodeURIComponent(tool.id) +
+        "/" +
+        encodeURIComponent(version);
+      a.target = "_blank";
+      a.rel = "noopener";
+
+      var head = document.createElement("div");
+      head.className = "news-item-head";
+
+      var nameEl = document.createElement("span");
+      nameEl.className = "news-item-name";
+      nameEl.textContent = version ? tool.name + " " + version : tool.name;
+      head.appendChild(nameEl);
+
+      if (period) {
+        var dateEl = document.createElement("time");
+        dateEl.className = "news-item-date";
+        dateEl.dateTime = period;
+        dateEl.textContent = period;
+        head.appendChild(dateEl);
+      }
+
+      a.appendChild(head);
+
+      var curated = tool.latest && tool.latest.curated;
+      var items = curated && curated.items;
+      var firstItem = Array.isArray(items) && items.length > 0 ? items[0] : null;
+      var titleObj = firstItem && firstItem.title;
+      var headline = titleObj && (titleObj[pageLang] || titleObj.en);
+      if (headline) {
+        var titleEl = document.createElement("p");
+        titleEl.className = "news-item-title";
+        titleEl.textContent = headline;
+        a.appendChild(titleEl);
+      }
+
+      listEl.appendChild(a);
+    });
+
+    rail.hidden = false;
+  }
+
+  function loadNews() {
+    if (started || !mq.matches) return;
+    started = true;
+    if (typeof mq.removeEventListener === "function") {
+      mq.removeEventListener("change", loadNews);
+    } else if (typeof mq.removeListener === "function") {
+      mq.removeListener(loadNews);
+    }
+    fetch("https://aqua5230.github.io/ai-updates/data.json")
+      .then(function (res) {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.json();
+      })
+      .then(function (data) {
+        if (data && Array.isArray(data.tools)) {
+          renderNews(data.tools);
+        }
+      })
+      .catch(function () {});
+  }
+
+  if (mq.matches) {
+    loadNews();
+  } else if (typeof mq.addEventListener === "function") {
+    mq.addEventListener("change", loadNews);
+  } else if (typeof mq.addListener === "function") {
+    mq.addListener(loadNews);
   }
 })();
 </script>
