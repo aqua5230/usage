@@ -788,3 +788,31 @@ def test_run_build_check_detects_modified_and_orphan_images(
     assert build_blog.run_build(check=False) == 0
     assert not dst_img.exists()
     assert build_blog.run_build(check=True) == 0
+
+
+def test_html_body_image_becomes_live_embed_with_full_screen_link(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source_dir, docs_dir, _ = _setup_workspace(tmp_path, monkeypatch)
+    post_dir = source_dir / "live-post"
+    post_dir.mkdir(parents=True)
+    page_bytes = b"<!doctype html><canvas></canvas>"
+    (post_dir / "pond.html").write_bytes(page_bytes)
+    _write_post(
+        source_dir,
+        "live-post",
+        "zh-TW",
+        title="會動的池塘",
+        description="嵌入網頁",
+        date="2026-11-25",
+        body="![夜裡的池塘](pond.html)\n",
+    )
+
+    assert build_blog.main([]) == 0
+    assert (docs_dir / "blog" / "live-post" / "pond.html").read_bytes() == page_bytes
+    tw_html = (docs_dir / "zh-TW" / "blog" / "live-post" / "index.html").read_text(encoding="utf-8")
+    src = "../../../blog/live-post/pond.html"
+    assert f'<iframe src="{src}" title="夜裡的池塘" loading="lazy"></iframe>' in tw_html
+    assert f'<a href="{src}" target="_blank" rel="noopener">全螢幕打開 ↗</a>' in tw_html
+    assert "<img" not in tw_html.split('class="prose"')[1].split("</div>")[0]
+    assert build_blog.main(["--check"]) == 0

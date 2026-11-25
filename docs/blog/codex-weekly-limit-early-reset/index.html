@@ -113,6 +113,12 @@ body {
 }
 a { color: inherit; text-decoration: none; }
 img { max-width: 100%; height: auto; display: block; }
+.embed { display: block; }
+.embed iframe {
+  display: block; width: 100%; aspect-ratio: 16 / 10;
+  border: 0; border-radius: 10px; background: #000;
+}
+.embed a { display: inline-block; margin-top: 6px; font-size: 14px; color: var(--accent); }
 ::selection { background: rgba(255, 140, 66, 0.3); color: #fff; }
 :where(a, button):focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 :lang(ko) :is(h1, h2, h3) { word-break: keep-all; }
@@ -609,7 +615,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <p><strong>Your Codex weekly limit resets early when OpenAI runs a global reset on eligible accounts.</strong> OpenAI refills your limit to 100% and starts a new weekly period on the spot. You lose nothing, so an early reset works like extra quota. The <code>resets_at</code> time that Codex reports is the latest moment your limit will refill. Checked on 2026-11-23.</p>
 <aside class="blog-cta-card">
   <h2>Track your AI coding quotas in the menu bar</h2>
-  <p>usage is a free, open-source (AGPL-3.0) app for macOS menu bar, Windows tray, and terminal TUI supporting Claude Code, Codex, Antigravity, Grok, and Muse.</p>
+  <p>usage is a free, open-source (AGPL-3.0) app for the macOS menu bar and Windows tray, supporting Claude Code, Codex, Antigravity, Grok, and Muse.</p>
   <div class="blog-cta-actions">
     <a class="btn btn-primary" href="../../#install">Install usage</a>
     <a class="btn btn-secondary" href="https://github.com/aqua5230/usage" target="_blank" rel="noopener">GitHub</a>
@@ -691,7 +697,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 </ul>
 <aside class="blog-cta-card">
   <h2>Track your AI coding quotas in the menu bar</h2>
-  <p>usage is a free, open-source (AGPL-3.0) app for macOS menu bar, Windows tray, and terminal TUI supporting Claude Code, Codex, Antigravity, Grok, and Muse.</p>
+  <p>usage is a free, open-source (AGPL-3.0) app for the macOS menu bar and Windows tray, supporting Claude Code, Codex, Antigravity, Grok, and Muse.</p>
   <div class="blog-cta-actions">
     <a class="btn btn-primary" href="../../#install">Install usage</a>
     <a class="btn btn-secondary" href="https://github.com/aqua5230/usage" target="_blank" rel="noopener">GitHub</a>

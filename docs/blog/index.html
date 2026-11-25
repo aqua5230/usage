@@ -81,6 +81,12 @@ body {
 }
 a { color: inherit; text-decoration: none; }
 img { max-width: 100%; height: auto; display: block; }
+.embed { display: block; }
+.embed iframe {
+  display: block; width: 100%; aspect-ratio: 16 / 10;
+  border: 0; border-radius: 10px; background: #000;
+}
+.embed a { display: inline-block; margin-top: 6px; font-size: 14px; color: var(--accent); }
 ::selection { background: rgba(255, 140, 66, 0.3); color: #fff; }
 :where(a, button):focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 :lang(ko) :is(h1, h2, h3) { word-break: keep-all; }
@@ -547,8 +553,8 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
       </a>
       <a class="post-card" href="what-is-cli/">
         <div class="post-meta"><time datetime="2026-11-24">2026-11-24</time><span class="post-tool">Claude Code</span></div>
-        <h2>What Is a CLI? Understanding the Terminal Through Claude Code</h2>
-        <p>A CLI is a way to control a computer by typing commands. Using a web page that was actually built with one typed sentence, this post explains how a CLI differs from clicking buttons, how Claude Code types commands for you, and which line to read before it touches your files.</p>
+        <h2>What Is a CLI? Learn How the Terminal Works with Claude Code</h2>
+        <p>A CLI is a way to control a computer by typing commands. Using a web page that was actually built with one typed sentence, this post explains how a CLI differs from a graphical user interface (GUI), why AI assistants work in the terminal, how Claude Code types commands for you, and which line to read before it touches your files.</p>
       </a>
       <a class="post-card" href="how-to-check-antigravity-quota/">
         <div class="post-meta"><time datetime="2026-11-23">2026-11-23</time><span class="post-tool">Antigravity</span></div>

@@ -1,37 +1,55 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 517" role="img" aria-label="Claude Code asking before it creates a file: ⏺ Write(pond.html), labeled it wants to create pond.html, followed by the first three lines; Do you want to create pond.html?, labeled it asks first; 1. Yes means yes, this time; 2. Yes, and switch to accept edits is marked in red: yes, and for the rest of this session it stops asking before editing, creating, moving, or ordinarily deleting files in this folder; 3. No means no" font-family="-apple-system, Inter, Helvetica, Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 496" role="img" aria-label="Claude Code asking before it creates a file: ⏺ Write(pond.html), labeled it wants to create pond.html, followed by the first three lines; Do you want to create pond.html?, labeled it asks first; 1. Yes means yes, this time; 2. Yes, and switch to accept edits is marked in red: yes, and for the rest of this session it stops asking before editing, creating, moving, or ordinarily deleting files in this folder; 3. No means no" font-family="Noto Sans TC, -apple-system, sans-serif">
 <title>Claude Code asking before it creates a file: ⏺ Write(pond.html), labeled it wants to create pond.html, followed by the first three lines; Do you want to create pond.html?, labeled it asks first; 1. Yes means yes, this time; 2. Yes, and switch to accept edits is marked in red: yes, and for the rest of this session it stops asking before editing, creating, moving, or ordinarily deleting files in this folder; 3. No means no</title>
-<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#A9CFC0"/><stop offset=".55" stop-color="#6E9E8E"/><stop offset="1" stop-color="#3F6E61"/></linearGradient><radialGradient id="g1" cx=".1" cy=".95" r=".6"><stop offset="0" stop-color="#E8D9B5" stop-opacity=".55"/><stop offset="1" stop-color="#E8D9B5" stop-opacity="0"/></radialGradient><filter id="sh" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#0B2A22" flood-opacity=".38"/></filter></defs>
-<rect width="600" height="517" rx="16" fill="url(#bg)"/><rect width="600" height="517" rx="16" fill="url(#g1)"/>
-<g filter="url(#sh)"><rect x="20" y="20" width="560" height="477" rx="12" fill="#1E2228" stroke="#FFFFFF1A"/></g>
-<circle cx="40" cy="38" r="6" fill="#FF5F57"/><circle cx="58" cy="38" r="6" fill="#FEBC2E"/><circle cx="76" cy="38" r="6" fill="#28C840"/>
-<text x="300.0" y="43" font-size="13" fill="#9AA0A6" text-anchor="middle">pond — claude</text>
-<line x1="20" y1="56" x2="580" y2="56" stroke="#FFFFFF14"/>
-<rect x="32" y="299" width="536" height="94" rx="6" fill="#F28B82" fill-opacity=".10" stroke="#F28B82" stroke-opacity=".55"/>
-<text x="40" y="86" font-size="15" font-family="Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#28C840">⏺ </tspan><tspan fill="#F2F2F2">Write(pond.html)</tspan></text>
-<text x="40" y="109" font-size="15" font-family="Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#F2F2F2"> Create file</tspan></text>
-<text x="40" y="132" font-size="15" font-family="Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#F2F2F2"> pond.html</tspan></text>
-<text x="40" y="155" font-size="15" font-family="Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#8A939E">  1 &lt;!doctype html&gt;</tspan></text>
-<text x="40" y="178" font-size="15" font-family="Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#8A939E">  2 &lt;html lang=&quot;zh-Hant&quot;&gt;</tspan></text>
-<text x="40" y="201" font-size="15" font-family="Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#8A939E">  3 &lt;head&gt;</tspan></text>
-<text x="40" y="224" font-size="15" font-family="Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#8A939E">  ⋮ (473 more lines)</tspan></text>
-<text x="40" y="247" font-size="15" font-family="Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#F2F2F2"></tspan></text>
-<text x="40" y="270" font-size="15" font-family="Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#F2F2F2"> Do you want to create pond.html?</tspan></text>
-<text x="40" y="293" font-size="15" font-family="Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#F2C46D"> ❯</tspan><tspan fill="#F2F2F2"> 1. Yes</tspan></text>
-<text x="40" y="316" font-size="15" font-family="Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#F2F2F2">   2. Yes, and switch to accept edits</tspan></text>
-<text x="40" y="339" font-size="15" font-family="Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#F2F2F2">      (auto-approve file edits and common</tspan></text>
-<text x="40" y="362" font-size="15" font-family="Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#F2F2F2">      file commands) for this session</tspan></text>
-<text x="40" y="385" font-size="15" font-family="Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#F2F2F2">      (shift+tab)</tspan></text>
-<text x="40" y="408" font-size="15" font-family="Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#F2F2F2">   3. No</tspan></text>
-<text x="40" y="431" font-size="15" font-family="Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#F2F2F2"></tspan></text>
-<text x="40" y="454" font-size="15" font-family="Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#8A939E"> Esc to cancel · Tab to amend</tspan></text>
-<line x1="212.54" y1="81" x2="402" y2="81" stroke="#9FD3BD" stroke-width="1.3" stroke-dasharray="2 4" stroke-linecap="round"/>
-<text x="410" y="86" font-size="14" fill="#9FD3BD">wants to create a file</text>
-<line x1="347.98999999999995" y1="265" x2="402" y2="265" stroke="#8AB4F8" stroke-width="1.3" stroke-dasharray="2 4" stroke-linecap="round"/>
-<text x="410" y="270" font-size="14" fill="#8AB4F8">asks you first</text>
-<line x1="131.26999999999998" y1="288" x2="402" y2="288" stroke="#9FD3BD" stroke-width="1.3" stroke-dasharray="2 4" stroke-linecap="round"/>
-<text x="410" y="293" font-size="14" fill="#9FD3BD">yes, this time</text>
-<text x="420" y="362" font-size="14" fill="#F6A9A2">yes, and stop asking</text>
-<text x="420" y="380" font-size="14" fill="#F6A9A2">even for most deletes</text>
-<line x1="122.24" y1="403" x2="402" y2="403" stroke="#9FD3BD" stroke-width="1.3" stroke-dasharray="2 4" stroke-linecap="round"/>
-<text x="410" y="408" font-size="14" fill="#9FD3BD">no</text>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#DDE6E1"/>
+    <stop offset="1" stop-color="#CEDBD4"/>
+  </linearGradient>
+  <filter id="sh" x="-10%" y="-10%" width="120%" height="130%">
+    <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#141414" flood-opacity="0.20"/>
+  </filter>
+</defs>
+<rect width="700" height="496" rx="16" fill="url(#bg)"/>
+<g filter="url(#sh)">
+  <rect x="26" y="26" width="464" height="444" rx="10" fill="#161616" stroke="#2C2C2C" stroke-width="1"/>
+</g>
+<circle cx="43" cy="42" r="5" fill="#FF5F57"/>
+<circle cx="59" cy="42" r="5" fill="#FEBC2E"/>
+<circle cx="75" cy="42" r="5" fill="#28C840"/>
+<text x="44" y="82" font-size="16" font-family="Menlo, Consolas, monospace" xml:space="preserve" data-role="terminal"><tspan fill="#28C840">⏺ </tspan><tspan fill="#E0E0E0">Write(pond.html)</tspan></text>
+<text x="44" y="105" font-size="16" font-family="Menlo, Consolas, monospace" xml:space="preserve" data-role="terminal"><tspan fill="#E0E0E0"> Create file</tspan></text>
+<text x="44" y="128" font-size="16" font-family="Menlo, Consolas, monospace" xml:space="preserve" data-role="terminal"><tspan fill="#E0E0E0"> pond.html</tspan></text>
+<text x="44" y="151" font-size="16" font-family="Menlo, Consolas, monospace" xml:space="preserve" data-role="terminal"><tspan fill="#8A939E">  1 &lt;!doctype html&gt;</tspan></text>
+<text x="44" y="174" font-size="16" font-family="Menlo, Consolas, monospace" xml:space="preserve" data-role="terminal"><tspan fill="#8A939E">  2 &lt;html lang=&quot;zh-Hant&quot;&gt;</tspan></text>
+<text x="44" y="197" font-size="16" font-family="Menlo, Consolas, monospace" xml:space="preserve" data-role="terminal"><tspan fill="#8A939E">  3 &lt;head&gt;</tspan></text>
+<text x="44" y="220" font-size="16" font-family="Menlo, Consolas, monospace" xml:space="preserve" data-role="terminal"><tspan fill="#8A939E">  ⋮ (473 more lines)</tspan></text>
+<text x="44" y="243" font-size="16" font-family="Menlo, Consolas, monospace" xml:space="preserve" data-role="terminal"><tspan fill="#E0E0E0"></tspan></text>
+<text x="44" y="266" font-size="16" font-family="Menlo, Consolas, monospace" xml:space="preserve" data-role="terminal"><tspan fill="#E0E0E0"> Do you want to create pond.html?</tspan></text>
+<text x="44" y="289" font-size="16" font-family="Menlo, Consolas, monospace" xml:space="preserve" data-role="terminal"><tspan fill="#F2C46D"> ❯</tspan><tspan fill="#E0E0E0"> 1. Yes</tspan></text>
+<text x="44" y="312" font-size="16" font-family="Menlo, Consolas, monospace" xml:space="preserve" data-role="terminal"><tspan fill="#E0E0E0">   2. Yes, and switch to accept edits</tspan></text>
+<text x="44" y="335" font-size="16" font-family="Menlo, Consolas, monospace" xml:space="preserve" data-role="terminal"><tspan fill="#E0E0E0">      (auto-approve file edits and common</tspan></text>
+<text x="44" y="358" font-size="16" font-family="Menlo, Consolas, monospace" xml:space="preserve" data-role="terminal"><tspan fill="#E0E0E0">      file commands) for this session</tspan></text>
+<text x="44" y="381" font-size="16" font-family="Menlo, Consolas, monospace" xml:space="preserve" data-role="terminal"><tspan fill="#E0E0E0">      (shift+tab)</tspan></text>
+<text x="44" y="404" font-size="16" font-family="Menlo, Consolas, monospace" xml:space="preserve" data-role="terminal"><tspan fill="#E0E0E0">   3. No</tspan></text>
+<text x="44" y="427" font-size="16" font-family="Menlo, Consolas, monospace" xml:space="preserve" data-role="terminal"><tspan fill="#E0E0E0"></tspan></text>
+<text x="44" y="450" font-size="16" font-family="Menlo, Consolas, monospace" xml:space="preserve" data-role="terminal"><tspan fill="#8A939E"> Esc to cancel · Tab to amend</tspan></text>
+<line x1="227.88" y1="78" x2="490" y2="78" stroke="#8C8C8C" stroke-width="1.25"/>
+<line x1="490" y1="78" x2="508" y2="78" stroke="#666666" stroke-width="1.25"/>
+<text x="516" y="82" font-size="13" font-weight="500" fill="#1F2A26" text-anchor="start" data-role="label">wants to create a file</text>
+<line x1="371.95" y1="262" x2="490" y2="262" stroke="#F2C46D" stroke-width="1.25"/>
+<line x1="490" y1="262" x2="508" y2="262" stroke="#666666" stroke-width="1.25"/>
+<text x="516" y="266" font-size="13" font-weight="500" fill="#1F2A26" text-anchor="start" data-role="label">asks you first</text>
+<line x1="140.72" y1="285" x2="490" y2="285" stroke="#8C8C8C" stroke-width="1.25"/>
+<line x1="490" y1="285" x2="508" y2="285" stroke="#666666" stroke-width="1.25"/>
+<text x="516" y="289" font-size="13" font-weight="500" fill="#1F2A26" text-anchor="start" data-role="label">yes, this time</text>
+<path d="M 446.03 300 H 451.03 V 385 H 446.03" fill="none" stroke="#F6A9A2" stroke-width="1.25"/>
+<line x1="451.03" y1="342.5" x2="490" y2="342.5" stroke="#F6A9A2" stroke-width="1.25"/>
+<line x1="490" y1="342.5" x2="508" y2="342.5" stroke="#666666" stroke-width="1.25"/>
+<text x="516" y="337.5" font-size="13" font-weight="500" fill="#1F2A26" text-anchor="start" data-role="label">yes, and stop asking</text>
+<text x="516" y="357.5" font-size="13" font-weight="500" fill="#1F2A26" text-anchor="start" data-role="label">even for most deletes</text>
+<line x1="131.08" y1="400" x2="490" y2="400" stroke="#8C8C8C" stroke-width="1.25"/>
+<line x1="490" y1="400" x2="508" y2="400" stroke="#666666" stroke-width="1.25"/>
+<text x="516" y="404" font-size="13" font-weight="500" fill="#1F2A26" text-anchor="start" data-role="label">no</text>
+<rect x="176.39" y="34" width="163.22" height="16" fill="#161616" data-role="watermark-mask"/>
+<text x="258" y="46" font-size="12" font-family="-apple-system, Noto Sans TC, sans-serif" fill="#8A8A8A" text-anchor="middle" data-role="watermark">aqua5230.github.io/usage</text>
 </svg>

@@ -113,6 +113,12 @@ body {
 }
 a { color: inherit; text-decoration: none; }
 img { max-width: 100%; height: auto; display: block; }
+.embed { display: block; }
+.embed iframe {
+  display: block; width: 100%; aspect-ratio: 16 / 10;
+  border: 0; border-radius: 10px; background: #000;
+}
+.embed a { display: inline-block; margin-top: 6px; font-size: 14px; color: var(--accent); }
 ::selection { background: rgba(255, 140, 66, 0.3); color: #fff; }
 :where(a, button):focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 :lang(ko) :is(h1, h2, h3) { word-break: keep-all; }
@@ -608,8 +614,8 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
         <div class="prose">
 <p><strong>OpenAI 對符合資格的帳號做「全體重置」時，你的 Codex 每週額度就會提早重置</strong>。OpenAI 會把你的額度補回 100%，並且當場開始新的一週。你不會損失任何東西，所以提早重置等於多拿一次額度。Codex 顯示的 <code>resets_at</code>，代表額度「最晚」什麼時候會補滿。2026-11-23 查證。</p>
 <aside class="blog-cta-card">
-  <h2>在選單列掌握你的 AI 開發配額</h2>
-  <p>usage 是一款免費、開源（AGPL-3.0）的用量工具，提供 macOS 選單列、Windows 系統匣與終端機 TUI，支援 Claude Code、Codex、Antigravity、Grok 與 Muse。</p>
+  <h2>在選單列隨時看 AI 寫程式的額度</h2>
+  <p>usage 是一款免費、開源（AGPL-3.0）的用量工具，提供 macOS 選單列與 Windows 系統匣，支援 Claude Code、Codex、Antigravity、Grok 與 Muse。</p>
   <div class="blog-cta-actions">
     <a class="btn btn-primary" href="../../#install">安裝 usage</a>
     <a class="btn btn-secondary" href="https://github.com/aqua5230/usage" target="_blank" rel="noopener">GitHub</a>
@@ -690,8 +696,8 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <li><a href="https://codex-resets.com/">Codex Limit Reset Tracker</a></li>
 </ul>
 <aside class="blog-cta-card">
-  <h2>在選單列掌握你的 AI 開發配額</h2>
-  <p>usage 是一款免費、開源（AGPL-3.0）的用量工具，提供 macOS 選單列、Windows 系統匣與終端機 TUI，支援 Claude Code、Codex、Antigravity、Grok 與 Muse。</p>
+  <h2>在選單列隨時看 AI 寫程式的額度</h2>
+  <p>usage 是一款免費、開源（AGPL-3.0）的用量工具，提供 macOS 選單列與 Windows 系統匣，支援 Claude Code、Codex、Antigravity、Grok 與 Muse。</p>
   <div class="blog-cta-actions">
     <a class="btn btn-primary" href="../../#install">安裝 usage</a>
     <a class="btn btn-secondary" href="https://github.com/aqua5230/usage" target="_blank" rel="noopener">GitHub</a>

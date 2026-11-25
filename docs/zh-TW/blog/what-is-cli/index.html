@@ -6,9 +6,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <meta name="theme-color" content="#0a0a0a" />
 <title>CLI 是什麼？從 Claude Code 看懂終端機 — usage</title>
-<meta name="description" content="CLI 是用打字下命令操作電腦的方式。這篇用一個真的做出來的網頁，說明 CLI 和按按鈕差在哪、Claude Code 怎麼替你打指令，以及它要動你的檔案前，你該看懂哪一行。" />
+<meta name="description" content="CLI 是用打字下命令操作電腦的方式。這篇用一個真的做出來的網頁，說明 CLI 和 GUI（圖形介面）差在哪、AI 助手為什麼都做在終端機裡、Claude Code 怎麼替你打指令，以及它要動你的檔案前，你該看懂哪一行。" />
 <meta property="og:title" content="CLI 是什麼？從 Claude Code 看懂終端機 — usage" />
-<meta property="og:description" content="CLI 是用打字下命令操作電腦的方式。這篇用一個真的做出來的網頁，說明 CLI 和按按鈕差在哪、Claude Code 怎麼替你打指令，以及它要動你的檔案前，你該看懂哪一行。" />
+<meta property="og:description" content="CLI 是用打字下命令操作電腦的方式。這篇用一個真的做出來的網頁，說明 CLI 和 GUI（圖形介面）差在哪、AI 助手為什麼都做在終端機裡、Claude Code 怎麼替你打指令，以及它要動你的檔案前，你該看懂哪一行。" />
 <meta property="og:image" content="https://aqua5230.github.io/usage/blog/what-is-cli/pond-poster.jpg" />
 <meta property="og:url" content="https://aqua5230.github.io/usage/zh-TW/blog/what-is-cli/" />
 <meta property="og:type" content="article" />
@@ -25,10 +25,10 @@
   "@context": "https://schema.org",
   "@type": "Article",
   "headline": "CLI 是什麼？從 Claude Code 看懂終端機",
-  "description": "CLI 是用打字下命令操作電腦的方式。這篇用一個真的做出來的網頁，說明 CLI 和按按鈕差在哪、Claude Code 怎麼替你打指令，以及它要動你的檔案前，你該看懂哪一行。",
+  "description": "CLI 是用打字下命令操作電腦的方式。這篇用一個真的做出來的網頁，說明 CLI 和 GUI（圖形介面）差在哪、AI 助手為什麼都做在終端機裡、Claude Code 怎麼替你打指令，以及它要動你的檔案前，你該看懂哪一行。",
   "image": "https://aqua5230.github.io/usage/blog/what-is-cli/pond-poster.jpg",
   "datePublished": "2026-11-24",
-  "dateModified": "2026-11-24",
+  "dateModified": "2026-11-25",
   "inLanguage": "zh-TW",
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -111,6 +111,12 @@ body {
 }
 a { color: inherit; text-decoration: none; }
 img { max-width: 100%; height: auto; display: block; }
+.embed { display: block; }
+.embed iframe {
+  display: block; width: 100%; aspect-ratio: 16 / 10;
+  border: 0; border-radius: 10px; background: #000;
+}
+.embed a { display: inline-block; margin-top: 6px; font-size: 14px; color: var(--accent); }
 ::selection { background: rgba(255, 140, 66, 0.3); color: #fff; }
 :where(a, button):focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 :lang(ko) :is(h1, h2, h3) { word-break: keep-all; }
@@ -571,13 +577,14 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
           <p class="toc-title">本文目錄</p>
         <ol class="toc-list">
           <li><a href="#那一句話長什麼樣">那一句話長什麼樣？</a></li>
-          <li><a href="#cli-和按按鈕差在哪">CLI 和按按鈕差在哪？</a></li>
+          <li><a href="#cli-和-gui-差在哪">CLI 和 GUI 差在哪？</a></li>
           <li><a href="#打字這麼自由為什麼以前很少人用">打字這麼自由，為什麼以前很少人用？</a></li>
           <li><a href="#不會背指令怎麼用終端機">不會背指令，怎麼用終端機？</a></li>
+          <li><a href="#ai-助手為什麼都做在終端機裡">AI 助手為什麼都做在終端機裡？</a></li>
+          <li><a href="#ai-怎麼知道一套新的-cli-怎麼用">AI 怎麼知道一套新的 CLI 怎麼用？</a></li>
           <li><a href="#claude-code-要動你的檔案前會先問你嗎">Claude Code 要動你的檔案前，會先問你嗎？</a></li>
           <li><a href="#它說做好了就真的好了嗎">它說做好了，就真的好了嗎？</a></li>
           <li><a href="#自己試一次">自己試一次</a></li>
-          <li><a href="#這篇的畫面怎麼來的">這篇的畫面怎麼來的</a></li>
           <li><a href="#資料來源">資料來源</a></li>
         </ol>
         </nav>
@@ -586,22 +593,24 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
         <header class="post-header">
           <div class="post-meta">
             <span>發布於 <time datetime="2026-11-24">2026-11-24</time></span>
+            <span>更新於 <time datetime="2026-11-25">2026-11-25</time></span>
           </div>
           <h1>CLI 是什麼？從 Claude Code 看懂終端機</h1>
-          <p class="post-desc">CLI 是用打字下命令操作電腦的方式。這篇用一個真的做出來的網頁，說明 CLI 和按按鈕差在哪、Claude Code 怎麼替你打指令，以及它要動你的檔案前，你該看懂哪一行。</p>
+          <p class="post-desc">CLI 是用打字下命令操作電腦的方式。這篇用一個真的做出來的網頁，說明 CLI 和 GUI（圖形介面）差在哪、AI 助手為什麼都做在終端機裡、Claude Code 怎麼替你打指令，以及它要動你的檔案前，你該看懂哪一行。</p>
         </header>
         <details class="toc-mobile">
           <summary>本文目錄</summary>
           <nav aria-label="本文目錄">
         <ol class="toc-list">
           <li><a href="#那一句話長什麼樣">那一句話長什麼樣？</a></li>
-          <li><a href="#cli-和按按鈕差在哪">CLI 和按按鈕差在哪？</a></li>
+          <li><a href="#cli-和-gui-差在哪">CLI 和 GUI 差在哪？</a></li>
           <li><a href="#打字這麼自由為什麼以前很少人用">打字這麼自由，為什麼以前很少人用？</a></li>
           <li><a href="#不會背指令怎麼用終端機">不會背指令，怎麼用終端機？</a></li>
+          <li><a href="#ai-助手為什麼都做在終端機裡">AI 助手為什麼都做在終端機裡？</a></li>
+          <li><a href="#ai-怎麼知道一套新的-cli-怎麼用">AI 怎麼知道一套新的 CLI 怎麼用？</a></li>
           <li><a href="#claude-code-要動你的檔案前會先問你嗎">Claude Code 要動你的檔案前，會先問你嗎？</a></li>
           <li><a href="#它說做好了就真的好了嗎">它說做好了，就真的好了嗎？</a></li>
           <li><a href="#自己試一次">自己試一次</a></li>
-          <li><a href="#這篇的畫面怎麼來的">這篇的畫面怎麼來的</a></li>
           <li><a href="#資料來源">資料來源</a></li>
         </ol>
           </nav>
@@ -609,8 +618,8 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
         <div class="prose">
 <p><strong>CLI（command-line interface，命令列介面）是用打字下命令來操作電腦的方式</strong>。你在終端機（Terminal，Mac 和 Windows 都內建的打字視窗）打一行字、按 Enter，電腦就照著做。平常用手機和電腦時，看圖示、點按鈕的那一種叫圖形介面（GUI）。</p>
 <aside class="blog-cta-card">
-  <h2>在選單列掌握你的 AI 開發配額</h2>
-  <p>usage 是一款免費、開源（AGPL-3.0）的用量工具，提供 macOS 選單列、Windows 系統匣與終端機 TUI，支援 Claude Code、Codex、Antigravity、Grok 與 Muse。</p>
+  <h2>在選單列隨時看 AI 寫程式的額度</h2>
+  <p>usage 是一款免費、開源（AGPL-3.0）的用量工具，提供 macOS 選單列與 Windows 系統匣，支援 Claude Code、Codex、Antigravity、Grok 與 Muse。</p>
   <div class="blog-cta-actions">
     <a class="btn btn-primary" href="../../#install">安裝 usage</a>
     <a class="btn btn-secondary" href="https://github.com/aqua5230/usage" target="_blank" rel="noopener">GitHub</a>
@@ -619,37 +628,36 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <ul>
 <li>按鈕只有工程師事先做好的那幾顆；打字可以交代電腦做得到的幾乎任何事。</li>
 <li>終端機只認特定的指令。打錯一個字母，它就說找不到指令；刪掉的檔案也不會進垃圾桶，所以以前會用的多半是工程師。</li>
+<li>AI 讀的、寫的都是文字，終端機剛好是打字進去、文字出來，所以 AI 助手大多做在終端機裡。</li>
 <li>Claude Code 是在終端機裡工作的 AI 助手。你用中文說要什麼，它替你打指令、寫程式，做好的檔案直接存進你的資料夾。</li>
 </ul>
-<p><img src="../../../blog/what-is-cli/pond-poster.jpg" alt="深藍色的夜裡池塘，水面映著一輪月亮，一條紅白錦鯉游過倒影，旁邊有幾片睡蓮葉" /></p>
-<p>上面這座池塘是一個網頁。魚、月亮和睡蓮葉都是程式畫的，裡面沒有一張圖片。我沒寫程式，只在終端機裡打了一句話。下面用這個例子說明 CLI 是什麼、Claude Code 怎麼用，還有它要動你的檔案時，你要看懂哪一行。</p>
+<p><span class="embed"><iframe src="../../../blog/what-is-cli/pond.html" title="夜裡的池塘：一條紅白錦鯉在游，點水面會起漣漪" loading="lazy"></iframe><a href="../../../blog/what-is-cli/pond.html" target="_blank" rel="noopener">全螢幕打開 ↗</a></span></p>
+<p>上面這座池塘是一個網頁，點一下水面試試。魚游過月亮時，倒影也會晃開。魚、月亮和睡蓮葉都是程式畫的，裡面沒有一張圖片。我沒寫程式，只在終端機裡打了一句話。下面用這個例子說明 CLI 是什麼、Claude Code 怎麼用，還有它要動你的檔案時，你要看懂哪一行。</p>
 <h2 id="那一句話長什麼樣">那一句話長什麼樣？</h2>
-<p>2026 年 9 月 19 日，我在 Mac 的終端機裡用 Claude Code 打了這一句：</p>
-<pre><code>做一個網頁：夜裡的池塘，一條小魚在游，
-游過月亮的倒影時倒影會晃開；點一下水面會起漣漪。
-不要用任何圖片，全部用程式碼畫，存成 pond.html。
-</code></pre>
+<p>我在 Mac 的終端機裡打開 Claude Code，打了這一句：</p>
+<p><img src="../../../blog/what-is-cli/typing.gif" alt="Claude Code 剛打開的畫面，在 ❯ 後面打進這句話：做一個網頁：夜裡的池塘，一條小魚在游，游過月亮的倒影時倒影會晃開；點一下水面會起漣漪。不要用任何圖片，全部用程式碼畫，存成 pond.html。" /></p>
 <p>按下 Enter 之後，我就沒再碰鍵盤。19 分鐘後，資料夾裡多了一個叫 <code>pond.html</code> 的檔案，點開就是池塘。這 19 分鐘裡，Claude Code 自己來回跑了 28 輪：做一步，看一眼結果，再決定下一步。最後它寫了 476 行程式。</p>
 <p>這三個數字都是第一版的。後來我請它把魚改成紅白錦鯉、把睡蓮葉調亮，上面那張圖是改好的樣子。這次用的模型是 Claude Opus 5，照 API 按用量付費的價格換算，約 5.16 美元。</p>
-<h2 id="cli-和按按鈕差在哪">CLI 和按按鈕差在哪？</h2>
-<p>手機和電腦上的按鈕、圖示，都屬於圖形介面（GUI，graphical user interface）。終端機不一樣，視窗裡全是字，一顆按鈕也沒有。你要電腦做什麼，就打一行字，這種用法就是 CLI。</p>
+<h2 id="cli-和-gui-差在哪">CLI 和 GUI 差在哪？</h2>
+<p>手機和電腦上，眼睛看得到、用手指或滑鼠點的畫面，叫圖形介面（GUI，graphical user interface）。能做什麼，畫面上都擺給你看。終端機不一樣，視窗裡全是字，看不到任何選項。你要電腦做什麼，就自己打一行字，這種用法就是 CLI。</p>
 <p>同一件事，兩種方式都做得到。例如建一個叫「練習」的資料夾：</p>
 <ul>
-<li>按按鈕：在桌面按右鍵，選「新增檔案夾」，再打上「練習」。</li>
-<li>打字：在終端機先打 <code>cd Desktop</code>，按 Enter，切到桌面；再打 <code>mkdir 練習</code>，按 Enter。資料夾會建在終端機目前所在的位置。</li>
+<li>用 GUI：在桌面按右鍵，選「新增檔案夾」，再打上「練習」。</li>
+<li>用 CLI：在終端機先打 <code>cd Desktop</code>，按 Enter，切到桌面；再打 <code>mkdir 練習</code>，按 Enter。資料夾會建在終端機目前所在的位置。</li>
 </ul>
 <p><img src="../../../blog/what-is-cli/twoways.svg" alt="桌面上兩種建資料夾的方法：① 在桌面按右鍵選「新增檔案夾」，② 終端機切到桌面後打 mkdir 練習，兩條箭頭都指向桌面右上角同一個「練習」資料夾" /></p>
 <p>兩邊做完，都會多一個「練習」資料夾。<code>mkdir</code> 成功時什麼都不會印出來；如果同名的資料夾已經存在，它會回 <code>File exists</code>。</p>
-<p>既然按按鈕就做得到，為什麼還要打字？因為按鈕只有工程師事先做好的那幾顆。手機相簿會照日期排照片，是因為工程師先想到了；沒人想到的事，就不會有那顆按鈕。打字沒有這個限制，電腦做得到的事，幾乎都能用打字交代。</p>
+<p>既然 GUI 就做得到，為什麼還要用 CLI？想想在熱炒店點菜的兩種方式。看菜單點，每道菜都印在上面，指一下就好，但只能點菜單上有的。熟客不看菜單，直接跟老闆說要什麼，廚房做得出來的都能點；前提是你自己說得出菜名。</p>
+<p>GUI 就是那張菜單：工程師事先做了哪幾顆按鈕，你就只能按那幾顆。CLI 就是直接跟老闆說：電腦做得到的事，幾乎都能用打字交代，但你要知道怎麼說。</p>
 <h2 id="打字這麼自由為什麼以前很少人用">打字這麼自由，為什麼以前很少人用？</h2>
 <p>因為終端機只認特定的字，這些字叫指令（command）。它會把你打的第一段字（到第一個空格為止）當成指令名稱。指令名稱拼錯一個字母，或直接打一句中文，它都會說找不到這個指令：</p>
 <p><img src="../../../blog/what-is-cli/notfound.svg" alt="終端機畫面。第一行是 you@MacBook 池塘 %，後面接使用者打的「幫我做一個池塘網頁」，圖上分別標出使用者名稱、電腦名稱、所在資料夾和你打的字。第二行是終端機的回覆：zsh: command not found: 幫我做一個池塘網頁" /></p>
 <p>回覆開頭的 zsh，是 Mac 終端機裡負責接收指令的程式。整句中文中間沒有空格，所以它把整句當成指令名稱，結果找不到。前面的 <code>mkdir 練習</code> 能用，是因為指令名稱是 <code>mkdir</code>，「練習」只是資料夾的名字。</p>
 <p>刪除檔案的指令是 <code>rm</code>，它也不會先跟你確認。手機刪掉的照片會先放進「最近刪除」，過一陣子才真的消失；用 <code>rm</code> 刪掉的檔案不經過垃圾桶，直接就沒了。指令要背，打字還不能出錯，所以以前會用終端機的，多半是工程師。</p>
 <h2 id="不會背指令怎麼用終端機">不會背指令，怎麼用終端機？</h2>
-<p>這兩年多了一個辦法：讓 AI 替你打。Claude Code 是 Anthropic 做的 AI 助手，在終端機裡工作，聽得懂中文。你說想要什麼，它會自己決定要打哪些指令、寫哪些程式。</p>
+<p>有了 AI 之後，多了一個辦法：讓 AI 替你打。Claude Code 是 Anthropic 做的 AI 助手，在終端機裡工作，聽得懂中文。你說想要什麼，它會自己決定要打哪些指令、寫哪些程式。</p>
 <p>裝好 Claude Code 之後（安裝步驟在文末「自己試一次」），在終端機打 <code>claude</code> 再按 Enter。第一次會先請你登入，登入後會看到類似這樣的畫面。終端機原本的 <code>%</code> 後面要打指令；進到 Claude Code 之後，<code>❯</code> 後面打的是你想做的事，用中文就可以：</p>
-<p><img src="../../../blog/what-is-cli/claude-start.svg" alt="Claude Code 剛打開的畫面：Opus 5 · Claude Pro 是 AI 模型和你訂的方案，~/池塘 是目前所在的資料夾，❯ 後面打你想做的事" /></p>
+<p><img src="../../../blog/what-is-cli/claude-start.svg" alt="Claude Code 剛打開的畫面：Opus 5.5 with high effort · Claude Pro 是 AI 模型和你訂的方案，~/池塘 是目前所在的資料夾，❯ 後面打你想做的事" /></p>
 <p>資料夾前面的 <code>~</code> 代表你的個人資料夾，桌面、文件、下載都在裡面。</p>
 <p>你可能用過 Claude 或 ChatGPT 的聊天 App。在那裡說同一句話，它也寫得出池塘。差別在於做好之後，東西放在哪裡：</p>
 <ul>
@@ -657,6 +665,16 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <li>Claude Code：它直接把檔案存進你電腦的資料夾。要改的時候，它直接改那個檔案。</li>
 </ul>
 <p>所以 Claude Code 碰得到你電腦裡的檔案：讀得到、寫得進，也刪得掉。這是它好用的原因，也是你要注意的地方。</p>
+<h2 id="ai-助手為什麼都做在終端機裡">AI 助手為什麼都做在終端機裡？</h2>
+<p>因為終端機是打字進去、文字出來，這剛好是 AI 擅長的事。</p>
+<p>人用 GUI 靠眼睛：看到按鈕在哪，移過去點。AI 讀進去的、寫出來的都是文字。在終端機裡，它打一行指令，電腦把結果印成文字回給它；它讀完結果，再決定下一步打什麼。池塘那 28 輪，就是這樣一輪一輪做出來的。</p>
+<p>AI 也能操作 GUI。做法是先截圖，認出按鈕在哪，再移過去點，而且每一步都要重新看一次畫面。按鈕換了位置、跳出一個視窗擋住，或軟體改了版面，它就可能點錯。指令不看畫面，這些情況都影響不到它。</p>
+<p>所以越來越多軟體提供自己的 CLI，讓 AI 直接用打字操作。例如飛書的 <code>lark-cli</code>：裝好之後，AI 就能用指令讀寫飛書的文件、行事曆和訊息。</p>
+<h2 id="ai-怎麼知道一套新的-cli-怎麼用">AI 怎麼知道一套新的 CLI 怎麼用？</h2>
+<p>每套 CLI 的指令名稱都不一樣，AI 不一定認得。它可以自己打 <code>--help</code>（多數 CLI 都有的說明指令）查用法，只是每次都要從頭查，會多花好幾輪。</p>
+<p>另一個辦法是 skill，也就是一份寫給 AI 看的說明書。開頭用一兩句話寫「什麼時候用這份」，下面寫這套工具有哪些指令、怎麼用。Claude Code 平常只看每份 skill 開頭那一兩句；碰到用得上的工作，才把整份讀進來。</p>
+<p>飛書 CLI 內建了 28 份 skill，審批、行事曆、文件、訊息各有一份。文件那份的開頭寫的大意是：讀取、建立、編輯飛書文件；使用者給了文件網址時使用。</p>
+<p>寫這篇時，我就請 Claude Code 用飛書 CLI 讀 WaytoAGI，一個放在飛書上的公開中文 AI 知識庫。首頁連出去 72 頁，它對每一頁各跑一次 <code>lark-cli docs +fetch</code>，抓回 66 頁，再從裡面找出講 CLI 的文章。整個過程沒有開瀏覽器。</p>
 <h2 id="claude-code-要動你的檔案前會先問你嗎">Claude Code 要動你的檔案前，會先問你嗎？</h2>
 <p>可以設定成先問。Claude Code 有一種權限模式叫 Manual（手動模式）。在這個模式下，它要建檔、改檔，或執行大部分指令之前，都會停下來問你；只是讀資料夾裡的檔案，通常不問。</p>
 <p>假如它要建立 <code>pond.html</code>，會跳出下面這樣的畫面。這個畫面是我另外請它建立測試檔時跳出來的，檔名和內容換成了 <code>pond.html</code>：</p>
@@ -664,16 +682,16 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <p>你要看懂的只有一件事：它要做什麼。第 2 個選項要小心，選了之後，在這個資料夾裡，連一般的刪檔都不會再問你。</p>
 <p>做池塘那次，它一次也沒問我。因為我用的是不開對話畫面的方式（<code>claude -p</code>，下指令時就把整個任務交給它），而且開工前只准它存檔。我敢這樣做，是因為那是剛建好的空資料夾，裡面沒有怕被弄壞的東西。平常的資料夾，我每次都會看。</p>
 <p><img src="../../../blog/what-is-cli/modes.svg" alt="三種設定由上而下比較：Manual 改東西前大多先問；接受編輯時，資料夾裡建檔、改檔和一般刪檔都不問；自動模式只在看起來危險時才擋下來" /></p>
-<p>另外要知道：Claude Code 2.1.283 版以後，在終端機打開時預設是自動模式（auto mode），前提是你用的模型支援它，而且公司帳號的管理員沒有關掉它。這個模式改由另一個 AI 模型替你審查動作：看起來安全的直接做，看起來危險的先擋下來。想要它改東西、執行指令前都先問你，就用下面「自己試一次」裡的 <code>--permission-mode manual</code>。</p>
+<p>另外要知道：Claude Code 2.1.283 版以後，在終端機打開時預設是自動模式（auto mode），前提是你用的模型支援它，而且公司帳號的管理員沒有關掉它。這個模式改由另一個 AI 模型替你審查動作：看起來安全的直接做，看起來危險的先擋下來。想要它改東西、執行指令前都先問你，打開時改打 <code>claude --permission-mode manual</code>。</p>
 <h2 id="它說做好了就真的好了嗎">它說做好了，就真的好了嗎？</h2>
 <p>池塘寫完時，Claude Code 回我：「我寫好 pond.html 了，但還沒實際跑過。這個環境不准開瀏覽器或執行腳本，所以只做了逐行人工檢查。」它寫了 476 行，卻一次也沒看過畫面，因為我只准它存檔，沒准它開瀏覽器或執行程式。</p>
 <p>所以我自己查了兩次。第一次，我直接點開檔案：魚在游，點水面會起漣漪。第二次，我用中文請它查有沒有用到圖片。它要執行一行指令，先停下來問我：</p>
 <p><img src="../../../blog/what-is-cli/ask-bash.svg" alt="Claude Code 要執行指令前問你的畫面：指令分成四步，cd 切到池塘資料夾、ls -la 列出檔案、wc -l 數行數、grep 搜尋像圖片或網址的寫法；選項 2 是在這個專案裡以後 cd 都不問，選項 3 是改成自動模式" /></p>
 <p>四個步驟都只是看和找，沒有改檔或刪檔，所以我按了 1。如果有哪一步看不懂，就先選 No 拒絕，請它一段一段解釋，再決定要不要讓它做。</p>
-<p>新版的 Claude Code 會直接執行這類只看不改的指令，不再跳出這個詢問；差異寫在文末。</p>
+<p>新版的 Claude Code 會直接執行這類只看不改的指令，不再跳出這個詢問。</p>
 <p>它回我：「沒有。pond.html 沒用到任何圖片檔，也沒有任何網址。」這次搜尋沒找到圖片檔或網址。</p>
 <h2 id="自己試一次">自己試一次</h2>
-<p><strong>打開終端機</strong>：這一步免費，也不會改到電腦裡的東西。</p>
+<p><strong>打開終端機</strong>，先打一個只看不改的指令試試：</p>
 <ul>
 <li>Mac：按住 ⌘ Command 再按空白鍵，打「終端機」，按 Enter。視窗出來後打 <code>cal</code>，按 Enter，它會印出這個月的月曆。</li>
 <li>Windows：按開始，搜尋「PowerShell」（Windows 的終端機）並打開。打 <code>Get-Date</code>，按 Enter，它會顯示現在的日期和時間。</li>
@@ -689,29 +707,35 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <p><strong>在空資料夾裡打開 Claude Code</strong>：空資料夾弄亂了也沒關係。每行打完按一次 Enter：</p>
 <pre><code>mkdir 第一次練習
 cd 第一次練習
-claude --permission-mode manual
+pwd
+claude
 </code></pre>
-<p>第一行建一個叫「第一次練習」的資料夾，第二行進到這個資料夾，第三行打開 Claude Code，並設定成改東西、執行指令前都先問你。如果第一行顯示 <code>File exists</code>，代表已經有同名的資料夾，換個名字再打一次這三行。第一次打開時，它會開瀏覽器請你登入，也會問你信不信任這個資料夾；這是你剛建的空資料夾，選信任就好。要離開時打 <code>/exit</code>。</p>
+<p>這四行各做一件事：</p>
+<ol>
+<li><code>mkdir 第一次練習</code>：建一個叫「第一次練習」的新資料夾。打完不會有任何回應，這是正常的。如果出現 <code>File exists</code>，代表已經有同名的資料夾，把四行裡的「第一次練習」都換成別的名字，再打一次。</li>
+<li><code>cd 第一次練習</code>：走進這個資料夾。Claude Code 會在你打開它的那個資料夾裡工作，所以要先走進來。</li>
+<li><code>pwd</code>：問終端機「我現在在哪個資料夾」。它會回一串路徑，結尾是「第一次練習」就對了。</li>
+<li><code>claude</code>：打開 Claude Code。第一次打開會請你登入，並問你信不信任這個資料夾。這是你剛建的空資料夾，選信任就好。</li>
+</ol>
 <p><strong>從一件小事開始</strong>：把 3 月 14 日換成你的生日，打這句話：</p>
 <pre><code>做一張網頁，倒數到我的生日（3 月 14 日），存成 birthday.html。
 </code></pre>
-<p>它說做好了，就請它幫你打開。它要執行打開檔案的指令時會先問你，看得懂那是「打開」就選 Yes。打開之後，自己算一下天數對不對。我在 2026 年 10 月 2 日照這句話做過一次。它做完自己說「沒能驗證日期邏輯」，所以我自己算了一次天數，它算對了。</p>
-<h2 id="這篇的畫面怎麼來的">這篇的畫面怎麼來的</h2>
-<ul>
-<li>池塘是 2026 年 9 月 19 日在 macOS 上用 Claude Code 的非互動模式 <code>claude -p</code> 做出來的，所以當時沒有經過「先問你」的畫面。生日網頁是 2026 年 10 月 2 日用同樣方式做的。</li>
-<li>三個 Claude Code 畫面照 2.1.277 版的真實畫面抄寫，再畫成圖；圖上的彩色標註是我加的。抄寫時，資料夾名稱和路徑換過，太長的行照終端機的樣子換行，中間省略了幾行。建立檔案那個畫面，是我請它建立測試檔時真的跳出來的（我按了 No），檔名和內容換成 <code>pond.html</code> 的前三行，「後面還有 473 行」是我補的。</li>
-<li>2026-11-24 對照 2.1.330 版的官方文件，畫面有幾處不同：Pro 方案的預設模型改成 Opus 5.5；執行指令的詢問框改用虛線框出指令；<code>cd</code>、<code>ls</code>、<code>wc</code>、<code>grep</code> 這類只看不改的指令，現在任何模式下都直接執行，所以照文中那句請它查圖片，通常不會跳出詢問。</li>
-<li><code>zsh: command not found</code> 和 <code>mkdir</code> 在 Mac 上實際跑過；Windows 的步驟沒有在 Windows 電腦上跑過。</li>
-<li>安裝指令、方案需求和權限模式的說明，2026-11-24 對照過官方文件。</li>
-</ul>
+<p>它做到一半，你覺得方向不對，就按 Esc 讓它停下來。已經做好的部分會留著，你再用中文跟它說要怎麼改。</p>
+<p>它說做好了，就請它幫你打開，再自己算一下天數對不對。我在 2026 年 10 月 2 日照這句話做過一次。它做完自己說「沒能驗證日期邏輯」，所以我自己算了一次天數，它算對了。</p>
+<p>做出來的樣子不喜歡，就跟它說要改哪裡，例如：</p>
+<pre><code>背景換成深藍色，數字放大一倍。
+</code></pre>
+<p>改完再請它打開一次，看是不是你要的樣子。</p>
 <h2 id="資料來源">資料來源</h2>
 <ul>
 <li><a href="https://code.claude.com/docs/en/setup">Set up Claude Code</a></li>
 <li><a href="https://code.claude.com/docs/en/permission-modes">Choose a permission mode</a></li>
+<li><a href="https://code.claude.com/docs/en/skills">Extend Claude with skills</a></li>
+<li><a href="https://code.claude.com/docs/en/interactive-mode">Interactive mode</a></li>
 </ul>
 <aside class="blog-cta-card">
-  <h2>在選單列掌握你的 AI 開發配額</h2>
-  <p>usage 是一款免費、開源（AGPL-3.0）的用量工具，提供 macOS 選單列、Windows 系統匣與終端機 TUI，支援 Claude Code、Codex、Antigravity、Grok 與 Muse。</p>
+  <h2>在選單列隨時看 AI 寫程式的額度</h2>
+  <p>usage 是一款免費、開源（AGPL-3.0）的用量工具，提供 macOS 選單列與 Windows 系統匣，支援 Claude Code、Codex、Antigravity、Grok 與 Muse。</p>
   <div class="blog-cta-actions">
     <a class="btn btn-primary" href="../../#install">安裝 usage</a>
     <a class="btn btn-secondary" href="https://github.com/aqua5230/usage" target="_blank" rel="noopener">GitHub</a>
