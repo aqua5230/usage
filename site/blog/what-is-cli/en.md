@@ -73,7 +73,7 @@ Once Claude Code is installed (the steps are in "Try it yourself" at the end), t
 
 ![The Claude Code start screen: Opus 5.5 with high effort · Claude Pro is the AI model and your plan, ~/pond is the folder it is working in, and you type what you want after ❯](claude-start-en.svg)
 
-The `~` before the folder name is your home folder, which holds Desktop, Documents, and Downloads.
+The model and plan on the first line come from your own setup, so yours may differ; the pond was built with Opus 5. The `~` before the folder name is your home folder, which holds Desktop, Documents, and Downloads.
 
 You may have used the Claude or ChatGPT chat apps. Ask one for the same page and it can write the code too. The difference is where the result ends up:
 
