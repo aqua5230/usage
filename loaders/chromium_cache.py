@@ -27,6 +27,7 @@ MAX_WINDOW = 8 * 1024 * 1024
 MAX_INDEX = 4 * 1024 * 1024
 MAX_ENTRIES = 16 * 1024 * 1024
 MAX_CHAIN_FILES = 16
+BLOCK_MAGIC = 0xC103CAC3
 BLOCK_SIZES = {1: 36, 2: 256, 3: 1024, 4: 4096, 5: 8, 6: 256, 7: 256}
 INDEX_HEADER = 368
 BLOCK_HEADER = 8192
@@ -105,7 +106,7 @@ class _BlockCache:
         self.path = path
         self.index = read_bounded(path / "index", MAX_INDEX)
         magic, version = struct.unpack_from("<II", self.index)
-        if magic != 0xC103CAC3 or version not in {0x20000, 0x20001, 0x30000}:
+        if magic != BLOCK_MAGIC or version not in {0x20000, 0x20001, 0x30000}:
             raise ValueError("Unsupported cache index")
         self.table_len = struct.unpack_from("<i", self.index, 28)[0] or 65536
         if (

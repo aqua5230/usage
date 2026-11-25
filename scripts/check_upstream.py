@@ -9,6 +9,7 @@ import json
 import math
 import re
 import sqlite3
+import struct
 import sys
 import time
 import urllib.error
@@ -29,11 +30,14 @@ from installer import session_hooks, setup_hook  # noqa: E402
 from loaders import (  # noqa: E402
     agy_loader,
     agy_quota_probe,
+    chromium_cache,
+    claude_desktop,
     codex_loader,
     grok_loader,
     grok_quota_probe,
     muse_quota_probe,
 )
+from loaders._shared_cache_file import read_range  # noqa: E402
 from usage_common import service_status  # noqa: E402
 from usage_hooks import usage_statusline  # noqa: E402
 
@@ -313,6 +317,39 @@ def check_claude_transcript() -> Result:
         for key in _new(_get(row, "message.usage"), KNOWN_CLAUDE_USAGE, "message.usage")
     ]
     return _result(path, broken, new)
+
+
+def check_claude_desktop() -> Result:
+    paths = [path for path in claude_desktop.desktop_history_paths() if path.parent.is_dir()]
+    if not paths:
+        return "NO_DATA", "Claude Desktop is not installed"
+    broken = []
+    for path in paths:
+        index = path.parent / "Cache" / "Cache_Data" / "index"
+        if index.exists():
+            header = read_range(index, 0, 8)
+            simple = header == struct.pack("<Q", chromium_cache.SIMPLE_MAGIC)
+            block = (
+                len(header) >= 4
+                and struct.unpack_from("<I", header)[0] == chromium_cache.BLOCK_MAGIC
+            )
+            if not simple and not block:
+                broken.append(f"{index}: unrecognized HTTP cache index format ({header.hex()})")
+        if path.exists():
+            try:
+                version = _get(_json(path), "version")
+            except ValueError as exc:
+                broken.append(str(exc))
+            else:
+                if type(version) is not int or version not in {1, 2}:
+                    broken.append(f"{path}: unsupported history version {version!r}")
+    profile = paths[0].parent
+    if claude_desktop.load_desktop_quota(time.time()) is None:
+        detail = "no usable Desktop quota (history too old and no fresh cached /usage response)"
+        if not broken:
+            return "NO_DATA", f"{profile}: {detail}"
+        broken.append(detail)
+    return _result(profile, broken)
 
 
 def check_codex_sessions() -> Result:
@@ -617,6 +654,7 @@ def main() -> int:
     checks: list[tuple[str, Callable[[], Result]]] = [
         ("claude_statusline", check_claude_statusline),
         ("claude_transcript", check_claude_transcript),
+        ("claude_desktop", check_claude_desktop),
         ("codex_sessions", check_codex_sessions),
         ("codex_sqlite", check_codex_sqlite),
         ("agy_conversations", check_agy_conversations),

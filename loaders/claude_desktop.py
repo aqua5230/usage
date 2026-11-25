@@ -52,6 +52,20 @@ def desktop_history_paths() -> tuple[Path, ...]:
     return (config / "Claude" / HISTORY_NAME,)
 
 
+def desktop_installed() -> bool:
+    try:
+        paths = desktop_history_paths()
+    except OSError:
+        return False
+    for path in paths:
+        try:
+            if path.parent.is_dir():
+                return True
+        except OSError:
+            continue
+    return False
+
+
 def _number(value: object) -> float | None:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return None
