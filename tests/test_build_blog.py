@@ -230,15 +230,16 @@ def test_bilingual_article_renders_seo_cards_escaping_and_sitemap(
         footer = page.index('<section class="related-section">')
         assert prose_end < page.index('class="blog-cta-card"') < footer
 
-        # Both links wrap the title and description and use English when untranslated.
+        # The link wraps the title and description and uses English when untranslated.
         link = (
             f'<a href="{href}">'
             '<span class="related-title">Older &amp; &lt;Post&gt;</span>'
             '<span class="related-desc">First post &lt;summary&gt;</span></a>'
         )
         assert link in page[footer : page.index("</section>", footer)]
-        rail = page.index('<aside class="related-rail"')
-        assert link in page[rail : page.index("</aside>", rail)]
+        assert page.count(link) == 1
+        assert '<aside class="news-rail"' in page
+        assert "related-rail" not in page
 
     # JSON-LD Article + BreadcrumbList parse cleanly.
     ld_blocks = _parse_json_ld(en_html)
@@ -399,7 +400,8 @@ def test_toc_omitted_when_fewer_than_three_h2s(
     assert '<h2 id="second-section">Second Section</h2>' in article_html
     assert '<aside class="toc-rail">' not in article_html
     assert '<details class="toc-mobile">' not in article_html
-    assert '<aside class="related-rail"' not in article_html
+    assert '<aside class="news-rail"' in article_html
+    assert "related-rail" not in article_html
 
 
 def test_toc_links_match_body_h2_and_exclude_related_and_cta(
@@ -447,7 +449,7 @@ def test_toc_links_match_body_h2_and_exclude_related_and_cta(
 
     assert "Related Articles" not in toc_block
     assert build_blog.UI_STRINGS["en"]["card_title"] not in toc_block
-    assert "<h2>Related Articles</h2>" in article_html
+    assert '<section class="related-section">\n          <h2>Related Articles</h2>' in article_html
 
     # List page has no article rails.
     assert '<aside class="toc-rail">' not in list_html
@@ -456,17 +458,19 @@ def test_toc_links_match_body_h2_and_exclude_related_and_cta(
     assert '<aside class="news-rail"' not in list_html
     assert "ai-updates/data.json" not in list_html
 
-    assert '<aside class="related-rail" aria-labelledby="related-rail-heading">' in article_html
-    assert '<h2 id="related-rail-heading">Related Articles</h2>' in article_html
-    assert "news-rail" not in article_html
-    assert "AI Update Daily" not in article_html
-    assert "ai-updates/data.json" not in article_html
+    assert '<aside class="news-rail" aria-label="AI Update Daily" hidden>' in article_html
+    assert "related-rail" not in article_html
+    assert 'window.matchMedia("(min-width: 1440px)")' in article_html
+    assert f'fetch("{build_blog.AI_UPDATES_DATA_URL}")' in article_html
+    assert "innerHTML" not in article_html
 
 
-def test_ui_strings_include_toc_and_related_keys_for_all_langs() -> None:
+def test_ui_strings_include_toc_news_and_related_keys_for_all_langs() -> None:
     for lang in build_blog.LANGS:
         ui = build_blog.UI_STRINGS[lang]
         assert ui["toc_title"]
+        assert ui["news_title"]
+        assert ui["news_all"]
         assert ui["related_heading"]
 
 
