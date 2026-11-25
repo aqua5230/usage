@@ -3,7 +3,6 @@ title: CLI 是什麼？從 Claude Code 看懂終端機
 description: CLI 是用打字下命令操作電腦的方式。這篇用一個真的做出來的網頁，說明 CLI 和 GUI（圖形介面）差在哪、為什麼很多 AI 助手做在終端機裡、Claude Code 怎麼替你打指令，以及它要動你的檔案前，你該看懂哪一行。
 date: 2026-11-24
 updated: 2026-11-25
-tool: claude-code
 image: pond-poster.jpg
 related: claude-code-idle-compaction, claude-code-weekly-limit-reset
 ---

@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<meta name="theme-color" content="#0a0a0a" />
+<meta name="theme-color" content="#141312" />
 <title>Codex 每週額度為什麼提早重置？ — usage</title>
 <meta name="description" content="Codex 的每週額度常比 resets_at 早好幾天重置，原因是 OpenAI 會全體重置。附一個 Plus 帳號 10 個週期的實際紀錄、官方規則和查法。" />
 <meta property="og:title" content="Codex 每週額度為什麼提早重置？ — usage" />
@@ -74,23 +74,29 @@
   ]
 }
 </script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600&amp;display=swap" />
 <style>
 :root {
   color-scheme: dark;
-  --bg: #090a0f;
-  --bg-soft: #11131a;
-  --bg-card: rgba(20, 23, 32, 0.7);
-  --fg: #f5f5f7;
-  --fg-dim: #9898a0;
-  --fg-dimmer: #858590;
-  --fg-footer: #858590;
+  --bg: #141312;
+  --bg-soft: #1b1917;
+  --bg-card: #1e1c1a;
+  --fg: #f3ede4;
+  --fg-dim: #b9b0a6;
+  --fg-dimmer: #a79d92;
+  --fg-footer: #a79d92;
   --accent: #ff8c42;
   --accent-soft: rgba(255, 140, 66, 0.12);
   --accent-hover: #ffa365;
-  --border: rgba(255, 255, 255, 0.08);
-  --green: #4ade80;
+  --border: rgb(255 236 214 / 11%);
+  --page-width: 1128px;
+  --display: "Noto Serif TC", "Songti TC", serif;
   --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
 }
+:lang(en) { --display: "Source Serif 4", Georgia, serif; }
+:lang(zh-CN) { --display: "Noto Serif SC", "Songti SC", serif; }
+:lang(ja) { --display: "Noto Serif JP", "Hiragino Mincho ProN", serif; }
+:lang(ko) { --display: "Noto Serif KR", "AppleMyungjo", serif; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html {
   scroll-behavior: smooth;
@@ -113,12 +119,6 @@ body {
 }
 a { color: inherit; text-decoration: none; }
 img { max-width: 100%; height: auto; display: block; }
-.embed { display: block; }
-.embed iframe {
-  display: block; width: 100%; aspect-ratio: 16 / 10;
-  border: 0; border-radius: 10px; background: #000;
-}
-.embed a { display: inline-block; margin-top: 6px; font-size: 14px; color: var(--accent); }
 ::selection { background: rgba(255, 140, 66, 0.3); color: #fff; }
 :where(a, button):focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 :lang(ko) :is(h1, h2, h3) { word-break: keep-all; }
@@ -130,13 +130,14 @@ img { max-width: 100%; height: auto; display: block; }
   letter-spacing: 0;
 }
 h1, h2, h3 { text-wrap: balance; }
+.title-phrase { white-space: nowrap; }
 p, li { text-wrap: pretty; }
 .skip-link {
   position: absolute;
   left: -9999px;
   top: auto;
   z-index: 100;
-  background: #181b24;
+  background: var(--bg-card);
   color: var(--fg);
   padding: 8px 14px;
   border-radius: 8px;
@@ -150,9 +151,7 @@ p, li { text-wrap: pretty; }
   position: sticky;
   top: 0;
   z-index: 50;
-  background: rgba(9, 10, 15, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: var(--bg);
   border-bottom: 1px solid var(--border);
 }
 .topbar .wrap {
@@ -211,7 +210,7 @@ p, li { text-wrap: pretty; }
   color: var(--fg-dim);
   flex-wrap: wrap;
 }
-.top-nav a:hover { color: var(--fg); }
+.top-nav a:hover, .top-nav a[aria-current="page"] { color: var(--fg); }
 .lang-links {
   display: flex;
   align-items: center;
@@ -233,7 +232,15 @@ p, li { text-wrap: pretty; }
   background: var(--accent-soft);
   font-weight: 600;
 }
-main { flex: 1 0 auto; padding: 48px 0 72px; }
+main { flex: 1 0 auto; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+.embed { display: block; }
+.embed iframe {
+  display: block; width: 100%; aspect-ratio: 16 / 10;
+  border: 0; border-radius: 10px; background: #000;
+}
+.embed a { display: inline-block; margin-top: 6px; font-size: 14px; color: var(--accent); }
+main { padding: 48px 0 72px; }
 @media (max-width: 640px) { main { padding: 32px 0 56px; } }
 .post-meta time { font-family: var(--mono); }
 .post-meta {
@@ -244,60 +251,19 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   flex-wrap: wrap;
   gap: 8px 16px;
 }
-.post-header h1, .blog-hero h1 {
+.post-header h1, .prose :is(h2, h3) {
+  color: var(--fg);
+  font-family: var(--display);
+  font-weight: 600;
+}
+.post-header h1 {
   font-size: clamp(28px, 4vw, 40px);
   line-height: 1.2;
   letter-spacing: -0.025em;
-  font-weight: 700;
   margin-bottom: 14px;
   overflow-wrap: anywhere;
 }
-.blog-hero p {
-  font-size: 17px;
-  color: var(--fg-dim);
-  line-height: 1.65;
-  overflow-wrap: anywhere;
-}
-.blog-hero { margin-bottom: 36px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
-.post-list { display: grid; }
-.post-card {
-  position: relative;
-  display: block;
-  padding: 22px 40px 22px 0;
-  border-bottom: 1px solid var(--border);
-}
-.post-card:first-child { padding-top: 0; }
-.post-card::after {
-  content: "→";
-  position: absolute;
-  right: 4px;
-  top: 50%;
-  font-size: 18px;
-  color: var(--fg-dimmer);
-  transform: translateY(-50%);
-  transition: color 140ms ease, transform 140ms ease;
-}
-.post-card:hover::after { color: var(--accent); transform: translate(3px, -50%); }
-.post-card:first-child::after { top: calc(50% - 11px); }
-.post-card .post-meta { align-items: center; margin-bottom: 8px; }
-.post-tool {
-  font-size: 12px;
-  line-height: 1.6;
-  padding: 0 8px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  color: var(--fg-dim);
-}
-.post-card h2 {
-  font-size: 21px;
-  line-height: 1.35;
-  margin-bottom: 8px;
-  overflow-wrap: anywhere;
-  transition: color 140ms ease;
-}
-.post-card:hover h2 { color: var(--accent); }
-.post-card p { font-size: 15px; color: var(--fg-dim); overflow-wrap: anywhere; }
-.prose { font-size: 16.5px; line-height: 1.75; color: var(--fg); }
+.prose { font-size: 16.5px; line-height: 1.75; color: var(--fg-dim); }
 .prose > * + * { margin-top: 1.15em; }
 .prose h2 {
   font-size: clamp(22px, 2.6vw, 27px);
@@ -314,9 +280,9 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
 .prose a:hover { color: var(--accent-hover); }
 .prose blockquote {
   padding: 12px 16px;
-  border-left: 3px solid var(--accent);
+  border: 1px solid var(--border);
   background: var(--bg-soft);
-  border-radius: 0 8px 8px 0;
+  border-radius: 8px;
   color: var(--fg-dim);
 }
 .prose :not(pre) > code {
@@ -329,7 +295,7 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   word-break: break-word;
 }
 .prose pre {
-  background: #08090d;
+  background: var(--bg-soft);
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 14px 16px;
@@ -361,7 +327,7 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   padding: 22px 24px;
   border-radius: 14px;
   border: 1px solid rgba(255, 140, 66, 0.28);
-  background: linear-gradient(135deg, rgba(255, 140, 66, 0.09), rgba(20, 23, 32, 0.85) 60%);
+  background: var(--bg-card);
 }
 .blog-cta-card h2 {
   font-size: 18px;
@@ -608,21 +574,99 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
 @media (min-width: 1440px) {
   .news-rail:not([hidden]) { display: block; }
 }
-footer {
-  padding: 36px 0 28px;
-  border-top: 1px solid var(--border);
-  background: var(--bg);
+/* Hallmark · footer · editorial · existing C2 palette */
+.site-footer > .wrap { max-width: var(--page-width); }
+.site-footer { border-top: 1px solid var(--border); background: var(--bg-soft); }
+.footer-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.85fr) minmax(0, 1.25fr) minmax(0, 0.75fr);
+  gap: 28px;
+  padding: 36px 0 32px;
 }
-footer .wrap {
-  max-width: 1080px;
+.footer-brand .brand { gap: 8px; font-size: 20px; }
+.footer-brand .brand-dot { width: 32px; height: 32px; flex-basis: 32px; }
+.footer-brand .brand-dot svg { width: 32px; height: 32px; animation: none; }
+.footer-brand h2 {
+  margin: 10px 0 6px;
+  font-size: 16px;
+  text-wrap: wrap;
+  word-break: normal;
+}
+.footer-brand p {
+  color: var(--fg-dim);
+  font-size: 14px;
+  line-height: 1.75;
+}
+.footer-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.footer-actions a {
+  padding: 6px 12px;
+  border: 1px solid var(--fg-dimmer);
+  border-radius: 6px;
+  color: var(--fg-dim);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.footer-actions a:hover { color: var(--fg); border-color: var(--fg); }
+.footer-actions .footer-install { color: var(--accent); border-color: var(--accent); }
+.footer-actions .footer-install:hover {
+  color: var(--accent-hover);
+  background: var(--accent-soft);
+}
+.footer-links h2 {
+  padding-top: 7px;
+  margin-bottom: 6px;
+  color: var(--fg-footer);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+.footer-links ul { list-style: none; }
+.footer-links a {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  text-align: center;
+  gap: 8px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 5px 0;
+  color: var(--fg-dim);
+  font-size: 14px;
+  white-space: nowrap;
 }
-footer p { color: var(--fg-footer); font-size: 14px; }
-footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--fg-dim); }
+.footer-links a:hover { color: var(--fg); }
+.footer-links a :is(img, svg) { width: 16px; height: 16px; flex: 0 0 16px; object-fit: contain; }
+.footer-latest a { display: block; overflow: hidden; text-overflow: ellipsis; }
+.footer-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 24px;
+  border-top: 1px solid var(--border);
+  padding: 16px 0 20px;
+}
+.footer-credit { flex: 1 1 200px; color: var(--fg-footer); font-size: 13px; }
+.footer-bottom .lang-links { margin-inline-start: auto; }
+.footer-credit a { color: var(--fg-dim); text-decoration: underline; text-underline-offset: 3px; }
+.footer-credit a:hover { color: var(--fg); }
+@media (max-width: 900px) {
+  .footer-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+  .footer-brand { grid-column: 1 / -1; max-width: 420px; }
+}
+@media (max-width: 520px) {
+  .footer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas: "brand brand" "categories usage" "latest latest";
+    reading-flow: grid-rows;
+    gap: 18px;
+    padding: 27px 0 22px;
+  }
+  .footer-brand { grid-area: brand; }
+  .footer-categories { grid-area: categories; }
+  .footer-latest { grid-area: latest; }
+  .footer-usage { grid-area: usage; }
+  .footer-links h2 { padding-top: 0; }
+}
 </style>
 </head>
 <body>
@@ -638,8 +682,8 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
       <a href="https://github.com/aqua5230/usage" target="_blank" rel="noopener">GitHub</a>
     </nav>
     <div class="lang-links">
-      <a href="../../../blog/codex-weekly-limit-early-reset/">EN</a>
-      <a href="../../../zh-TW/blog/codex-weekly-limit-early-reset/" aria-current="page">繁中</a>
+      <a href="../../../blog/codex-weekly-limit-early-reset/" hreflang="en">EN</a>
+      <a href="../../../zh-TW/blog/codex-weekly-limit-early-reset/" hreflang="zh-TW" aria-current="page">繁中</a>
     </div>
   </div>
 </header>
@@ -648,10 +692,12 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
     <div class="article-layout">
       <aside class="left-rail">
 <nav class="categories" aria-label="文章分類">
+<details class="category"><summary><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5h5a2 2 0 0 1 2 2v9a3 3 0 0 0-2-1H3z M17 4.5h-5a2 2 0 0 0-2 2v9a3 3 0 0 1 2-1h5z"/></svg>新手入門</summary><ul class="category-articles">
+<li><a href="../what-is-cli/">CLI 是什麼？從 Claude Code 看懂終端機</a></li>
+</ul></details>
 <details class="category"><summary><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5h14v11H3z M6 8l2.5 2L6 12 M10.5 12H14"/></svg>Claude Code</summary><ul class="category-articles">
 <li><a href="../claude-code-codex-not-working/">Claude Code、Codex 突然不能用，是額度用完還是官方故障？</a></li>
 <li><a href="../claude-code-idle-compaction/">Claude Code 為什麼自己壓縮對話？</a></li>
-<li><a href="../what-is-cli/">CLI 是什麼？從 Claude Code 看懂終端機</a></li>
 <li><a href="../claude-code-weekly-limit-reset/">Claude Code 每週額度什麼時候重置？</a></li>
 </ul></details>
 <details class="category" open><summary><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 5l-5 5 5 5 M13 5l5 5-5 5 M11.5 4l-3 12"/></svg>Codex</summary><ul class="category-articles">
@@ -665,7 +711,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
       <article class="article-main">
         <header class="post-header">
           <nav class="breadcrumb" aria-label="麵包屑"><a href="../">部落格</a><span aria-hidden="true">›</span><span>Codex</span></nav>
-          <h1>Codex 每週額度為什麼提早重置？</h1>
+          <h1>Codex <span class="title-phrase">每週額度</span>為什麼提早重置？</h1>
           <div class="post-meta">
             <span>更新於 <time datetime="2026-11-24">2026-11-24</time></span>
           </div>
@@ -673,10 +719,12 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
         <details class="mobile-menu">
           <summary>文章分類與目錄</summary>
 <nav class="categories" aria-label="文章分類">
+<details class="category"><summary><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5h5a2 2 0 0 1 2 2v9a3 3 0 0 0-2-1H3z M17 4.5h-5a2 2 0 0 0-2 2v9a3 3 0 0 1 2-1h5z"/></svg>新手入門</summary><ul class="category-articles">
+<li><a href="../what-is-cli/">CLI 是什麼？從 Claude Code 看懂終端機</a></li>
+</ul></details>
 <details class="category"><summary><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5h14v11H3z M6 8l2.5 2L6 12 M10.5 12H14"/></svg>Claude Code</summary><ul class="category-articles">
 <li><a href="../claude-code-codex-not-working/">Claude Code、Codex 突然不能用，是額度用完還是官方故障？</a></li>
 <li><a href="../claude-code-idle-compaction/">Claude Code 為什麼自己壓縮對話？</a></li>
-<li><a href="../what-is-cli/">CLI 是什麼？從 Claude Code 看懂終端機</a></li>
 <li><a href="../claude-code-weekly-limit-reset/">Claude Code 每週額度什麼時候重置？</a></li>
 </ul></details>
 <details class="category" open><summary><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 5l-5 5 5 5 M13 5l5 5-5 5 M11.5 4l-3 12"/></svg>Codex</summary><ul class="category-articles">
@@ -819,9 +867,54 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
     </div>
   </div>
 </main>
-<footer>
+<footer class="site-footer">
   <div class="wrap">
-    <p>作者： <a href="https://github.com/aqua5230" target="_blank" rel="noopener">@aqua5230</a> · AGPL-3.0 · 不上傳、不追蹤，只屬於你。</p>
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a class="brand" href="../../" translate="no"><span class="brand-dot" aria-hidden="true"><svg class="brand-ring-base" viewBox="0 0 64 64"><use href="#usage-ring"/></svg><svg class="brand-ring-progress" viewBox="0 0 64 64"><use href="#usage-ring"/></svg><svg class="brand-cat" viewBox="0 0 64 64" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><circle cx="32" cy="24.5" r="7"/><path class="brand-ear brand-ear-left" d="M25.6 22 L26.2 13.2 L31 18.6 Z"/><path class="brand-ear brand-ear-right" d="M33 18.6 L37.8 13.2 L38.4 22 Z"/><path d="M27 29.5 C22.2 33.5 19.6 41 20.4 47.4 C20.9 51 25 52.6 32 52.6 C39 52.6 43.1 51 43.6 47.4 C44.4 41.8 41.8 33.5 37 29.5 Z"/><path class="brand-tail" d="M23 51.2 C16.5 53 12 50 13.2 45.2" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/></svg></span>usage</a>
+        <h2>在選單列隨時看 AI 寫程式的額度</h2>
+        <p>usage 是一款免費、開源（AGPL-3.0）的用量工具，提供 macOS 選單列與 Windows 系統匣，支援 <span class="title-phrase">Claude Code</span>、Codex、Antigravity、Grok 與 Muse。</p>
+        <div class="footer-actions">
+          <a class="footer-install" href="../../#install">安裝 usage</a>
+          <a href="https://github.com/aqua5230/usage" target="_blank" rel="noopener">GitHub</a>
+        </div>
+      </div>
+      <nav class="footer-links footer-categories" aria-labelledby="footer-categories-title">
+        <h2 id="footer-categories-title">分類</h2>
+        <ul>
+          <li><a href="../#getting-started"><svg class="category-logo" viewBox="0 0 64 64" aria-hidden="true"><use href="#usage-ring"/><g fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><circle cx="32" cy="24.5" r="7"/><path d="M25.6 22 L26.2 13.2 L31 18.6 Z M33 18.6 L37.8 13.2 L38.4 22 Z"/><path d="M27 29.5 C22.2 33.5 19.6 41 20.4 47.4 C20.9 51 25 52.6 32 52.6 C39 52.6 43.1 51 43.6 47.4 C44.4 41.8 41.8 33.5 37 29.5 Z"/><path d="M23 51.2 C16.5 53 12 50 13.2 45.2" fill="none" stroke-width="3.2" stroke-linecap="round"/></g></svg>新手入門</a></li>
+          <li><a href="../#claude-code"><img class="category-logo" src="../../../blog/icons/claude_color_menubar.png" alt="" />Claude Code</a></li>
+          <li><a href="../#codex"><img class="category-logo" src="../../../blog/icons/codex_color_menubar.png" alt="" />Codex</a></li>
+          <li><a href="../#antigravity"><img class="category-logo" src="../../../blog/icons/agy_color_menubar.png" alt="" />Antigravity</a></li>
+        </ul>
+      </nav>
+      <nav class="footer-links footer-latest" aria-labelledby="footer-latest-title">
+        <h2 id="footer-latest-title">最新文章</h2>
+        <ul>
+          <li><a href="../claude-code-codex-not-working/" title="Claude Code、Codex 突然不能用，是額度用完還是官方故障？">Claude Code、Codex 突然不能用，是額度用完還是官方故障？</a></li>
+          <li><a href="../claude-code-idle-compaction/" title="Claude Code 為什麼自己壓縮對話？">Claude Code 為什麼自己壓縮對話？</a></li>
+          <li><a href="../what-is-cli/" title="CLI 是什麼？從 Claude Code 看懂終端機">CLI 是什麼？從 Claude Code 看懂終端機</a></li>
+        </ul>
+      </nav>
+      <nav class="footer-links footer-usage" aria-labelledby="footer-usage-title">
+        <h2 id="footer-usage-title">usage</h2>
+        <ul>
+          <li><a href="../../">首頁</a></li>
+          <li><a href="../../#install">安裝</a></li>
+          <li><a href="https://github.com/aqua5230/usage" target="_blank" rel="noopener">GitHub</a></li>
+          <li><a href="https://aqua5230.github.io/ai-updates/" target="_blank" rel="noopener">
+            AI 更新日報</a></li>
+        </ul>
+      </nav>
+    </div>
+    <div class="footer-bottom">
+      <p class="footer-credit">作者：<a href="https://github.com/aqua5230"
+        target="_blank" rel="noopener">@aqua5230</a> · AGPL-3.0 · 不上傳、不追蹤，只屬於你。</p>
+      <nav class="lang-links" aria-label="頁尾語言切換">
+      <a href="../../../blog/codex-weekly-limit-early-reset/" hreflang="en">EN</a>
+      <a href="../../../zh-TW/blog/codex-weekly-limit-early-reset/" hreflang="zh-TW" aria-current="page">繁中</a>
+      </nav>
+    </div>
   </div>
 </footer>
 <script>

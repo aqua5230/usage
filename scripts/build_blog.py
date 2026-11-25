@@ -12,17 +12,21 @@ import sys
 from collections.abc import Collection
 from dataclasses import dataclass
 from datetime import date
+from math import ceil
 from pathlib import Path
 from typing import TYPE_CHECKING
+from urllib.parse import urlsplit
 
 from markdown_it import MarkdownIt
 
 if TYPE_CHECKING:
+    from blog_styles import ARTICLE_CSS, COMMON_CSS, DISPLAY_FONTS, FOOTER_CSS, LIST_CSS
     from build_site_pages import SITE
 else:
     _SCRIPTS_DIR = str(Path(__file__).resolve().parent)
     if _SCRIPTS_DIR not in sys.path:
         sys.path.insert(0, _SCRIPTS_DIR)
+    from blog_styles import ARTICLE_CSS, COMMON_CSS, DISPLAY_FONTS, FOOTER_CSS, LIST_CSS
     from build_site_pages import SITE
 
 LANGS: tuple[str, ...] = ("en", "zh-TW", "zh-CN", "ja", "ko")
@@ -50,6 +54,35 @@ IMAGE_EXTENSIONS: frozenset[str] = frozenset({".jpg", ".jpeg", ".png", ".webp", 
 # A body image pointing at one of these is embedded as a live page instead.
 EMBED_EXTENSIONS: frozenset[str] = frozenset({".html"})
 IMG_ALT_RE = re.compile(r'\balt="([^"]*)"')
+CJK_CHAR_RE = re.compile(r"[\u3040-\u30ff\u3400-\u9fff\uac00-\ud7af]")
+WORD_RE = re.compile(r"[^\W_]+(?:[’'][^\W_]+)*")
+CODE_BLOCK_RE = re.compile(r"<pre>.*?</pre>", re.DOTALL)
+# Keep the C2 draft's short title phrases intact at line breaks.
+TITLE_PHRASE_RE = re.compile(r"Claude Code|突然不能用|看懂終端機|每週額度")
+
+LIST_CATEGORY_IDS = {
+    None: "getting-started",
+    "claude-code": "claude-code",
+    "codex": "codex",
+    "antigravity": "antigravity",
+}
+TOOL_LOGOS = {
+    "claude-code": "claude_color_menubar.png",
+    "codex": "codex_color_menubar.png",
+    "antigravity": "agy_color_menubar.png",
+}
+
+# The C2 badges combine the landing page's ring symbol with its cat silhouette.
+USAGE_BADGE = (
+    '<svg class="category-logo" viewBox="0 0 64 64" aria-hidden="true">'
+    '<use href="#usage-ring"/><g fill="currentColor" stroke="currentColor" '
+    'stroke-width="1.6" stroke-linejoin="round"><circle cx="32" cy="24.5" r="7"/>'
+    '<path d="M25.6 22 L26.2 13.2 L31 18.6 Z M33 18.6 L37.8 13.2 L38.4 22 Z"/>'
+    '<path d="M27 29.5 C22.2 33.5 19.6 41 20.4 47.4 C20.9 51 25 52.6 32 52.6 '
+    'C39 52.6 43.1 51 43.6 47.4 C44.4 41.8 41.8 33.5 37 29.5 Z"/>'
+    '<path d="M23 51.2 C16.5 53 12 50 13.2 45.2" fill="none" '
+    'stroke-width="3.2" stroke-linecap="round"/></g></svg>'
+)
 
 
 def _landing_brand() -> tuple[str, str]:
@@ -72,11 +105,27 @@ UI_STRINGS: dict[str, dict[str, str]] = {
         "nav_install": "Install",
         "blog_title": "Blog",
         "blog_subtitle": (
-            "Notes on AI coding quotas, local telemetry-free tracking, and building usage."
+            "Notes on AI coding quotas, tracking usage on your own computer, and building usage."
         ),
         "updated": "Updated",
         "getting_started": "Getting started",
         "categories": "Article categories",
+        "categories_intro": "Start with the basics or pick a tool you use.",
+        "getting-started_desc": "Get to know the terminal and AI coding tools.",
+        "claude-code_desc": "Check quotas, understand errors, and learn how chat compaction works.",
+        "codex_desc": "Understand weekly quotas and when they reset.",
+        "antigravity_desc": "Check what’s left and when your quota refills.",
+        "category_latest": "Latest: {title}",
+        "category_count": "{count} posts",
+        "category_count_one": "{count} post",
+        "all_articles": "All articles",
+        "articles_order": "Newest first, by publication date.",
+        "filter_articles": "Filter articles by category",
+        "filter_all": "All",
+        "reading_time": "About {minutes} min read",
+        "footer_categories": "Categories",
+        "footer_latest": "Latest articles",
+        "footer_languages": "Footer language selector",
         "categories_and_toc": "Article categories and contents",
         "breadcrumb": "Breadcrumb",
         "card_title": "Track your AI coding quotas in the menu bar",
@@ -91,7 +140,7 @@ UI_STRINGS: dict[str, dict[str, str]] = {
         "embed_open": "Open full screen ↗",
         "news_title": "AI Update Daily",
         "news_all": "See all updates →",
-        "footer_tag_pre": "Built by",
+        "footer_tag_pre": "Built by ",
         "footer_tag_post": "· AGPL-3.0 · No uploads. No tracking. Just yours.",
     },
     "zh-TW": {
@@ -106,6 +155,22 @@ UI_STRINGS: dict[str, dict[str, str]] = {
         "updated": "更新於",
         "getting_started": "新手入門",
         "categories": "文章分類",
+        "categories_intro": "從入門開始，或選一個你正在用的工具。",
+        "getting-started_desc": "認識終端機和 AI 寫程式工具。",
+        "claude-code_desc": "查額度、看懂錯誤訊息與對話壓縮。",
+        "codex_desc": "了解每週額度與重置時間。",
+        "antigravity_desc": "查剩餘額度與補滿時間。",
+        "category_latest": "最新：〈{title}〉",
+        "category_count": "{count} 篇",
+        "category_count_one": "{count} 篇",
+        "all_articles": "全部文章",
+        "articles_order": "依發表日期由新到舊排列。",
+        "filter_articles": "篩選文章分類",
+        "filter_all": "全部",
+        "reading_time": "約 {minutes} 分鐘讀完",
+        "footer_categories": "分類",
+        "footer_latest": "最新文章",
+        "footer_languages": "頁尾語言切換",
         "categories_and_toc": "文章分類與目錄",
         "breadcrumb": "麵包屑",
         "card_title": "在選單列隨時看 AI 寫程式的額度",
@@ -135,6 +200,22 @@ UI_STRINGS: dict[str, dict[str, str]] = {
         "updated": "更新于",
         "getting_started": "新手入门",
         "categories": "文章分类",
+        "categories_intro": "从入门开始，或选一个你正在用的工具。",
+        "getting-started_desc": "了解终端和 AI 编程工具。",
+        "claude-code_desc": "查用量额度，读懂报错和对话压缩。",
+        "codex_desc": "了解每周额度和重置时间。",
+        "antigravity_desc": "查看剩余额度和恢复时间。",
+        "category_latest": "最新：〈{title}〉",
+        "category_count": "{count} 篇",
+        "category_count_one": "{count} 篇",
+        "all_articles": "全部文章",
+        "articles_order": "按发布日期从新到旧排列。",
+        "filter_articles": "按分类筛选文章",
+        "filter_all": "全部",
+        "reading_time": "约 {minutes} 分钟读完",
+        "footer_categories": "分类",
+        "footer_latest": "最新文章",
+        "footer_languages": "页脚语言切换",
         "categories_and_toc": "文章分类与目录",
         "breadcrumb": "面包屑导航",
         "card_title": "在菜单栏掌握你的 AI 开发额度",
@@ -164,6 +245,22 @@ UI_STRINGS: dict[str, dict[str, str]] = {
         "updated": "更新日",
         "getting_started": "はじめに",
         "categories": "記事のカテゴリ",
+        "categories_intro": "基本から読むか、お使いのツールを選んでください。",
+        "getting-started_desc": "ターミナルと AI コーディングツールの基本を学べます。",
+        "claude-code_desc": "使用上限、エラー、会話の圧縮について。",
+        "codex_desc": "週ごとの使用上限とリセット時刻について。",
+        "antigravity_desc": "残りの利用枠と回復時刻の確認方法。",
+        "category_latest": "最新：「{title}」",
+        "category_count": "{count} 件",
+        "category_count_one": "{count} 件",
+        "all_articles": "すべての記事",
+        "articles_order": "公開日が新しい順に表示します。",
+        "filter_articles": "記事をカテゴリで絞り込む",
+        "filter_all": "すべて",
+        "reading_time": "読了まで約 {minutes} 分",
+        "footer_categories": "カテゴリ",
+        "footer_latest": "最新記事",
+        "footer_languages": "フッターの言語切り替え",
         "categories_and_toc": "記事のカテゴリと目次",
         "breadcrumb": "パンくずリスト",
         "card_title": "AI コーディングのクォータをメニューバーで把握",
@@ -193,6 +290,22 @@ UI_STRINGS: dict[str, dict[str, str]] = {
         "updated": "수정일",
         "getting_started": "시작하기",
         "categories": "글 카테고리",
+        "categories_intro": "기초부터 읽거나 사용 중인 도구를 골라 보세요.",
+        "getting-started_desc": "터미널과 AI 코딩 도구의 기본을 알아보세요.",
+        "claude-code_desc": "할당량, 오류 메시지, 대화 압축을 알아보세요.",
+        "codex_desc": "주간 할당량과 초기화 시점을 알아보세요.",
+        "antigravity_desc": "남은 할당량과 충전 시점을 확인하세요.",
+        "category_latest": "최신: {title}",
+        "category_count": "{count}편",
+        "category_count_one": "{count}편",
+        "all_articles": "전체 글",
+        "articles_order": "최신 발행일 순으로 표시합니다.",
+        "filter_articles": "카테고리별로 글 필터링",
+        "filter_all": "전체",
+        "reading_time": "읽는 데 약 {minutes}분",
+        "footer_categories": "카테고리",
+        "footer_latest": "최신 글",
+        "footer_languages": "바닥글에서 언어 변경",
         "categories_and_toc": "글 카테고리와 목차",
         "breadcrumb": "현재 위치",
         "card_title": "메뉴 막대에서 AI 코딩 할당량을 바로 확인하세요",
@@ -207,562 +320,10 @@ UI_STRINGS: dict[str, dict[str, str]] = {
         "embed_open": "전체 화면으로 열기 ↗",
         "news_title": "AI 업데이트 데일리",
         "news_all": "모든 업데이트 보기 →",
-        "footer_tag_pre": "제작:",
+        "footer_tag_pre": "제작: ",
         "footer_tag_post": "· AGPL-3.0 · 업로드 없음, 추적 없음. 온전히 당신의 것.",
     },
 }
-
-BASE_CSS = """\
-:root {
-  color-scheme: dark;
-  --bg: #090a0f;
-  --bg-soft: #11131a;
-  --bg-card: rgba(20, 23, 32, 0.7);
-  --fg: #f5f5f7;
-  --fg-dim: #9898a0;
-  --fg-dimmer: #858590;
-  --fg-footer: #858590;
-  --accent: #ff8c42;
-  --accent-soft: rgba(255, 140, 66, 0.12);
-  --accent-hover: #ffa365;
-  --border: rgba(255, 255, 255, 0.08);
-  --green: #4ade80;
-  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html {
-  scroll-behavior: smooth;
-  overflow-x: clip;
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-}
-body {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
-    "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans CJK TC", "Noto Sans CJK SC",
-    "Noto Sans JP", "Noto Sans KR", Arial, sans-serif;
-  background: var(--bg);
-  color: var(--fg);
-  line-height: 1.65;
-  -webkit-font-smoothing: antialiased;
-  overflow-x: clip;
-}
-a { color: inherit; text-decoration: none; }
-img { max-width: 100%; height: auto; display: block; }
-.embed { display: block; }
-.embed iframe {
-  display: block; width: 100%; aspect-ratio: 16 / 10;
-  border: 0; border-radius: 10px; background: #000;
-}
-.embed a { display: inline-block; margin-top: 6px; font-size: 14px; color: var(--accent); }
-::selection { background: rgba(255, 140, 66, 0.3); color: #fff; }
-:where(a, button):focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-:lang(ko) :is(h1, h2, h3) { word-break: keep-all; }
-:lang(ja) :is(h1, h2, h3) { word-break: auto-phrase; }
-:lang(zh) :is(h1, h2, h3) { word-break: keep-all; overflow-wrap: break-word; }
-/* Mirrors docs/index.html: CJK headings drop the negative tracking, and text-wrap keeps a
-   single character off the last line. */
-:is(:lang(zh), :lang(ja), :lang(ko)) :is(.post-header h1, .blog-hero h1, .prose h2) {
-  letter-spacing: 0;
-}
-h1, h2, h3 { text-wrap: balance; }
-p, li { text-wrap: pretty; }
-.skip-link {
-  position: absolute;
-  left: -9999px;
-  top: auto;
-  z-index: 100;
-  background: #181b24;
-  color: var(--fg);
-  padding: 8px 14px;
-  border-radius: 8px;
-  border: 1px solid var(--accent);
-  font-size: 14px;
-}
-.skip-link:focus { left: 16px; top: 16px; }
-.wrap { width: 100%; max-width: 820px; margin: 0 auto; padding: 0 24px; }
-@media (max-width: 640px) { .wrap { padding: 0 16px; } }
-.topbar {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  background: rgba(9, 10, 15, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--border);
-}
-.topbar .wrap {
-  max-width: 1080px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  min-height: 52px;
-  flex-wrap: wrap;
-  padding-top: 6px;
-  padding-bottom: 6px;
-}
-.brand {
-  font-weight: 600;
-  font-size: 16px;
-  letter-spacing: -0.01em;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-}
-@property --p { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
-.brand-dot { position: relative; width: 20px; height: 20px; flex: 0 0 20px; }
-.brand-dot svg { position: absolute; inset: 0; width: 20px; height: 20px; }
-.brand-ring-base { opacity: 0.3; }
-.brand-ring-progress {
-  --p: 226deg;
-  -webkit-mask: conic-gradient(from 331deg, #000 0deg var(--p), transparent var(--p) 360deg);
-  mask: conic-gradient(from 331deg, #000 0deg var(--p), transparent var(--p) 360deg);
-  animation: brand-draw 0.9s ease-out;
-}
-.brand-cat { opacity: 1; animation: brand-cat-appear 0.35s 0.82s both; }
-.brand-tail { transform-origin: 23px 51px; }
-.brand-ear { transform-box: fill-box; transform-origin: center bottom; }
-.brand:hover .brand-tail { animation: brand-wag 0.52s ease-in-out; }
-.brand:hover .brand-ear-left { animation: brand-ears 0.22s 2 alternate; }
-.brand:hover .brand-ear-right { animation: brand-ears 0.22s 0.05s 2 alternate-reverse; }
-@keyframes brand-draw { from { --p: 0deg; } }
-@keyframes brand-cat-appear { from { opacity: 0; } }
-@keyframes brand-wag {
-  30% { transform: rotate(-18deg); }
-  65% { transform: rotate(13deg); }
-  100% { transform: rotate(0); }
-}
-@keyframes brand-ears { to { transform: rotate(7deg) translateY(-1px); } }
-@media (prefers-reduced-motion: reduce) {
-  .brand-ring-progress, .brand-cat,
-  .brand:hover .brand-tail, .brand:hover .brand-ear { animation: none; }
-}
-.top-nav {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  font-size: 14.5px;
-  color: var(--fg-dim);
-  flex-wrap: wrap;
-}
-.top-nav a:hover { color: var(--fg); }
-.lang-links {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-.lang-links a {
-  font-size: 12.5px;
-  padding: 4px 8px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  color: var(--fg-dim);
-  background: rgba(255, 255, 255, 0.02);
-}
-.lang-links a:hover { color: var(--fg); border-color: var(--fg-dimmer); }
-.lang-links a[aria-current="page"] {
-  color: var(--accent);
-  border-color: rgba(255, 140, 66, 0.45);
-  background: var(--accent-soft);
-  font-weight: 600;
-}
-main { flex: 1 0 auto; padding: 48px 0 72px; }
-@media (max-width: 640px) { main { padding: 32px 0 56px; } }
-.post-meta time { font-family: var(--mono); }
-.post-meta {
-  font-size: 13px;
-  color: var(--fg-dimmer);
-  margin-bottom: 12px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 16px;
-}
-.post-header h1, .blog-hero h1 {
-  font-size: clamp(28px, 4vw, 40px);
-  line-height: 1.2;
-  letter-spacing: -0.025em;
-  font-weight: 700;
-  margin-bottom: 14px;
-  overflow-wrap: anywhere;
-}
-.blog-hero p {
-  font-size: 17px;
-  color: var(--fg-dim);
-  line-height: 1.65;
-  overflow-wrap: anywhere;
-}
-.blog-hero { margin-bottom: 36px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
-.post-list { display: grid; }
-.post-card {
-  position: relative;
-  display: block;
-  padding: 22px 40px 22px 0;
-  border-bottom: 1px solid var(--border);
-}
-.post-card:first-child { padding-top: 0; }
-.post-card::after {
-  content: "→";
-  position: absolute;
-  right: 4px;
-  top: 50%;
-  font-size: 18px;
-  color: var(--fg-dimmer);
-  transform: translateY(-50%);
-  transition: color 140ms ease, transform 140ms ease;
-}
-.post-card:hover::after { color: var(--accent); transform: translate(3px, -50%); }
-.post-card:first-child::after { top: calc(50% - 11px); }
-.post-card .post-meta { align-items: center; margin-bottom: 8px; }
-.post-tool {
-  font-size: 12px;
-  line-height: 1.6;
-  padding: 0 8px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  color: var(--fg-dim);
-}
-.post-card h2 {
-  font-size: 21px;
-  line-height: 1.35;
-  margin-bottom: 8px;
-  overflow-wrap: anywhere;
-  transition: color 140ms ease;
-}
-.post-card:hover h2 { color: var(--accent); }
-.post-card p { font-size: 15px; color: var(--fg-dim); overflow-wrap: anywhere; }
-.prose { font-size: 16.5px; line-height: 1.75; color: var(--fg); }
-.prose > * + * { margin-top: 1.15em; }
-.prose h2 {
-  font-size: clamp(22px, 2.6vw, 27px);
-  line-height: 1.3;
-  margin-top: 2em;
-  margin-bottom: 0.6em;
-  letter-spacing: -0.02em;
-}
-.prose h3 { font-size: 19px; line-height: 1.35; margin-top: 1.6em; margin-bottom: 0.5em; }
-.prose p, .prose li { overflow-wrap: anywhere; }
-.prose ul, .prose ol { padding-left: 1.4em; }
-.prose li + li { margin-top: 0.35em; }
-.prose a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
-.prose a:hover { color: var(--accent-hover); }
-.prose blockquote {
-  padding: 12px 16px;
-  border-left: 3px solid var(--accent);
-  background: var(--bg-soft);
-  border-radius: 0 8px 8px 0;
-  color: var(--fg-dim);
-}
-.prose :not(pre) > code {
-  font-family: var(--mono);
-  font-size: 0.88em;
-  background: rgba(255, 255, 255, 0.07);
-  padding: 2px 6px;
-  border-radius: 4px;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-.prose pre {
-  background: #08090d;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 14px 16px;
-  overflow-x: auto;
-  max-width: 100%;
-  font-family: var(--mono);
-  font-size: 13.5px;
-  line-height: 1.5;
-}
-.prose pre code { background: none; padding: 0; font-size: inherit; }
-.prose pre code.language-text { white-space: pre-wrap; overflow-wrap: anywhere; }
-.prose table {
-  display: block;
-  width: 100%;
-  max-width: 100%;
-  overflow-x: auto;
-  border-collapse: collapse;
-  font-size: 14.5px;
-}
-.prose th, .prose td {
-  border: 1px solid var(--border);
-  padding: 8px 12px;
-  text-align: left;
-}
-.prose th { background: var(--bg-soft); font-weight: 600; }
-.prose hr { border: 0; border-top: 1px solid var(--border); margin: 2em 0; }
-.blog-cta-card {
-  margin: 28px 0;
-  padding: 22px 24px;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 140, 66, 0.28);
-  background: linear-gradient(135deg, rgba(255, 140, 66, 0.09), rgba(20, 23, 32, 0.85) 60%);
-}
-.blog-cta-card h2 {
-  font-size: 18px;
-  line-height: 1.35;
-  margin: 0 0 8px;
-  color: var(--fg);
-}
-.blog-cta-card p {
-  font-size: 14.5px;
-  line-height: 1.6;
-  color: var(--fg-dim);
-  margin: 0 0 16px;
-}
-.blog-cta-actions { display: flex; flex-wrap: wrap; gap: 10px; }
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 40px;
-  padding: 0 15px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  border: 1px solid transparent;
-  text-decoration: none !important;
-  transition: background 150ms ease, border-color 150ms ease;
-}
-.btn-primary { background: var(--accent); color: var(--bg) !important; }
-.btn-primary:hover { background: var(--accent-hover); }
-.btn-secondary {
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--fg) !important;
-  border-color: rgba(255, 255, 255, 0.14);
-}
-.btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.09);
-  border-color: rgba(255, 255, 255, 0.25);
-}
-.related-section {
-  margin-top: 40px;
-  padding-top: 28px;
-  border-top: 1px solid var(--border);
-}
-.related-section h2 { font-size: 20px; margin-bottom: 14px; }
-.related-list { list-style: none; display: grid; gap: 10px; }
-.related-list a {
-  display: grid;
-  gap: 4px;
-  overflow-wrap: anywhere;
-}
-.related-section .related-list a {
-  padding: 14px 16px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: var(--bg-card);
-  transition: border-color 140ms ease;
-}
-.related-section .related-list a:is(:hover, :focus-visible) { border-color: var(--accent); }
-.related-list a:is(:hover, :focus-visible) .related-title { color: var(--accent); }
-.related-title { font-size: 16px; font-weight: 600; line-height: 1.4; }
-.related-desc { font-size: 14.5px; line-height: 1.55; color: var(--fg-dim); }
-.prose h2[id] { scroll-margin-top: 84px; }
-.wrap-article { max-width: 800px; }
-.article-main { min-width: 0; }
-.left-rail, .right-rail, .news-rail { display: none; }
-.post-header { margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
-.post-header h1 { margin-bottom: 20px; }
-.breadcrumb { color: var(--fg-dim); font-size: 14px; margin-bottom: 16px; overflow-wrap: anywhere; }
-.breadcrumb a:hover { color: var(--fg); text-decoration: underline; }
-.breadcrumb span[aria-hidden] { margin-inline: 0.45em; color: var(--fg-dimmer); }
-.post-header .post-meta { align-items: center; justify-content: space-between; margin-bottom: 0; }
-.mobile-menu { margin-bottom: 28px; }
-.categories, .mobile-menu { border-top: 1px solid var(--border); }
-.mobile-menu .categories { border-top: 0; }
-.category, .mobile-menu { border-bottom: 1px solid var(--border); }
-.mobile-menu .category:last-child { border-bottom: 0; }
-.category > summary, .mobile-menu > summary {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 43px;
-  list-style: none;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-}
-.category > summary::-webkit-details-marker, .mobile-menu > summary::-webkit-details-marker {
-  display: none;
-}
-.category > summary::after, .mobile-menu > summary::after {
-  content: "";
-  width: 6px;
-  height: 6px;
-  flex-shrink: 0;
-  border-right: 1px solid currentColor;
-  border-bottom: 1px solid currentColor;
-  transform: rotate(-45deg);
-  margin-inline: auto 5px;
-  color: var(--fg-dim);
-}
-.category[open] > summary::after, .mobile-menu[open] > summary::after { transform: rotate(45deg); }
-.category > summary:hover, .mobile-menu > summary:hover { color: var(--fg-dim); }
-.article-layout summary:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
-.category > summary svg { width: 18px; height: 18px; flex: 0 0 18px; color: var(--fg-dim); }
-.category-articles { list-style: none; padding: 0 0 10px 28px; }
-.category-articles a {
-  display: block;
-  font-size: 14px;
-  line-height: 1.55;
-  color: var(--fg-dim);
-  padding: 5px 0;
-  overflow-wrap: anywhere;
-}
-.category-articles a:hover, .category-articles a[aria-current="page"] { color: var(--fg); }
-.category-articles a[aria-current="page"] { font-weight: 650; }
-.toc-mobile {
-  padding: 14px 0;
-  border-top: 1px solid var(--border);
-}
-.toc-mobile summary {
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--fg);
-  list-style: none;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.toc-mobile summary::-webkit-details-marker { display: none; }
-.toc-mobile summary::after {
-  content: "▾";
-  font-size: 12px;
-  color: var(--fg-dimmer);
-  transition: transform 150ms ease;
-}
-.toc-mobile[open] summary::after { transform: rotate(180deg); }
-.toc-mobile .toc-list {
-  margin-top: 12px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border);
-}
-.toc-title {
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--fg-dimmer);
-  margin-bottom: 10px;
-}
-.toc-list { list-style: none; display: grid; gap: 8px; }
-.toc-list a {
-  display: block;
-  font-size: 13px;
-  line-height: 1.45;
-  color: var(--fg-dim);
-  padding: 2px 0;
-  transition: color 140ms ease;
-  overflow-wrap: anywhere;
-}
-.toc-list a:hover { color: var(--fg); }
-.toc-list a[aria-current="location"] { color: var(--fg); font-weight: 600; }
-.page-toc .toc-list { border-inline-start: 1px solid var(--border); }
-.page-toc .toc-list a {
-  border-inline-start: 1px solid transparent;
-  margin-inline-start: -1px;
-  padding-inline-start: 12px;
-}
-.page-toc .toc-list a[aria-current="location"] { border-inline-start-color: var(--fg); }
-.page-toc + .news-rail:not([hidden]) {
-  margin-top: 24px;
-  padding-top: 20px;
-  border-top: 1px solid var(--border);
-}
-.news-title {
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--fg-dimmer);
-  margin-bottom: 4px;
-}
-.news-list { display: grid; }
-.news-item {
-  display: block;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--border);
-}
-.news-item:hover .news-item-name { color: var(--accent); }
-.news-item-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 4px;
-}
-.news-item-name {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--fg);
-  transition: color 140ms ease;
-}
-.news-item-date {
-  font-family: var(--mono);
-  font-size: 11.5px;
-  color: var(--fg-dimmer);
-  white-space: nowrap;
-}
-.news-item-title {
-  font-size: 13px;
-  line-height: 1.45;
-  color: var(--fg-dim);
-  overflow-wrap: anywhere;
-}
-.news-all {
-  display: inline-block;
-  margin-top: 12px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--accent);
-}
-.news-all:hover { color: var(--accent-hover); }
-@media (min-width: 1025px) {
-  .wrap-article { max-width: 1360px; }
-  .article-layout {
-    display: grid;
-    grid-template-columns: clamp(185px, 17vw, 222px) minmax(0, 1fr) clamp(180px, 17vw, 222px);
-    align-items: start;
-    gap: clamp(24px, 3.25vw, 48px);
-  }
-  .left-rail, .right-rail {
-    display: block;
-    position: sticky;
-    top: 84px;
-    max-height: calc(100vh - 108px);
-    overflow-y: auto;
-    scrollbar-width: thin;
-    padding: 4px;
-    margin: -4px;
-  }
-  .mobile-menu { display: none; }
-}
-@media (min-width: 1440px) {
-  .news-rail:not([hidden]) { display: block; }
-}
-footer {
-  padding: 36px 0 28px;
-  border-top: 1px solid var(--border);
-  background: var(--bg);
-}
-footer .wrap {
-  max-width: 1080px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  text-align: center;
-}
-footer p { color: var(--fg-footer); font-size: 14px; }
-footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--fg-dim); }
-"""
-
 
 TOOL_LABELS = {
     "claude-code": "Claude Code",
@@ -1059,7 +620,7 @@ def _render_post_header(article: Article, ui: dict[str, str], blog_rel: str) -> 
         f'<a href="{blog_rel}">{html.escape(ui["blog_title"])}</a>'
         '<span aria-hidden="true">›</span>'
         f"<span>{html.escape(_category_label(article.tool, ui))}</span></nav>\n"
-        f"          <h1>{html.escape(article.title)}</h1>\n"
+        f"          <h1>{_keep_title_phrases_together(article.title)}</h1>\n"
         '          <div class="post-meta">\n'
         f'            <span>{html.escape(ui["updated"])} <time datetime="{article.lastmod}">'
         f"{article.lastmod}</time></span>\n"
@@ -1243,6 +804,90 @@ ARTICLE_SCRIPT = f"""\
 </script>"""
 
 
+def _category_logo(tool: str | None, root_rel: str) -> str:
+    if tool is None:
+        return USAGE_BADGE
+    return f'<img class="category-logo" src="{root_rel}blog/icons/{TOOL_LOGOS[tool]}" alt="" />'
+
+
+def _keep_title_phrases_together(text: str) -> str:
+    return TITLE_PHRASE_RE.sub(
+        lambda match: f'<span class="title-phrase">{match.group(0)}</span>', html.escape(text)
+    )
+
+
+def _render_footer(
+    lang: str,
+    root_rel: str,
+    home_rel: str,
+    list_rel: str,
+    brand_mark: str,
+    lang_links: str,
+    latest_posts: list[Article],
+) -> str:
+    ui = UI_STRINGS[lang]
+    categories = "\n".join(
+        f'          <li><a href="{list_rel}#{anchor}">{_category_logo(tool, root_rel)}'
+        f"{html.escape(_category_label(tool, ui))}</a></li>"
+        for tool, anchor in LIST_CATEGORY_IDS.items()
+    )
+    latest = "\n".join(
+        f'          <li><a href="{list_rel}{html.escape(post.slug, quote=True)}/" '
+        f'title="{html.escape(post.title, quote=True)}">{html.escape(post.title)}</a></li>'
+        for post in latest_posts
+    )
+    github = (
+        f'<a href="{GITHUB_URL}" target="_blank" rel="noopener">'
+        f"{html.escape(ui['card_github'])}</a>"
+    )
+    return f"""\
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a class="brand" href="{home_rel}" translate="no">{brand_mark}usage</a>
+        <h2>{html.escape(ui["card_title"])}</h2>
+        <p>{_keep_title_phrases_together(ui["card_desc"])}</p>
+        <div class="footer-actions">
+          <a class="footer-install" href="{home_rel}#install">{html.escape(ui["card_install"])}</a>
+          {github}
+        </div>
+      </div>
+      <nav class="footer-links footer-categories" aria-labelledby="footer-categories-title">
+        <h2 id="footer-categories-title">{html.escape(ui["footer_categories"])}</h2>
+        <ul>
+{categories}
+        </ul>
+      </nav>
+      <nav class="footer-links footer-latest" aria-labelledby="footer-latest-title">
+        <h2 id="footer-latest-title">{html.escape(ui["footer_latest"])}</h2>
+        <ul>
+{latest}
+        </ul>
+      </nav>
+      <nav class="footer-links footer-usage" aria-labelledby="footer-usage-title">
+        <h2 id="footer-usage-title">usage</h2>
+        <ul>
+          <li><a href="{home_rel}">{html.escape(ui["nav_home"])}</a></li>
+          <li><a href="{home_rel}#install">{html.escape(ui["nav_install"])}</a></li>
+          <li>{github}</li>
+          <li><a href="{AI_UPDATES_URL}" target="_blank" rel="noopener">
+            {html.escape(ui["news_title"])}</a></li>
+        </ul>
+      </nav>
+    </div>
+    <div class="footer-bottom">
+      <p class="footer-credit">{html.escape(ui["footer_tag_pre"])}<a href="https://github.com/aqua5230"
+        target="_blank" rel="noopener">@aqua5230</a> {html.escape(ui["footer_tag_post"])}</p>
+      <nav class="lang-links" aria-label="{html.escape(ui["footer_languages"], quote=True)}">
+{lang_links}
+      </nav>
+    </div>
+  </div>
+</footer>
+"""
+
+
 def _render_shell(
     *,
     lang: str,
@@ -1257,12 +902,21 @@ def _render_shell(
     home_rel: str,
     blog_rel: str,
     main_html: str,
+    latest_posts: list[Article],
     wrap_class: str = "wrap",
     extra_script: str = "",
     og_image: str | None = None,
 ) -> str:
     ui = UI_STRINGS[lang]
     brand_symbols, brand_mark = _landing_brand()
+    is_list = og_type == "website"
+    page_css = LIST_CSS if is_list else ARTICLE_CSS
+    blog_link = (
+        '<a href="#main-content" aria-current="page">' if is_list else f'<a href="{blog_rel}">'
+    )
+    font_url = (
+        f"https://fonts.googleapis.com/css2?family={DISPLAY_FONTS[lang]}:wght@600&amp;display=swap"
+    )
     resolved_og_image = og_image if og_image is not None else f"{_site_root()}{OG_IMAGE_PATH}"
     escaped_title = html.escape(title)
     escaped_desc = html.escape(description, quote=True)
@@ -1278,11 +932,14 @@ def _render_shell(
     json_ld_html = "\n".join(_json_ld_script(block) for block in json_ld_blocks)
 
     lang_links = "\n".join(
-        f'      <a href="{html.escape(lang_switch_urls[item], quote=True)}"'
+        f'      <a href="{html.escape(lang_switch_urls[item], quote=True)}" hreflang="{item}"'
         + (' aria-current="page"' if item == lang else "")
         + f">{html.escape(UI_STRINGS[item]['lang_label'])}</a>"
         for item in LANGS
         if item in lang_switch_urls
+    )
+    footer = _render_footer(
+        lang, root_rel, home_rel, "" if is_list else blog_rel, brand_mark, lang_links, latest_posts
     )
 
     return (
@@ -1292,7 +949,7 @@ def _render_shell(
         "<head>\n"
         '<meta charset="utf-8" />\n'
         '<meta name="viewport" content="width=device-width,initial-scale=1" />\n'
-        '<meta name="theme-color" content="#0a0a0a" />\n'
+        '<meta name="theme-color" content="#141312" />\n'
         f"<title>{escaped_title}</title>\n"
         f'<meta name="description" content="{escaped_desc}" />\n'
         f'<meta property="og:title" content="{escaped_title}" />\n'
@@ -1308,7 +965,8 @@ def _render_shell(
         f'<link rel="canonical" href="{escaped_canonical}" />\n'
         f"{hreflangs}\n"
         f"{json_ld_html}\n"
-        f"<style>\n{BASE_CSS}</style>\n"
+        f'<link rel="stylesheet" href="{font_url}" />\n'
+        f"<style>\n{COMMON_CSS}{page_css}{FOOTER_CSS}</style>\n"
         "</head>\n"
         "<body>\n"
         f"{brand_symbols}\n"
@@ -1319,10 +977,10 @@ def _render_shell(
         f"{brand_mark}usage</a>\n"
         '    <nav class="top-nav">\n'
         f'      <a href="{home_rel}">{html.escape(ui["nav_home"])}</a>\n'
-        f'      <a href="{blog_rel}">{html.escape(ui["nav_blog"])}</a>\n'
+        f"      {blog_link}{html.escape(ui['nav_blog'])}</a>\n"
         f'      <a href="{home_rel}#install">{html.escape(ui["nav_install"])}</a>\n'
         f'      <a href="{html.escape(GITHUB_URL, quote=True)}" '
-        'target="_blank" rel="noopener">GitHub</a>\n'
+        f'target="_blank" rel="noopener">{html.escape(ui["card_github"])}</a>\n'
         "    </nav>\n"
         '    <div class="lang-links">\n'
         f"{lang_links}\n"
@@ -1334,13 +992,7 @@ def _render_shell(
         f"{main_html}\n"
         "  </div>\n"
         "</main>\n"
-        "<footer>\n"
-        '  <div class="wrap">\n'
-        f"    <p>{html.escape(ui['footer_tag_pre'])} "
-        '<a href="https://github.com/aqua5230" target="_blank" rel="noopener">@aqua5230</a> '
-        f"{html.escape(ui['footer_tag_post'])}</p>\n"
-        "  </div>\n"
-        "</footer>\n" + (f"{extra_script}\n" if extra_script else "") + "</body>\n"
+        f"{footer}" + (f"{extra_script}\n" if extra_script else "") + "</body>\n"
         "</html>\n"
     )
 
@@ -1387,6 +1039,8 @@ def render_article(
     all_articles: dict[str, dict[str, Article]],
     md: MarkdownIt,
     slug_images: Collection[str] = (),
+    *,
+    latest_posts: list[Article],
 ) -> str:
     lang = article.lang
     ui = UI_STRINGS[lang]
@@ -1548,48 +1202,179 @@ def render_article(
         home_rel=home_rel,
         blog_rel=blog_rel,
         main_html=main_html,
+        latest_posts=latest_posts,
         wrap_class="wrap wrap-article",
         extra_script=ARTICLE_SCRIPT,
         og_image=custom_og_image,
     )
 
 
+def _category_badge(tool: str | None, root_rel: str) -> str:
+    return f'<span class="category-badge">{_category_logo(tool, root_rel)}</span>'
+
+
+def _render_list_categories(posts: list[Article], ui: dict[str, str], root_rel: str) -> str:
+    grouped: dict[str | None, list[Article]] = {tool: [] for tool in LIST_CATEGORY_IDS}
+    for post in posts:
+        if post.tool in grouped:
+            grouped[post.tool].append(post)
+
+    cards = []
+    for tool, anchor in LIST_CATEGORY_IDS.items():
+        category_posts = grouped[tool]
+        latest = ""
+        if category_posts:
+            title = category_posts[0].title
+            latest = (
+                f'<span class="category-latest" title="{html.escape(title, quote=True)}">'
+                f"{html.escape(ui['category_latest'].format(title=title))}</span>"
+            )
+        count = len(category_posts)
+        count_key = "category_count_one" if count == 1 else "category_count"
+        cards.append(
+            f"""\
+        <a class="category-tile category-{anchor}" href="#{anchor}">
+          <span class="category-art" aria-hidden="true">{_category_badge(tool, root_rel)}</span>
+          <div class="category-copy">
+            <h3 class="category-name">{html.escape(_category_label(tool, ui))}</h3>
+            <p>{html.escape(ui[f"{anchor}_desc"])}</p>
+            {latest}
+            <span class="category-count">{html.escape(ui[count_key].format(count=count))}</span>
+          </div>
+        </a>"""
+        )
+    tiles = "\n".join(cards)
+    return f"""\
+    <section id="categories" aria-labelledby="category-title">
+      <div class="section-head">
+        <div>
+          <h2 id="category-title">{html.escape(ui["categories"])}</h2>
+          <p>{html.escape(ui["categories_intro"])}</p>
+        </div>
+        <a class="section-link" href="#all">{html.escape(ui["all_articles"])}
+          <span aria-hidden="true">→</span></a>
+      </div>
+      <nav class="category-grid" aria-label="{html.escape(ui["categories"], quote=True)}">
+{tiles}
+      </nav>
+    </section>"""
+
+
+def _reading_minutes(body_html: str) -> int:
+    prose = html.unescape(TAG_RE.sub(" ", CODE_BLOCK_RE.sub(" ", body_html)))
+    words = len(WORD_RE.findall(CJK_CHAR_RE.sub(" ", prose)))
+    cjk_chars = len(CJK_CHAR_RE.findall(prose))
+    return max(1, ceil(words / 220 + cjk_chars / 450))
+
+
+def _thumbnail_source(post: Article, body_html: str, root_rel: str) -> str | None:
+    if post.image is not None:
+        return f"{root_rel}blog/{post.slug}/{post.image}"
+    for match in IMG_SRC_RE.finditer(body_html):
+        src = html.unescape(match[2])
+        if not src:
+            continue
+        if _is_plain_filename(src):
+            if Path(src).suffix.lower() in EMBED_EXTENSIONS:
+                continue
+            return f"{root_rel}blog/{post.slug}/{src}"
+        if src.startswith("/") or urlsplit(src).scheme:
+            return src
+        return f"{post.slug}/{src}"
+    return None
+
+
+def _render_list_card(post: Article, ui: dict[str, str], root_rel: str, md: MarkdownIt) -> str:
+    body_html = md.render(post.body_markdown)
+    thumbnail_src = _thumbnail_source(post, body_html, root_rel)
+    thumbnail = (
+        f'<img class="post-cover" src="{html.escape(thumbnail_src, quote=True)}" alt="" />'
+        if thumbnail_src is not None
+        else ""
+    )
+    category = html.escape(_category_label(post.tool, ui))
+    category_id = html.escape(LIST_CATEGORY_IDS.get(post.tool, post.tool or ""), quote=True)
+    post_href = html.escape(post.slug, quote=True) + "/"
+    reading = html.escape(ui["reading_time"].format(minutes=_reading_minutes(body_html)))
+    return f"""\
+        <a class="post-card" data-category="{category_id}" href="{post_href}">
+          <div class="post-art" aria-hidden="true">{thumbnail}</div>
+          <div class="post-copy">
+            <h3 class="post-title">{_keep_title_phrases_together(post.title)}</h3>
+            <p class="post-summary">{html.escape(post.description)}</p>
+            <div class="post-meta">
+              <time datetime="{post.date}">{post.date}</time>
+              <span>· {category}</span><span>· {reading}</span>
+            </div>
+          </div>
+        </a>"""
+
+
+def _render_list_articles(
+    posts: list[Article], ui: dict[str, str], root_rel: str, md: MarkdownIt
+) -> str:
+    targets = "\n".join(
+        f'      <span class="article-filter-target" id="{anchor}" tabindex="-1"></span>'
+        for anchor in LIST_CATEGORY_IDS.values()
+    )
+    filters = "\n".join(
+        f'          <a href="#{anchor}">{html.escape(_category_label(tool, ui))}</a>'
+        for tool, anchor in LIST_CATEGORY_IDS.items()
+    )
+    cards = "\n".join(_render_list_card(post, ui, root_rel, md) for post in posts)
+    return f"""\
+    <section class="articles" id="all" aria-labelledby="all-title">
+{targets}
+      <div class="section-head">
+        <div>
+          <h2 id="all-title">{html.escape(ui["all_articles"])}</h2>
+          <p>{html.escape(ui["articles_order"])}</p>
+        </div>
+        <nav class="article-filters" aria-label="{html.escape(ui["filter_articles"], quote=True)}">
+          <a href="#all">{html.escape(ui["filter_all"])}</a>
+{filters}
+        </nav>
+      </div>
+      <div class="post-list">
+{cards}
+      </div>
+    </section>"""
+
+
 def render_list_page(
     lang: str,
     posts: list[Article],
     list_langs: list[str],
+    md: MarkdownIt,
 ) -> str:
     ui = UI_STRINGS[lang]
     root_rel = "../" if lang == "en" else "../../"
     home_rel = "../"
     blog_rel = "./"
-
-    cards: list[str] = []
-    for post in posts:
-        post_href = f"{post.slug}/"
-        tool_label = TOOL_LABELS.get(post.tool or "")
-        tool_html = f'<span class="post-tool">{tool_label}</span>' if tool_label else ""
-        cards.append(
-            f'      <a class="post-card" href="{html.escape(post_href, quote=True)}">\n'
-            f'        <div class="post-meta">'
-            f'<time datetime="{post.date}">{post.date}</time>{tool_html}</div>\n'
-            f"        <h2>{html.escape(post.title)}</h2>\n"
-            f"        <p>{html.escape(post.description)}</p>\n"
-            "      </a>"
-        )
-
-    main_html = (
-        '    <section class="blog-hero">\n'
-        f"      <h1>{html.escape(ui['blog_title'])}</h1>\n"
-        f"      <p>{html.escape(ui['blog_subtitle'])}</p>\n"
-        "    </section>\n"
-        '    <div class="post-list">\n' + "\n".join(cards) + "\n    </div>"
+    hero_badges = "\n".join(
+        f"        {_category_badge(tool, root_rel)}" for tool in LIST_CATEGORY_IDS
     )
+    main_html = f"""\
+    <section class="blog-hero" aria-labelledby="page-title">
+      <div class="hero-badges" aria-hidden="true">
+{hero_badges}
+      </div>
+      <h1 id="page-title">{html.escape(ui["blog_title"])}</h1>
+      <p>{html.escape(ui["blog_subtitle"])}</p>
+    </section>
+{_render_list_categories(posts, ui, root_rel)}
+{_render_list_articles(posts, ui, root_rel, md)}"""
 
     canonical = list_url(lang)
     hreflang_urls = {l_code: list_url(l_code) for l_code in list_langs}
     lang_switch_urls = {
-        l_code: (f"{root_rel}blog/" if l_code == "en" else f"{root_rel}{l_code}/blog/")
+        l_code: (
+            "#main-content"
+            if l_code == lang
+            else f"{root_rel}blog/"
+            if l_code == "en"
+            else f"{root_rel}{l_code}/blog/"
+        )
         for l_code in list_langs
     }
     breadcrumb_ld: dict[str, object] = {
@@ -1614,6 +1399,8 @@ def render_list_page(
         home_rel=home_rel,
         blog_rel=blog_rel,
         main_html=main_html,
+        latest_posts=posts[:LATEST_POSTS_LIMIT],
+        wrap_class="wrap blog-page",
     )
 
 
@@ -1731,9 +1518,15 @@ def build_outputs(
         posts.sort(key=lambda a: (a.date, a.slug), reverse=True)
 
     list_langs = [lang for lang in LANGS if lang in posts_by_lang]
+    latest_by_lang = {lang: posts[:LATEST_POSTS_LIMIT] for lang, posts in posts_by_lang.items()}
+    if list_langs:
+        for filename in TOOL_LOGOS.values():
+            outputs[docs_dir / "blog" / "icons" / filename] = (
+                REPO_ROOT / "assets" / filename
+            ).read_bytes()
     for lang in list_langs:
         outputs[list_output_path(docs_dir, lang)] = render_list_page(
-            lang, posts_by_lang[lang], list_langs
+            lang, posts_by_lang[lang], list_langs, md
         )
 
     for slug, per_lang in articles.items():
@@ -1742,7 +1535,7 @@ def build_outputs(
             outputs[image_output_path(docs_dir, slug, filename)] = img_path.read_bytes()
         for lang, article in per_lang.items():
             outputs[article_output_path(docs_dir, slug, lang)] = render_article(
-                article, per_lang, articles, md, slug_images=slug_images
+                article, per_lang, articles, md, slug_images, latest_posts=latest_by_lang[lang]
             )
 
     new_sitemap = render_sitemap(sitemap_text, articles, posts_by_lang)

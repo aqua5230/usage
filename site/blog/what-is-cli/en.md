@@ -3,7 +3,6 @@ title: What Is a CLI? Learn How the Terminal Works with Claude Code
 description: A CLI is a way to control a computer by typing commands. Using a web page that was actually built with one typed sentence, this post explains how a CLI differs from a graphical user interface (GUI), why many AI assistants work in the terminal, how Claude Code types commands for you, and which line to read before it touches your files.
 date: 2026-11-24
 updated: 2026-11-25
-tool: claude-code
 image: pond-poster.jpg
 related: claude-code-idle-compaction, claude-code-weekly-limit-reset
 ---
