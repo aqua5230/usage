@@ -1,15 +1,18 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
-"""Read one local JSON response from Chromium's block-file HTTP cache.
+"""Read one local JSON response from Chromium's HTTP cache.
 
-Formats: Chromium net/disk_cache/blockfile/{disk_format,addr}.h and
-net/http/http_response_info.cc. No cookies, credentials, or requests are used.
-Unsupported formats and incomplete/in-flight entries return no response.
+Formats: Chromium net/disk_cache/blockfile/{disk_format,addr}.h,
+net/disk_cache/simple/simple_entry_format.h, and net/http/http_response_info.cc.
+No cookies, credentials, or requests are used. Unsupported formats and
+incomplete/in-flight entries return no response.
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
+import os
 import re
 import struct
 import zlib
@@ -28,6 +31,17 @@ BLOCK_SIZES = {1: 36, 2: 256, 3: 1024, 4: 4096, 5: 8, 6: 256, 7: 256}
 INDEX_HEADER = 368
 BLOCK_HEADER = 8192
 TIME_EPOCH = 11644473600
+# Simple-cache backend (Claude Desktop on macOS since late 2026): one file per entry.
+SIMPLE_MAGIC = 0xFCFB6D1BA7725C30
+SIMPLE_EOF_MAGIC = 0xF4FA6F45970D41D8
+SIMPLE_ENTRY_VERSION = 5
+SIMPLE_HEADER = 24
+SIMPLE_EOF = 24
+SIMPLE_HAS_CRC32 = 1
+SIMPLE_HAS_KEY_SHA256 = 2
+MAX_SIMPLE_ENTRY = MAX_BODY + 256 * 1024
+MAX_SIMPLE_CANDIDATES = 512
+FRESH_SECONDS = 7200
 
 
 @dataclass(frozen=True)
@@ -192,9 +206,7 @@ class _BlockCache:
         key = (
             self.stream(long_key, key_len) if long_key else raw[offset + 96 : offset + 96 + key_len]
         )
-        # Chromium prefixes keys with upload identifiers (e.g. "1/0/") and
-        # may also add a network-isolation key before the request URL.
-        if key[key.rfind(b"https://") :].partition(b"?")[0] != url:
+        if not _matches(key, url):
             return None
         if not self._active(entry, file, (offset - BLOCK_HEADER) // 256):
             return None
@@ -205,7 +217,7 @@ class _BlockCache:
         addresses = struct.unpack_from("<4I", entry, 56)
         metadata = self.stream(addresses[0], sizes[0])
         fetched_at, headers = _response_info(metadata)
-        if not max(earliest, now - 7200) <= fetched_at <= now + 60:
+        if not max(earliest, now - FRESH_SECONDS) <= fetched_at <= now + 60:
             return None
         body = self.stream(addresses[1], sizes[1])
         # Cache updates are concurrent; refuse entries whose metadata changed
@@ -217,9 +229,99 @@ class _BlockCache:
         return CachedResponse(_decode(body, headers), fetched_at)
 
 
+class _SimpleCache:
+    """One `<hash>_0` file per entry: header, key, body, EOF, response info, EOF."""
+
+    def __init__(self, path: Path) -> None:
+        self.path = path
+
+    def responses(self, url: bytes, earliest: float, now: float) -> list[CachedResponse]:
+        # Entry names hash the full key, which carries a query string and an
+        # isolation prefix we cannot predict, so scan by mtime instead. A file
+        # is rewritten whenever its response is stored, and older responses are
+        # rejected below anyway; the cap bounds the work on a busy profile.
+        lower = max(earliest, now - FRESH_SECONDS) - 60
+        candidates: list[tuple[float, str]] = []
+        with os.scandir(self.path) as entries:
+            for entry in entries:
+                if len(entry.name) != 18 or not entry.name.endswith("_0"):
+                    continue
+                try:
+                    stat = entry.stat()
+                except OSError:
+                    continue
+                if stat.st_mtime >= lower and stat.st_size <= MAX_SIMPLE_ENTRY:
+                    candidates.append((stat.st_mtime, entry.name))
+        candidates.sort(reverse=True)
+        results = []
+        for _mtime, name in candidates[:MAX_SIMPLE_CANDIDATES]:
+            try:
+                response = self._response(self.path / name, url, earliest, now)
+            except (OSError, ValueError, struct.error, zlib.error, RecursionError):
+                continue
+            if response is not None:
+                results.append(response)
+        return results
+
+    def _response(
+        self, path: Path, url: bytes, earliest: float, now: float
+    ) -> CachedResponse | None:
+        # One read of the whole file; the CRCs below reject a concurrent rewrite.
+        raw = read_bounded(path, MAX_SIMPLE_ENTRY)
+        if len(raw) < SIMPLE_HEADER + 2 * SIMPLE_EOF:
+            return None
+        magic, version, key_len, _key_hash = struct.unpack_from("<QIII", raw)
+        if magic != SIMPLE_MAGIC or version != SIMPLE_ENTRY_VERSION or not 0 < key_len <= 4096:
+            return None
+        key = raw[SIMPLE_HEADER : SIMPLE_HEADER + key_len]
+        if len(key) != key_len or not _matches(key, url):
+            return None
+        end = len(raw) - SIMPLE_EOF
+        eof_magic, flags, info_crc, info_len = struct.unpack_from("<QIII", raw, end)
+        if eof_magic != SIMPLE_EOF_MAGIC:
+            return None
+        if flags & SIMPLE_HAS_KEY_SHA256:
+            end -= 32
+            if raw[end : end + 32] != hashlib.sha256(key).digest():
+                return None
+        info_start = end - info_len
+        body_end = info_start - SIMPLE_EOF
+        body_start = SIMPLE_HEADER + key_len
+        if not 0 < info_len <= MAX_BODY or not 0 < body_end - body_start <= MAX_BODY:
+            return None
+        body_magic, body_flags, body_crc, _unused = struct.unpack_from("<QIII", raw, body_end)
+        if body_magic != SIMPLE_EOF_MAGIC:
+            return None
+        info = raw[info_start:end]
+        body = raw[body_start:body_end]
+        if flags & SIMPLE_HAS_CRC32 and zlib.crc32(info) != info_crc:
+            return None
+        if body_flags & SIMPLE_HAS_CRC32 and zlib.crc32(body) != body_crc:
+            return None
+        fetched_at, headers = _response_info(info)
+        if not max(earliest, now - FRESH_SECONDS) <= fetched_at <= now + 60:
+            return None
+        return CachedResponse(_decode(body, headers), fetched_at)
+
+
+def _matches(key: bytes, url: bytes) -> bool:
+    # Chromium prefixes keys with upload identifiers (e.g. "1/0/") and may
+    # also add a network-isolation key before the request URL. Desktop now
+    # also appends query strings such as `?via=plan`.
+    return key[key.rfind(b"https://") :].partition(b"?")[0] == url
+
+
+def _open_cache(path: Path) -> _BlockCache | _SimpleCache:
+    # The simple backend keeps only a 24-byte placeholder `index` that starts
+    # with the same magic as its entry files; the real index is in index-dir/.
+    if read_range(path / "index", 0, 8) == struct.pack("<Q", SIMPLE_MAGIC):
+        return _SimpleCache(path)
+    return _BlockCache(path)
+
+
 def load_cached_json(path: Path, url: bytes, earliest: float, now: float) -> CachedResponse | None:
     try:
-        responses = _BlockCache(path).responses(url, earliest, now)
+        responses = _open_cache(path).responses(url, earliest, now)
     except (OSError, ValueError, struct.error):
         return None
     return max(responses, key=lambda response: response.fetched_at, default=None)

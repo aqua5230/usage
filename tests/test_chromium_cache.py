@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import gzip
+import hashlib
 import json
+import os
 import struct
 import sys
 import zlib
@@ -52,30 +54,7 @@ def _cache(path: Path, *responses: Response) -> None:
     headers = _block_file(2, 1024, len(responses))
     rankings = _block_file(0, 36, len(responses))
     for i, response in enumerate(responses):
-        payload = response.payload
-        if payload is None:
-            payload = {
-                "five_hour": {"utilization": 14, "resets_at": _iso(NOW + 100)},
-                "seven_day": {"utilization": 1, "resets_at": _iso(NOW + 200)},
-            }
-        body = json.dumps(payload).encode()
-        if response.encoding == "zstd":
-            body = zstandard.ZstdCompressor(write_content_size=False).compress(body)
-        elif response.encoding == "gzip":
-            body = gzip.compress(body)
-        elif response.encoding == "deflate":
-            body = zlib.compress(body)
-        fields = (
-            f"HTTP/1.1 {response.status} OK\0content-type: application/json\0"
-            f"content-encoding: {response.encoding}\0\0"
-        ).encode()
-        timestamp = round((response.fetched + cache.TIME_EPOCH) * 1e6)
-        # Include both extra flags and original-response-time as real Desktop does.
-        metadata = struct.pack(
-            "<IIqqqI", 3 | 1 << 31, 6, timestamp, timestamp, timestamp, len(fields)
-        )
-        metadata += fields
-        metadata = struct.pack("<I", len(metadata)) + metadata
+        body, metadata = _streams(response)
         headers[8192 + i * 1024 : 8192 + i * 1024 + len(metadata)] = metadata
         offset = 8192 + i * 256
         key = b"1/0/" + response.url
@@ -98,6 +77,52 @@ def _cache(path: Path, *responses: Response) -> None:
         ("data_2", headers),
     ]:
         (path / name).write_bytes(raw)
+
+
+def _streams(response: Response) -> tuple[bytes, bytes]:
+    payload = response.payload
+    if payload is None:
+        payload = {
+            "five_hour": {"utilization": 14, "resets_at": _iso(NOW + 100)},
+            "seven_day": {"utilization": 1, "resets_at": _iso(NOW + 200)},
+        }
+    body = json.dumps(payload).encode()
+    if response.encoding == "zstd":
+        body = zstandard.ZstdCompressor(write_content_size=False).compress(body)
+    elif response.encoding == "gzip":
+        body = gzip.compress(body)
+    elif response.encoding == "deflate":
+        body = zlib.compress(body)
+    fields = (
+        f"HTTP/1.1 {response.status} OK\0content-type: application/json\0"
+        f"content-encoding: {response.encoding}\0\0"
+    ).encode()
+    timestamp = round((response.fetched + cache.TIME_EPOCH) * 1e6)
+    # Include both extra flags and original-response-time as real Desktop does.
+    metadata = struct.pack("<IIqqqI", 3 | 1 << 31, 6, timestamp, timestamp, timestamp, len(fields))
+    metadata += fields
+    metadata = struct.pack("<I", len(metadata)) + metadata
+    return body, metadata
+
+
+def _simple_cache(path: Path, *responses: Response, mtime: float = NOW) -> list[Path]:
+    """Write a Chromium simple-cache directory the way Desktop does on macOS."""
+    path.mkdir(parents=True, exist_ok=True)
+    (path / "index").write_bytes(struct.pack("<QIII4x", cache.SIMPLE_MAGIC, 9, 0, 0))
+    (path / "index-dir").mkdir(exist_ok=True)
+    files = []
+    for i, response in enumerate(responses):
+        body, info = _streams(response)
+        key = b"1/0/" + response.url
+        raw = struct.pack("<QIII4x", cache.SIMPLE_MAGIC, 5, len(key), 0) + key + body
+        raw += struct.pack("<QIII4x", cache.SIMPLE_EOF_MAGIC, 1, zlib.crc32(body), 0)
+        raw += info + hashlib.sha256(key).digest()
+        raw += struct.pack("<QIII4x", cache.SIMPLE_EOF_MAGIC, 3, zlib.crc32(info), len(info))
+        entry = path / f"{i + 1:016x}_0"
+        entry.write_bytes(raw)
+        os.utime(entry, (mtime, mtime))
+        files.append(entry)
+    return files
 
 
 def _iso(timestamp: float) -> str:
@@ -307,3 +332,75 @@ def test_entry_file_chain_stops_after_sixteen_files(
     monkeypatch.setattr(cache, "read_bounded", read)
     assert cache.load_cached_json(tmp_path, URL, NOW - 60, NOW) is None
     assert reads == ["index"] + [f"data_{file}" for file in range(1, 17)]
+
+
+@pytest.mark.parametrize("encoding", ["plain", "gzip", "deflate", "zstd"])
+def test_simple_cache_reads_response_with_query_without_modifying_files(
+    tmp_path: Path, encoding: str
+) -> None:
+    _simple_cache(tmp_path, Response(url=URL + b"?via=plan", encoding=encoding))
+    original = {p.name: p.read_bytes() for p in tmp_path.iterdir() if p.is_file()}
+    result = cache.load_cached_json(tmp_path, URL, NOW - 60, NOW)
+    assert result is not None
+    assert result.fetched_at == NOW
+    assert result.data["five_hour"] == {"utilization": 14, "resets_at": _iso(NOW + 100)}
+    assert {p.name: p.read_bytes() for p in tmp_path.iterdir() if p.is_file()} == original
+
+
+def test_simple_cache_selects_latest_response(tmp_path: Path) -> None:
+    _simple_cache(tmp_path, Response(fetched=NOW - 10), Response(url=URL + b"?skip_spend=1"))
+    result = cache.load_cached_json(tmp_path, URL, NOW - 60, NOW)
+    assert result is not None and result.fetched_at == NOW
+
+
+@pytest.mark.parametrize(
+    "response",
+    [
+        Response(url=URL.replace(b"org-a", b"org-b")),
+        Response(url=URL + b"-other"),
+        Response(status=403),
+        Response(fetched=NOW - 61),
+        Response(fetched=NOW + 61),
+        Response(payload=[]),
+    ],
+)
+def test_simple_cache_rejects_unrelated_or_unusable_response(
+    tmp_path: Path, response: Response
+) -> None:
+    _simple_cache(tmp_path, response)
+    assert cache.load_cached_json(tmp_path, URL, NOW - 60, NOW) is None
+
+
+@pytest.mark.parametrize("position", [40, -100, -30, -10])
+def test_simple_cache_rejects_corrupt_or_half_written_entry(tmp_path: Path, position: int) -> None:
+    (entry,) = _simple_cache(tmp_path, Response(encoding="plain"))
+    raw = bytearray(entry.read_bytes())
+    raw[position] ^= 0xFF
+    entry.write_bytes(bytes(raw))
+    os.utime(entry, (NOW, NOW))
+    assert cache.load_cached_json(tmp_path, URL, NOW - 60, NOW) is None
+
+
+def test_simple_cache_skips_entries_not_written_recently(tmp_path: Path) -> None:
+    _simple_cache(tmp_path, Response(), mtime=NOW - 7300)
+    assert cache.load_cached_json(tmp_path, URL, NOW - 10000, NOW) is None
+
+
+def test_simple_cache_fresh_response_outlives_stale_history(tmp_path: Path) -> None:
+    # Desktop stopped appending to plan-usage-history.json; the history still
+    # names the organization, and the cache supplies the current numbers.
+    history = tmp_path / desktop.HISTORY_NAME
+    history.write_text(
+        json.dumps(
+            {
+                "version": 2,
+                "samples": [{"t": (NOW - 86400) * 1000, "org": "org-a", "u": {"fh": 5, "sd": 58}}],
+            }
+        ),
+        encoding="utf-8",
+    )
+    assert desktop._read_history(history, NOW) is None
+    _simple_cache(tmp_path / "Cache/Cache_Data", Response(url=URL + b"?via=plan"))
+    assert desktop._read_history(history, NOW) == desktop.DesktopQuota(
+        14, 1, NOW, NOW + 100, NOW + 200
+    )
