@@ -340,6 +340,7 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   line-height: 1.5;
 }
 .prose pre code { background: none; padding: 0; font-size: inherit; }
+.prose pre code.language-text { white-space: pre-wrap; overflow-wrap: anywhere; }
 .prose table {
   display: block;
   width: 100%;
@@ -433,26 +434,6 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
 .breadcrumb a:hover { color: var(--fg); text-decoration: underline; }
 .breadcrumb span[aria-hidden] { margin-inline: 0.45em; color: var(--fg-dimmer); }
 .post-header .post-meta { align-items: center; justify-content: space-between; margin-bottom: 0; }
-.copy-markdown {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  border: 1px solid var(--fg-dimmer);
-  border-radius: 6px;
-  padding: 7px 12px;
-  min-height: 36px;
-  font: inherit;
-  font-weight: 600;
-  color: var(--fg);
-  background: var(--bg);
-  cursor: pointer;
-}
-.copy-markdown:hover { background: var(--bg-soft); }
-.copy-markdown:disabled { cursor: wait; }
-.copy-markdown svg { width: 15px; height: 15px; }
-.copy-status { font-size: 13px; color: var(--fg-dim); margin-top: 8px; }
-.copy-status:empty { display: none; }
-.copy-source { width: 100%; margin-top: 8px; font: inherit; }
 .mobile-menu { margin-bottom: 28px; }
 .categories, .mobile-menu { border-top: 1px solid var(--border); }
 .mobile-menu .categories { border-top: 0; }
@@ -686,10 +667,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
           <h1>How to Check Your Antigravity (agy) Quota</h1>
           <div class="post-meta">
             <span>Updated <time datetime="2026-11-24">2026-11-24</time></span>
-            <button class="copy-markdown" type="button" data-copied="Article Markdown copied to the clipboard." data-manual="Press ⌘C or Ctrl+C to copy the selected text below."><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="9" height="10" rx="1.5"/><path d="M5 13H4V3h9v2"/></svg>Copy for AI</button>
           </div>
-          <p class="copy-status" role="status"></p>
-          <textarea class="copy-source" aria-label="Article Markdown source" rows="6" readonly hidden></textarea>
         </header>
         <details class="mobile-menu">
           <summary>Article categories and contents</summary>
@@ -833,46 +811,8 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
     <p>Built by <a href="https://github.com/aqua5230" target="_blank" rel="noopener">@aqua5230</a> · AGPL-3.0 · No uploads. No tracking. Just yours.</p>
   </div>
 </footer>
-<script type="application/json" id="article-markdown">"---\ntitle: How to Check Your Antigravity (agy) Quota\ndescription: Type /usage in the Antigravity CLI, or run agy -p /usage --output-format json to get your quota without calling a model. See which models share each of the two quota pools and when they reset.\ndate: 2026-11-23\nupdated: 2026-11-24\ntool: antigravity\nrelated: claude-code-weekly-limit-reset, codex-weekly-limit-early-reset, what-is-cli\n---\n\n**To check your Antigravity (`agy`) quota, type `/usage` in the CLI, or run `agy -p /usage --output-format json` in your terminal.** The second command does not call a model, and it returns in about 6 seconds.\n\n## How do you check your quota in the CLI or the app?\n\nGoogle documents two built-in ways to see your baseline quota and your AI credits.\n\nThe first is the [CLI](../what-is-cli/). In an interactive session, type `/usage` (or `/quota`) and press Enter. Google's CLI docs say this refreshes your quota from the backend and opens a **Models & Quota** panel. You can scroll with the arrow keys or `J` and `K`, jump with `G` and `Shift + G`, and close the panel with `Esc` or `Q`. The right side of the status line also shows how many AI credits you have left, and it highlights the number when you are running low. To open a separate credits panel, type `/credits`.\n\nThe second is the app. Google's **Plans** page says you can see your baseline quota on the **Settings** page. If you are on Google AI Pro or Ultra, you can also set **AI Credit Overages** there. **Never** means you wait for your quota to refill. **Always** means Antigravity uses your AI credits once the quota runs out.\n\n## How do you get your quota as JSON without calling a model?\n\nIf you want the numbers for a script or a status line, run the CLI in headless mode (`-p`) with JSON output:\n\n```bash\nagy -p /usage --output-format json\n```\n\nIn our testing, this command makes no model call and returns in about 6 seconds. Google documents `/usage` as an interactive command, and it documents `agy -p` with `--output-format json`. It does not document using the two together, and it does not describe the `command.data.groups` field that holds the pools.\n\n![Antigravity’s JSON output lists two quota pools in groups and shows the window, fraction remaining, and refill time for the Gemini weekly limit.](usage-json-en.svg)\n\n## Which models share quota?\n\nThe `command.data.groups` field lists two pools. Models in the same pool share a weekly limit and a 5-hour limit. Each pool resets on its own schedule. We verified the groups with Antigravity CLI 1.5.16 on 2026-11-24.\n\n| Pool | Models | Shared limits |\n| --- | --- | --- |\n| `Gemini Models` | Gemini 4 Neon, Gemini 4 Carbon, Gemini 4 Argon, Gemini 4 Hydrogen, Orchestrator (Neon, Carbon, Argon), Gemini 3.8 Flash | Weekly and 5-hour |\n| `Claude and GPT models` | Claude Opus 5.5, Claude Sonnet 5.5, GPT-OSS 120B | Weekly and 5-hour |\n\nFor example, if Neon uses up the Gemini pool's 5-hour quota, Argon hits that limit too. The Claude and GPT pool keeps whatever quota it had left.\n\n## When do the 5-hour and weekly limits reset?\n\nGoogle's **Plans** page says the refresh schedule depends on your Google AI plan:\n\n- **Google AI Ultra:** the highest quota, refreshed every five hours, plus the highest weekly rate limit and access to third-party models.\n- **Google AI Pro:** a high quota, refreshed every five hours until you reach the weekly limit, plus a higher weekly rate limit.\n- **Other plans:** a baseline quota that refreshes weekly, plus a weekly rate limit.\n\nGoogle also says that how fast you use quota depends on how much work the agent does. Simple tasks let you send more prompts, and complex tasks use more. The docs don't say when the 5-hour window starts. In our testing, it starts with your first use.\n\n## How can you keep your Antigravity quota on screen?\n\nThere are two free official ways, and a third option if you want the number on screen all the time:\n\n- **`/usage` or Settings.** Type `/usage` in `agy` to open the Models & Quota panel, or open the Settings page in the app.\n- **`agy -p /usage --output-format json`.** Read both pools from `command.data.groups`.\n- **The `usage` app.** [`usage`](https://aqua5230.github.io/usage/) is free and open source. It reads your quota with `agy -p /usage`. If that fails, it falls back to Google's quota endpoint, using the sign-in that the Antigravity CLI already saved. It shows your 5-hour and weekly limits, with countdowns, in the macOS menu bar or the Windows system tray. The Antigravity card shows the Gemini pool first. Tap the `Gemini ⇄` tag to switch between Gemini and Claude / GPT. The card remembers your choice. A limit turns red as it gets close, and you can get a notification at 50%, 70%, 80%, 90%, or 95%. The default is 90%.\n\n## Key takeaways\n\n- Type `/usage` in the Antigravity CLI to open the quota panel. Run `agy -p /usage --output-format json` to get the same data as JSON without calling a model.\n- Gemini Models and Claude and GPT models each have a weekly and a 5-hour limit. Gemini 4 Argon shares both limits with the other Gemini models.\n- `usage` shows the quota and countdown in your menu bar or tray, and one click switches between the two pools.\n\n## Sources\n\n- [Model quotas (/usage)](https://antigravity.google/docs/cli/commands/usage)\n- [Plans](https://antigravity.google/docs/plans)\n- [Headless mode](https://antigravity.google/docs/cli/headless)\n- [CLI AI credits](https://antigravity.google/docs/cli/credits)\n- [Choose a model](https://antigravity.google/docs/models)\n"</script>
 <script>
 (function () {
-  var copyButton = document.querySelector(".copy-markdown");
-  var copyStatus = document.querySelector(".copy-status");
-  var copySource = document.querySelector(".copy-source");
-  var markdown = JSON.parse(document.getElementById("article-markdown").textContent);
-
-  function copyWithSelection() {
-    copySource.value = markdown;
-    copySource.hidden = false;
-    copySource.focus({ preventScroll: true });
-    copySource.select();
-    try {
-      return document.execCommand("copy");
-    } catch {
-      return false;
-    }
-  }
-
-  copyButton.addEventListener("click", async function () {
-    copyStatus.textContent = "";
-    copyButton.disabled = true;
-    var copied = false;
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      try {
-        await navigator.clipboard.writeText(markdown);
-        copied = true;
-      } catch {
-        copied = copyWithSelection();
-      }
-    } else {
-      copied = copyWithSelection();
-    }
-    copyButton.disabled = false;
-    copySource.hidden = copied;
-    copyStatus.textContent = copied ? copyButton.dataset.copied : copyButton.dataset.manual;
-    if (copied) copyButton.focus({ preventScroll: true });
-  });
-
   var tocLinks = Array.prototype.slice.call(
     document.querySelectorAll('.page-toc a[href^="#"]')
   );

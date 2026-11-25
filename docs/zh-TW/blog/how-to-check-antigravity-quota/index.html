@@ -340,6 +340,7 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   line-height: 1.5;
 }
 .prose pre code { background: none; padding: 0; font-size: inherit; }
+.prose pre code.language-text { white-space: pre-wrap; overflow-wrap: anywhere; }
 .prose table {
   display: block;
   width: 100%;
@@ -433,26 +434,6 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
 .breadcrumb a:hover { color: var(--fg); text-decoration: underline; }
 .breadcrumb span[aria-hidden] { margin-inline: 0.45em; color: var(--fg-dimmer); }
 .post-header .post-meta { align-items: center; justify-content: space-between; margin-bottom: 0; }
-.copy-markdown {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  border: 1px solid var(--fg-dimmer);
-  border-radius: 6px;
-  padding: 7px 12px;
-  min-height: 36px;
-  font: inherit;
-  font-weight: 600;
-  color: var(--fg);
-  background: var(--bg);
-  cursor: pointer;
-}
-.copy-markdown:hover { background: var(--bg-soft); }
-.copy-markdown:disabled { cursor: wait; }
-.copy-markdown svg { width: 15px; height: 15px; }
-.copy-status { font-size: 13px; color: var(--fg-dim); margin-top: 8px; }
-.copy-status:empty { display: none; }
-.copy-source { width: 100%; margin-top: 8px; font: inherit; }
 .mobile-menu { margin-bottom: 28px; }
 .categories, .mobile-menu { border-top: 1px solid var(--border); }
 .mobile-menu .categories { border-top: 0; }
@@ -668,6 +649,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
       <aside class="left-rail">
 <nav class="categories" aria-label="文章分類">
 <details class="category"><summary><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5h14v11H3z M6 8l2.5 2L6 12 M10.5 12H14"/></svg>Claude Code</summary><ul class="category-articles">
+<li><a href="../claude-code-codex-not-working/">Claude Code、Codex 突然不能用，是額度用完還是官方故障？</a></li>
 <li><a href="../claude-code-idle-compaction/">Claude Code 為什麼自己壓縮對話？</a></li>
 <li><a href="../what-is-cli/">CLI 是什麼？從 Claude Code 看懂終端機</a></li>
 <li><a href="../claude-code-weekly-limit-reset/">Claude Code 每週額度什麼時候重置？</a></li>
@@ -686,15 +668,13 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
           <h1>怎麼查 Antigravity（agy）剩多少額度？</h1>
           <div class="post-meta">
             <span>更新於 <time datetime="2026-11-24">2026-11-24</time></span>
-            <button class="copy-markdown" type="button" data-copied="文章原稿已複製到剪貼簿。" data-manual="請按 ⌘C 或 Ctrl+C 複製下方已選取的原稿。"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="9" height="10" rx="1.5"/><path d="M5 13H4V3h9v2"/></svg>複製給 AI</button>
           </div>
-          <p class="copy-status" role="status"></p>
-          <textarea class="copy-source" aria-label="文章 Markdown 原稿" rows="6" readonly hidden></textarea>
         </header>
         <details class="mobile-menu">
           <summary>文章分類與目錄</summary>
 <nav class="categories" aria-label="文章分類">
 <details class="category"><summary><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5h14v11H3z M6 8l2.5 2L6 12 M10.5 12H14"/></svg>Claude Code</summary><ul class="category-articles">
+<li><a href="../claude-code-codex-not-working/">Claude Code、Codex 突然不能用，是額度用完還是官方故障？</a></li>
 <li><a href="../claude-code-idle-compaction/">Claude Code 為什麼自己壓縮對話？</a></li>
 <li><a href="../what-is-cli/">CLI 是什麼？從 Claude Code 看懂終端機</a></li>
 <li><a href="../claude-code-weekly-limit-reset/">Claude Code 每週額度什麼時候重置？</a></li>
@@ -833,46 +813,8 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
     <p>作者： <a href="https://github.com/aqua5230" target="_blank" rel="noopener">@aqua5230</a> · AGPL-3.0 · 不上傳、不追蹤，只屬於你。</p>
   </div>
 </footer>
-<script type="application/json" id="article-markdown">"---\ntitle: 怎麼查 Antigravity（agy）剩多少額度？\ndescription: 在 Antigravity CLI 輸入 /usage，或在終端機跑 agy -p /usage --output-format json，不用呼叫模型就能查額度。這篇說明兩個額度池各有哪些模型，以及額度何時重置。\ndate: 2026-11-23\nupdated: 2026-11-24\ntool: antigravity\nrelated: claude-code-weekly-limit-reset, codex-weekly-limit-early-reset, what-is-cli\n---\n\n**想查 Antigravity（`agy`）剩多少額度，可以在 CLI 裡輸入 `/usage`，或在終端機執行 `agy -p /usage --output-format json`**。第二種方法不會呼叫模型，大約 6 秒就有結果。\n\n## 怎麼在 CLI 或 app 裡查額度？\n\nGoogle 的文件提供兩種內建查法，可以看基本額度和 AI 點數。\n\n第一種在 [CLI](../what-is-cli/) 裡。在互動模式輸入 `/usage`（或 `/quota`）再按 Enter。Google 的 CLI 文件說，這個指令會從伺服器重新抓額度，然後打開 **Models & Quota** 面板。你可以用方向鍵或 `J`、`K` 捲動，用 `G` 和 `Shift + G` 跳到最上面或最下面，按 `Esc` 或 `Q` 關掉面板。狀態列右邊也會顯示你還剩多少 AI 點數，快用完時會特別標出來。想看點數的詳細面板，就輸入 `/credits`。\n\n第二種在 app 裡。Google 的 **Plans** 頁面說，你可以在 **Settings** 頁面看到基本額度。如果你訂的是 Google AI Pro 或 Ultra，還可以在這裡設定 **AI Credit Overages**：選 **Never**，額度用完就等它補滿；選 **Always**，額度用完後會改用你的 AI 點數。\n\n## 怎麼不呼叫模型，直接拿到 JSON 格式的額度？\n\n如果你想把數字拿去給腳本或狀態列用，可以用無頭模式（`-p`）加上 JSON 輸出來執行 CLI：\n\n```bash\nagy -p /usage --output-format json\n```\n\n我們實測，這個指令不會呼叫模型，大約 6 秒就有結果。Google 的文件分別介紹了互動式的 `/usage`，以及 `agy -p` 搭配 `--output-format json` 的用法，但沒有寫到兩者一起用，也沒有說明存放額度池的 `command.data.groups` 欄位。\n\n![Antigravity 的 JSON 輸出用 groups 列出兩個額度池，並顯示 Gemini 每週額度的週期、剩餘比例和補滿時間。](usage-json.svg)\n\n## 哪些模型共用額度？\n\n`command.data.groups` 欄位列出兩個額度池。同一池的模型共用每週和 5 小時額度。兩個額度池各自計時。我們在 2026-11-24 用 Antigravity CLI 1.5.16 確認了這份分組。\n\n| 額度池 | 模型 | 共用額度 |\n| --- | --- | --- |\n| `Gemini Models` | Gemini 4 Neon、Gemini 4 Carbon、Gemini 4 Argon、Gemini 4 Hydrogen、Orchestrator（Neon、Carbon、Argon）、Gemini 3.8 Flash | 每週和 5 小時 |\n| `Claude and GPT models` | Claude Opus 5.5、Claude Sonnet 5.5、GPT-OSS 120B | 每週和 5 小時 |\n\n例如，如果你用 Neon 耗盡 Gemini 額度池的 5 小時額度，Argon 也會達到上限。Claude 和 GPT 模型仍可使用自己額度池的剩餘額度。\n\n## 5 小時和每週額度什麼時候重置？\n\nGoogle 的 **Plans** 頁面說，重置頻率要看你的 Google AI 方案：\n\n- **Google AI Ultra**：額度最高，每 5 小時補滿一次，每週上限也最高，還能用第三方模型。\n- **Google AI Pro**：額度高，每 5 小時補滿一次，直到用完每週上限；每週上限也比較高。\n- **其他方案**：基本額度每週補滿一次，另有每週上限。\n\nGoogle 也說，額度用掉的速度要看代理做了多少工作：簡單的任務可以多問幾次，複雜的任務用得比較快。文件沒有寫 5 小時額度從什麼時候開始算。我們實測，是從你第一次使用時開始。\n\n## 怎麼讓 Antigravity 的額度一直顯示在畫面上？\n\n有兩種官方的免費查法。想讓數字一直顯示在畫面上，還有第三種做法：\n\n- **`/usage` 或 Settings**：在 `agy` 輸入 `/usage` 打開 Models & Quota 面板，或打開 app 的 Settings 頁面。\n- **`agy -p /usage --output-format json`**。從 `command.data.groups` 讀取兩個額度池。\n- **usage**。[`usage`](https://aqua5230.github.io/usage/zh-TW/) 是免費開源的 app。它用 `agy -p /usage` 讀額度；如果讀不到，就改用 Antigravity CLI 已經存好的登入資料，向 Google 的額度服務查詢。它會把 5 小時和每週額度連同倒數，顯示在 macOS 選單列或 Windows 系統匣。Antigravity 卡片預設顯示 Gemini 額度池。點一下 `Gemini ⇄` 標籤，可以在 Gemini 和 Claude / GPT 之間切換。卡片會記住你的選擇。額度快用完時數字會變紅；你也可以在用到 50%、70%、80%、90% 或 95% 時收到通知，預設是 90%。\n\n## 重點整理\n\n- 在 Antigravity CLI 輸入 `/usage` 可以打開額度面板；執行 `agy -p /usage --output-format json`，不用呼叫模型就能拿到一樣的資料。\n- Gemini Models 和 Claude and GPT models 各有每週和 5 小時額度。Gemini 4 Argon 與其他 Gemini 模型共用這兩種額度。\n- `usage` 會在選單列或系統匣顯示額度和重置倒數，點一下就能在兩個額度池之間切換。\n\n## 資料來源\n\n- [Model quotas (/usage)](https://antigravity.google/docs/cli/commands/usage)\n- [Plans](https://antigravity.google/docs/plans)\n- [Headless mode](https://antigravity.google/docs/cli/headless)\n- [CLI AI credits](https://antigravity.google/docs/cli/credits)\n- [Choose a model](https://antigravity.google/docs/models)\n"</script>
 <script>
 (function () {
-  var copyButton = document.querySelector(".copy-markdown");
-  var copyStatus = document.querySelector(".copy-status");
-  var copySource = document.querySelector(".copy-source");
-  var markdown = JSON.parse(document.getElementById("article-markdown").textContent);
-
-  function copyWithSelection() {
-    copySource.value = markdown;
-    copySource.hidden = false;
-    copySource.focus({ preventScroll: true });
-    copySource.select();
-    try {
-      return document.execCommand("copy");
-    } catch {
-      return false;
-    }
-  }
-
-  copyButton.addEventListener("click", async function () {
-    copyStatus.textContent = "";
-    copyButton.disabled = true;
-    var copied = false;
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      try {
-        await navigator.clipboard.writeText(markdown);
-        copied = true;
-      } catch {
-        copied = copyWithSelection();
-      }
-    } else {
-      copied = copyWithSelection();
-    }
-    copyButton.disabled = false;
-    copySource.hidden = copied;
-    copyStatus.textContent = copied ? copyButton.dataset.copied : copyButton.dataset.manual;
-    if (copied) copyButton.focus({ preventScroll: true });
-  });
-
   var tocLinks = Array.prototype.slice.call(
     document.querySelectorAll('.page-toc a[href^="#"]')
   );

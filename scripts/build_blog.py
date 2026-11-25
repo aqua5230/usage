@@ -79,10 +79,6 @@ UI_STRINGS: dict[str, dict[str, str]] = {
         "categories": "Article categories",
         "categories_and_toc": "Article categories and contents",
         "breadcrumb": "Breadcrumb",
-        "copy_markdown": "Copy for AI",
-        "copy_success": "Article Markdown copied to the clipboard.",
-        "copy_manual": "Press ⌘C or Ctrl+C to copy the selected text below.",
-        "markdown_source": "Article Markdown source",
         "card_title": "Track your AI coding quotas in the menu bar",
         "card_desc": (
             "usage is a free, open-source (AGPL-3.0) app for the macOS menu bar and "
@@ -112,10 +108,6 @@ UI_STRINGS: dict[str, dict[str, str]] = {
         "categories": "文章分類",
         "categories_and_toc": "文章分類與目錄",
         "breadcrumb": "麵包屑",
-        "copy_markdown": "複製給 AI",
-        "copy_success": "文章原稿已複製到剪貼簿。",
-        "copy_manual": "請按 ⌘C 或 Ctrl+C 複製下方已選取的原稿。",
-        "markdown_source": "文章 Markdown 原稿",
         "card_title": "在選單列隨時看 AI 寫程式的額度",
         "card_desc": (
             "usage 是一款免費、開源（AGPL-3.0）的用量工具，提供 macOS 選單列與 Windows "
@@ -145,10 +137,6 @@ UI_STRINGS: dict[str, dict[str, str]] = {
         "categories": "文章分类",
         "categories_and_toc": "文章分类与目录",
         "breadcrumb": "面包屑导航",
-        "copy_markdown": "复制给 AI",
-        "copy_success": "文章原稿已复制到剪贴板。",
-        "copy_manual": "请按 ⌘C 或 Ctrl+C 复制下方已选中的原稿。",
-        "markdown_source": "文章 Markdown 原稿",
         "card_title": "在菜单栏掌握你的 AI 开发额度",
         "card_desc": (
             "usage 是一款免费、开源（AGPL-3.0）的用量工具，提供 macOS 菜单栏与 Windows "
@@ -178,10 +166,6 @@ UI_STRINGS: dict[str, dict[str, str]] = {
         "categories": "記事のカテゴリ",
         "categories_and_toc": "記事のカテゴリと目次",
         "breadcrumb": "パンくずリスト",
-        "copy_markdown": "AI 用にコピー",
-        "copy_success": "記事の Markdown をクリップボードにコピーしました。",
-        "copy_manual": "⌘C または Ctrl+C を押して、下の選択済みテキストをコピーしてください。",
-        "markdown_source": "記事の Markdown 原文",
         "card_title": "AI コーディングのクォータをメニューバーで把握",
         "card_desc": (
             "usage は無料・オープンソース（AGPL-3.0）のツールで、macOS メニューバーと"
@@ -211,10 +195,6 @@ UI_STRINGS: dict[str, dict[str, str]] = {
         "categories": "글 카테고리",
         "categories_and_toc": "글 카테고리와 목차",
         "breadcrumb": "현재 위치",
-        "copy_markdown": "AI용으로 복사",
-        "copy_success": "글의 Markdown 원문을 클립보드에 복사했습니다.",
-        "copy_manual": "⌘C 또는 Ctrl+C를 눌러 아래에서 선택된 원문을 복사하세요.",
-        "markdown_source": "글의 Markdown 원문",
         "card_title": "메뉴 막대에서 AI 코딩 할당량을 바로 확인하세요",
         "card_desc": (
             "usage는 무료 오픈소스(AGPL-3.0) 앱으로 macOS 메뉴 막대와 "
@@ -498,6 +478,7 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   line-height: 1.5;
 }
 .prose pre code { background: none; padding: 0; font-size: inherit; }
+.prose pre code.language-text { white-space: pre-wrap; overflow-wrap: anywhere; }
 .prose table {
   display: block;
   width: 100%;
@@ -591,26 +572,6 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
 .breadcrumb a:hover { color: var(--fg); text-decoration: underline; }
 .breadcrumb span[aria-hidden] { margin-inline: 0.45em; color: var(--fg-dimmer); }
 .post-header .post-meta { align-items: center; justify-content: space-between; margin-bottom: 0; }
-.copy-markdown {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  border: 1px solid var(--fg-dimmer);
-  border-radius: 6px;
-  padding: 7px 12px;
-  min-height: 36px;
-  font: inherit;
-  font-weight: 600;
-  color: var(--fg);
-  background: var(--bg);
-  cursor: pointer;
-}
-.copy-markdown:hover { background: var(--bg-soft); }
-.copy-markdown:disabled { cursor: wait; }
-.copy-markdown svg { width: 15px; height: 15px; }
-.copy-status { font-size: 13px; color: var(--fg-dim); margin-top: 8px; }
-.copy-status:empty { display: none; }
-.copy-source { width: 100%; margin-top: 8px; font: inherit; }
 .mobile-menu { margin-bottom: 28px; }
 .categories, .mobile-menu { border-top: 1px solid var(--border); }
 .mobile-menu .categories { border-top: 0; }
@@ -834,7 +795,6 @@ class Article:
     updated: str | None
     related: tuple[str, ...]
     body_markdown: str
-    raw_markdown: str
     image: str | None = None
     tool: str | None = None
 
@@ -953,8 +913,7 @@ def load_articles(source_dir: Path) -> dict[str, dict[str, Article]]:
             md_path = slug_dir / f"{lang}.md"
             if not md_path.is_file():
                 continue
-            raw_markdown = md_path.read_bytes().decode("utf-8")
-            meta, body = parse_frontmatter(raw_markdown, md_path)
+            meta, body = parse_frontmatter(md_path.read_text(encoding="utf-8"), md_path)
             title = meta.get("title", "").strip()
             description = meta.get("description", "").strip()
             raw_date = meta.get("date", "").strip()
@@ -981,7 +940,6 @@ def load_articles(source_dir: Path) -> dict[str, dict[str, Article]]:
                 updated=updated,
                 related=related,
                 body_markdown=body,
-                raw_markdown=raw_markdown,
                 image=image,
                 tool=meta.get("tool", "").strip() or None,
             )
@@ -1105,15 +1063,7 @@ def _render_post_header(article: Article, ui: dict[str, str], blog_rel: str) -> 
         '          <div class="post-meta">\n'
         f'            <span>{html.escape(ui["updated"])} <time datetime="{article.lastmod}">'
         f"{article.lastmod}</time></span>\n"
-        '            <button class="copy-markdown" type="button" '
-        f'data-copied="{html.escape(ui["copy_success"])}" '
-        f'data-manual="{html.escape(ui["copy_manual"])}">{SVG_LINE}'
-        '<rect x="7" y="7" width="9" height="10" rx="1.5"/><path d="M5 13H4V3h9v2"/></svg>'
-        f"{html.escape(ui['copy_markdown'])}</button>\n"
         "          </div>\n"
-        '          <p class="copy-status" role="status"></p>\n'
-        '          <textarea class="copy-source" '
-        f'aria-label="{html.escape(ui["markdown_source"])}" rows="6" readonly hidden></textarea>\n'
         "        </header>\n"
     )
 
@@ -1121,43 +1071,6 @@ def _render_post_header(article: Article, ui: dict[str, str], blog_rel: str) -> 
 ARTICLE_SCRIPT = f"""\
 <script>
 (function () {{
-  var copyButton = document.querySelector(".copy-markdown");
-  var copyStatus = document.querySelector(".copy-status");
-  var copySource = document.querySelector(".copy-source");
-  var markdown = JSON.parse(document.getElementById("article-markdown").textContent);
-
-  function copyWithSelection() {{
-    copySource.value = markdown;
-    copySource.hidden = false;
-    copySource.focus({{ preventScroll: true }});
-    copySource.select();
-    try {{
-      return document.execCommand("copy");
-    }} catch {{
-      return false;
-    }}
-  }}
-
-  copyButton.addEventListener("click", async function () {{
-    copyStatus.textContent = "";
-    copyButton.disabled = true;
-    var copied = false;
-    if (navigator.clipboard && navigator.clipboard.writeText) {{
-      try {{
-        await navigator.clipboard.writeText(markdown);
-        copied = true;
-      }} catch {{
-        copied = copyWithSelection();
-      }}
-    }} else {{
-      copied = copyWithSelection();
-    }}
-    copyButton.disabled = false;
-    copySource.hidden = copied;
-    copyStatus.textContent = copied ? copyButton.dataset.copied : copyButton.dataset.manual;
-    if (copied) copyButton.focus({{ preventScroll: true }});
-  }});
-
   var tocLinks = Array.prototype.slice.call(
     document.querySelectorAll('.page-toc a[href^="#"]')
   );
@@ -1622,11 +1535,6 @@ def render_article(
         ],
     }
 
-    # Escape HTML tag openers in the JSON without changing the decoded source.
-    encoded_markdown = json.dumps(article.raw_markdown, ensure_ascii=False).replace("<", "\\u003c")
-    markdown_script = (
-        f'<script type="application/json" id="article-markdown">{encoded_markdown}</script>'
-    )
     return _render_shell(
         lang=lang,
         title=f"{article.title} — usage",
@@ -1641,7 +1549,7 @@ def render_article(
         blog_rel=blog_rel,
         main_html=main_html,
         wrap_class="wrap wrap-article",
-        extra_script=f"{markdown_script}\n{ARTICLE_SCRIPT}",
+        extra_script=ARTICLE_SCRIPT,
         og_image=custom_og_image,
     )
 
