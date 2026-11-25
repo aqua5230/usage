@@ -166,16 +166,12 @@ claude --permission-mode manual
 
 Each line does one thing:
 
-1. `mkdir first-try`: creates a new folder called "first-try". It prints nothing when it works, and that's normal.
+1. `mkdir first-try`: creates a new folder called "first-try". It prints nothing when it works, and that's normal. If it says `File exists`, a folder with that name is already there. Replace "first-try" in all four lines with another name and type them again.
 2. `cd first-try`: moves into that folder. Claude Code works in the folder where you start it, so you need to be inside first.
 3. `pwd`: asks the terminal which folder you're in. It replies with a path. If the path ends in "first-try", you're in the right place.
-4. `claude --permission-mode manual`: starts Claude Code. The part after `claude` tells it to ask you before it changes anything or runs a command.
+4. `claude --permission-mode manual`: starts Claude Code and tells it to ask you before it changes anything or runs a command. Normally you just type `claude`. Setting it this way the first time lets you see the prompts described above, so you know what it's about to do at each step. The first time, it asks you to log in through your browser, then asks whether you trust this folder. It's the empty folder you just made, so choose to trust it.
 
-The first time, it opens a browser so you can log in. After you log in, go back to the terminal. It asks whether you trust this folder. It's the empty folder you just made, so choose to trust it.
-
-If the first line says `File exists`, a folder with that name is already there. Replace "first-try" in all four lines with another name and type them again.
-
-When you're done, type `/exit` and press Enter.
+To leave Claude Code, type `/exit` and press Enter.
 
 **Start with something small.** Replace March 14 with your own birthday and type:
 

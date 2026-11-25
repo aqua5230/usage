@@ -718,14 +718,12 @@ claude --permission-mode manual
 </code></pre>
 <p>Each line does one thing:</p>
 <ol>
-<li><code>mkdir first-try</code>: creates a new folder called &quot;first-try&quot;. It prints nothing when it works, and that's normal.</li>
+<li><code>mkdir first-try</code>: creates a new folder called &quot;first-try&quot;. It prints nothing when it works, and that's normal. If it says <code>File exists</code>, a folder with that name is already there. Replace &quot;first-try&quot; in all four lines with another name and type them again.</li>
 <li><code>cd first-try</code>: moves into that folder. Claude Code works in the folder where you start it, so you need to be inside first.</li>
 <li><code>pwd</code>: asks the terminal which folder you're in. It replies with a path. If the path ends in &quot;first-try&quot;, you're in the right place.</li>
-<li><code>claude --permission-mode manual</code>: starts Claude Code. The part after <code>claude</code> tells it to ask you before it changes anything or runs a command.</li>
+<li><code>claude --permission-mode manual</code>: starts Claude Code and tells it to ask you before it changes anything or runs a command. Normally you just type <code>claude</code>. Setting it this way the first time lets you see the prompts described above, so you know what it's about to do at each step. The first time, it asks you to log in through your browser, then asks whether you trust this folder. It's the empty folder you just made, so choose to trust it.</li>
 </ol>
-<p>The first time, it opens a browser so you can log in. After you log in, go back to the terminal. It asks whether you trust this folder. It's the empty folder you just made, so choose to trust it.</p>
-<p>If the first line says <code>File exists</code>, a folder with that name is already there. Replace &quot;first-try&quot; in all four lines with another name and type them again.</p>
-<p>When you're done, type <code>/exit</code> and press Enter.</p>
+<p>To leave Claude Code, type <code>/exit</code> and press Enter.</p>
 <p><strong>Start with something small.</strong> Replace March 14 with your own birthday and type:</p>
 <pre><code>Make a web page that counts down to my birthday (March 14) and save it as birthday.html.
 </code></pre>
