@@ -547,6 +547,8 @@ class ClaudeUsageClient:
                     "us-forwarder",
                 } and _has_recent_claude_project_activity(time.time()):
                     message_key = "usage_status_missing_active"
+                elif claude_desktop.desktop_installed():
+                    message_key = "claude_desktop_unreadable"
                 return PollOutcome(
                     state=PollState.TOKEN_ERROR,
                     message=_t(detect_lang(), message_key),

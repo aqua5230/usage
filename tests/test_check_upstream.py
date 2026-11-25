@@ -7,6 +7,7 @@ import importlib.util
 import json
 import os
 import sqlite3
+import struct
 import time
 from contextlib import closing
 from datetime import UTC, datetime, timedelta
@@ -14,6 +15,8 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+
+from loaders import chromium_cache, claude_desktop
 
 # Loaded by path like test_pricing.py: importing it as scripts.check_upstream makes `mypy .`
 # see the file under two module names, since scripts/ has no __init__.py.
@@ -184,6 +187,70 @@ def test_claude_partial_rows_allowed(assistant: dict[str, Any]) -> None:
         [assistant, {"type": "assistant", "message": {}}],
     )
     assert check.check_claude_transcript()[0] == "OK"
+
+
+@pytest.fixture
+def desktop_history(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    name = claude_desktop.HISTORY_NAME
+    history = tmp_path / "desktop" / name
+    missing = tmp_path / "missing" / name
+    monkeypatch.setattr(claude_desktop, "desktop_history_paths", lambda: (missing, history))
+    return history
+
+
+def test_claude_desktop_not_installed(desktop_history: Path) -> None:
+    state, detail = check.check_claude_desktop()
+    assert state == "NO_DATA" and "Claude Desktop is not installed" in detail
+
+
+@pytest.mark.parametrize(
+    "header,version",
+    [
+        (struct.pack("<Q", chromium_cache.SIMPLE_MAGIC), 1),
+        (struct.pack("<II", chromium_cache.BLOCK_MAGIC, 0x30000), 2),
+    ],
+    ids=["simple-cache", "block-file"],
+)
+def test_claude_desktop_known_cache_index(
+    desktop_history: Path, header: bytes, version: int
+) -> None:
+    index = desktop_history.parent / "Cache/Cache_Data/index"
+    index.parent.mkdir(parents=True)
+    index.write_bytes(header)
+    write_json(
+        desktop_history,
+        {"version": version, "samples": [{"t": time.time() * 1000, "org": "test", "u": {"fh": 8}}]},
+    )
+    assert check.check_claude_desktop()[0] == "OK"
+
+
+@pytest.mark.parametrize("header", [b"unknown!", b"???"])
+def test_claude_desktop_unknown_cache_index(desktop_history: Path, header: bytes) -> None:
+    index = desktop_history.parent / "Cache/Cache_Data/index"
+    index.parent.mkdir(parents=True)
+    index.write_bytes(header)
+    state, detail = check.check_claude_desktop()
+    assert state == "BROKEN" and "unrecognized HTTP cache index format" in detail
+    assert header.hex() in detail and str(index) in detail
+    assert "no usable Desktop quota" in detail
+
+
+@pytest.mark.parametrize("version", [3, True, "2"])
+def test_claude_desktop_unsupported_history_version(desktop_history: Path, version: object) -> None:
+    write_json(desktop_history, {"version": version})
+    state, detail = check.check_claude_desktop()
+    assert state == "BROKEN" and f"unsupported history version {version!r}" in detail
+
+
+def test_claude_desktop_no_usable_quota(desktop_history: Path) -> None:
+    old = time.time() - claude_desktop.MAX_AGE_SECONDS - 10
+    write_json(
+        desktop_history,
+        {"version": 2, "samples": [{"t": old * 1000, "org": "test", "u": {"fh": 8}}]},
+    )
+    state, detail = check.check_claude_desktop()
+    assert state == "NO_DATA"
+    assert "no usable Desktop quota (history too old and no fresh cached /usage response)" in detail
 
 
 @pytest.fixture
@@ -544,8 +611,9 @@ def test_main_exit_and_report(
     monkeypatch.setattr(check.sys, "argv", ["check_upstream.py", "--offline"])
     assert check.main() == exit_code
     output = capsys.readouterr().out.splitlines()
-    assert len(output) == 19
+    assert len(output) == 20
     assert f"{status} codex_sqlite — sample" in output
+    assert "NO_DATA claude_desktop — Claude Desktop is not installed" in output
     assert output[-1].startswith("TOTAL OK=")
 
 

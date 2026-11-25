@@ -17,6 +17,7 @@ from typing import Any
 
 import pytest
 
+from loaders import claude_desktop
 from loaders import claude_usage as usage_client
 from usage_common.i18n import _t
 from usage_common.usage_lang import detect_lang
@@ -713,6 +714,13 @@ def test_fetch_once_hints_active_when_status_missing_hook_installed_and_active(
     now = 1_700_000_000.0
     projects_dir = tmp_path / "projects"
     _patch_status_paths(monkeypatch, tmp_path, projects_dir)
+    desktop_profile = tmp_path / "desktop"
+    desktop_profile.mkdir()
+    monkeypatch.setattr(
+        claude_desktop,
+        "desktop_history_paths",
+        lambda: (desktop_profile / claude_desktop.HISTORY_NAME,),
+    )
     _touch_project_log(projects_dir / "demo" / "session.jsonl", now - 60)
     monkeypatch.setattr("loaders.claude_usage.time.time", lambda: now)
     monkeypatch.setattr(usage_client, "current_hook_state", lambda: "us-direct")
@@ -723,19 +731,31 @@ def test_fetch_once_hints_active_when_status_missing_hook_installed_and_active(
     assert outcome.message == _t(detect_lang(), "usage_status_missing_active")
 
 
-def test_fetch_once_uses_generic_missing_message_without_recent_activity(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+@pytest.mark.parametrize(
+    "desktop_installed,message_key",
+    [(False, "usage_status_missing"), (True, "claude_desktop_unreadable")],
+)
+def test_fetch_once_hints_missing_quota_without_recent_activity(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, desktop_installed: bool, message_key: str
 ) -> None:
     now = 1_700_000_000.0
     projects_dir = tmp_path / "projects"
     _patch_status_paths(monkeypatch, tmp_path, projects_dir)
+    desktop_profile = tmp_path / "desktop"
+    if desktop_installed:
+        desktop_profile.mkdir()
+    monkeypatch.setattr(
+        claude_desktop,
+        "desktop_history_paths",
+        lambda: (desktop_profile / claude_desktop.HISTORY_NAME,),
+    )
     monkeypatch.setattr("loaders.claude_usage.time.time", lambda: now)
     monkeypatch.setattr(usage_client, "current_hook_state", lambda: "us-direct")
 
     outcome = asyncio.run(usage_client.ClaudeUsageClient(mock=False).fetch_once())
 
     assert outcome.state is usage_client.PollState.TOKEN_ERROR
-    assert outcome.message == _t(detect_lang(), "usage_status_missing")
+    assert outcome.message == _t(detect_lang(), message_key)
 
 
 def test_recent_project_activity_uses_ttl_cache(monkeypatch: pytest.MonkeyPatch) -> None:

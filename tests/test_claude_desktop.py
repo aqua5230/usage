@@ -113,6 +113,27 @@ def test_polls_replacement_and_chooses_newest_install(
     assert desktop.load_desktop_quota(NOW + desktop.MAX_AGE_SECONDS + 2) is None
 
 
+def test_desktop_installed_with_profile_directory(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    missing = tmp_path / "missing" / desktop.HISTORY_NAME
+    profile = tmp_path / "profile"
+    monkeypatch.setattr(
+        desktop, "desktop_history_paths", lambda: (missing, profile / desktop.HISTORY_NAME)
+    )
+    assert desktop.desktop_installed() is False
+    profile.mkdir()
+    assert desktop.desktop_installed() is True
+
+
+def test_desktop_installed_ignores_discovery_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    def denied() -> tuple[Path, ...]:
+        raise PermissionError("cannot discover profiles")
+
+    monkeypatch.setattr(desktop, "desktop_history_paths", denied)
+    assert desktop.desktop_installed() is False
+
+
 @pytest.mark.parametrize("platform", ["win32", "darwin", "linux"])
 def test_standard_install_paths(
     platform: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch

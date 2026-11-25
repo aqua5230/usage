@@ -15,6 +15,7 @@
 ### 修正
 - **macOS 上又讀得到 Claude 桌面 App 的額度了。** Claude Desktop 的 HTTP 快取改用 Chromium 的 simple-cache 格式（每個回應一個檔案），也不再往 `plan-usage-history.json` 新增紀錄。usage 原本只讀舊的 block-file 快取，所以只在桌面 App 用 Claude 時，Claude 卡片會停在 `--` 或一直顯示舊數字。現在 usage 也讀得懂 simple-cache：取 Desktop 兩小時內存下的最新一筆用量回應（包含 `?via=plan` 這類帶參數的網址），每筆都先核對檢查碼才採用。跟以前一樣只讀本機檔案、唯讀，不經過網路。
 - **在桌面 App 用掉的額度，終端機回報過之後也會顯示了。** 以前只要終端機的 Claude Code 回報過額度，usage 就一直顯示那個數字，不會再看桌面 App，之後在 App 裡用掉的額度就不見了（例如選單列顯示 37%，App 自己的用量頁已經是 55%）。現在只要終端機的數字超過兩分鐘，而 Claude Desktop 有更新的數字、而且跟 Claude Code 登入的是同一個組織，usage 就改顯示 Desktop 的數字，選單列和 `usage status` 都一樣。對不上組織時，維持終端機的數字。
+- **裝了 Claude 桌面版卻讀不到額度時，Claude 卡片會提示怎麼做。** 卡片會請你打開「設定 → 用量」並等一分鐘。如果額度仍然沒顯示，卡片會說明桌面版更新可能改了存檔方式，並請你到 GitHub 回報。
 
 ## [0.35.1] - 2026-11-23
 
