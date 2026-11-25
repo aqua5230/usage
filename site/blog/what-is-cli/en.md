@@ -176,6 +176,14 @@ If it's going in the wrong direction, press Esc to stop it. The work it's alread
 
 When it says it's done, ask it to open the page. It will ask before running the command that opens the file; if you can see it's only opening the file, choose Yes. Then check the countdown yourself. I tried this sentence on October 2, 2026. When it finished, it said it "couldn't verify the date logic", so I counted the days myself. It was correct.
 
+If you don't like how it looks, tell it what to change, for example:
+
+```
+Make the background dark blue and the numbers twice as big.
+```
+
+When it's done, ask it to open the page again and see if it looks the way you want.
+
 ## Sources
 
 - [Set up Claude Code](https://code.claude.com/docs/en/setup)
