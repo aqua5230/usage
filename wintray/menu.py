@@ -132,6 +132,7 @@ def windows_menu_model(panels: tuple[Panel, ...]) -> tuple[MenuEntry, ...]:
     )
     return (
         MenuCommand("panel_ai_daily", "open_ai_daily"),
+        MenuCommand("panel_blog", "open_blog"),
         MenuSeparator(_PANEL_ONLY),
         MenuGroup("switch_panel", panel_choices),
         MenuGroup("hide_sections_menu", hidden_sections),

@@ -8,7 +8,7 @@
 
 `usage` 把 5 小时和每周限额放在 macOS 菜单栏或 Windows 系统托盘中，额度快用完时变红提醒。重构做到一半才发现配额用完，很难受；现在你会提前看到。不用跑命令，也不用开页面。
 
-[繁體中文](README.zh-TW.md) · 简体中文 · [English](../README.md) · [日本語](README.ja.md) · [한국어](README.ko.md) &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [官方介绍页](https://aqua5230.github.io/usage/) &nbsp;|&nbsp; [博客（英文）](https://aqua5230.github.io/usage/blog/)
+[繁體中文](README.zh-TW.md) · 简体中文 · [English](../README.md) · [日本語](README.ja.md) · [한국어](README.ko.md) &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [官方介绍页](https://getusage.app/) &nbsp;|&nbsp; [博客（英文）](https://getusage.app/blog/)
 
 [安装](#安装) · [功能](#功能一览) · [侧边面板](#claude-code-侧边面板) · [主题](#主题图库) · [对比](#对比) · [隐私](#隐私与数据来源) · [故障排除](#故障排除)
 

@@ -1521,7 +1521,7 @@ def test_switch_panel_message_returns_menu_instead_of_cycling(
     menu = controller.handle_panel_message("switch")
 
     assert isinstance(menu, list)
-    assert menu[2]["i18nKey"] == "switch_panel"
+    assert any(entry.get("i18nKey") == "switch_panel" for entry in menu)
     assert switched_to == []
 
 
@@ -1585,8 +1585,10 @@ def test_panel_menu_data_is_localized_and_reads_current_checks(
         "label": "AI Update Daily",
         "action": "open_ai_daily",
     }
+    assert menu[1] == {"i18nKey": "panel_blog", "label": "Blog", "action": "open_blog"}
     assert [entry.get("i18nKey", entry.get("type")) for entry in menu] == [
         "panel_ai_daily",
+        "panel_blog",
         "separator",
         "switch_panel",
         "hide_sections_menu",
@@ -1603,18 +1605,18 @@ def test_panel_menu_data_is_localized_and_reads_current_checks(
         "check_update",
         "report_issue",
     ]
-    panels = cast(list[dict[str, object]], menu[2]["children"])
-    hidden_sections = cast(list[dict[str, object]], menu[3]["children"])
+    panels = cast(list[dict[str, object]], menu[3]["children"])
+    hidden_sections = cast(list[dict[str, object]], menu[4]["children"])
     assert panels[1]["panelId"] == "matrix"
     assert panels[1]["checked"] is True
     assert [item["checked"] for item in hidden_sections] == [True, False, True, False, True]
-    assert menu[5]["checked"] is False
-    assert menu[7]["checked"] is True
-    assert menu[8]["checked"] is False
-    assert menu[9]["checked"] is True
+    assert menu[6]["checked"] is False
+    assert menu[8]["checked"] is True
+    assert menu[9]["checked"] is False
     assert menu[10]["checked"] is True
-    assert menu[11]["checked"] is False
-    claude_code = cast(list[dict[str, object]], menu[12]["children"])
+    assert menu[11]["checked"] is True
+    assert menu[12]["checked"] is False
+    claude_code = cast(list[dict[str, object]], menu[13]["children"])
     assert [item.get("i18nKey", item.get("type")) for item in claude_code] == [
         "statusline_sync_menu",
         "claude_pane_section_menu",
@@ -1730,6 +1732,7 @@ def test_tray_quit_label_removes_the_power_glyph() -> None:
     ("payload", "method", "expected"),
     [
         ({"action": "open_ai_daily"}, "open_ai_daily", ()),
+        ({"action": "open_blog"}, "open_blog", ()),
         ({"action": "set_tray_provider", "provider": "codex"}, "set_tray_provider", ("codex",)),
         ({"action": "toggle_quota_label"}, "toggle_quota_label", ()),
         ({"action": "reset_panel_position"}, "reset_panel_position", ()),

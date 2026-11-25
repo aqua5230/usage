@@ -159,6 +159,7 @@ from usage_common.app_version import current_version as _current_version
 from usage_common.i18n import _t
 from usage_common.prefs import _load_preferences, _save_preferences
 from usage_common.pricing import warm_up_pricing
+from usage_common.site_links import blog_url
 from usage_common.usage_lang import detect_lang
 
 __all__ = [
@@ -465,6 +466,11 @@ class AppDelegate(NSObject):
         self._mark_switch_menu_action()
         self._close_popover_after_menu()
         webbrowser.open("https://aqua5230.github.io/ai-updates/")
+
+    def openBlog_(self, sender: Any) -> None:
+        self._mark_switch_menu_action()
+        self._close_popover_after_menu()
+        webbrowser.open(blog_url(self.language))
 
     def toggleLaunchAtLogin_(self, sender: Any) -> None:
         menubar_actions.toggle_launch_at_login(self)
