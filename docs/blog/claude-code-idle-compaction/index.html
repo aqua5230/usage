@@ -235,7 +235,6 @@ p, li { text-wrap: pretty; }
 }
 main { flex: 1 0 auto; padding: 48px 0 72px; }
 @media (max-width: 640px) { main { padding: 32px 0 56px; } }
-.post-header { margin-bottom: 32px; }
 .post-meta time { font-family: var(--mono); }
 .post-meta {
   font-size: 13px;
@@ -424,15 +423,83 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
 .related-list a:is(:hover, :focus-visible) .related-title { color: var(--accent); }
 .related-title { font-size: 16px; font-weight: 600; line-height: 1.4; }
 .related-desc { font-size: 14.5px; line-height: 1.55; color: var(--fg-dim); }
-.prose h2[id] { scroll-margin-top: 76px; }
-.article-layout { display: block; }
-.toc-rail, .news-rail { display: none; }
+.prose h2[id] { scroll-margin-top: 84px; }
+.wrap-article { max-width: 800px; }
+.article-main { min-width: 0; }
+.left-rail, .right-rail, .news-rail { display: none; }
+.post-header { margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
+.post-header h1 { margin-bottom: 20px; }
+.breadcrumb { color: var(--fg-dim); font-size: 14px; margin-bottom: 16px; overflow-wrap: anywhere; }
+.breadcrumb a:hover { color: var(--fg); text-decoration: underline; }
+.breadcrumb span[aria-hidden] { margin-inline: 0.45em; color: var(--fg-dimmer); }
+.post-header .post-meta { align-items: center; justify-content: space-between; margin-bottom: 0; }
+.copy-markdown {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--fg-dimmer);
+  border-radius: 6px;
+  padding: 7px 12px;
+  min-height: 36px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--fg);
+  background: var(--bg);
+  cursor: pointer;
+}
+.copy-markdown:hover { background: var(--bg-soft); }
+.copy-markdown:disabled { cursor: wait; }
+.copy-markdown svg { width: 15px; height: 15px; }
+.copy-status { font-size: 13px; color: var(--fg-dim); margin-top: 8px; }
+.copy-status:empty { display: none; }
+.copy-source { width: 100%; margin-top: 8px; font: inherit; }
+.mobile-menu { margin-bottom: 28px; }
+.categories, .mobile-menu { border-top: 1px solid var(--border); }
+.mobile-menu .categories { border-top: 0; }
+.category, .mobile-menu { border-bottom: 1px solid var(--border); }
+.mobile-menu .category:last-child { border-bottom: 0; }
+.category > summary, .mobile-menu > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 43px;
+  list-style: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+.category > summary::-webkit-details-marker, .mobile-menu > summary::-webkit-details-marker {
+  display: none;
+}
+.category > summary::after, .mobile-menu > summary::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-right: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+  transform: rotate(-45deg);
+  margin-inline: auto 5px;
+  color: var(--fg-dim);
+}
+.category[open] > summary::after, .mobile-menu[open] > summary::after { transform: rotate(45deg); }
+.category > summary:hover, .mobile-menu > summary:hover { color: var(--fg-dim); }
+.article-layout summary:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.category > summary svg { width: 18px; height: 18px; flex: 0 0 18px; color: var(--fg-dim); }
+.category-articles { list-style: none; padding: 0 0 10px 28px; }
+.category-articles a {
+  display: block;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--fg-dim);
+  padding: 5px 0;
+  overflow-wrap: anywhere;
+}
+.category-articles a:hover, .category-articles a[aria-current="page"] { color: var(--fg); }
+.category-articles a[aria-current="page"] { font-weight: 650; }
 .toc-mobile {
-  margin-bottom: 28px;
-  padding: 14px 16px;
-  border-radius: 14px;
-  border: 1px solid var(--border);
-  background: var(--bg-card);
+  padding: 14px 0;
+  border-top: 1px solid var(--border);
 }
 .toc-mobile summary {
   cursor: pointer;
@@ -476,7 +543,19 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   overflow-wrap: anywhere;
 }
 .toc-list a:hover { color: var(--fg); }
-.toc-list a[aria-current="location"] { color: var(--accent); font-weight: 600; }
+.toc-list a[aria-current="location"] { color: var(--fg); font-weight: 600; }
+.page-toc .toc-list { border-inline-start: 1px solid var(--border); }
+.page-toc .toc-list a {
+  border-inline-start: 1px solid transparent;
+  margin-inline-start: -1px;
+  padding-inline-start: 12px;
+}
+.page-toc .toc-list a[aria-current="location"] { border-inline-start-color: var(--fg); }
+.page-toc + .news-rail:not([hidden]) {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
 .news-title {
   font-size: 12px;
   font-weight: 600;
@@ -525,43 +604,28 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   color: var(--accent);
 }
 .news-all:hover { color: var(--accent-hover); }
-@media (min-width: 1300px) {
-  .wrap-article { max-width: 1300px; }
+@media (min-width: 1025px) {
+  .wrap-article { max-width: 1360px; }
   .article-layout {
     display: grid;
-    grid-template-columns: 200px minmax(0, 772px) 200px;
-    justify-content: center;
+    grid-template-columns: clamp(185px, 17vw, 222px) minmax(0, 1fr) clamp(180px, 17vw, 222px);
     align-items: start;
-    column-gap: 40px;
+    gap: clamp(24px, 3.25vw, 48px);
   }
-  .article-main { grid-column: 2; min-width: 0; }
-  .toc-rail {
-    grid-column: 1;
+  .left-rail, .right-rail {
     display: block;
     position: sticky;
-    top: 76px;
-    max-height: calc(100vh - 96px);
+    top: 84px;
+    max-height: calc(100vh - 108px);
     overflow-y: auto;
+    scrollbar-width: thin;
+    padding: 4px;
+    margin: -4px;
   }
-  .toc-mobile { display: none; }
+  .mobile-menu { display: none; }
 }
 @media (min-width: 1440px) {
-  .wrap-article { max-width: 1440px; }
-  .article-layout {
-    grid-template-columns: 240px 40px minmax(0, 772px) 40px 240px;
-    column-gap: 0;
-    justify-content: center;
-  }
-  .toc-rail { grid-column: 1; }
-  .article-main { grid-column: 3; }
-  .news-rail:not([hidden]) {
-    grid-column: 5;
-    display: block;
-    position: sticky;
-    top: 76px;
-    max-height: calc(100vh - 96px);
-    overflow-y: auto;
-  }
+  .news-rail:not([hidden]) { display: block; }
 }
 footer {
   padding: 36px 0 28px;
@@ -601,30 +665,47 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <main id="main-content">
   <div class="wrap wrap-article">
     <div class="article-layout">
-      <aside class="toc-rail">
-        <nav aria-label="In this article">
-          <p class="toc-title">In this article</p>
-        <ol class="toc-list">
-          <li><a href="#what-is-the-context">What is the context?</a></li>
-          <li><a href="#case-one-compaction-when-the-context-is-nearly-full">Case one: compaction when the context is nearly full</a></li>
-          <li><a href="#case-two-compaction-after-youve-been-away-for-about-an-hour">Case two: compaction after you&#x27;ve been away for about an hour</a></li>
-          <li><a href="#my-records-49-automatic-compactions-all-of-them-idle-compactions">My records: 49 automatic compactions, all of them idle compactions</a></li>
-          <li><a href="#why-compact-while-youre-away">Why compact while you&#x27;re away?</a></li>
-          <li><a href="#what-survives-a-compaction-and-whats-lost">What survives a compaction, and what&#x27;s lost?</a></li>
-          <li><a href="#how-to-control-compaction-yourself">How to control compaction yourself</a></li>
-          <li><a href="#how-to-keep-an-eye-on-the-context">How to keep an eye on the context</a></li>
-          <li><a href="#where-the-data-comes-from">Where the data comes from</a></li>
-          <li><a href="#sources">Sources</a></li>
-        </ol>
-        </nav>
+      <aside class="left-rail">
+<nav class="categories" aria-label="Article categories">
+<details class="category" open><summary><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5h14v11H3z M6 8l2.5 2L6 12 M10.5 12H14"/></svg>Claude Code</summary><ul class="category-articles">
+<li><a href="../claude-code-idle-compaction/" aria-current="page">Why Does Claude Code Compact Your Conversation on Its Own?</a></li>
+<li><a href="../what-is-cli/">What Is a CLI? Learn How the Terminal Works with Claude Code</a></li>
+<li><a href="../claude-code-weekly-limit-reset/">When Does the Claude Code Weekly Limit Reset?</a></li>
+</ul></details>
+<details class="category"><summary><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 5l-5 5 5 5 M13 5l5 5-5 5 M11.5 4l-3 12"/></svg>Codex</summary><ul class="category-articles">
+<li><a href="../codex-weekly-limit-early-reset/">Why Did My Codex Weekly Limit Reset Early?</a></li>
+</ul></details>
+<details class="category"><summary><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2.5c0 4 3.5 7.5 7.5 7.5-4 0-7.5 3.5-7.5 7.5 0-4-3.5-7.5-7.5-7.5 4 0 7.5-3.5 7.5-7.5Z"/></svg>Antigravity</summary><ul class="category-articles">
+<li><a href="../how-to-check-antigravity-quota/">How to Check Your Antigravity (agy) Quota</a></li>
+</ul></details>
+</nav>
       </aside>
       <article class="article-main">
         <header class="post-header">
-          <div class="post-meta">
-            <span>Published <time datetime="2026-11-25">2026-11-25</time></span>
-          </div>
+          <nav class="breadcrumb" aria-label="Breadcrumb"><a href="../">Blog</a><span aria-hidden="true">›</span><span>Claude Code</span></nav>
           <h1>Why Does Claude Code Compact Your Conversation on Its Own?</h1>
+          <div class="post-meta">
+            <span>Updated <time datetime="2026-11-25">2026-11-25</time></span>
+            <button class="copy-markdown" type="button" data-copied="Article Markdown copied to the clipboard." data-manual="Press ⌘C or Ctrl+C to copy the selected text below."><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="9" height="10" rx="1.5"/><path d="M5 13H4V3h9v2"/></svg>Copy for AI</button>
+          </div>
+          <p class="copy-status" role="status"></p>
+          <textarea class="copy-source" aria-label="Article Markdown source" rows="6" readonly hidden></textarea>
         </header>
+        <details class="mobile-menu">
+          <summary>Article categories and contents</summary>
+<nav class="categories" aria-label="Article categories">
+<details class="category" open><summary><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5h14v11H3z M6 8l2.5 2L6 12 M10.5 12H14"/></svg>Claude Code</summary><ul class="category-articles">
+<li><a href="../claude-code-idle-compaction/" aria-current="page">Why Does Claude Code Compact Your Conversation on Its Own?</a></li>
+<li><a href="../what-is-cli/">What Is a CLI? Learn How the Terminal Works with Claude Code</a></li>
+<li><a href="../claude-code-weekly-limit-reset/">When Does the Claude Code Weekly Limit Reset?</a></li>
+</ul></details>
+<details class="category"><summary><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 5l-5 5 5 5 M13 5l5 5-5 5 M11.5 4l-3 12"/></svg>Codex</summary><ul class="category-articles">
+<li><a href="../codex-weekly-limit-early-reset/">Why Did My Codex Weekly Limit Reset Early?</a></li>
+</ul></details>
+<details class="category"><summary><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2.5c0 4 3.5 7.5 7.5 7.5-4 0-7.5 3.5-7.5 7.5 0-4-3.5-7.5-7.5-7.5 4 0 7.5-3.5 7.5-7.5Z"/></svg>Antigravity</summary><ul class="category-articles">
+<li><a href="../how-to-check-antigravity-quota/">How to Check Your Antigravity (agy) Quota</a></li>
+</ul></details>
+</nav>
         <details class="toc-mobile">
           <summary>In this article</summary>
           <nav aria-label="In this article">
@@ -641,6 +722,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
           <li><a href="#sources">Sources</a></li>
         </ol>
           </nav>
+        </details>
         </details>
         <div class="prose">
 <p><strong>Claude Code compacts a conversation automatically in two cases: when the context is nearly full, and when you've been away for about an hour</strong>. The second case is called idle compaction, and it arrived in October 2026. I checked my own records from September to November. All 49 automatic compactions happened after I had been away for nearly an hour. None of them happened because the context was full.</p>
@@ -769,6 +851,22 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
         </ul>
         </section>
       </article>
+      <div class="right-rail">
+        <nav class="page-toc" aria-label="In this article">
+          <h2 class="toc-title">In this article</h2>
+        <ol class="toc-list">
+          <li><a href="#what-is-the-context">What is the context?</a></li>
+          <li><a href="#case-one-compaction-when-the-context-is-nearly-full">Case one: compaction when the context is nearly full</a></li>
+          <li><a href="#case-two-compaction-after-youve-been-away-for-about-an-hour">Case two: compaction after you&#x27;ve been away for about an hour</a></li>
+          <li><a href="#my-records-49-automatic-compactions-all-of-them-idle-compactions">My records: 49 automatic compactions, all of them idle compactions</a></li>
+          <li><a href="#why-compact-while-youre-away">Why compact while you&#x27;re away?</a></li>
+          <li><a href="#what-survives-a-compaction-and-whats-lost">What survives a compaction, and what&#x27;s lost?</a></li>
+          <li><a href="#how-to-control-compaction-yourself">How to control compaction yourself</a></li>
+          <li><a href="#how-to-keep-an-eye-on-the-context">How to keep an eye on the context</a></li>
+          <li><a href="#where-the-data-comes-from">Where the data comes from</a></li>
+          <li><a href="#sources">Sources</a></li>
+        </ol>
+        </nav>
       <aside class="news-rail" aria-label="AI Update Daily" hidden>
         <div class="news-card">
           <h2 class="news-title">AI Update Daily</h2>
@@ -776,6 +874,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
           <a class="news-all" href="https://aqua5230.github.io/ai-updates/" target="_blank" rel="noopener">See all updates →</a>
         </div>
       </aside>
+      </div>
     </div>
   </div>
 </main>
@@ -784,10 +883,48 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
     <p>Built by <a href="https://github.com/aqua5230" target="_blank" rel="noopener">@aqua5230</a> · AGPL-3.0 · No uploads. No tracking. Just yours.</p>
   </div>
 </footer>
+<script type="application/json" id="article-markdown">"---\ntitle: Why Does Claude Code Compact Your Conversation on Its Own?\ndescription: Claude Code compacts a conversation when its context is nearly full. Since October 2026, it also compacts after you've been away for about an hour. All 49 of my automatic compactions were the second kind. This post explains the difference, what survives a compaction, and how to control it.\ndate: 2026-11-25\ntool: claude-code\nrelated: claude-code-weekly-limit-reset, what-is-cli\n---\n\n**Claude Code compacts a conversation automatically in two cases: when the context is nearly full, and when you've been away for about an hour**. The second case is called idle compaction, and it arrived in October 2026. I checked my own records from September to November. All 49 automatic compactions happened after I had been away for nearly an hour. None of them happened because the context was full.\n\n- Compaction replaces the earlier conversation with a summary. CLAUDE.md is loaded again, but things you only said in the conversation can be lost.\n- Idle compaction writes the summary before the cache expires. That way, when you come back and send your next message, Claude Code doesn't have to process the whole long conversation again.\n- To control it yourself, run `/compact` with the points you want to keep, and run `/clear` when you switch tasks. If you don't want idle compaction, turn it off in `/config`.\n\n## What is the context?\n\nThe context is everything Claude can see in the current conversation. The official glossary calls it \"the working memory for a session.\" It holds the conversation history, the contents of files Claude has read, command output, CLAUDE.md, auto memory, loaded skills, and system instructions.\n\nBefore you type anything, CLAUDE.md, auto memory, MCP tool names, and skill descriptions are already in the context. After that, every file Claude reads and every command it runs adds more. So the longer a conversation runs, the larger its context gets.\n\nTo see how much is in use, type `/context` in Claude Code. It lists how much each category takes up and suggests ways to reduce it.\n\n## Case one: compaction when the context is nearly full\n\nThe context has a limit. Opus 4.7 and later, Sonnet 5 and later, Haiku 5.5, and the Fable models have a 1 million token window (a token is the unit a model uses to count text). According to the documentation, these models compact automatically at about 967K tokens by default. Sonnet 4.6 and Opus 4.6 without extended context compact at 200K tokens.\n\nWhen it compacts, Claude Code writes a summary of the conversation and replaces the original history with it. So a full context doesn't end your session.\n\n## Case two: compaction after you've been away for about an hour\n\nThis is idle compaction. Claude Code 2.1.299 was released on October 14, 2026, and its changelog says:\n\n> Added idle compaction in the terminal: a 200K+ token conversation left idle for about 54 minutes is compacted before its one-hour prompt cache expires, so your next message doesn't reprocess it all\n\nIn other words, if a conversation is over 200K tokens and you've been away for about 54 minutes, Claude Code compacts it before the one-hour cache expires. The settings reference lists five conditions, and all of them must hold:\n\n- You're in the terminal, in the VS Code extension's chat panel, or in the desktop app's Code tab.\n- Auto-compaction is on.\n- The conversation uses the one-hour prompt cache.\n- The context has reached 200K tokens.\n- About an hour has passed since the last request, and your computer has stayed awake.\n\nAfter it compacts, the terminal shows a line that starts with `Compacted while idle, before the prompt cache expired`.\n\n## My records: 49 automatic compactions, all of them idle compactions\n\nClaude Code saves each conversation as a JSONL file under `~/.claude/projects/`. I wrote a script that reads these files, finds every compaction, and measures how long I had been away before each one.\n\n- From September 10 to November 23, 2026, there were 50 compactions. I ran `/compact` myself once; the other 49 were automatic.\n- Before each of the 49 automatic compactions, I had been away for 54 to 56 minutes. Each one was followed by the `Compacted while idle` notice.\n- The context before compaction ranged from about 200K to about 710K tokens. The Opus 5.5 model I use compacts for a full context at about 967K, and none of the 49 came close.\n\n![A dot plot of 49 automatic compactions. The x axis is the context before compaction, from 0 to 1 million tokens; the y axis is minutes away before compaction. All 49 dots sit between 200K and about 710K tokens and between 54 and 56 minutes, far from the about-967K line where a full context would compact.](my-compactions-en.svg)\n\nSo if you often leave a conversation open while you go to a meeting or lunch, the compaction you see when you come back is most likely an idle compaction.\n\n## Why compact while you're away?\n\nBecause the cache only lasts for a while. The prompt cache stores the part of the conversation that has already been processed. According to the documentation, without caching, every turn would reprocess your full history. With caching, the re-read is billed at the cached token rate, and only what changed is fully processed.\n\nThe cache lives for either five minutes or one hour. Claude Code requests the one-hour cache for the main conversation only when you're on a Claude subscription and within your plan's included usage.\n\nOnce the hour passes, the cache is gone. When you come back and send a message, hundreds of thousands of tokens have to be processed again as uncached input. The documentation also notes that after a break longer than the cache lifetime, compaction has to reprocess the history as uncached input, which is why `/compact` costs the most when you resume an old session. Idle compaction writes the summary while the cache is still there.\n\n![A timeline: after your last message, idle compaction writes the summary at about 54 minutes, the one-hour cache expires at 60 minutes, and when you come back Claude Code works from the summary. Below, for comparison: without idle compaction, coming back after 60 minutes means the whole conversation is processed again.](idle-timeline-en.svg)\n\nThese conditions lead to one more conclusion. Once you go over your plan's usage limit and start paying with usage credits, Claude Code drops the main conversation to the five-minute cache. The one-hour cache condition no longer holds, so idle compaction doesn't happen.\n\n## What survives a compaction, and what's lost?\n\nThe documentation has a table. Here are the main rows:\n\n| What | After compaction |\n|---|---|\n| Project-root CLAUDE.md and rules without a path scope | Reloaded from disk |\n| Auto memory | Reloaded from disk |\n| The plan Claude wrote in plan mode | Reloaded from disk |\n| Files Claude read or edited | Up to five are read again, most recently modified first; a file over 5,000 tokens comes back as a path only |\n| Skills that were used | Put back, up to 5,000 tokens each and 25,000 tokens in total |\n| The conversation itself, including what hooks added | Replaced by the summary |\n\nThe documentation warns that the summary keeps your requests and key code snippets, but detailed instructions from early in the conversation may be lost. So put rules that should always apply in CLAUDE.md instead of only saying them in the conversation.\n\n## How to control compaction yourself\n\n- **Compact first**: before a big task, run `/compact` followed by what to keep, such as `/compact focus on the auth bug fix`. The summary then keeps the points you chose instead of the ones automatic compaction picks.\n- **Clear between tasks**: run `/clear` when you switch to unrelated work. The documentation says old conversation crowds out the files you need next and costs tokens on every message.\n- **Compact earlier**: run `/autocompact 500k`, and Claude Code compacts automatically once the context reaches 500K tokens.\n- **Turn off idle compaction**: type `/config` in the terminal and change the **Idle compaction** row. You can also add `\"idleCompaction\": false` to `~/.claude/settings.json`.\n- **Change the idle compaction threshold**: the environment variable `CLAUDE_CODE_IDLE_COMPACT_MIN_TOKENS` changes the 200K threshold. The lowest value is 100K.\n\nIf the context fills up again right after a compaction, Claude Code stops compacting automatically and shows `Autocompact is thrashing: the context refilled to the limit...`. A large file or a very long output usually causes this. The documentation suggests asking Claude to read the file in smaller pieces, running `/compact` to drop the large output, handing the large-file work to a subagent, or running `/clear`.\n\n## How to keep an eye on the context\n\n- **`/context`**: a built-in Claude Code command that lists how much each category takes up.\n- **usage**: [`usage`](https://aqua5230.github.io/usage/) is a free, open-source app. Its terminal status line shows what percentage of the context is in use. At 70%, it reminds you to run `/clear` if you're switching tasks, or `/compact` to keep the key points if you're continuing. If the context grows quickly, the reminder appears earlier, at 55% to 60%. It also shows [Claude Code's 5-hour and weekly limits](../claude-code-weekly-limit-reset/) in the macOS menu bar or the Windows system tray.\n\n## Where the data comes from\n\n- The compaction records come from the author's own Claude Code conversation logs on a Mac, from 2026-09-10 to 2026-11-23. A compaction is a line in the logs whose `subtype` is `compact_boundary`; when the same compaction appears in several files, it is counted once. Time away is measured from the last message before the compaction to the compaction itself.\n- Release dates come from the npm publish history of `@anthropic-ai/claude-code`.\n- The documentation was checked on 2026-11-25.\n\n## Sources\n\n- [Explore the context window](https://code.claude.com/docs/en/context-window)\n- [How Claude Code works](https://code.claude.com/docs/en/how-claude-code-works)\n- [Settings reference: idleCompaction](https://code.claude.com/docs/en/settings-reference#idlecompaction)\n- [Model configuration](https://code.claude.com/docs/en/model-config)\n- [How Claude Code uses prompt caching](https://code.claude.com/docs/en/prompt-caching)\n- [Troubleshooting](https://code.claude.com/docs/en/troubleshooting)\n- [Claude Code changelog](https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md)\n"</script>
 <script>
 (function () {
+  var copyButton = document.querySelector(".copy-markdown");
+  var copyStatus = document.querySelector(".copy-status");
+  var copySource = document.querySelector(".copy-source");
+  var markdown = JSON.parse(document.getElementById("article-markdown").textContent);
+
+  function copyWithSelection() {
+    copySource.value = markdown;
+    copySource.hidden = false;
+    copySource.focus({ preventScroll: true });
+    copySource.select();
+    try {
+      return document.execCommand("copy");
+    } catch {
+      return false;
+    }
+  }
+
+  copyButton.addEventListener("click", async function () {
+    copyStatus.textContent = "";
+    copyButton.disabled = true;
+    var copied = false;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      try {
+        await navigator.clipboard.writeText(markdown);
+        copied = true;
+      } catch {
+        copied = copyWithSelection();
+      }
+    } else {
+      copied = copyWithSelection();
+    }
+    copyButton.disabled = false;
+    copySource.hidden = copied;
+    copyStatus.textContent = copied ? copyButton.dataset.copied : copyButton.dataset.manual;
+    if (copied) copyButton.focus({ preventScroll: true });
+  });
+
   var tocLinks = Array.prototype.slice.call(
-    document.querySelectorAll('.toc-rail a[href^="#"]')
+    document.querySelectorAll('.page-toc a[href^="#"]')
   );
   var mobileLinks = Array.prototype.slice.call(
     document.querySelectorAll('.toc-mobile a[href^="#"]')
@@ -812,6 +949,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
     // The current section is the last heading that has scrolled past the sticky top bar.
     // Recomputed on every scroll frame, so jumps (TOC clicks, Page Down) cannot skip it.
     function pickActive() {
+      if (!targets.length) return;
       var root = document.documentElement;
       if (window.innerHeight + window.scrollY >= root.scrollHeight - 2) {
         setActive(targets[targets.length - 1].id);
@@ -838,6 +976,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
       },
       { passive: true }
     );
+    window.addEventListener("resize", pickActive);
     pickActive();
   }
 

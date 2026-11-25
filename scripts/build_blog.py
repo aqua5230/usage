@@ -74,8 +74,15 @@ UI_STRINGS: dict[str, dict[str, str]] = {
         "blog_subtitle": (
             "Notes on AI coding quotas, local telemetry-free tracking, and building usage."
         ),
-        "published": "Published",
         "updated": "Updated",
+        "getting_started": "Getting started",
+        "categories": "Article categories",
+        "categories_and_toc": "Article categories and contents",
+        "breadcrumb": "Breadcrumb",
+        "copy_markdown": "Copy for AI",
+        "copy_success": "Article Markdown copied to the clipboard.",
+        "copy_manual": "Press ⌘C or Ctrl+C to copy the selected text below.",
+        "markdown_source": "Article Markdown source",
         "card_title": "Track your AI coding quotas in the menu bar",
         "card_desc": (
             "usage is a free, open-source (AGPL-3.0) app for the macOS menu bar and "
@@ -100,8 +107,15 @@ UI_STRINGS: dict[str, dict[str, str]] = {
         "nav_install": "安裝",
         "blog_title": "部落格",
         "blog_subtitle": "關於 AI 寫程式工具的額度、在自己電腦上追蹤用量，以及打造 usage 的筆記。",
-        "published": "發布於",
         "updated": "更新於",
+        "getting_started": "新手入門",
+        "categories": "文章分類",
+        "categories_and_toc": "文章分類與目錄",
+        "breadcrumb": "麵包屑",
+        "copy_markdown": "複製給 AI",
+        "copy_success": "文章原稿已複製到剪貼簿。",
+        "copy_manual": "請按 ⌘C 或 Ctrl+C 複製下方已選取的原稿。",
+        "markdown_source": "文章 Markdown 原稿",
         "card_title": "在選單列隨時看 AI 寫程式的額度",
         "card_desc": (
             "usage 是一款免費、開源（AGPL-3.0）的用量工具，提供 macOS 選單列與 Windows "
@@ -110,7 +124,7 @@ UI_STRINGS: dict[str, dict[str, str]] = {
         "card_install": "安裝 usage",
         "card_github": "GitHub",
         "related_heading": "相關文章",
-        "toc_title": "本文目錄",
+        "toc_title": "在這頁",
         "embed_open": "全螢幕打開 ↗",
         "news_title": "AI 更新日報",
         "news_all": "看全部更新 →",
@@ -126,8 +140,15 @@ UI_STRINGS: dict[str, dict[str, str]] = {
         "nav_install": "安装",
         "blog_title": "博客",
         "blog_subtitle": "关于 AI 开发额度管理、本地优先追踪与构建 usage 的笔记。",
-        "published": "发布于",
         "updated": "更新于",
+        "getting_started": "新手入门",
+        "categories": "文章分类",
+        "categories_and_toc": "文章分类与目录",
+        "breadcrumb": "面包屑导航",
+        "copy_markdown": "复制给 AI",
+        "copy_success": "文章原稿已复制到剪贴板。",
+        "copy_manual": "请按 ⌘C 或 Ctrl+C 复制下方已选中的原稿。",
+        "markdown_source": "文章 Markdown 原稿",
         "card_title": "在菜单栏掌握你的 AI 开发额度",
         "card_desc": (
             "usage 是一款免费、开源（AGPL-3.0）的用量工具，提供 macOS 菜单栏与 Windows "
@@ -152,8 +173,15 @@ UI_STRINGS: dict[str, dict[str, str]] = {
         "nav_install": "インストール",
         "blog_title": "ブログ",
         "blog_subtitle": "AI コーディングのクォータ管理やローカル計測、usage 開発の記録。",
-        "published": "公開日",
         "updated": "更新日",
+        "getting_started": "はじめに",
+        "categories": "記事のカテゴリ",
+        "categories_and_toc": "記事のカテゴリと目次",
+        "breadcrumb": "パンくずリスト",
+        "copy_markdown": "AI 用にコピー",
+        "copy_success": "記事の Markdown をクリップボードにコピーしました。",
+        "copy_manual": "⌘C または Ctrl+C を押して、下の選択済みテキストをコピーしてください。",
+        "markdown_source": "記事の Markdown 原文",
         "card_title": "AI コーディングのクォータをメニューバーで把握",
         "card_desc": (
             "usage は無料・オープンソース（AGPL-3.0）のツールで、macOS メニューバーと"
@@ -178,8 +206,15 @@ UI_STRINGS: dict[str, dict[str, str]] = {
         "nav_install": "설치",
         "blog_title": "블로그",
         "blog_subtitle": "AI 코딩 할당량 관리, 로컬 우선 추적, usage 개발 기록.",
-        "published": "게시일",
         "updated": "수정일",
+        "getting_started": "시작하기",
+        "categories": "글 카테고리",
+        "categories_and_toc": "글 카테고리와 목차",
+        "breadcrumb": "현재 위치",
+        "copy_markdown": "AI용으로 복사",
+        "copy_success": "글의 Markdown 원문을 클립보드에 복사했습니다.",
+        "copy_manual": "⌘C 또는 Ctrl+C를 눌러 아래에서 선택된 원문을 복사하세요.",
+        "markdown_source": "글의 Markdown 원문",
         "card_title": "메뉴 막대에서 AI 코딩 할당량을 바로 확인하세요",
         "card_desc": (
             "usage는 무료 오픈소스(AGPL-3.0) 앱으로 macOS 메뉴 막대와 "
@@ -358,7 +393,6 @@ p, li { text-wrap: pretty; }
 }
 main { flex: 1 0 auto; padding: 48px 0 72px; }
 @media (max-width: 640px) { main { padding: 32px 0 56px; } }
-.post-header { margin-bottom: 32px; }
 .post-meta time { font-family: var(--mono); }
 .post-meta {
   font-size: 13px;
@@ -547,15 +581,83 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
 .related-list a:is(:hover, :focus-visible) .related-title { color: var(--accent); }
 .related-title { font-size: 16px; font-weight: 600; line-height: 1.4; }
 .related-desc { font-size: 14.5px; line-height: 1.55; color: var(--fg-dim); }
-.prose h2[id] { scroll-margin-top: 76px; }
-.article-layout { display: block; }
-.toc-rail, .news-rail { display: none; }
+.prose h2[id] { scroll-margin-top: 84px; }
+.wrap-article { max-width: 800px; }
+.article-main { min-width: 0; }
+.left-rail, .right-rail, .news-rail { display: none; }
+.post-header { margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
+.post-header h1 { margin-bottom: 20px; }
+.breadcrumb { color: var(--fg-dim); font-size: 14px; margin-bottom: 16px; overflow-wrap: anywhere; }
+.breadcrumb a:hover { color: var(--fg); text-decoration: underline; }
+.breadcrumb span[aria-hidden] { margin-inline: 0.45em; color: var(--fg-dimmer); }
+.post-header .post-meta { align-items: center; justify-content: space-between; margin-bottom: 0; }
+.copy-markdown {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--fg-dimmer);
+  border-radius: 6px;
+  padding: 7px 12px;
+  min-height: 36px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--fg);
+  background: var(--bg);
+  cursor: pointer;
+}
+.copy-markdown:hover { background: var(--bg-soft); }
+.copy-markdown:disabled { cursor: wait; }
+.copy-markdown svg { width: 15px; height: 15px; }
+.copy-status { font-size: 13px; color: var(--fg-dim); margin-top: 8px; }
+.copy-status:empty { display: none; }
+.copy-source { width: 100%; margin-top: 8px; font: inherit; }
+.mobile-menu { margin-bottom: 28px; }
+.categories, .mobile-menu { border-top: 1px solid var(--border); }
+.mobile-menu .categories { border-top: 0; }
+.category, .mobile-menu { border-bottom: 1px solid var(--border); }
+.mobile-menu .category:last-child { border-bottom: 0; }
+.category > summary, .mobile-menu > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 43px;
+  list-style: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+.category > summary::-webkit-details-marker, .mobile-menu > summary::-webkit-details-marker {
+  display: none;
+}
+.category > summary::after, .mobile-menu > summary::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-right: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+  transform: rotate(-45deg);
+  margin-inline: auto 5px;
+  color: var(--fg-dim);
+}
+.category[open] > summary::after, .mobile-menu[open] > summary::after { transform: rotate(45deg); }
+.category > summary:hover, .mobile-menu > summary:hover { color: var(--fg-dim); }
+.article-layout summary:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.category > summary svg { width: 18px; height: 18px; flex: 0 0 18px; color: var(--fg-dim); }
+.category-articles { list-style: none; padding: 0 0 10px 28px; }
+.category-articles a {
+  display: block;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--fg-dim);
+  padding: 5px 0;
+  overflow-wrap: anywhere;
+}
+.category-articles a:hover, .category-articles a[aria-current="page"] { color: var(--fg); }
+.category-articles a[aria-current="page"] { font-weight: 650; }
 .toc-mobile {
-  margin-bottom: 28px;
-  padding: 14px 16px;
-  border-radius: 14px;
-  border: 1px solid var(--border);
-  background: var(--bg-card);
+  padding: 14px 0;
+  border-top: 1px solid var(--border);
 }
 .toc-mobile summary {
   cursor: pointer;
@@ -599,7 +701,19 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   overflow-wrap: anywhere;
 }
 .toc-list a:hover { color: var(--fg); }
-.toc-list a[aria-current="location"] { color: var(--accent); font-weight: 600; }
+.toc-list a[aria-current="location"] { color: var(--fg); font-weight: 600; }
+.page-toc .toc-list { border-inline-start: 1px solid var(--border); }
+.page-toc .toc-list a {
+  border-inline-start: 1px solid transparent;
+  margin-inline-start: -1px;
+  padding-inline-start: 12px;
+}
+.page-toc .toc-list a[aria-current="location"] { border-inline-start-color: var(--fg); }
+.page-toc + .news-rail:not([hidden]) {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
 .news-title {
   font-size: 12px;
   font-weight: 600;
@@ -648,43 +762,28 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   color: var(--accent);
 }
 .news-all:hover { color: var(--accent-hover); }
-@media (min-width: 1300px) {
-  .wrap-article { max-width: 1300px; }
+@media (min-width: 1025px) {
+  .wrap-article { max-width: 1360px; }
   .article-layout {
     display: grid;
-    grid-template-columns: 200px minmax(0, 772px) 200px;
-    justify-content: center;
+    grid-template-columns: clamp(185px, 17vw, 222px) minmax(0, 1fr) clamp(180px, 17vw, 222px);
     align-items: start;
-    column-gap: 40px;
+    gap: clamp(24px, 3.25vw, 48px);
   }
-  .article-main { grid-column: 2; min-width: 0; }
-  .toc-rail {
-    grid-column: 1;
+  .left-rail, .right-rail {
     display: block;
     position: sticky;
-    top: 76px;
-    max-height: calc(100vh - 96px);
+    top: 84px;
+    max-height: calc(100vh - 108px);
     overflow-y: auto;
+    scrollbar-width: thin;
+    padding: 4px;
+    margin: -4px;
   }
-  .toc-mobile { display: none; }
+  .mobile-menu { display: none; }
 }
 @media (min-width: 1440px) {
-  .wrap-article { max-width: 1440px; }
-  .article-layout {
-    grid-template-columns: 240px 40px minmax(0, 772px) 40px 240px;
-    column-gap: 0;
-    justify-content: center;
-  }
-  .toc-rail { grid-column: 1; }
-  .article-main { grid-column: 3; }
-  .news-rail:not([hidden]) {
-    grid-column: 5;
-    display: block;
-    position: sticky;
-    top: 76px;
-    max-height: calc(100vh - 96px);
-    overflow-y: auto;
-  }
+  .news-rail:not([hidden]) { display: block; }
 }
 footer {
   padding: 36px 0 28px;
@@ -712,6 +811,18 @@ TOOL_LABELS = {
     "muse": "Muse",
 }
 
+CATEGORY_ICONS = {
+    None: "M3 4.5h5a2 2 0 0 1 2 2v9a3 3 0 0 0-2-1H3z M17 4.5h-5a2 2 0 0 0-2 2v9a3 3 0 0 1 2-1h5z",
+    "claude-code": "M3 4.5h14v11H3z M6 8l2.5 2L6 12 M10.5 12H14",
+    "codex": "M7 5l-5 5 5 5 M13 5l5 5-5 5 M11.5 4l-3 12",
+    "antigravity": "M10 2.5c0 4 3.5 7.5 7.5 7.5-4 0-7.5 3.5-7.5 7.5 "
+    "0-4-3.5-7.5-7.5-7.5 4 0 7.5-3.5 7.5-7.5Z",
+}
+SVG_LINE = (
+    '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.35" '
+    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+)
+
 
 @dataclass(frozen=True)
 class Article:
@@ -723,6 +834,7 @@ class Article:
     updated: str | None
     related: tuple[str, ...]
     body_markdown: str
+    raw_markdown: str
     image: str | None = None
     tool: str | None = None
 
@@ -841,7 +953,8 @@ def load_articles(source_dir: Path) -> dict[str, dict[str, Article]]:
             md_path = slug_dir / f"{lang}.md"
             if not md_path.is_file():
                 continue
-            meta, body = parse_frontmatter(md_path.read_text(encoding="utf-8"), md_path)
+            raw_markdown = md_path.read_bytes().decode("utf-8")
+            meta, body = parse_frontmatter(raw_markdown, md_path)
             title = meta.get("title", "").strip()
             description = meta.get("description", "").strip()
             raw_date = meta.get("date", "").strip()
@@ -868,6 +981,7 @@ def load_articles(source_dir: Path) -> dict[str, dict[str, Article]]:
                 updated=updated,
                 related=related,
                 body_markdown=body,
+                raw_markdown=raw_markdown,
                 image=image,
                 tool=meta.get("tool", "").strip() or None,
             )
@@ -947,11 +1061,105 @@ def _render_toc_list(headings: list[tuple[str, str]]) -> str:
     return f'        <ol class="toc-list">\n{items}\n        </ol>'
 
 
+def _category_label(tool: str | None, ui: dict[str, str]) -> str:
+    return TOOL_LABELS.get(tool, tool) if tool else ui["getting_started"]
+
+
+def _render_categories(
+    article: Article, all_articles: dict[str, dict[str, Article]], ui: dict[str, str]
+) -> str:
+    groups: dict[str | None, list[Article]] = {tool: [] for tool in (None, *TOOL_LABELS)}
+    for per_lang in all_articles.values():
+        post = per_lang.get(article.lang)
+        if post is not None:
+            groups.setdefault(post.tool, []).append(post)
+
+    categories: list[str] = []
+    for tool, posts in groups.items():
+        if not posts:
+            continue
+        opened = " open" if tool == article.tool else ""
+        icon = CATEGORY_ICONS.get(tool, CATEGORY_ICONS["claude-code"])
+        links = []
+        for post in sorted(posts, key=lambda post: (post.date, post.slug), reverse=True):
+            href = html.escape(f"../{post.slug}/", quote=True)
+            current = ' aria-current="page"' if post.slug == article.slug else ""
+            links.append(f'<li><a href="{href}"{current}>{html.escape(post.title)}</a></li>')
+        categories.append(
+            f'<details class="category"{opened}>'
+            f'<summary>{SVG_LINE}<path d="{icon}"/></svg>{html.escape(_category_label(tool, ui))}'
+            '</summary><ul class="category-articles">\n' + "\n".join(links) + "\n</ul></details>"
+        )
+    label = html.escape(ui["categories"], quote=True)
+    return f'<nav class="categories" aria-label="{label}">\n' + "\n".join(categories) + "\n</nav>"
+
+
+def _render_post_header(article: Article, ui: dict[str, str], blog_rel: str) -> str:
+    return (
+        '        <header class="post-header">\n'
+        f'          <nav class="breadcrumb" aria-label="{html.escape(ui["breadcrumb"])}">'
+        f'<a href="{blog_rel}">{html.escape(ui["blog_title"])}</a>'
+        '<span aria-hidden="true">›</span>'
+        f"<span>{html.escape(_category_label(article.tool, ui))}</span></nav>\n"
+        f"          <h1>{html.escape(article.title)}</h1>\n"
+        '          <div class="post-meta">\n'
+        f'            <span>{html.escape(ui["updated"])} <time datetime="{article.lastmod}">'
+        f"{article.lastmod}</time></span>\n"
+        '            <button class="copy-markdown" type="button" '
+        f'data-copied="{html.escape(ui["copy_success"])}" '
+        f'data-manual="{html.escape(ui["copy_manual"])}">{SVG_LINE}'
+        '<rect x="7" y="7" width="9" height="10" rx="1.5"/><path d="M5 13H4V3h9v2"/></svg>'
+        f"{html.escape(ui['copy_markdown'])}</button>\n"
+        "          </div>\n"
+        '          <p class="copy-status" role="status"></p>\n'
+        '          <textarea class="copy-source" '
+        f'aria-label="{html.escape(ui["markdown_source"])}" rows="6" readonly hidden></textarea>\n'
+        "        </header>\n"
+    )
+
+
 ARTICLE_SCRIPT = f"""\
 <script>
 (function () {{
+  var copyButton = document.querySelector(".copy-markdown");
+  var copyStatus = document.querySelector(".copy-status");
+  var copySource = document.querySelector(".copy-source");
+  var markdown = JSON.parse(document.getElementById("article-markdown").textContent);
+
+  function copyWithSelection() {{
+    copySource.value = markdown;
+    copySource.hidden = false;
+    copySource.focus({{ preventScroll: true }});
+    copySource.select();
+    try {{
+      return document.execCommand("copy");
+    }} catch {{
+      return false;
+    }}
+  }}
+
+  copyButton.addEventListener("click", async function () {{
+    copyStatus.textContent = "";
+    copyButton.disabled = true;
+    var copied = false;
+    if (navigator.clipboard && navigator.clipboard.writeText) {{
+      try {{
+        await navigator.clipboard.writeText(markdown);
+        copied = true;
+      }} catch {{
+        copied = copyWithSelection();
+      }}
+    }} else {{
+      copied = copyWithSelection();
+    }}
+    copyButton.disabled = false;
+    copySource.hidden = copied;
+    copyStatus.textContent = copied ? copyButton.dataset.copied : copyButton.dataset.manual;
+    if (copied) copyButton.focus({{ preventScroll: true }});
+  }});
+
   var tocLinks = Array.prototype.slice.call(
-    document.querySelectorAll('.toc-rail a[href^="#"]')
+    document.querySelectorAll('.page-toc a[href^="#"]')
   );
   var mobileLinks = Array.prototype.slice.call(
     document.querySelectorAll('.toc-mobile a[href^="#"]')
@@ -976,6 +1184,7 @@ ARTICLE_SCRIPT = f"""\
     // The current section is the last heading that has scrolled past the sticky top bar.
     // Recomputed on every scroll frame, so jumps (TOC clicks, Page Down) cannot skip it.
     function pickActive() {{
+      if (!targets.length) return;
       var root = document.documentElement;
       if (window.innerHeight + window.scrollY >= root.scrollHeight - 2) {{
         setActive(targets[targets.length - 1].id);
@@ -1002,6 +1211,7 @@ ARTICLE_SCRIPT = f"""\
       }},
       {{ passive: true }}
     );
+    window.addEventListener("resize", pickActive);
     pickActive();
   }}
 
@@ -1278,17 +1488,15 @@ def render_article(
     card_html = _render_download_card(lang, home_rel)
 
     toc_title = html.escape(ui["toc_title"])
-    toc_rail_html = ""
+    toc_right_html = ""
     toc_mobile_html = ""
     if len(toc_headings) >= 3:
         toc_list_html = _render_toc_list(toc_headings)
-        toc_rail_html = (
-            '      <aside class="toc-rail">\n'
-            f'        <nav aria-label="{toc_title}">\n'
-            f'          <p class="toc-title">{toc_title}</p>\n'
+        toc_right_html = (
+            f'        <nav class="page-toc" aria-label="{toc_title}">\n'
+            f'          <h2 class="toc-title">{toc_title}</h2>\n'
             f"{toc_list_html}\n"
             "        </nav>\n"
-            "      </aside>\n"
         )
         toc_mobile_html = (
             '        <details class="toc-mobile">\n'
@@ -1350,32 +1558,30 @@ def render_article(
             "        </section>\n"
         )
 
-    updated_meta = (
-        f'<span>{html.escape(ui["updated"])} <time datetime="{article.updated}">'
-        f"{article.updated}</time></span>"
-        if article.updated
-        else ""
-    )
+    categories_html = _render_categories(article, all_articles, ui)
+    mobile_menu_label = html.escape(ui["categories_and_toc" if toc_mobile_html else "categories"])
     main_html = (
         '    <div class="article-layout">\n'
-        f"{toc_rail_html}"
+        '      <aside class="left-rail">\n'
+        f"{categories_html}\n"
+        "      </aside>\n"
         '      <article class="article-main">\n'
-        '        <header class="post-header">\n'
-        '          <div class="post-meta">\n'
-        f'            <span>{html.escape(ui["published"])} <time datetime="{article.date}">'
-        f"{article.date}</time></span>\n"
-        + (f"            {updated_meta}\n" if updated_meta else "")
-        + "          </div>\n"
-        f"          <h1>{html.escape(article.title)}</h1>\n"
-        "        </header>\n"
+        f"{_render_post_header(article, ui, blog_rel)}"
+        '        <details class="mobile-menu">\n'
+        f"          <summary>{mobile_menu_label}</summary>\n"
+        f"{categories_html}\n"
         f"{toc_mobile_html}"
+        "        </details>\n"
         '        <div class="prose">\n'
         f"{body_html}"
         "        </div>\n"
         f"{card_html}\n"
         f"{related_html}"
         "      </article>\n"
+        '      <div class="right-rail">\n'
+        f"{toc_right_html}"
         f"{news_rail_html}\n"
+        "      </div>\n"
         "    </div>"
     )
 
@@ -1416,6 +1622,11 @@ def render_article(
         ],
     }
 
+    # Escape HTML tag openers in the JSON without changing the decoded source.
+    encoded_markdown = json.dumps(article.raw_markdown, ensure_ascii=False).replace("<", "\\u003c")
+    markdown_script = (
+        f'<script type="application/json" id="article-markdown">{encoded_markdown}</script>'
+    )
     return _render_shell(
         lang=lang,
         title=f"{article.title} — usage",
@@ -1430,7 +1641,7 @@ def render_article(
         blog_rel=blog_rel,
         main_html=main_html,
         wrap_class="wrap wrap-article",
-        extra_script=ARTICLE_SCRIPT,
+        extra_script=f"{markdown_script}\n{ARTICLE_SCRIPT}",
         og_image=custom_og_image,
     )
 

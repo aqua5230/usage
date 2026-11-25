@@ -235,7 +235,6 @@ p, li { text-wrap: pretty; }
 }
 main { flex: 1 0 auto; padding: 48px 0 72px; }
 @media (max-width: 640px) { main { padding: 32px 0 56px; } }
-.post-header { margin-bottom: 32px; }
 .post-meta time { font-family: var(--mono); }
 .post-meta {
   font-size: 13px;
@@ -424,15 +423,83 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
 .related-list a:is(:hover, :focus-visible) .related-title { color: var(--accent); }
 .related-title { font-size: 16px; font-weight: 600; line-height: 1.4; }
 .related-desc { font-size: 14.5px; line-height: 1.55; color: var(--fg-dim); }
-.prose h2[id] { scroll-margin-top: 76px; }
-.article-layout { display: block; }
-.toc-rail, .news-rail { display: none; }
+.prose h2[id] { scroll-margin-top: 84px; }
+.wrap-article { max-width: 800px; }
+.article-main { min-width: 0; }
+.left-rail, .right-rail, .news-rail { display: none; }
+.post-header { margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
+.post-header h1 { margin-bottom: 20px; }
+.breadcrumb { color: var(--fg-dim); font-size: 14px; margin-bottom: 16px; overflow-wrap: anywhere; }
+.breadcrumb a:hover { color: var(--fg); text-decoration: underline; }
+.breadcrumb span[aria-hidden] { margin-inline: 0.45em; color: var(--fg-dimmer); }
+.post-header .post-meta { align-items: center; justify-content: space-between; margin-bottom: 0; }
+.copy-markdown {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--fg-dimmer);
+  border-radius: 6px;
+  padding: 7px 12px;
+  min-height: 36px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--fg);
+  background: var(--bg);
+  cursor: pointer;
+}
+.copy-markdown:hover { background: var(--bg-soft); }
+.copy-markdown:disabled { cursor: wait; }
+.copy-markdown svg { width: 15px; height: 15px; }
+.copy-status { font-size: 13px; color: var(--fg-dim); margin-top: 8px; }
+.copy-status:empty { display: none; }
+.copy-source { width: 100%; margin-top: 8px; font: inherit; }
+.mobile-menu { margin-bottom: 28px; }
+.categories, .mobile-menu { border-top: 1px solid var(--border); }
+.mobile-menu .categories { border-top: 0; }
+.category, .mobile-menu { border-bottom: 1px solid var(--border); }
+.mobile-menu .category:last-child { border-bottom: 0; }
+.category > summary, .mobile-menu > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 43px;
+  list-style: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+.category > summary::-webkit-details-marker, .mobile-menu > summary::-webkit-details-marker {
+  display: none;
+}
+.category > summary::after, .mobile-menu > summary::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-right: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+  transform: rotate(-45deg);
+  margin-inline: auto 5px;
+  color: var(--fg-dim);
+}
+.category[open] > summary::after, .mobile-menu[open] > summary::after { transform: rotate(45deg); }
+.category > summary:hover, .mobile-menu > summary:hover { color: var(--fg-dim); }
+.article-layout summary:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.category > summary svg { width: 18px; height: 18px; flex: 0 0 18px; color: var(--fg-dim); }
+.category-articles { list-style: none; padding: 0 0 10px 28px; }
+.category-articles a {
+  display: block;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--fg-dim);
+  padding: 5px 0;
+  overflow-wrap: anywhere;
+}
+.category-articles a:hover, .category-articles a[aria-current="page"] { color: var(--fg); }
+.category-articles a[aria-current="page"] { font-weight: 650; }
 .toc-mobile {
-  margin-bottom: 28px;
-  padding: 14px 16px;
-  border-radius: 14px;
-  border: 1px solid var(--border);
-  background: var(--bg-card);
+  padding: 14px 0;
+  border-top: 1px solid var(--border);
 }
 .toc-mobile summary {
   cursor: pointer;
@@ -476,7 +543,19 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   overflow-wrap: anywhere;
 }
 .toc-list a:hover { color: var(--fg); }
-.toc-list a[aria-current="location"] { color: var(--accent); font-weight: 600; }
+.toc-list a[aria-current="location"] { color: var(--fg); font-weight: 600; }
+.page-toc .toc-list { border-inline-start: 1px solid var(--border); }
+.page-toc .toc-list a {
+  border-inline-start: 1px solid transparent;
+  margin-inline-start: -1px;
+  padding-inline-start: 12px;
+}
+.page-toc .toc-list a[aria-current="location"] { border-inline-start-color: var(--fg); }
+.page-toc + .news-rail:not([hidden]) {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
 .news-title {
   font-size: 12px;
   font-weight: 600;
@@ -525,43 +604,28 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   color: var(--accent);
 }
 .news-all:hover { color: var(--accent-hover); }
-@media (min-width: 1300px) {
-  .wrap-article { max-width: 1300px; }
+@media (min-width: 1025px) {
+  .wrap-article { max-width: 1360px; }
   .article-layout {
     display: grid;
-    grid-template-columns: 200px minmax(0, 772px) 200px;
-    justify-content: center;
+    grid-template-columns: clamp(185px, 17vw, 222px) minmax(0, 1fr) clamp(180px, 17vw, 222px);
     align-items: start;
-    column-gap: 40px;
+    gap: clamp(24px, 3.25vw, 48px);
   }
-  .article-main { grid-column: 2; min-width: 0; }
-  .toc-rail {
-    grid-column: 1;
+  .left-rail, .right-rail {
     display: block;
     position: sticky;
-    top: 76px;
-    max-height: calc(100vh - 96px);
+    top: 84px;
+    max-height: calc(100vh - 108px);
     overflow-y: auto;
+    scrollbar-width: thin;
+    padding: 4px;
+    margin: -4px;
   }
-  .toc-mobile { display: none; }
+  .mobile-menu { display: none; }
 }
 @media (min-width: 1440px) {
-  .wrap-article { max-width: 1440px; }
-  .article-layout {
-    grid-template-columns: 240px 40px minmax(0, 772px) 40px 240px;
-    column-gap: 0;
-    justify-content: center;
-  }
-  .toc-rail { grid-column: 1; }
-  .article-main { grid-column: 3; }
-  .news-rail:not([hidden]) {
-    grid-column: 5;
-    display: block;
-    position: sticky;
-    top: 76px;
-    max-height: calc(100vh - 96px);
-    overflow-y: auto;
-  }
+  .news-rail:not([hidden]) { display: block; }
 }
 footer {
   padding: 36px 0 28px;
@@ -601,28 +665,47 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <main id="main-content">
   <div class="wrap wrap-article">
     <div class="article-layout">
-      <aside class="toc-rail">
-        <nav aria-label="In this article">
-          <p class="toc-title">In this article</p>
-        <ol class="toc-list">
-          <li><a href="#how-do-you-check-your-quota-in-the-cli-or-the-app">How do you check your quota in the CLI or the app?</a></li>
-          <li><a href="#how-do-you-get-your-quota-as-json-without-calling-a-model">How do you get your quota as JSON without calling a model?</a></li>
-          <li><a href="#which-models-share-quota">Which models share quota?</a></li>
-          <li><a href="#when-do-the-5-hour-and-weekly-limits-reset">When do the 5-hour and weekly limits reset?</a></li>
-          <li><a href="#how-can-you-keep-your-antigravity-quota-on-screen">How can you keep your Antigravity quota on screen?</a></li>
-          <li><a href="#key-takeaways">Key takeaways</a></li>
-          <li><a href="#sources">Sources</a></li>
-        </ol>
-        </nav>
+      <aside class="left-rail">
+<nav class="categories" aria-label="Article categories">
+<details class="category"><summary><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5h14v11H3z M6 8l2.5 2L6 12 M10.5 12H14"/></svg>Claude Code</summary><ul class="category-articles">
+<li><a href="../claude-code-idle-compaction/">Why Does Claude Code Compact Your Conversation on Its Own?</a></li>
+<li><a href="../what-is-cli/">What Is a CLI? Learn How the Terminal Works with Claude Code</a></li>
+<li><a href="../claude-code-weekly-limit-reset/">When Does the Claude Code Weekly Limit Reset?</a></li>
+</ul></details>
+<details class="category"><summary><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 5l-5 5 5 5 M13 5l5 5-5 5 M11.5 4l-3 12"/></svg>Codex</summary><ul class="category-articles">
+<li><a href="../codex-weekly-limit-early-reset/">Why Did My Codex Weekly Limit Reset Early?</a></li>
+</ul></details>
+<details class="category" open><summary><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2.5c0 4 3.5 7.5 7.5 7.5-4 0-7.5 3.5-7.5 7.5 0-4-3.5-7.5-7.5-7.5 4 0 7.5-3.5 7.5-7.5Z"/></svg>Antigravity</summary><ul class="category-articles">
+<li><a href="../how-to-check-antigravity-quota/" aria-current="page">How to Check Your Antigravity (agy) Quota</a></li>
+</ul></details>
+</nav>
       </aside>
       <article class="article-main">
         <header class="post-header">
-          <div class="post-meta">
-            <span>Published <time datetime="2026-11-23">2026-11-23</time></span>
-            <span>Updated <time datetime="2026-11-24">2026-11-24</time></span>
-          </div>
+          <nav class="breadcrumb" aria-label="Breadcrumb"><a href="../">Blog</a><span aria-hidden="true">›</span><span>Antigravity</span></nav>
           <h1>How to Check Your Antigravity (agy) Quota</h1>
+          <div class="post-meta">
+            <span>Updated <time datetime="2026-11-24">2026-11-24</time></span>
+            <button class="copy-markdown" type="button" data-copied="Article Markdown copied to the clipboard." data-manual="Press ⌘C or Ctrl+C to copy the selected text below."><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="9" height="10" rx="1.5"/><path d="M5 13H4V3h9v2"/></svg>Copy for AI</button>
+          </div>
+          <p class="copy-status" role="status"></p>
+          <textarea class="copy-source" aria-label="Article Markdown source" rows="6" readonly hidden></textarea>
         </header>
+        <details class="mobile-menu">
+          <summary>Article categories and contents</summary>
+<nav class="categories" aria-label="Article categories">
+<details class="category"><summary><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5h14v11H3z M6 8l2.5 2L6 12 M10.5 12H14"/></svg>Claude Code</summary><ul class="category-articles">
+<li><a href="../claude-code-idle-compaction/">Why Does Claude Code Compact Your Conversation on Its Own?</a></li>
+<li><a href="../what-is-cli/">What Is a CLI? Learn How the Terminal Works with Claude Code</a></li>
+<li><a href="../claude-code-weekly-limit-reset/">When Does the Claude Code Weekly Limit Reset?</a></li>
+</ul></details>
+<details class="category"><summary><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 5l-5 5 5 5 M13 5l5 5-5 5 M11.5 4l-3 12"/></svg>Codex</summary><ul class="category-articles">
+<li><a href="../codex-weekly-limit-early-reset/">Why Did My Codex Weekly Limit Reset Early?</a></li>
+</ul></details>
+<details class="category" open><summary><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2.5c0 4 3.5 7.5 7.5 7.5-4 0-7.5 3.5-7.5 7.5 0-4-3.5-7.5-7.5-7.5 4 0 7.5-3.5 7.5-7.5Z"/></svg>Antigravity</summary><ul class="category-articles">
+<li><a href="../how-to-check-antigravity-quota/" aria-current="page">How to Check Your Antigravity (agy) Quota</a></li>
+</ul></details>
+</nav>
         <details class="toc-mobile">
           <summary>In this article</summary>
           <nav aria-label="In this article">
@@ -636,6 +719,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
           <li><a href="#sources">Sources</a></li>
         </ol>
           </nav>
+        </details>
         </details>
         <div class="prose">
 <p><strong>To check your Antigravity (<code>agy</code>) quota, type <code>/usage</code> in the CLI, or run <code>agy -p /usage --output-format json</code> in your terminal.</strong> The second command does not call a model, and it returns in about 6 seconds.</p>
@@ -720,6 +804,19 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
         </ul>
         </section>
       </article>
+      <div class="right-rail">
+        <nav class="page-toc" aria-label="In this article">
+          <h2 class="toc-title">In this article</h2>
+        <ol class="toc-list">
+          <li><a href="#how-do-you-check-your-quota-in-the-cli-or-the-app">How do you check your quota in the CLI or the app?</a></li>
+          <li><a href="#how-do-you-get-your-quota-as-json-without-calling-a-model">How do you get your quota as JSON without calling a model?</a></li>
+          <li><a href="#which-models-share-quota">Which models share quota?</a></li>
+          <li><a href="#when-do-the-5-hour-and-weekly-limits-reset">When do the 5-hour and weekly limits reset?</a></li>
+          <li><a href="#how-can-you-keep-your-antigravity-quota-on-screen">How can you keep your Antigravity quota on screen?</a></li>
+          <li><a href="#key-takeaways">Key takeaways</a></li>
+          <li><a href="#sources">Sources</a></li>
+        </ol>
+        </nav>
       <aside class="news-rail" aria-label="AI Update Daily" hidden>
         <div class="news-card">
           <h2 class="news-title">AI Update Daily</h2>
@@ -727,6 +824,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
           <a class="news-all" href="https://aqua5230.github.io/ai-updates/" target="_blank" rel="noopener">See all updates →</a>
         </div>
       </aside>
+      </div>
     </div>
   </div>
 </main>
@@ -735,10 +833,48 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
     <p>Built by <a href="https://github.com/aqua5230" target="_blank" rel="noopener">@aqua5230</a> · AGPL-3.0 · No uploads. No tracking. Just yours.</p>
   </div>
 </footer>
+<script type="application/json" id="article-markdown">"---\ntitle: How to Check Your Antigravity (agy) Quota\ndescription: Type /usage in the Antigravity CLI, or run agy -p /usage --output-format json to get your quota without calling a model. See which models share each of the two quota pools and when they reset.\ndate: 2026-11-23\nupdated: 2026-11-24\ntool: antigravity\nrelated: claude-code-weekly-limit-reset, codex-weekly-limit-early-reset, what-is-cli\n---\n\n**To check your Antigravity (`agy`) quota, type `/usage` in the CLI, or run `agy -p /usage --output-format json` in your terminal.** The second command does not call a model, and it returns in about 6 seconds.\n\n## How do you check your quota in the CLI or the app?\n\nGoogle documents two built-in ways to see your baseline quota and your AI credits.\n\nThe first is the [CLI](../what-is-cli/). In an interactive session, type `/usage` (or `/quota`) and press Enter. Google's CLI docs say this refreshes your quota from the backend and opens a **Models & Quota** panel. You can scroll with the arrow keys or `J` and `K`, jump with `G` and `Shift + G`, and close the panel with `Esc` or `Q`. The right side of the status line also shows how many AI credits you have left, and it highlights the number when you are running low. To open a separate credits panel, type `/credits`.\n\nThe second is the app. Google's **Plans** page says you can see your baseline quota on the **Settings** page. If you are on Google AI Pro or Ultra, you can also set **AI Credit Overages** there. **Never** means you wait for your quota to refill. **Always** means Antigravity uses your AI credits once the quota runs out.\n\n## How do you get your quota as JSON without calling a model?\n\nIf you want the numbers for a script or a status line, run the CLI in headless mode (`-p`) with JSON output:\n\n```bash\nagy -p /usage --output-format json\n```\n\nIn our testing, this command makes no model call and returns in about 6 seconds. Google documents `/usage` as an interactive command, and it documents `agy -p` with `--output-format json`. It does not document using the two together, and it does not describe the `command.data.groups` field that holds the pools.\n\n![Antigravity’s JSON output lists two quota pools in groups and shows the window, fraction remaining, and refill time for the Gemini weekly limit.](usage-json-en.svg)\n\n## Which models share quota?\n\nThe `command.data.groups` field lists two pools. Models in the same pool share a weekly limit and a 5-hour limit. Each pool resets on its own schedule. We verified the groups with Antigravity CLI 1.5.16 on 2026-11-24.\n\n| Pool | Models | Shared limits |\n| --- | --- | --- |\n| `Gemini Models` | Gemini 4 Neon, Gemini 4 Carbon, Gemini 4 Argon, Gemini 4 Hydrogen, Orchestrator (Neon, Carbon, Argon), Gemini 3.8 Flash | Weekly and 5-hour |\n| `Claude and GPT models` | Claude Opus 5.5, Claude Sonnet 5.5, GPT-OSS 120B | Weekly and 5-hour |\n\nFor example, if Neon uses up the Gemini pool's 5-hour quota, Argon hits that limit too. The Claude and GPT pool keeps whatever quota it had left.\n\n## When do the 5-hour and weekly limits reset?\n\nGoogle's **Plans** page says the refresh schedule depends on your Google AI plan:\n\n- **Google AI Ultra:** the highest quota, refreshed every five hours, plus the highest weekly rate limit and access to third-party models.\n- **Google AI Pro:** a high quota, refreshed every five hours until you reach the weekly limit, plus a higher weekly rate limit.\n- **Other plans:** a baseline quota that refreshes weekly, plus a weekly rate limit.\n\nGoogle also says that how fast you use quota depends on how much work the agent does. Simple tasks let you send more prompts, and complex tasks use more. The docs don't say when the 5-hour window starts. In our testing, it starts with your first use.\n\n## How can you keep your Antigravity quota on screen?\n\nThere are two free official ways, and a third option if you want the number on screen all the time:\n\n- **`/usage` or Settings.** Type `/usage` in `agy` to open the Models & Quota panel, or open the Settings page in the app.\n- **`agy -p /usage --output-format json`.** Read both pools from `command.data.groups`.\n- **The `usage` app.** [`usage`](https://aqua5230.github.io/usage/) is free and open source. It reads your quota with `agy -p /usage`. If that fails, it falls back to Google's quota endpoint, using the sign-in that the Antigravity CLI already saved. It shows your 5-hour and weekly limits, with countdowns, in the macOS menu bar or the Windows system tray. The Antigravity card shows the Gemini pool first. Tap the `Gemini ⇄` tag to switch between Gemini and Claude / GPT. The card remembers your choice. A limit turns red as it gets close, and you can get a notification at 50%, 70%, 80%, 90%, or 95%. The default is 90%.\n\n## Key takeaways\n\n- Type `/usage` in the Antigravity CLI to open the quota panel. Run `agy -p /usage --output-format json` to get the same data as JSON without calling a model.\n- Gemini Models and Claude and GPT models each have a weekly and a 5-hour limit. Gemini 4 Argon shares both limits with the other Gemini models.\n- `usage` shows the quota and countdown in your menu bar or tray, and one click switches between the two pools.\n\n## Sources\n\n- [Model quotas (/usage)](https://antigravity.google/docs/cli/commands/usage)\n- [Plans](https://antigravity.google/docs/plans)\n- [Headless mode](https://antigravity.google/docs/cli/headless)\n- [CLI AI credits](https://antigravity.google/docs/cli/credits)\n- [Choose a model](https://antigravity.google/docs/models)\n"</script>
 <script>
 (function () {
+  var copyButton = document.querySelector(".copy-markdown");
+  var copyStatus = document.querySelector(".copy-status");
+  var copySource = document.querySelector(".copy-source");
+  var markdown = JSON.parse(document.getElementById("article-markdown").textContent);
+
+  function copyWithSelection() {
+    copySource.value = markdown;
+    copySource.hidden = false;
+    copySource.focus({ preventScroll: true });
+    copySource.select();
+    try {
+      return document.execCommand("copy");
+    } catch {
+      return false;
+    }
+  }
+
+  copyButton.addEventListener("click", async function () {
+    copyStatus.textContent = "";
+    copyButton.disabled = true;
+    var copied = false;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      try {
+        await navigator.clipboard.writeText(markdown);
+        copied = true;
+      } catch {
+        copied = copyWithSelection();
+      }
+    } else {
+      copied = copyWithSelection();
+    }
+    copyButton.disabled = false;
+    copySource.hidden = copied;
+    copyStatus.textContent = copied ? copyButton.dataset.copied : copyButton.dataset.manual;
+    if (copied) copyButton.focus({ preventScroll: true });
+  });
+
   var tocLinks = Array.prototype.slice.call(
-    document.querySelectorAll('.toc-rail a[href^="#"]')
+    document.querySelectorAll('.page-toc a[href^="#"]')
   );
   var mobileLinks = Array.prototype.slice.call(
     document.querySelectorAll('.toc-mobile a[href^="#"]')
@@ -763,6 +899,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
     // The current section is the last heading that has scrolled past the sticky top bar.
     // Recomputed on every scroll frame, so jumps (TOC clicks, Page Down) cannot skip it.
     function pickActive() {
+      if (!targets.length) return;
       var root = document.documentElement;
       if (window.innerHeight + window.scrollY >= root.scrollHeight - 2) {
         setActive(targets[targets.length - 1].id);
@@ -789,6 +926,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
       },
       { passive: true }
     );
+    window.addEventListener("resize", pickActive);
     pickActive();
   }
 
