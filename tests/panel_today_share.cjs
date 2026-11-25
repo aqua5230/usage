@@ -20,6 +20,17 @@ const palImages = palNames.map(name => digest(
   'data:image/webp;base64,' + fs.readFileSync(path.join(assetDir, `felt/pals/${name}_card.webp`), 'base64'),
 ));
 
+async function prepareDemoTotals(page) {
+  await page.evaluate(() => {
+    for (const state of Object.values(usageDemoPayloads)) {
+      state.footer.totalsReady = true;
+      state.footer.today.day = '2026-11-24';
+      state.footer.today.shareTokensCount = state.footer.today.tokensCount;
+    }
+    usageDemoSetLanguage(usageDemoLanguage);
+  });
+}
+
 async function setLayout(page, { width, language, alerts, install, scale }) {
   await page.setViewportSize({ width: Math.round(width * scale), height: Math.round(1600 * scale) });
   return page.evaluate(async ({ language, alerts, install, scale, todaySelector, buttonSelector }) => {
@@ -101,6 +112,7 @@ async function checkCard(page, scale, feltCard) {
     state.hideCodex = true;
     state.agy.weeklyOnly = true;
     state.footer.today.tokensCount = '123,456';
+    state.footer.today.shareTokensCount = '123,456';
     state.footer.today.byService = services.map(([card, , tokens, tokensText]) => ({ card, tokens, tokensText }));
     state.footer.today.costText = '$987.65';
     state.footer.yesterday.tokensCount = '111,111';
@@ -123,7 +135,10 @@ async function checkCard(page, scale, feltCard) {
     };
     window.webkit.messageHandlers.usage.postMessage = raw => {
       const message = JSON.parse(raw);
-      if (message.action === 'share_pal_card') window.shared.push(message);
+      if (message.action === 'share_pal_card') {
+        window.shared.push(message);
+        window.usageShareCardResult({ requestId: message.requestId, success: true });
+      }
     };
   }, { scale, services });
   if (feltCard) {
@@ -189,7 +204,8 @@ async function checkCard(page, scale, feltCard) {
   const { message, canvasText, canvasImages } = await page.evaluate(() => ({
     message: window.shared[0], canvasText: window.canvasText, canvasImages: window.canvasImages,
   }));
-  const { png, anchor, ...metadata } = message;
+  const { png, anchor, requestId, ...metadata } = message;
+  assert.ok(Number.isInteger(requestId));
   assert.deepEqual(metadata, {
     action: 'share_pal_card', target: 'more', name: 'today',
     text: i18n.panel_today_share_text.replace('{tokens}', '123,456'),
@@ -226,6 +242,7 @@ async function checkOptionalBreakdown(page) {
     await page.evaluate(tokens => {
       const data = structuredClone(usageDemoPayloads.en);
       data.footer.today.tokensCount = String(tokens || 0);
+      data.footer.today.shareTokensCount = String(tokens || 0);
       if (tokens === null) delete data.footer.today.byService;
       else data.footer.today.byService = [{ card: 'codex', tokens, tokensText: '2.0K' }];
       usageApplyState(data);
@@ -268,26 +285,157 @@ async function checkFeltCollectibles(page, url) {
     Math.random = () => 0.05;
   });
   await page.goto(url);
+  assert.equal(await page.locator('.pal-book').getAttribute('title'), i18n.panel_felt_hidden_book);
+  await page.evaluate(() => {
+    usageApplyPanelZoom(0.6, 1600);
+    usageDemoSetLanguage('zh-TW');
+    const animate = Element.prototype.animate;
+    Element.prototype.animate = function (keyframes, options) {
+      if (this.matches('.pal-card') && keyframes[1]?.transform?.includes('scale(.1)')) {
+        const from = this.getBoundingClientRect();
+        const to = document.querySelector('.pal-book').getBoundingClientRect();
+        const zoom = Number(getComputedStyle(document.documentElement).zoom);
+        window.flight = {
+          keyframe: keyframes[1].transform,
+          x: (to.left + to.width / 2 - from.left - from.width / 2) / zoom,
+          y: (to.top + to.height / 2 - from.top - from.height / 2) / zoom,
+        };
+      }
+      return animate.call(this, keyframes, options);
+    };
+  });
+  assert.equal(await page.locator('.pal-book').getAttribute('title'), require('../i18n.json')['zh-TW'].panel_felt_hidden_book);
   const card = page.locator('.pal-card:not(.day)');
   const controls = page.locator('.pal-share.on');
   for (const inDex of [false, true]) {
     if (inDex) {
       await page.locator('.pal-book').click();
-      await page.locator('.pal-dex-cell.seen .share').click();
+      await page.locator('.pal-dex-cell.seen .share').evaluate(button => {
+        button.click();
+        button.click();
+      });
+      assert.equal(await card.count(), 1);
     }
     await page.waitForFunction(() => {
       const flip = document.querySelector('.pal-card.show:not(.face-up) .flip');
       return flip && flip.getAnimations().some(animation => animation.playState === 'running');
     });
-    await checkHold(card, controls, { w: 136, h: 190, scale: 1 });
+    await checkHold(card, controls, { w: 136, h: 190, scale: 0.6 });
     assert.ok(await card.evaluate(element =>
       getComputedStyle(element.querySelector('.flip')).transformStyle === 'flat'
       && getComputedStyle(element.querySelector('.front')).backfaceVisibility === 'visible'
       && getComputedStyle(element.querySelector('.back')).display === 'none'));
     await controls.locator('.keep').click();
     await card.waitFor({ state: 'detached' });
+    if (!inDex) {
+      const flight = await page.evaluate(() => window.flight);
+      const [, x, y] = flight.keyframe.match(/translate\(([^p]+)px, ([^p]+)px\)/);
+      assert.ok(Math.abs(Number(x) - flight.x) < 0.1);
+      assert.ok(Math.abs(Number(y) - flight.y) < 0.1);
+    }
   }
   await page.locator('.pal-dex-x').click();
+}
+
+async function checkMidnightAndShareResult(page, url) {
+  await page.setViewportSize({ width: 280, height: 600 });
+  await page.clock.setFixedTime(new Date(2026, 10, 24, 23, 59));
+  await page.goto(url);
+  const button = page.locator(buttonSelector);
+  const card = page.locator('.pal-card.day');
+  assert.equal(await button.isDisabled(), true);
+  await button.dispatchEvent('click');
+  assert.equal(await card.count(), 0);
+  await prepareDemoTotals(page);
+  assert.equal(await button.isEnabled(), true);
+  await page.clock.setFixedTime(new Date(2026, 10, 25, 0, 1));
+  await button.dispatchEvent('click');
+  assert.equal(await card.count(), 0);
+  await page.evaluate(() => {
+    const state = structuredClone(usageDemoPayloads.en);
+    state.footer.today.day = '2026-11-25';
+    state.footer.today.shareTokensCount = '0';
+    usageApplyState(state);
+    window.webkit.messageHandlers.usage.postMessage = raw => {
+      const message = JSON.parse(raw);
+      if (message.action === 'share_pal_card') window.shareRequest = message;
+    };
+  });
+  await button.click();
+  assert.equal(await card.locator('.num b').textContent(), '0');
+  assert.equal(await card.locator('.top .tag').textContent(), 'Wed, 11/25');
+
+  const controls = page.locator('.pal-share.on');
+  const go = controls.locator('.go');
+  await go.click();
+  await page.locator('.pal-share-menu').getByRole('button', { name: /Save Image/ }).click();
+  await page.waitForFunction(() => window.shareRequest?.target === 'save');
+  assert.equal(await go.textContent(), i18n.panel_card_share);
+  assert.equal(await go.isDisabled(), true);
+  await page.evaluate(() => usageShareCardResult({ requestId: shareRequest.requestId, success: false }));
+  await page.waitForFunction(text => document.querySelector('.pal-share .go').textContent === text,
+    i18n.panel_card_save_error);
+  assert.equal(await go.isEnabled(), true);
+  assert.equal(await controls.locator('.keep').isVisible(), true);
+
+  for (const target of ['threads', 'x']) {
+    if (target === 'x') await button.click();
+    await go.click();
+    await page.locator('.pal-share-menu').getByRole('button', { name: new RegExp(i18n[`panel_card_share_${target}`]) }).click();
+    await page.waitForFunction(target => window.shareRequest?.target === target, target);
+    await page.evaluate(() => usageShareCardResult({ requestId: shareRequest.requestId, success: true }));
+    assert.equal(await controls.locator('.go.done').textContent(), i18n[`panel_card_shared_${target}`]);
+    const bounds = await controls.boundingBox();
+    assert.ok(Math.abs(bounds.x + bounds.width / 2 - 140) < 1);
+    assert.ok(bounds.x >= 0 && bounds.x + bounds.width <= 280);
+    await card.waitFor({ state: 'detached' });
+  }
+}
+
+async function checkMissedUnlocks(page, url) {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.setViewportSize({ width: 364, height: 812 });
+  await page.clock.setFixedTime(new Date(2026, 11, 16, 12));
+  await page.goto(url);
+  await page.evaluate(() => {
+    // A fresh URL has already started a visit. Seed an empty book before restarting.
+    localStorage.setItem('usage-felt-hidden-seen', '[]');
+  });
+  await page.reload();
+  const book = page.locator('.pal-book span');
+  await page.waitForFunction(() => document.querySelector('.pal-book span').textContent === '3/12');
+  await page.reload();
+  assert.equal(await book.textContent(), '3/12');
+}
+
+async function checkFileStorage(directory) {
+  const profile = path.join(directory, 'usage-browser-profile');
+  const url = pathToFileURL(path.join(directory, 'felt.html')).href;
+  const saved = [
+    ['usage-felt-hidden-seen', '["tuanli"]'],
+    ['usage-felt-hello', '2026-11-24'],
+    ['usage-felt-week', '{"claude":1796400000}'],
+  ];
+  for (const write of [true, false]) {
+    const context = await playwright[engine].launchPersistentContext(profile, { reducedMotion: 'reduce' });
+    try {
+      const page = context.pages()[0] || await context.newPage();
+      await page.addInitScript(() => { window.usageHost = 'windows'; });
+      await page.clock.setFixedTime(new Date(2026, 10, 24, 12));
+      await page.goto(url);
+      if (write) {
+        await page.evaluate(entries => {
+          for (const [key, value] of entries) localStorage.setItem(key, value);
+        }, saved);
+        await page.goto(pathToFileURL(path.join(directory, 'classic.html')).href);
+        await page.goto(url);
+      }
+      assert.deepEqual(await page.evaluate(entries =>
+        entries.map(([key]) => [key, localStorage.getItem(key)]), saved), saved);
+    } finally {
+      await context.close();
+    }
+  }
 }
 
 async function main() {
@@ -329,6 +477,7 @@ async function main() {
         continue;
       }
       assert.equal(await page.locator(buttonSelector).count(), 1, id);
+      await prepareDemoTotals(page);
       for (const [index, layout] of layouts.entries()) {
         const result = await setLayout(page, layout);
         assert.ok(result.sizes[2] > 0, `${id}: missing native height report`);
@@ -346,12 +495,15 @@ async function main() {
       await page.goto(`${url('classic')}?host=${host}`);
       assert.equal(await page.locator(buttonSelector).count(), 0, host);
     }
+    await checkMidnightAndShareResult(page, url('classic'));
+    await checkMissedUnlocks(page, `${url('felt')}?host=windows`);
     await checkFeltCollectibles(page, url('felt'));
     assert.deepEqual(errors, []);
     console.log(`${engine}: tested ${themes.length - 1} share cards and World Cup's existing footer.`);
   } finally {
     await browser.close();
   }
+  await checkFileStorage(directory);
 }
 
 main().catch(error => { console.error(error); process.exitCode = 1; });

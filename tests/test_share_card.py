@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import base64
+import sys
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
+
+import pytest
 
 from panels import share_card
 
@@ -54,3 +57,19 @@ def test_free_path_never_overwrites_an_earlier_save(tmp_path: Path) -> None:
     first.write_bytes(PNG)
 
     assert share_card.free_path(tmp_path, "usage-tuanli").name == "usage-tuanli (2).png"
+
+
+@pytest.mark.skipif(sys.platform != "darwin", reason="uses AppKit image decoding")
+def test_native_share_rejects_a_damaged_png() -> None:
+    assert share_card.share_pal_card(None, _message(target="copy")) is False
+
+
+@pytest.mark.skipif(sys.platform != "darwin", reason="uses AppKit image decoding")
+def test_save_reports_unwritable_downloads_to_bridge(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(Path, "home", lambda: tmp_path)
+    image = Path(__file__).resolve().parents[1] / "assets" / "claude_mono_menubar.png"
+    png = base64.b64encode(image.read_bytes()).decode()
+    with pytest.raises(FileNotFoundError, match="Downloads"):
+        share_card.share_pal_card(None, _message(target="save", png=png))

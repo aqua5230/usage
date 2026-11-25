@@ -23,7 +23,7 @@ import quota.agy_window_keeper as agy_window_keeper
 import quota.notifications as notifications
 import quota.window_keeper as window_keeper
 from installer import session_hooks, statusline_settings
-from loaders import codex_loader, grok_loader, history_loader
+from loaders import agy_loader, codex_loader, grok_loader, history_loader
 from loaders.claude_usage import PollOutcome, PollState, UsageSnapshot
 from menubar import actions as menubar_actions
 from menubar import agy as menubar_agy
@@ -2692,9 +2692,13 @@ def test_refresh_error_preserves_project_usage(monkeypatch: pytest.MonkeyPatch) 
     assert state.today_by_service == (("codex", 165),)
 
 
+@pytest.mark.parametrize("agy_only", [False, True])
 def test_refresh_success_builds_popover_state_and_pings_window_keeper(
     monkeypatch: pytest.MonkeyPatch,
+    agy_only: bool,
 ) -> None:
+    from panels.payload import _state_payload
+
     session = menubar_state.QuotaRowState(
         title="Session",
         percent=18.5,
@@ -2724,6 +2728,12 @@ def test_refresh_success_builds_popover_state_and_pings_window_keeper(
             project="Eric-Tools",
         )
     ]
+    now = entries[0].timestamp
+    agy_entries = [
+        agy_loader.AgyUsageEntry(now, "claude-sonnet", 4500, 200, 200, 100, "one", "agy"),
+        agy_loader.AgyUsageEntry(now - timedelta(days=1), "gemini", 900, 0, 0, 0, "two", "agy"),
+    ]
+    monkeypatch.setattr(agy_loader, "load_entries", lambda **kwargs: agy_entries)
     pings: list[tuple[float, int | None, str, bool]] = []
     monkeypatch.setattr(menubar_refresh, "_hide_claude_enabled", lambda: False)
     monkeypatch.setattr(menubar_refresh, "_hide_codex_enabled", lambda: False)
@@ -2760,7 +2770,7 @@ def test_refresh_success_builds_popover_state_and_pings_window_keeper(
             self, *, scan: menubar_state.HistorySourceScan | None = None
         ) -> list[history_loader.UsageEntry]:
             assert scan is None
-            return entries
+            return [] if agy_only else entries
 
         def _statusline_setup_available(self) -> bool:
             return False
@@ -2803,7 +2813,17 @@ def test_refresh_success_builds_popover_state_and_pings_window_keeper(
     assert isinstance(state, menubar_state.PopoverState)
     assert state.claude_session.percent == 12.0
     assert state.codex_session == session
-    assert state.projects == [("Eric-Tools", 165, 0.01)]
+    assert state.projects == ([] if agy_only else [("Eric-Tools", 165, 0.01)])
+    assert state.today_total.tokens == (0 if agy_only else 165)
+    assert state.yesterday_total.tokens == 0
+    today = result["state"].today_total.day
+    assert today == now.astimezone().date()
+    payload = cast(dict[str, Any], _state_payload(state)["footer"])["today"]
+    assert payload["day"] == today.isoformat()
+    assert payload["shareTokensCount"] == ("5,000" if agy_only else "5,165")
+    assert {row["card"]: row["tokens"] for row in payload["byService"]} == (
+        {"agy": 5000} if agy_only else {"codex": 165, "agy": 5000}
+    )
     assert result["codex_5h_pct"] == 18.5
     assert result["codex_model"] == "gpt-test"
     assert state.hide_grok is True

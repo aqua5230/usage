@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Any
 
 import objc
 from AppKit import NSColor, NSFont, NSMakeRect, NSTextField, NSView
-from Foundation import NSObject
+from Foundation import NSURL, NSObject
 from Quartz import CGColorCreateGenericRGB
 
 from menubar.prefs import (
@@ -83,6 +83,8 @@ if TYPE_CHECKING:
 
 PANEL_WIDTH = 364.0
 PANEL_HEIGHT = 812.0
+# WebKit gives inline HTML this origin without navigating to the host.
+_PANEL_BASE_URL = NSURL.URLWithString_("https://usage-panel.invalid/")
 MAX_INJECTION_RELOADS = 2
 NAVIGATION_MENU_IDENTIFIER_PARTS = (
     "WKMenuItemIdentifierReload",
@@ -106,7 +108,7 @@ def _reload_web_panel(view: Any) -> None:
     if html is None:
         view.reload()
         return
-    view.loadHTMLString_baseURL_(html, None)
+    view.loadHTMLString_baseURL_(html, _PANEL_BASE_URL)
 
 
 def _is_navigation_menu_item(item: Any) -> bool:
@@ -190,7 +192,17 @@ class UsageScriptBridge(NSObject):
                             state.card_order = order
                     return
                 if parsed["action"] == "share_pal_card":
-                    share_pal_card(self.web_view, parsed)
+                    request_id = parsed.get("requestId")
+                    try:
+                        success = share_pal_card(self.web_view, parsed)
+                    except Exception:
+                        logger.exception("Could not share usage card via %r", parsed.get("target"))
+                        success = False
+                    if type(request_id) is int:
+                        result = json.dumps({"requestId": request_id, "success": success})
+                        self.web_view.evaluateJavaScript_completionHandler_(
+                            f"window.usageShareCardResult?.({result})", None
+                        )
                     return
                 if parsed["action"] == "set_panel_flavor":
                     _save_panel_flavor(parsed.get("flavor"))
@@ -460,7 +472,7 @@ class HTMLPanel:
             web_view.setBridge_(bridge)
             controller.addScriptMessageHandler_name_(bridge, "usage")
             web_view._html = html
-            web_view.loadHTMLString_baseURL_(html, None)
+            web_view.loadHTMLString_baseURL_(html, _PANEL_BASE_URL)
             web_view.performSelector_withObject_afterDelay_("renderTimeoutElapsed:", None, 4.0)
             self._content_height_reports_available = self.dynamic_height
             return web_view

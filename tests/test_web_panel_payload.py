@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import json
 from datetime import UTC, datetime
 from pathlib import Path
 from types import SimpleNamespace
@@ -480,3 +481,32 @@ def test_bridge_hands_share_pal_card_to_the_share_module(monkeypatch: pytest.Mon
     )
 
     assert calls == [{"action": "share_pal_card", "target": "copy", "name": "zapi"}]
+
+
+@pytest.mark.parametrize("success", [True, False, None])
+def test_bridge_tells_the_page_whether_saving_succeeded(
+    monkeypatch: pytest.MonkeyPatch, success: bool | None
+) -> None:
+    import panels.web_panel as web_panel
+
+    def share(_view: object, _message: object) -> bool:
+        if success is None:
+            raise FileNotFoundError("Downloads")
+        return success
+
+    monkeypatch.setattr(web_panel, "share_pal_card", share)
+    scripts: list[str] = []
+    view = SimpleNamespace(
+        evaluateJavaScript_completionHandler_=lambda script, callback: scripts.append(script)
+    )
+    bridge = UsageScriptBridge.alloc().initWithDelegate_webView_(None, view)
+    bridge.userContentController_didReceiveScriptMessage_(
+        None,
+        SimpleNamespace(body=lambda: '{"action":"share_pal_card","target":"save","requestId":42}'),
+    )
+    assert len(scripts) == 1
+    assert scripts[0].startswith("window.usageShareCardResult?.(")
+    assert json.loads(scripts[0].split("(", 1)[1][:-1]) == {
+        "requestId": 42,
+        "success": success is True,
+    }

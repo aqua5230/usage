@@ -27,6 +27,7 @@ import quota.agy_window_keeper as agy_window_keeper
 import quota.codex_window_keeper as codex_window_keeper
 import quota.window_keeper as window_keeper
 from analyzer import diagnosis_snapshot, history_persist
+from installer.setup_hook import _atomic_write_text
 from installer.statusline_settings import _statusline_enabled, _toggle_statusline_settings
 from loaders import codex_loader, grok_loader, muse_loader
 from loaders.claude_usage import ClaudeUsageClient, PollState
@@ -161,7 +162,7 @@ UPDATE_ALERT_BODY_LIMIT = 2000
 # szTip is 128 WCHARs including the terminator; pystray raises ValueError past that.
 TOOLTIP_MAX_LENGTH = 127
 PANEL_WIDTH = 380
-# Abnormal exits reuse one dir; pywebview private mode deletes on clean exit: subdir, never ~/.usage
+# Keep the Edge profile between launches so the panel's localStorage survives.
 _WEBVIEW_STORAGE_DIR = Path.home() / ".usage" / "webview"
 _TOAST_AUMID = "com.lollapalooza.usage"
 _TOAST_OPEN_PANEL_ACTION = "open_panel"
@@ -695,6 +696,14 @@ def panel_html(filename: str) -> str:
     return _without_power_glyph(html.replace(marker, f"{marker}\n{JS_SHIM}", 1))
 
 
+def _panel_url(filename: str) -> str:
+    # NavigateToString is limited to 2 MB. WebView2 scopes localStorage for
+    # file URLs to the document, so keep a stable path for each theme.
+    path = _WEBVIEW_STORAGE_DIR.parent / "usage-panels" / f"usage-{filename}"
+    _atomic_write_text(path, panel_html(filename))
+    return path.as_uri()
+
+
 def _active_panel_id() -> str:
     panel_ids = {panel[0] for panel in WINDOWS_PANELS}
     value = _load_preferences().get("usage.activePanelId", "classic")
@@ -869,8 +878,9 @@ class _WindowsTrayController:
             card_order=_quota_card_order(),
         )
 
-    def panel_filename(self) -> str:
-        return next(item[2] for item in WINDOWS_PANELS if item[0] == self.active_panel_id)
+    def panel_filename(self, panel_id: str | None = None) -> str:
+        selected = self.active_panel_id if panel_id is None else panel_id
+        return next(item[2] for item in WINDOWS_PANELS if item[0] == selected)
 
     def panel_height(self) -> int:
         return self._content_height or PANEL_HEIGHTS[self.active_panel_id]
@@ -1923,6 +1933,7 @@ class _WindowsTrayController:
         self.window.show()
 
     def switch_panel(self, panel_id: str) -> None:
+        url = _panel_url(self.panel_filename(panel_id))
         self.active_panel_id = panel_id
         # Deliberately keep the previous panel's measured height instead of
         # resetting to None: on_loaded() clamps the window to fit before the
@@ -1935,7 +1946,7 @@ class _WindowsTrayController:
         # worker, so refresh this field from the shared preferences before the
         # next theme receives that state.
         self.latest_state.card_order = _quota_card_order()
-        self.window.load_html(panel_html(self.panel_filename()))
+        self.window.load_url(url)
 
     def _deferred_switch_panel(self, panel_id: str) -> None:
         self._switch_pending = False
@@ -2785,7 +2796,7 @@ def run_app(
     controller = _WindowsTrayController(mock, interval)
     window = webview.create_window(
         "usage",
-        html=panel_html(controller.panel_filename()),
+        url=_panel_url(controller.panel_filename()),
         js_api=_JSApi(controller),
         width=PANEL_WIDTH,
         height=controller.panel_height(),
@@ -2810,6 +2821,7 @@ def run_app(
         webview.start(
             gui="edgechromium",
             debug=os.environ.get("USAGE_DEBUG") == "1",
+            private_mode=False,
             storage_path=str(_WEBVIEW_STORAGE_DIR),
         )
     finally:

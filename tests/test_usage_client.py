@@ -548,7 +548,7 @@ def test_fetch_once_reuses_claude_json_snapshot_until_mtime_changes(
     calls = 0
     original = usage_client._read_claude_json
 
-    def counting_read() -> tuple[str | None, usage_client.UsageSnapshot | None]:
+    def counting_read() -> usage_client._ClaudeJson:
         nonlocal calls
         calls += 1
         return original()

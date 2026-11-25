@@ -251,6 +251,35 @@
       const canShare = () => window.usageHost !== "windows" && !window.pywebview
         && typeof bridge()?.postMessage === "function";
       const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+      let nextShareRequest = 0;
+      const shareReplies = new EventTarget();
+      window.usageShareCardResult = (result) => {
+        shareReplies.dispatchEvent(new CustomEvent(String(result.requestId), { detail: result.success }));
+      };
+      function requestShare(message) {
+        return new Promise((resolve, reject) => {
+          const requestId = ++nextShareRequest, event = String(requestId);
+          const cleanup = () => {
+            clearTimeout(timer);
+            shareReplies.removeEventListener(event, reply);
+          };
+          const reply = ({ detail }) => {
+            cleanup();
+            resolve(detail === true);
+          };
+          const timer = setTimeout(() => {
+            cleanup();
+            reject(new Error("No reply from the share handler"));
+          }, 10000);
+          shareReplies.addEventListener(event, reply);
+          try {
+            bridge().postMessage(JSON.stringify({ ...message, requestId }));
+          } catch (error) {
+            cleanup();
+            reject(error);
+          }
+        });
+      }
 
       const SHARE_LINK = "github.com/aqua5230/usage";
       const todayPalImages = {
@@ -416,8 +445,10 @@
               const a = go.getBoundingClientRect();
               const image = await png();
               if (closing || !canShare()) return;
-              bridge().postMessage(JSON.stringify({ action: "share_pal_card", target, name, png: image, text,
-                anchor: { x: a.left, y: a.top, w: a.width, h: a.height } }));
+              const success = await requestShare({ action: "share_pal_card", target, name, png: image, text,
+                anchor: { x: a.left, y: a.top, w: a.width, h: a.height } });
+              if (closing) return;
+              if (!success) throw new Error("The native share action failed");
               if (target === "more") return;
               go.classList.add("done");
               status.textContent = t(`panel_card_shared_${target}`);
@@ -425,7 +456,7 @@
               finish(1600);
             } catch (error) {
               console.error("Could not share the usage card", error);
-              status.textContent = t("panel_card_share_error");
+              if (!closing) status.textContent = t(target === "save" ? "panel_card_save_error" : "panel_card_share_error");
             } finally {
               go.disabled = closing;
             }
@@ -456,7 +487,7 @@
           rowTimer = setTimeout(() => {
             document.body.append(controls);
             const r = card.getBoundingClientRect();
-            controls.style.left = `${(r.left + r.width / 2) / z - controls.offsetWidth / 2}px`;
+            controls.style.left = `${(r.left + r.width / 2) / z}px`;
             controls.style.top = `${r.bottom / z + 12}px`;
             requestAnimationFrame(() => controls.classList.add("on"));
           }, still ? 0 : 380);
@@ -477,8 +508,8 @@
           color: serviceColors[card],
         }));
         return {
-          tokens: today?.tokensCount || "0",
-          date: new Date().toLocaleDateString(root.lang || undefined, { month: "numeric", day: "numeric", weekday: "short" }),
+          tokens: today.shareTokensCount,
+          date: new Date(today.day + "T00:00:00").toLocaleDateString(root.lang || undefined, { month: "numeric", day: "numeric", weekday: "short" }),
           rows,
         };
       }
@@ -657,12 +688,14 @@
       .pal-dim{position:fixed;inset:0;z-index:47;background:rgba(40,26,14,.42);opacity:0;transition:opacity .3s}
       .pal-dim.on{opacity:1}
       .pal-dim.over-dex{z-index:51}
-      .pal-share{position:fixed;display:flex;gap:8px;z-index:49;opacity:0;translate:0 6px;transition:opacity .25s,translate .25s}
-      .pal-share.on{opacity:1;translate:0 0}
+      .pal-share{position:fixed;display:flex;gap:8px;width:max-content;max-width:calc(100% - 16px);z-index:49;opacity:0;translate:-50% 6px;transition:opacity .25s,translate .25s}
+      .pal-share.on{opacity:1;translate:-50% 0}
       .pal-share.over-dex{z-index:53}
       .pal-share>button{display:flex;align-items:center;gap:5px;padding:7px 15px;border:0;border-radius:99px;cursor:pointer;white-space:nowrap;
         font:800 12.5px/16px ui-rounded,-apple-system,"PingFang TC",sans-serif;box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 3px 8px rgba(40,25,10,.3)}
       .pal-share .go{color:#fffaf0;background:#d9a93a}
+      .pal-share .go span{white-space:normal}
+      .pal-share .go svg{flex-shrink:0}
       .pal-share .go.done{background:#5b9a5b}
       .pal-share .keep{color:#4a2a04;background:#fbf3e4}
       .pal-share svg{width:13px;height:13px}
@@ -731,7 +764,26 @@
       const size = new ResizeObserver(position);
       size.observe(footer);
       size.observe(today);
+      let midnightTimer;
+      const shareReady = () => {
+        const data = latestState?.footer;
+        const now = new Date();
+        const day = [now.getFullYear(), now.getMonth() + 1, now.getDate()]
+          .map((part) => String(part).padStart(2, "0")).join("-");
+        return data?.totalsReady === true && data.today?.day === day
+          && typeof data.today.shareTokensCount === "string";
+      };
+      const updateAvailability = () => {
+        clearTimeout(midnightTimer);
+        button.disabled = !shareReady();
+        if (!button.disabled) {
+          const midnight = new Date();
+          midnight.setHours(24, 0, 0, 0);
+          midnightTimer = setTimeout(updateAvailability, midnight - Date.now());
+        }
+      };
       const update = () => {
+        updateAvailability();
         button.title = t("panel_today_share");
         button.setAttribute("aria-label", button.title);
         if (!selectTodayPalImage) updateShareButtonColors(button, today, footer);
@@ -739,7 +791,7 @@
       };
       let open = false;
       button.addEventListener("click", async () => {
-        if (open || !cardSharing.canShare()) return;
+        if (open || !cardSharing.canShare() || !shareReady()) return;
         open = true;
         let card;
         try {
@@ -1245,5 +1297,5 @@
       projects7d: [],
       projects30d: [],
       projectsAll: [],
-      footer: { rate: "Rate: --", status: "Status: Loading", today: { tokensText: "0", costText: "$0.00" }, yesterday: { tokensText: "0", costText: "$0.00" }, serviceAlerts: [], showInstall: false }
+      footer: { rate: "Rate: --", status: "Status: Loading", totalsReady: false, today: { tokensText: "0", costText: "$0.00" }, yesterday: { tokensText: "0", costText: "$0.00" }, serviceAlerts: [], showInstall: false }
     });

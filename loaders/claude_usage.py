@@ -11,8 +11,7 @@ import logging
 import math
 import os
 import time
-from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime
 from enum import StrEnum
 from pathlib import Path
@@ -61,6 +60,13 @@ class UsageSnapshot:
     is_stale: bool = False
     data_source: str = "hook"
     account_uuid: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class _ClaudeJson:
+    account: str | None = None
+    org: str | None = None
+    snapshot: UsageSnapshot | None = None
 
 
 @dataclass(slots=True)
@@ -170,7 +176,7 @@ def _source_from_path(source_path: str) -> str:
 
 def _read_claude_json_snapshot() -> UsageSnapshot | None:
     """Read Claude Code's own cached quota utilization as a fallback."""
-    return _read_claude_json()[1]
+    return _read_claude_json().snapshot
 
 
 def _account_uuid(value: Any) -> str | None:
@@ -182,27 +188,29 @@ def _hook_account_mismatch(data: dict[str, Any], current_account: str | None) ->
     return bool(hook_account and current_account and hook_account != current_account)
 
 
-def _read_claude_json() -> tuple[str | None, UsageSnapshot | None]:
-    """Read the signed-in account even when Claude Code has no usable quota cache."""
+def _read_claude_json() -> _ClaudeJson:
+    """Read the signed-in account and organization alongside the quota cache."""
     try:
         with open(_claude_json_file(), encoding="utf-8") as f:
             data = json.load(f)
     except (OSError, json.JSONDecodeError, UnicodeDecodeError):
-        return None, None
+        return _ClaudeJson()
     if not isinstance(data, dict):
-        return None, None
+        return _ClaudeJson()
 
     cached = _as_dict(data.get("cachedUsageUtilization"))
     # Claude Code tags the cache with the account that fetched it and drops it
     # after an account switch. An untagged cache predates the tag and stays usable.
     cached_account = cached.get("accountUuid")
-    signed_in_account = _as_dict(data.get("oauthAccount")).get("accountUuid")
+    oauth_account = _as_dict(data.get("oauthAccount"))
+    signed_in_account = oauth_account.get("accountUuid")
     current_account = _account_uuid(signed_in_account)
+    config = _ClaudeJson(current_account, _account_uuid(oauth_account.get("organizationUuid")))
     if cached_account is not None and cached_account != signed_in_account:
-        return current_account, None
+        return config
     fetched_at_ms = _as_finite_float(cached.get("fetchedAtMs"))
     if fetched_at_ms is None:
-        return current_account, None
+        return config
     utilization = _as_dict(cached.get("utilization"))
     five = _as_dict(utilization.get("five_hour"))
     seven = _as_dict(utilization.get("seven_day"))
@@ -212,15 +220,15 @@ def _read_claude_json() -> tuple[str | None, UsageSnapshot | None]:
     five_pct = _pct(five_raw) if five_raw is not None else None
     seven_pct = _pct(seven_raw) if seven_raw is not None else None
     if five_pct is None and seven_pct is None:
-        return current_account, None
+        return config
 
     now = time.time()
     five_reset = _iso_timestamp(five.get("resets_at")) if five else None
     seven_reset = _iso_timestamp(seven.get("resets_at")) if seven else None
     if five and five_reset is None:
-        return current_account, None
+        return config
     if seven and seven_reset is None:
-        return current_account, None
+        return config
     five_reset = five_reset if five_reset is not None else now
     seven_reset = seven_reset if seven_reset is not None else now
     if five_pct is not None and five_reset < now:
@@ -229,7 +237,7 @@ def _read_claude_json() -> tuple[str | None, UsageSnapshot | None]:
         seven_pct = 0
 
     polled_at = fetched_at_ms / 1000
-    return current_account, UsageSnapshot(
+    snapshot = UsageSnapshot(
         current_percent=five_pct,
         current_reset_at=five_reset,
         weekly_percent=seven_pct,
@@ -240,6 +248,7 @@ def _read_claude_json() -> tuple[str | None, UsageSnapshot | None]:
         data_source="claude-json",
         account_uuid=_account_uuid(cached_account) or current_account,
     )
+    return replace(config, snapshot=snapshot)
 
 
 def _time_adjusted(snapshot: UsageSnapshot) -> UsageSnapshot:
@@ -434,22 +443,20 @@ def _build_snapshot(data: dict[str, Any], *, data_source: str = "hook") -> Usage
     )
 
 
-def read_quota_fallback(
-    cache_reader: Callable[[], UsageSnapshot | None] | None = None,
-) -> UsageSnapshot | None:
+def read_quota_fallback(config: _ClaudeJson | None = None) -> UsageSnapshot | None:
     """Use the same Claude Code cache -> Desktop priority in the app and CLI.
 
-    Call when the hook is missing or incomplete. A caller can supply a snapshot
-    reader to reuse an existing parse or the GUI's modification-time cache.
+    Call when the hook is missing or incomplete. The GUI supplies its cached parse.
     """
-    cached = (cache_reader or _read_claude_json_snapshot)()
-    if cached is not None:
-        return cached
+    if config is None:
+        config = _read_claude_json()
+    if config.snapshot is not None:
+        return config.snapshot
     now = time.time()
-    desktop = claude_desktop.load_desktop_quota(now)
+    desktop = claude_desktop.load_desktop_quota(now, config.org)
     if desktop is None:
         return None
-    return _desktop_snapshot(desktop, now)
+    return _desktop_snapshot(desktop, now, config.account if config.org else None)
 
 
 def _desktop_snapshot(
@@ -468,37 +475,28 @@ def _desktop_snapshot(
     )
 
 
-def _signed_in_org() -> str | None:
-    """The organization Claude Code is signed in to, from `~/.claude.json`."""
-    try:
-        with open(_claude_json_file(), encoding="utf-8") as f:
-            data = json.load(f)
-    except (OSError, json.JSONDecodeError, UnicodeDecodeError):
-        return None
-    if not isinstance(data, dict):
-        return None
-    return _account_uuid(_as_dict(data.get("oauthAccount")).get("organizationUuid"))
-
-
-def _newer_desktop_snapshot(
-    data: dict[str, Any], hook: UsageSnapshot, now: float
+def _quota_override(
+    data: dict[str, Any], hook: UsageSnapshot, config: _ClaudeJson, now: float
 ) -> UsageSnapshot | None:
-    """Desktop's quota when it is newer than the hook's and for the same organization.
-
-    The hook only moves when a terminal session gets a reply, so quota used in the
-    desktop app afterwards never reaches it. Desktop polls the same usage endpoint,
-    so a newer Desktop observation for the signed-in organization is the better
-    number. Without a known organization on both sides nothing is compared.
-    """
+    """Choose a newer eligible reading for the app and CLI."""
+    cached = (
+        config.snapshot if _should_prefer_claude_json(data, hook, config.snapshot, now) else None
+    )
     observed_at = _hook_observed_at(data, now)
-    if observed_at is None or now - observed_at < DESKTOP_OVERRIDE_MIN_HOOK_AGE_SECONDS:
-        return None
-    desktop = claude_desktop.load_desktop_quota(now)
-    if desktop is None or desktop.org is None or desktop.polled_at <= observed_at + 60:
-        return None
-    if desktop.org != _signed_in_org():
-        return None
-    return _desktop_snapshot(desktop, now, hook.account_uuid)
+    if (
+        config.org is None
+        or observed_at is None
+        or now - observed_at < DESKTOP_OVERRIDE_MIN_HOOK_AGE_SECONDS
+    ):
+        return cached
+    desktop = claude_desktop.load_desktop_quota(now, config.org)
+    if (
+        desktop is not None
+        and desktop.org == config.org
+        and desktop.polled_at > max(observed_at, cached.polled_at if cached else 0)
+    ):
+        return _desktop_snapshot(desktop, now, hook.account_uuid)
+    return cached
 
 
 class ClaudeUsageClient:
@@ -513,7 +511,7 @@ class ClaudeUsageClient:
         self._cached_mtime: float | None = None
         self._claude_json_cached_path: str | None = None
         self._claude_json_cached_mtime: float | None = None
-        self._claude_json_cached: tuple[str | None, UsageSnapshot | None] = (None, None)
+        self._claude_json_cached = _ClaudeJson()
         self._claude_json_cache_valid = False
 
     async def aclose(self) -> None:
@@ -538,7 +536,7 @@ class ClaudeUsageClient:
                 self._cached_data = None
                 self._cached_path = None
                 self._cached_mtime = None
-                fallback_snapshot = read_quota_fallback(lambda: self._read_claude_json_cached()[1])
+                fallback_snapshot = read_quota_fallback(self._read_claude_json_cached())
                 if fallback_snapshot is not None:
                     return self._success_outcome(fallback_snapshot)
                 message_key = "usage_status_missing"
@@ -559,14 +557,10 @@ class ClaudeUsageClient:
             self._cached_path = source_path
             self._cached_mtime = mtime
 
-        current_account, cached_snapshot = self._read_claude_json_cached()
-        account_mismatch = _hook_account_mismatch(data, current_account)
+        config = self._read_claude_json_cached()
+        account_mismatch = _hook_account_mismatch(data, config.account)
         if account_mismatch or not _has_rate_limits(data):
-            fallback_snapshot = (
-                cached_snapshot
-                if account_mismatch
-                else read_quota_fallback(lambda: cached_snapshot)
-            )
+            fallback_snapshot = config.snapshot if account_mismatch else read_quota_fallback(config)
             if fallback_snapshot is not None:
                 return self._success_outcome(fallback_snapshot)
             outcome = PollOutcome(
@@ -592,18 +586,13 @@ class ClaudeUsageClient:
         # An untagged hook is treated as the signed-in account (rule above), so it
         # shares that account's notification history instead of starting a new one.
         if snapshot.account_uuid is None:
-            snapshot.account_uuid = current_account
-        now = time.time()
-        if cached_snapshot is not None and _should_prefer_claude_json(
-            data, snapshot, cached_snapshot, now
-        ):
-            return self._success_outcome(cached_snapshot)
-        desktop_snapshot = _newer_desktop_snapshot(data, snapshot, now)
-        if desktop_snapshot is not None:
-            return self._success_outcome(desktop_snapshot)
+            snapshot.account_uuid = config.account
+        override = _quota_override(data, snapshot, config, time.time())
+        if override is not None:
+            return self._success_outcome(override)
         return self._success_outcome(snapshot, mtime=mtime, source_path=source_path)
 
-    def _read_claude_json_cached(self) -> tuple[str | None, UsageSnapshot | None]:
+    def _read_claude_json_cached(self) -> _ClaudeJson:
         claude_json_file = _claude_json_file()
         try:
             mtime = os.stat(claude_json_file).st_mtime
@@ -611,7 +600,7 @@ class ClaudeUsageClient:
             self._claude_json_cache_valid = False
             self._claude_json_cached_path = None
             self._claude_json_cached_mtime = None
-            self._claude_json_cached = (None, None)
+            self._claude_json_cached = _ClaudeJson()
             return self._claude_json_cached
         if (
             self._claude_json_cache_valid
@@ -620,8 +609,12 @@ class ClaudeUsageClient:
         ):
             # The file may sit unchanged across a quota reset, so the expiry-derived
             # fields must be recomputed on every hit — only the parse is cached.
-            current_account, snapshot = self._claude_json_cached
-            return current_account, _time_adjusted(snapshot) if snapshot is not None else None
+            cached = self._claude_json_cached
+            return (
+                replace(cached, snapshot=_time_adjusted(cached.snapshot))
+                if cached.snapshot
+                else cached
+            )
         self._claude_json_cached = _read_claude_json()
         self._claude_json_cache_valid = True
         self._claude_json_cached_path = claude_json_file

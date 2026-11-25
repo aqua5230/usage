@@ -436,6 +436,7 @@ def test_build_view_injects_content_height_script_when_enabled(
 
         def loadHTMLString_baseURL_(self, html: str, base_url: object | None) -> None:
             self.loaded_html = html
+            self.base_url = base_url
 
         def performSelector_withObject_afterDelay_(
             self,
@@ -482,6 +483,8 @@ def test_build_view_injects_content_height_script_when_enabled(
 
     view = panel.build_view(object())
 
+    assert view.base_url == web_panel._PANEL_BASE_URL
+    assert view.base_url.absoluteString() == "https://usage-panel.invalid/"
     assert (CONTENT_HEIGHT_SCRIPT in view.loaded_html) is dynamic_height
     assert WINDOW_DRAG_SCRIPT in view.loaded_html
     assert "{{PANEL_FLAVOR}}" not in view.loaded_html
@@ -609,7 +612,7 @@ def test_web_panel_reloads_and_reinjects_after_content_termination() -> None:
     assert view._first_paint_done is False
     assert view._last_injected_payload is None
     assert view._pending == {"codex": {"session": {"percent": 67}}}
-    assert view.loaded_html == [("<html>usage</html>", None)]
+    assert view.loaded_html == [("<html>usage</html>", web_panel._PANEL_BASE_URL)]
     assert view.reloads == 0
 
 
@@ -638,7 +641,7 @@ def test_web_panel_reloads_when_state_injection_fails() -> None:
 
     assert view._ready is False
     assert view._pending == payload
-    assert view.loaded_html == [("<html>usage</html>", None)]
+    assert view.loaded_html == [("<html>usage</html>", web_panel._PANEL_BASE_URL)]
     assert view.reloads == 0
 
 
@@ -699,8 +702,8 @@ def test_web_panel_caps_reloads_when_state_injection_keeps_failing() -> None:
         web_panel._handle_injection_error(view, payload, "boom")
 
     assert view.loaded_html == [
-        ("<html>usage</html>", None),
-        ("<html>usage</html>", None),
+        ("<html>usage</html>", web_panel._PANEL_BASE_URL),
+        ("<html>usage</html>", web_panel._PANEL_BASE_URL),
     ]
     assert view.reloads == 0
     assert view._pending is None
@@ -708,9 +711,9 @@ def test_web_panel_caps_reloads_when_state_injection_keeps_failing() -> None:
     web_panel._reload_web_panel(view)
 
     assert view.loaded_html == [
-        ("<html>usage</html>", None),
-        ("<html>usage</html>", None),
-        ("<html>usage</html>", None),
+        ("<html>usage</html>", web_panel._PANEL_BASE_URL),
+        ("<html>usage</html>", web_panel._PANEL_BASE_URL),
+        ("<html>usage</html>", web_panel._PANEL_BASE_URL),
     ]
     assert view.reloads == 0
 

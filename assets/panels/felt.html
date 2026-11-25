@@ -1871,7 +1871,9 @@ body {
     await wait(150);
     await holdPalCard(card, name);
     const r = card.getBoundingClientRect(), t = book.getBoundingClientRect();
-    const dx = t.left + t.width / 2 - (r.left + r.width / 2), dy = t.top + t.height / 2 - (r.top + r.height / 2);
+    const zoom = Number(getComputedStyle(document.documentElement).zoom) || 1;
+    const dx = (t.left + t.width / 2 - (r.left + r.width / 2)) / zoom;
+    const dy = (t.top + t.height / 2 - (r.top + r.height / 2)) / zoom;
     await card.animate([{ transform: "none", opacity: 1 }, { transform: `translate(${dx}px, ${dy}px) scale(.1) rotate(-14deg)`, opacity: 0.3 }],
       { duration: 620, easing: "cubic-bezier(.5,0,.8,.5)", fill: "forwards" }).finished;
     card.remove();
@@ -1931,14 +1933,21 @@ body {
   };
 
   // A found pal in the book reopens its card, so sharing is never a one-time chance.
+  let reopening = false;
   async function reopenCard(name) {
+    if (reopening) return;
+    reopening = true;
     const card = buildCard(name);
-    card.classList.add("over-dex");
-    document.body.appendChild(card);
-    if (!still) await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-    await revealCard(card);
-    await holdPalCard(card, name, true);
-    card.remove();
+    try {
+      card.classList.add("over-dex");
+      document.body.appendChild(card);
+      if (!still) await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      await revealCard(card);
+      await holdPalCard(card, name, true);
+    } finally {
+      card.remove();
+      reopening = false;
+    }
   }
 
   // Record first, so closing the panel mid-effect never replays the card.
@@ -1965,7 +1974,6 @@ body {
     bumpBook();
   }
   renderBook();
-  if (guest) setTimeout(() => meet(guest), 2500);
 
   function pose(p, name) {
     const use = aspect[`${p.name}_${name}`] ? name : "stand";
@@ -2506,8 +2514,7 @@ body {
       draw(incoming, incoming.x, incoming.y);
       rotating = false;
       free(incoming);
-      meet(incoming);
-      return;
+      return meet(incoming);
     }
     incoming.x = offX;
     incoming.y = ground;
@@ -2530,18 +2537,29 @@ body {
 
     rotating = false;
     free(incoming);
-    meet(incoming);
+    return meet(incoming);
   }
   window.__feltRotate = () => rotate();
-  // A hidden pal that has unlocked but not been met yet hops in the next time the panel opens, so a new unlock is
-  // never left to chance; pals already met keep their rare random turns. Retries while the line is busy.
+  // Catch up on missed unlocks one card at a time. Retry if the line is busy.
+  let welcoming = false;
   async function welcome() {
-    fillVault();
-    const p = vault.find((o) => !seen.includes(o.name));
-    for (let i = 0; p && i < 6 && vault.includes(p); i++) {
-      await wait(i ? 2000 : 1500);
-      if (hidden()) return;
-      await rotate(p);
+    if (welcoming) return;
+    welcoming = true;
+    try {
+      let pause = 1500;
+      while (!hidden()) {
+        fillVault();
+        const p = guest && !guest.offstage && !seen.includes(guest.name)
+          ? guest : vault.find((o) => !seen.includes(o.name));
+        if (!p) break;
+        await wait(pause);
+        if (hidden()) break;
+        if (p.offstage) await rotate(p);
+        else await meet(p);
+        pause = 2000;
+      }
+    } finally {
+      welcoming = false;
     }
   }
 
@@ -3125,6 +3143,7 @@ body {
   }
 
   function onState(state) {
+    renderBook();
     const alerts = new Set(state.footer?.serviceAlertCards);
     const operational = new Set(state.footer?.serviceOperationalCards);
     for (const id of state.footer?.serviceKnownCards ?? []) {
@@ -3160,6 +3179,7 @@ body {
   }
 
   const start = () => {
+    renderBook();
     const applyState = window.usageApplyState;
     if (typeof applyState === "function") {
       window.usageApplyState = function (state) {
