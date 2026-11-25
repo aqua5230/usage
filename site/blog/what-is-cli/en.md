@@ -134,7 +134,7 @@ It replied: "No. pond.html doesn't use any image files or URLs." The search foun
 
 ## Try it yourself
 
-**Open a terminal.** This is free and won't change anything on your computer.
+**Open a terminal** and try a command that only shows something and changes nothing:
 
 - Mac: hold ⌘ Command and press Space, type "Terminal", and press Enter. When the window opens, type `cal` and press Enter. It prints this month's calendar.
 - Windows: open Start, search for "PowerShell" (the Windows terminal), and open it. Type `Get-Date` and press Enter. It shows the current date and time.
