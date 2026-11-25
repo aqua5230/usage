@@ -381,6 +381,24 @@ def test_simple_cache_rejects_corrupt_or_half_written_entry(tmp_path: Path, posi
     assert cache.load_cached_json(tmp_path, URL, NOW - 60, NOW) is None
 
 
+def test_simple_cache_reads_only_matching_entries_in_full(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _simple_cache(
+        tmp_path, Response(url=b"https://claude.ai/api/other", fetched=NOW - 5), Response()
+    )
+    full_reads: list[Path] = []
+
+    def counting_read_bounded(path: Path, limit: int) -> bytes:
+        full_reads.append(path)
+        return read_bounded(path, limit)
+
+    monkeypatch.setattr(cache, "read_bounded", counting_read_bounded)
+    result = cache.load_cached_json(tmp_path, URL, NOW - 60, NOW)
+    assert result is not None and result.fetched_at == NOW
+    assert len(full_reads) == 1
+
+
 def test_simple_cache_skips_entries_not_written_recently(tmp_path: Path) -> None:
     _simple_cache(tmp_path, Response(), mtime=NOW - 7300)
     assert cache.load_cached_json(tmp_path, URL, NOW - 10000, NOW) is None

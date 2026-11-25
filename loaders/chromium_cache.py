@@ -266,15 +266,15 @@ class _SimpleCache:
     def _response(
         self, path: Path, url: bytes, earliest: float, now: float
     ) -> CachedResponse | None:
-        # One read of the whole file; the CRCs below reject a concurrent rewrite.
+        # Most candidates are other responses, so match the key from a short
+        # read before reading the whole file. The full read checks the key
+        # again, and the CRCs below reject a concurrent rewrite.
+        head_key = _simple_key(read_range(path, 0, SIMPLE_HEADER + 4096))
+        if head_key is None or not _matches(head_key, url):
+            return None
         raw = read_bounded(path, MAX_SIMPLE_ENTRY)
-        if len(raw) < SIMPLE_HEADER + 2 * SIMPLE_EOF:
-            return None
-        magic, version, key_len, _key_hash = struct.unpack_from("<QIII", raw)
-        if magic != SIMPLE_MAGIC or version != SIMPLE_ENTRY_VERSION or not 0 < key_len <= 4096:
-            return None
-        key = raw[SIMPLE_HEADER : SIMPLE_HEADER + key_len]
-        if len(key) != key_len or not _matches(key, url):
+        key = _simple_key(raw)
+        if len(raw) < SIMPLE_HEADER + 2 * SIMPLE_EOF or key is None or not _matches(key, url):
             return None
         end = len(raw) - SIMPLE_EOF
         eof_magic, flags, info_crc, info_len = struct.unpack_from("<QIII", raw, end)
@@ -286,7 +286,7 @@ class _SimpleCache:
                 return None
         info_start = end - info_len
         body_end = info_start - SIMPLE_EOF
-        body_start = SIMPLE_HEADER + key_len
+        body_start = SIMPLE_HEADER + len(key)
         if not 0 < info_len <= MAX_BODY or not 0 < body_end - body_start <= MAX_BODY:
             return None
         body_magic, body_flags, body_crc, _unused = struct.unpack_from("<QIII", raw, body_end)
@@ -302,6 +302,16 @@ class _SimpleCache:
         if not max(earliest, now - FRESH_SECONDS) <= fetched_at <= now + 60:
             return None
         return CachedResponse(_decode(body, headers), fetched_at)
+
+
+def _simple_key(raw: bytes) -> bytes | None:
+    if len(raw) < SIMPLE_HEADER:
+        return None
+    magic, version, key_len, _key_hash = struct.unpack_from("<QIII", raw)
+    if magic != SIMPLE_MAGIC or version != SIMPLE_ENTRY_VERSION or not 0 < key_len <= 4096:
+        return None
+    key = raw[SIMPLE_HEADER : SIMPLE_HEADER + key_len]
+    return key if len(key) == key_len else None
 
 
 def _matches(key: bytes, url: bytes) -> bool:
