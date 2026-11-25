@@ -172,15 +172,36 @@ p, li { text-wrap: pretty; }
   letter-spacing: -0.01em;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   white-space: nowrap;
 }
-.brand-mark {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--accent);
-  display: inline-block;
+@property --p { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+.brand-dot { position: relative; width: 20px; height: 20px; flex: 0 0 20px; }
+.brand-dot svg { position: absolute; inset: 0; width: 20px; height: 20px; }
+.brand-ring-base { opacity: 0.3; }
+.brand-ring-progress {
+  --p: 226deg;
+  -webkit-mask: conic-gradient(from 331deg, #000 0deg var(--p), transparent var(--p) 360deg);
+  mask: conic-gradient(from 331deg, #000 0deg var(--p), transparent var(--p) 360deg);
+  animation: brand-draw 0.9s ease-out;
+}
+.brand-cat { opacity: 1; animation: brand-cat-appear 0.35s 0.82s both; }
+.brand-tail { transform-origin: 23px 51px; }
+.brand-ear { transform-box: fill-box; transform-origin: center bottom; }
+.brand:hover .brand-tail { animation: brand-wag 0.52s ease-in-out; }
+.brand:hover .brand-ear-left { animation: brand-ears 0.22s 2 alternate; }
+.brand:hover .brand-ear-right { animation: brand-ears 0.22s 0.05s 2 alternate-reverse; }
+@keyframes brand-draw { from { --p: 0deg; } }
+@keyframes brand-cat-appear { from { opacity: 0; } }
+@keyframes brand-wag {
+  30% { transform: rotate(-18deg); }
+  65% { transform: rotate(13deg); }
+  100% { transform: rotate(0); }
+}
+@keyframes brand-ears { to { transform: rotate(7deg) translateY(-1px); } }
+@media (prefers-reduced-motion: reduce) {
+  .brand-ring-progress, .brand-cat,
+  .brand:hover .brand-tail, .brand:hover .brand-ear { animation: none; }
 }
 .top-nav {
   display: flex;
@@ -232,7 +253,7 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   margin-bottom: 14px;
   overflow-wrap: anywhere;
 }
-.post-desc, .blog-hero p {
+.blog-hero p {
   font-size: 17px;
   color: var(--fg-dim);
   line-height: 1.65;
@@ -388,19 +409,32 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
 .related-section h2 { font-size: 20px; margin-bottom: 14px; }
 .related-list { list-style: none; display: grid; gap: 10px; }
 .related-list a {
-  display: block;
+  display: grid;
+  gap: 4px;
+  overflow-wrap: anywhere;
+}
+.related-section .related-list a {
   padding: 14px 16px;
   border-radius: 10px;
   border: 1px solid var(--border);
   background: var(--bg-card);
-  color: var(--fg);
-  font-weight: 550;
   transition: border-color 140ms ease;
 }
-.related-list a:hover { border-color: rgba(255, 140, 66, 0.45); color: var(--accent); }
+.related-section .related-list a:is(:hover, :focus-visible) { border-color: var(--accent); }
+.related-list a:is(:hover, :focus-visible) .related-title { color: var(--accent); }
+.related-title { font-size: 16px; font-weight: 600; line-height: 1.4; }
+.related-desc { font-size: 14.5px; line-height: 1.55; color: var(--fg-dim); }
+.related-rail .related-list { gap: 0; }
+.related-rail .related-list a {
+  padding: 10px 4px;
+  border-bottom: 1px solid var(--border);
+}
+.related-rail .related-list a:focus-visible { outline-offset: -2px; }
+.related-rail .related-title { font-size: 14px; }
+.related-rail .related-desc { font-size: 13px; line-height: 1.45; }
 .prose h2[id] { scroll-margin-top: 76px; }
 .article-layout { display: block; }
-.toc-rail, .news-rail { display: none; }
+.toc-rail, .related-rail { display: none; }
 .toc-mobile {
   margin-bottom: 28px;
   padding: 14px 16px;
@@ -431,7 +465,7 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   padding-top: 10px;
   border-top: 1px solid var(--border);
 }
-.toc-title {
+.toc-title, .related-rail h2 {
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
@@ -451,54 +485,6 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
 }
 .toc-list a:hover { color: var(--fg); }
 .toc-list a[aria-current="location"] { color: var(--accent); font-weight: 600; }
-.news-title {
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--fg-dimmer);
-  margin-bottom: 4px;
-}
-.news-list { display: grid; }
-.news-item {
-  display: block;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--border);
-}
-.news-item:hover .news-item-name { color: var(--accent); }
-.news-item-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 4px;
-}
-.news-item-name {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--fg);
-  transition: color 140ms ease;
-}
-.news-item-date {
-  font-family: var(--mono);
-  font-size: 11.5px;
-  color: var(--fg-dimmer);
-  white-space: nowrap;
-}
-.news-item-title {
-  font-size: 13px;
-  line-height: 1.45;
-  color: var(--fg-dim);
-  overflow-wrap: anywhere;
-}
-.news-all {
-  display: inline-block;
-  margin-top: 12px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--accent);
-}
-.news-all:hover { color: var(--accent-hover); }
 @media (min-width: 1300px) {
   .wrap-article { max-width: 1300px; }
   .article-layout {
@@ -528,7 +514,7 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   }
   .toc-rail { grid-column: 1; }
   .article-main { grid-column: 3; }
-  .news-rail:not([hidden]) {
+  .related-rail {
     grid-column: 5;
     display: block;
     position: sticky;
@@ -555,10 +541,11 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 </style>
 </head>
 <body>
+<svg class="brand-symbols" width="0" height="0" aria-hidden="true" style="position:absolute"><defs><symbol id="usage-ring" viewBox="0 0 64 64"><path fill="#BF483C" d="M21.32 6.58 L22.74 6.06 L24.18 5.62 L25.64 5.26 L27.12 4.98 L28.60 4.78 L30.10 4.65 L31.60 4.60 L33.10 4.64 L34.60 4.75 L36.08 4.94 L37.56 5.20 L39.02 5.54 L40.45 5.96 L41.87 6.46 L43.25 7.03 L44.60 7.67 L45.92 8.38 L47.19 9.15 L48.42 10.00 L49.61 10.91 L50.74 11.88 L51.83 12.90 L52.85 13.99 L53.82 15.12 L54.72 16.30 L55.56 17.53 L56.34 18.81 L57.05 20.12 L57.68 21.46 L58.24 22.84 L58.73 24.24 L59.15 25.67 L59.49 27.12 L59.75 28.58 L59.93 30.05 L60.04 31.53 L60.07 33.01 L60.02 34.50 L59.89 35.97 L59.68 37.44 L59.40 38.89 L59.04 40.33 L58.60 41.74 L58.09 43.13 L57.50 44.49 L56.83 45.80 L56.09 47.08 L55.28 48.31 L54.41 49.50 L53.48 50.63 L52.48 51.71 L51.43 52.74 L50.33 53.70 L49.18 54.60 L47.98 55.43 L46.75 56.20 L45.47 56.89 L44.16 57.52 L42.83 58.07 L41.47 58.55 L40.09 58.95 L38.69 59.28 L37.28 59.53 L35.86 59.71 L34.44 59.81 L33.01 59.83 L31.60 59.77 L30.19 59.64 L28.79 59.43 L27.41 59.15 L26.06 58.80 L24.72 58.38 L24.94 57.61 L26.27 57.87 L27.61 58.06 L28.94 58.19 L30.28 58.24 L31.62 58.22 L32.95 58.14 L34.27 57.98 L35.58 57.76 L36.87 57.47 L38.14 57.11 L39.38 56.69 L40.60 56.21 L41.79 55.67 L42.95 55.06 L44.07 54.40 L45.15 53.69 L46.19 52.92 L47.19 52.10 L48.15 51.23 L49.05 50.32 L49.91 49.36 L50.71 48.36 L51.46 47.33 L52.16 46.26 L52.80 45.16 L53.39 44.03 L53.91 42.87 L54.38 41.69 L54.80 40.49 L55.15 39.28 L55.44 38.04 L55.66 36.79 L55.82 35.54 L55.91 34.28 L55.93 33.01 L55.89 31.75 L55.78 30.49 L55.60 29.24 L55.36 28.00 L55.05 26.78 L54.68 25.57 L54.25 24.39 L53.75 23.23 L53.20 22.10 L52.58 21.00 L51.91 19.93 L51.18 18.91 L50.40 17.92 L49.57 16.98 L48.69 16.08 L47.77 15.23 L46.80 14.43 L45.79 13.68 L44.75 12.99 L43.67 12.35 L42.56 11.78 L41.42 11.26 L40.25 10.80 L39.06 10.41 L37.86 10.08 L36.64 9.81 L35.40 9.61 L34.16 9.47 L32.92 9.40 L31.67 9.40 L30.42 9.47 L29.18 9.60 L27.95 9.79 L26.74 10.05 L25.54 10.38 L24.36 10.76 L23.20 11.21 A2.50 2.50 0 0 1 21.32 6.58 Z"/></symbol></defs></svg>
 <a class="skip-link" href="#main-content">Skip to main content</a>
 <header class="topbar">
   <div class="wrap">
-    <a class="brand" href="../../" translate="no"><span class="brand-mark" aria-hidden="true"></span>usage</a>
+    <a class="brand" href="../../" translate="no"><span class="brand-dot" aria-hidden="true"><svg class="brand-ring-base" viewBox="0 0 64 64"><use href="#usage-ring"/></svg><svg class="brand-ring-progress" viewBox="0 0 64 64"><use href="#usage-ring"/></svg><svg class="brand-cat" viewBox="0 0 64 64" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><circle cx="32" cy="24.5" r="7"/><path class="brand-ear brand-ear-left" d="M25.6 22 L26.2 13.2 L31 18.6 Z"/><path class="brand-ear brand-ear-right" d="M33 18.6 L37.8 13.2 L38.4 22 Z"/><path d="M27 29.5 C22.2 33.5 19.6 41 20.4 47.4 C20.9 51 25 52.6 32 52.6 C39 52.6 43.1 51 43.6 47.4 C44.4 41.8 41.8 33.5 37 29.5 Z"/><path class="brand-tail" d="M23 51.2 C16.5 53 12 50 13.2 45.2" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/></svg></span>usage</a>
     <nav class="top-nav">
       <a href="../../">Home</a>
       <a href="../">Blog</a>
@@ -595,7 +582,6 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
             <span>Updated <time datetime="2026-11-24">2026-11-24</time></span>
           </div>
           <h1>How to Check Your Antigravity (agy) Quota</h1>
-          <p class="post-desc">Type /usage in the Antigravity CLI, or run agy -p /usage --output-format json to get your quota without calling a model. See which models share each of the two quota pools and when they reset.</p>
         </header>
         <details class="toc-mobile">
           <summary>In this article</summary>
@@ -613,17 +599,9 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
         </details>
         <div class="prose">
 <p><strong>To check your Antigravity (<code>agy</code>) quota, type <code>/usage</code> in the CLI, or run <code>agy -p /usage --output-format json</code> in your terminal.</strong> The second command does not call a model, and it returns in about 6 seconds.</p>
-<aside class="blog-cta-card">
-  <h2>Track your AI coding quotas in the menu bar</h2>
-  <p>usage is a free, open-source (AGPL-3.0) app for the macOS menu bar and Windows tray, supporting Claude Code, Codex, Antigravity, Grok, and Muse.</p>
-  <div class="blog-cta-actions">
-    <a class="btn btn-primary" href="../../#install">Install usage</a>
-    <a class="btn btn-secondary" href="https://github.com/aqua5230/usage" target="_blank" rel="noopener">GitHub</a>
-  </div>
-</aside>
 <h2 id="how-do-you-check-your-quota-in-the-cli-or-the-app">How do you check your quota in the CLI or the app?</h2>
 <p>Google documents two built-in ways to see your baseline quota and your AI credits.</p>
-<p>The first is the CLI. In an interactive session, type <code>/usage</code> (or <code>/quota</code>) and press Enter. Google's CLI docs say this refreshes your quota from the backend and opens a <strong>Models &amp; Quota</strong> panel. You can scroll with the arrow keys or <code>J</code> and <code>K</code>, jump with <code>G</code> and <code>Shift + G</code>, and close the panel with <code>Esc</code> or <code>Q</code>. The right side of the status line also shows how many AI credits you have left, and it highlights the number when you are running low. To open a separate credits panel, type <code>/credits</code>.</p>
+<p>The first is the <a href="../what-is-cli/">CLI</a>. In an interactive session, type <code>/usage</code> (or <code>/quota</code>) and press Enter. Google's CLI docs say this refreshes your quota from the backend and opens a <strong>Models &amp; Quota</strong> panel. You can scroll with the arrow keys or <code>J</code> and <code>K</code>, jump with <code>G</code> and <code>Shift + G</code>, and close the panel with <code>Esc</code> or <code>Q</code>. The right side of the status line also shows how many AI credits you have left, and it highlights the number when you are running low. To open a separate credits panel, type <code>/credits</code>.</p>
 <p>The second is the app. Google's <strong>Plans</strong> page says you can see your baseline quota on the <strong>Settings</strong> page. If you are on Google AI Pro or Ultra, you can also set <strong>AI Credit Overages</strong> there. <strong>Never</strong> means you wait for your quota to refill. <strong>Always</strong> means Antigravity uses your AI credits once the quota runs out.</p>
 <h2 id="how-do-you-get-your-quota-as-json-without-calling-a-model">How do you get your quota as JSON without calling a model?</h2>
 <p>If you want the numbers for a script or a status line, run the CLI in headless mode (<code>-p</code>) with JSON output:</p>
@@ -662,19 +640,19 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <li><strong>Google AI Pro:</strong> a high quota, refreshed every five hours until you reach the weekly limit, plus a higher weekly rate limit.</li>
 <li><strong>Other plans:</strong> a baseline quota that refreshes weekly, plus a weekly rate limit.</li>
 </ul>
-<p>Google also says that how fast you use quota depends on how much work the agent does. Simple tasks let you send more prompts, and complex tasks use more. The docs don't say when the 5-hour window starts. In our testing, it starts with your first use of the day.</p>
+<p>Google also says that how fast you use quota depends on how much work the agent does. Simple tasks let you send more prompts, and complex tasks use more. The docs don't say when the 5-hour window starts. In our testing, it starts with your first use.</p>
 <h2 id="how-can-you-keep-your-antigravity-quota-on-screen">How can you keep your Antigravity quota on screen?</h2>
 <p>There are two free official ways, and a third option if you want the number on screen all the time:</p>
 <ul>
 <li><strong><code>/usage</code> or Settings.</strong> Type <code>/usage</code> in <code>agy</code> to open the Models &amp; Quota panel, or open the Settings page in the app.</li>
 <li><strong><code>agy -p /usage --output-format json</code>.</strong> Read both pools from <code>command.data.groups</code>.</li>
-<li><strong>The <code>usage</code> app.</strong> <code>usage</code> is free and open source. It reads your quota with <code>agy -p /usage</code>. If that fails, it falls back to Google's quota endpoint, using the sign-in that the Antigravity CLI already saved. It shows your 5-hour and weekly limits, with countdowns, in the macOS menu bar or the Windows system tray. The Antigravity card shows the Gemini pool first. Tap the <code>Gemini ⇄</code> tag to switch between Gemini and Claude / GPT. The card remembers your choice. A limit turns red as it gets close, and you can get a notification at 50%, 70%, 80%, 90%, or 95%. The default is 90%.</li>
+<li><strong>The <code>usage</code> app.</strong> <a href="https://aqua5230.github.io/usage/"><code>usage</code></a> is free and open source. It reads your quota with <code>agy -p /usage</code>. If that fails, it falls back to Google's quota endpoint, using the sign-in that the Antigravity CLI already saved. It shows your 5-hour and weekly limits, with countdowns, in the macOS menu bar or the Windows system tray. The Antigravity card shows the Gemini pool first. Tap the <code>Gemini ⇄</code> tag to switch between Gemini and Claude / GPT. The card remembers your choice. A limit turns red as it gets close, and you can get a notification at 50%, 70%, 80%, 90%, or 95%. The default is 90%.</li>
 </ul>
 <h2 id="key-takeaways">Key takeaways</h2>
 <ul>
 <li>Type <code>/usage</code> in the Antigravity CLI to open the quota panel. Run <code>agy -p /usage --output-format json</code> to get the same data as JSON without calling a model.</li>
 <li>Gemini Models and Claude and GPT models each have a weekly and a 5-hour limit. Gemini 4 Argon shares both limits with the other Gemini models.</li>
-<li><code>usage</code> shows both pools, with countdowns, in your menu bar or tray.</li>
+<li><code>usage</code> shows the quota and countdown in your menu bar or tray, and one click switches between the two pools.</li>
 </ul>
 <h2 id="sources">Sources</h2>
 <ul>
@@ -684,6 +662,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <li><a href="https://antigravity.google/docs/cli/credits">CLI AI credits</a></li>
 <li><a href="https://antigravity.google/docs/models">Choose a model</a></li>
 </ul>
+        </div>
 <aside class="blog-cta-card">
   <h2>Track your AI coding quotas in the menu bar</h2>
   <p>usage is a free, open-source (AGPL-3.0) app for the macOS menu bar and Windows tray, supporting Claude Code, Codex, Antigravity, Grok, and Muse.</p>
@@ -692,21 +671,22 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
     <a class="btn btn-secondary" href="https://github.com/aqua5230/usage" target="_blank" rel="noopener">GitHub</a>
   </div>
 </aside>
-        </div>
-    <section class="related-section">
-      <h2>Related Articles</h2>
-      <ul class="related-list">
-      <li><a href="../../blog/claude-code-weekly-limit-reset/">When Does the Claude Code Weekly Limit Reset?</a></li>
-      <li><a href="../../blog/codex-weekly-limit-early-reset/">Why Did My Codex Weekly Limit Reset Early?</a></li>
-      </ul>
-    </section>
+        <section class="related-section">
+          <h2>Related Articles</h2>
+        <ul class="related-list">
+          <li><a href="../../blog/claude-code-weekly-limit-reset/"><span class="related-title">When Does the Claude Code Weekly Limit Reset?</span><span class="related-desc">Claude Code&#x27;s weekly limit resets at a fixed day and time assigned to your account. Here is how that works with the 5-hour limit, and how to see your countdown.</span></a></li>
+          <li><a href="../../blog/codex-weekly-limit-early-reset/"><span class="related-title">Why Did My Codex Weekly Limit Reset Early?</span><span class="related-desc">Codex weekly limits often reset days before resets_at because OpenAI runs global resets. Ten weekly periods of data from one Plus account, the official reset rules, and how to check.</span></a></li>
+          <li><a href="../../blog/what-is-cli/"><span class="related-title">What Is a CLI? Learn How the Terminal Works with Claude Code</span><span class="related-desc">A CLI is a way to control a computer by typing commands. Using a web page that was actually built with one typed sentence, this post explains how a CLI differs from a graphical user interface (GUI), why many AI assistants work in the terminal, how Claude Code types commands for you, and which line to read before it touches your files.</span></a></li>
+        </ul>
+        </section>
       </article>
-      <aside class="news-rail" aria-label="AI Update Daily" hidden>
-        <div class="news-card">
-          <h2 class="news-title">AI Update Daily</h2>
-          <div class="news-list"></div>
-          <a class="news-all" href="https://aqua5230.github.io/ai-updates/" target="_blank" rel="noopener">See all updates →</a>
-        </div>
+      <aside class="related-rail" aria-labelledby="related-rail-heading">
+        <h2 id="related-rail-heading">Related Articles</h2>
+        <ul class="related-list">
+          <li><a href="../../blog/claude-code-weekly-limit-reset/"><span class="related-title">When Does the Claude Code Weekly Limit Reset?</span><span class="related-desc">Claude Code&#x27;s weekly limit resets at a fixed day and time assigned to your account. Here is how that works with the 5-hour limit, and how to see your countdown.</span></a></li>
+          <li><a href="../../blog/codex-weekly-limit-early-reset/"><span class="related-title">Why Did My Codex Weekly Limit Reset Early?</span><span class="related-desc">Codex weekly limits often reset days before resets_at because OpenAI runs global resets. Ten weekly periods of data from one Plus account, the official reset rules, and how to check.</span></a></li>
+          <li><a href="../../blog/what-is-cli/"><span class="related-title">What Is a CLI? Learn How the Terminal Works with Claude Code</span><span class="related-desc">A CLI is a way to control a computer by typing commands. Using a web page that was actually built with one typed sentence, this post explains how a CLI differs from a graphical user interface (GUI), why many AI assistants work in the terminal, how Claude Code types commands for you, and which line to read before it touches your files.</span></a></li>
+        </ul>
       </aside>
     </div>
   </div>
@@ -771,118 +751,6 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
       { passive: true }
     );
     pickActive();
-  }
-
-  var rail = document.querySelector(".news-rail");
-  var listEl = rail && rail.querySelector(".news-list");
-  if (!rail || !listEl || !window.matchMedia || !window.fetch) return;
-
-  var mq = window.matchMedia("(min-width: 1440px)");
-  var started = false;
-  var pageLang = document.documentElement.lang || "en";
-
-  function getPeriod(tool) {
-    return (tool && tool.latest && tool.latest.raw && tool.latest.raw.period) || "";
-  }
-
-  function renderNews(tools) {
-    var sorted = tools
-      .filter(function (t) {
-        return t && t.id && t.name && t.latest;
-      })
-      .slice()
-      .sort(function (a, b) {
-        var pa = getPeriod(a);
-        var pb = getPeriod(b);
-        if (pb > pa) return 1;
-        if (pb < pa) return -1;
-        return 0;
-      })
-      .slice(0, 4);
-
-    if (!sorted.length) return;
-
-    while (listEl.firstChild) {
-      listEl.removeChild(listEl.firstChild);
-    }
-
-    sorted.forEach(function (tool) {
-      var version = (tool.latest && tool.latest.version) || "";
-      var period = getPeriod(tool);
-
-      var a = document.createElement("a");
-      a.className = "news-item";
-      a.href =
-        "https://aqua5230.github.io/ai-updates/#" +
-        encodeURIComponent(tool.id) +
-        "/" +
-        encodeURIComponent(version);
-      a.target = "_blank";
-      a.rel = "noopener";
-
-      var head = document.createElement("div");
-      head.className = "news-item-head";
-
-      var nameEl = document.createElement("span");
-      nameEl.className = "news-item-name";
-      nameEl.textContent = version ? tool.name + " " + version : tool.name;
-      head.appendChild(nameEl);
-
-      if (period) {
-        var dateEl = document.createElement("time");
-        dateEl.className = "news-item-date";
-        dateEl.dateTime = period;
-        dateEl.textContent = period;
-        head.appendChild(dateEl);
-      }
-
-      a.appendChild(head);
-
-      var curated = tool.latest && tool.latest.curated;
-      var items = curated && curated.items;
-      var firstItem = Array.isArray(items) && items.length > 0 ? items[0] : null;
-      var titleObj = firstItem && firstItem.title;
-      var headline = titleObj && (titleObj[pageLang] || titleObj.en);
-      if (headline) {
-        var titleEl = document.createElement("p");
-        titleEl.className = "news-item-title";
-        titleEl.textContent = headline;
-        a.appendChild(titleEl);
-      }
-
-      listEl.appendChild(a);
-    });
-
-    rail.hidden = false;
-  }
-
-  function loadNews() {
-    if (started || !mq.matches) return;
-    started = true;
-    if (typeof mq.removeEventListener === "function") {
-      mq.removeEventListener("change", loadNews);
-    } else if (typeof mq.removeListener === "function") {
-      mq.removeListener(loadNews);
-    }
-    fetch("https://aqua5230.github.io/ai-updates/data.json")
-      .then(function (res) {
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        return res.json();
-      })
-      .then(function (data) {
-        if (data && Array.isArray(data.tools)) {
-          renderNews(data.tools);
-        }
-      })
-      .catch(function () {});
-  }
-
-  if (mq.matches) {
-    loadNews();
-  } else if (typeof mq.addEventListener === "function") {
-    mq.addEventListener("change", loadNews);
-  } else if (typeof mq.addListener === "function") {
-    mq.addListener(loadNews);
   }
 })();
 </script>

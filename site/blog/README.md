@@ -35,18 +35,19 @@ First paragraph of the article...
 ### Fields
 
 - `title` (required): Article title (`<title>`, `<h1>`, Open Graph, JSON-LD).
-- `description` (required): Meta description and list-page summary.
+- `description` (required): Meta description and summary for list pages and related articles.
 - `date` (required): Publication date in `YYYY-MM-DD`.
 - `updated` (optional): Last modified date in `YYYY-MM-DD`; falls back to `date`.
 - `tool` (required for new posts): The tool the post is about, for future category filters. One of `claude-code`, `codex`, `antigravity`, `grok`, `muse`, or `general` (tool roundups and posts that cover several tools). Use the same value in every language of a post. The blog index shows it as a label next to the date; `general` shows no label.
-- `related` (optional): Comma-separated list of post `<slug>` values linked at the end of the article (links to the same language if available, otherwise `en`).
+- `related` (optional): Comma-separated list of post `<slug>` values shown after the article and in its wide-screen sidebar (same language if available, otherwise `en`).
 - `image` (optional): Filename of an image in the same `<slug>` directory to use for `og:image`, `twitter:image`, and JSON-LD `image` (omitting `og:image:width` and `og:image:height`). Defaults to the site-wide OG image.
 
 ## Markdown Rules
 
 - Rendered with `markdown-it-py` (`commonmark` preset + `table` extension).
 - Raw HTML in `.md` files is disabled (`html=False`) and escaped automatically.
-- Two download CTA cards are injected automatically into every article: one after the first `</p>` and one at the end of the article.
+- The generator places one download card after the article body, before the related articles.
+- Link to a post in the same language with `[link text](../other-post-slug/)`.
 
 ## Images
 

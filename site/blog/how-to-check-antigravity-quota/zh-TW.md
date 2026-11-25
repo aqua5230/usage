@@ -4,7 +4,7 @@ description: 在 Antigravity CLI 輸入 /usage，或在終端機跑 agy -p /usag
 date: 2026-11-23
 updated: 2026-11-24
 tool: antigravity
-related: claude-code-weekly-limit-reset, codex-weekly-limit-early-reset
+related: claude-code-weekly-limit-reset, codex-weekly-limit-early-reset, what-is-cli
 ---
 
 **想查 Antigravity（`agy`）剩多少額度，可以在 CLI 裡輸入 `/usage`，或在終端機執行 `agy -p /usage --output-format json`**。第二種方法不會呼叫模型，大約 6 秒就有結果。
@@ -13,7 +13,7 @@ related: claude-code-weekly-limit-reset, codex-weekly-limit-early-reset
 
 Google 的文件提供兩種內建查法，可以看基本額度和 AI 點數。
 
-第一種在 CLI 裡。在互動模式輸入 `/usage`（或 `/quota`）再按 Enter。Google 的 CLI 文件說，這個指令會從伺服器重新抓額度，然後打開 **Models & Quota** 面板。你可以用方向鍵或 `J`、`K` 捲動，用 `G` 和 `Shift + G` 跳到最上面或最下面，按 `Esc` 或 `Q` 關掉面板。狀態列右邊也會顯示你還剩多少 AI 點數，快用完時會特別標出來。想看點數的詳細面板，就輸入 `/credits`。
+第一種在 [CLI](../what-is-cli/) 裡。在互動模式輸入 `/usage`（或 `/quota`）再按 Enter。Google 的 CLI 文件說，這個指令會從伺服器重新抓額度，然後打開 **Models & Quota** 面板。你可以用方向鍵或 `J`、`K` 捲動，用 `G` 和 `Shift + G` 跳到最上面或最下面，按 `Esc` 或 `Q` 關掉面板。狀態列右邊也會顯示你還剩多少 AI 點數，快用完時會特別標出來。想看點數的詳細面板，就輸入 `/credits`。
 
 第二種在 app 裡。Google 的 **Plans** 頁面說，你可以在 **Settings** 頁面看到基本額度。如果你訂的是 Google AI Pro 或 Ultra，還可以在這裡設定 **AI Credit Overages**：選 **Never**，額度用完就等它補滿；選 **Always**，額度用完後會改用你的 AI 點數。
 
@@ -48,7 +48,7 @@ Google 的 **Plans** 頁面說，重置頻率要看你的 Google AI 方案：
 - **Google AI Pro**：額度高，每 5 小時補滿一次，直到用完每週上限；每週上限也比較高。
 - **其他方案**：基本額度每週補滿一次，另有每週上限。
 
-Google 也說，額度用掉的速度要看代理做了多少工作：簡單的任務可以多問幾次，複雜的任務用得比較快。文件沒有寫 5 小時額度從什麼時候開始算。我們實測，是從你當天第一次使用時開始。
+Google 也說，額度用掉的速度要看代理做了多少工作：簡單的任務可以多問幾次，複雜的任務用得比較快。文件沒有寫 5 小時額度從什麼時候開始算。我們實測，是從你第一次使用時開始。
 
 ## 怎麼讓 Antigravity 的額度一直顯示在畫面上？
 
@@ -56,13 +56,13 @@ Google 也說，額度用掉的速度要看代理做了多少工作：簡單的�
 
 - **`/usage` 或 Settings**：在 `agy` 輸入 `/usage` 打開 Models & Quota 面板，或打開 app 的 Settings 頁面。
 - **`agy -p /usage --output-format json`**。從 `command.data.groups` 讀取兩個額度池。
-- **usage**。`usage` 是免費開源的 app。它用 `agy -p /usage` 讀額度；如果讀不到，就改用 Antigravity CLI 已經存好的登入資料，向 Google 的額度服務查詢。它會把 5 小時和每週額度連同倒數，顯示在 macOS 選單列或 Windows 系統匣。Antigravity 卡片預設顯示 Gemini 額度池。點一下 `Gemini ⇄` 標籤，可以在 Gemini 和 Claude / GPT 之間切換。卡片會記住你的選擇。額度快用完時數字會變紅；你也可以在用到 50%、70%、80%、90% 或 95% 時收到通知，預設是 90%。
+- **usage**。[`usage`](https://aqua5230.github.io/usage/zh-TW/) 是免費開源的 app。它用 `agy -p /usage` 讀額度；如果讀不到，就改用 Antigravity CLI 已經存好的登入資料，向 Google 的額度服務查詢。它會把 5 小時和每週額度連同倒數，顯示在 macOS 選單列或 Windows 系統匣。Antigravity 卡片預設顯示 Gemini 額度池。點一下 `Gemini ⇄` 標籤，可以在 Gemini 和 Claude / GPT 之間切換。卡片會記住你的選擇。額度快用完時數字會變紅；你也可以在用到 50%、70%、80%、90% 或 95% 時收到通知，預設是 90%。
 
 ## 重點整理
 
 - 在 Antigravity CLI 輸入 `/usage` 可以打開額度面板；執行 `agy -p /usage --output-format json`，不用呼叫模型就能拿到一樣的資料。
 - Gemini Models 和 Claude and GPT models 各有每週和 5 小時額度。Gemini 4 Argon 與其他 Gemini 模型共用這兩種額度。
-- `usage` 會在選單列或系統匣顯示兩個額度池和重置倒數。
+- `usage` 會在選單列或系統匣顯示額度和重置倒數，點一下就能在兩個額度池之間切換。
 
 ## 資料來源
 

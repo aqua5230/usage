@@ -3,7 +3,7 @@ title: Claude Code 為什麼自己壓縮對話？
 description: Claude Code 會在 context 快滿時壓縮對話。2026 年 10 月起，你離開約一小時後，它也會先壓縮。我的 49 次自動壓縮全部屬於後者。這篇說明兩種壓縮的差別、壓縮後會留下什麼，以及怎麼自己控制。
 date: 2026-11-25
 tool: claude-code
-related: what-is-cli, claude-code-weekly-limit-reset
+related: claude-code-weekly-limit-reset, what-is-cli
 ---
 
 **Claude Code 有兩種自動壓縮：context 快滿時壓縮，以及你離開約一小時後壓縮**。後者叫閒置壓縮（idle compaction），2026 年 10 月才加入。我查了自己 9 月到 11 月的紀錄：49 次自動壓縮全部發生在我離開將近一小時之後，沒有一次是因為 context 滿了。
@@ -94,11 +94,11 @@ Claude Code 會把每個對話存成 `~/.claude/projects/` 裡的一個 JSONL �
 ## 怎麼隨時看到 context 用了多少？
 
 - **`/context`**：Claude Code 內建的指令，列出每一類各佔多少。
-- **usage**：`usage` 是免費開源的 app。它的終端機狀態列會顯示 context 用了幾 %。用到 70% 時，它會提醒你：要換任務就打 `/clear`，要接著做就打 `/compact` 留下重點。如果 context 增加得很快，提醒會提早到 55%～60% 出現。它也會把 Claude Code 的 5 小時和每週額度，顯示在 macOS 選單列或 Windows 系統匣。
+- **usage**：[`usage`](https://aqua5230.github.io/usage/zh-TW/) 是免費開源的 app。它的終端機狀態列會顯示 context 用了幾 %。用到 70% 時，它會提醒你：要換任務就打 `/clear`，要接著做就打 `/compact` 留下重點。如果 context 增加得很快，提醒會提早到 55%～60% 出現。它也會把 [Claude Code 的 5 小時和每週額度](../claude-code-weekly-limit-reset/)，顯示在 macOS 選單列或 Windows 系統匣。
 
 ## 資料怎麼來的
 
-- 壓縮紀錄來自作者自己 Mac 上的 Claude Code 對話紀錄，期間是 2026-09-10 到 2026-11-23。壓縮是紀錄裡 `subtype` 為 `compact_boundary` 的那一行；同一次壓縮出現在好幾個檔案時，只算一次。離開多久，是從壓縮前最後一則訊息算到壓縮發生的時間。我先用自己的腳本算一次，再用另一個分析程式獨立算一次，兩次結果相同。
+- 壓縮紀錄來自作者自己 Mac 上的 Claude Code 對話紀錄，期間是 2026-09-10 到 2026-11-23。壓縮是紀錄裡 `subtype` 為 `compact_boundary` 的那一行；同一次壓縮出現在好幾個檔案時，只算一次。離開多久，是從壓縮前最後一則訊息算到壓縮發生的時間。
 - 版本的發布日期來自 npm 上 `@anthropic-ai/claude-code` 的發布紀錄。
 - 官方說明在 2026-11-25 對照過。
 

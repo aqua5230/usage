@@ -3,7 +3,7 @@ title: Why Does Claude Code Compact Your Conversation on Its Own?
 description: Claude Code compacts a conversation when its context is nearly full. Since October 2026, it also compacts after you've been away for about an hour. All 49 of my automatic compactions were the second kind. This post explains the difference, what survives a compaction, and how to control it.
 date: 2026-11-25
 tool: claude-code
-related: what-is-cli, claude-code-weekly-limit-reset
+related: claude-code-weekly-limit-reset, what-is-cli
 ---
 
 **Claude Code compacts a conversation automatically in two cases: when the context is nearly full, and when you've been away for about an hour**. The second case is called idle compaction, and it arrived in October 2026. I checked my own records from September to November. All 49 automatic compactions happened after I had been away for nearly an hour. None of them happened because the context was full.
@@ -94,11 +94,11 @@ If the context fills up again right after a compaction, Claude Code stops compac
 ## How to keep an eye on the context
 
 - **`/context`**: a built-in Claude Code command that lists how much each category takes up.
-- **usage**: `usage` is a free, open-source app. Its terminal status line shows what percentage of the context is in use. At 70%, it reminds you to run `/clear` if you're switching tasks, or `/compact` to keep the key points if you're continuing. If the context grows quickly, the reminder appears earlier, at 55% to 60%. It also shows Claude Code's 5-hour and weekly limits in the macOS menu bar or the Windows system tray.
+- **usage**: [`usage`](https://aqua5230.github.io/usage/) is a free, open-source app. Its terminal status line shows what percentage of the context is in use. At 70%, it reminds you to run `/clear` if you're switching tasks, or `/compact` to keep the key points if you're continuing. If the context grows quickly, the reminder appears earlier, at 55% to 60%. It also shows [Claude Code's 5-hour and weekly limits](../claude-code-weekly-limit-reset/) in the macOS menu bar or the Windows system tray.
 
 ## Where the data comes from
 
-- The compaction records come from the author's own Claude Code conversation logs on a Mac, from 2026-09-10 to 2026-11-23. A compaction is a line in the logs whose `subtype` is `compact_boundary`; when the same compaction appears in several files, it is counted once. Time away is measured from the last message before the compaction to the compaction itself. I counted with my own script, then a separate analysis script counted again independently, and the results matched.
+- The compaction records come from the author's own Claude Code conversation logs on a Mac, from 2026-09-10 to 2026-11-23. A compaction is a line in the logs whose `subtype` is `compact_boundary`; when the same compaction appears in several files, it is counted once. Time away is measured from the last message before the compaction to the compaction itself.
 - Release dates come from the npm publish history of `@anthropic-ai/claude-code`.
 - The documentation was checked on 2026-11-25.
 

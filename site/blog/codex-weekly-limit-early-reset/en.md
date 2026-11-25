@@ -1,15 +1,15 @@
 ---
 title: Why Did My Codex Weekly Limit Reset Early?
-description: Codex weekly limits often reset days before resets_at because OpenAI runs global resets. Ten weeks of data from one Plus account, the official reset rules, and how to check.
+description: Codex weekly limits often reset days before resets_at because OpenAI runs global resets. Ten weekly periods of data from one Plus account, the official reset rules, and how to check.
 date: 2026-11-23
 updated: 2026-11-24
 tool: codex
-related: claude-code-weekly-limit-reset, how-to-check-antigravity-quota
+related: claude-code-weekly-limit-reset, how-to-check-antigravity-quota, what-is-cli
 ---
 
-**Your Codex weekly limit resets early when OpenAI runs a global reset on eligible accounts.** OpenAI refills your limit to 100% and starts a new weekly period on the spot. You lose nothing, so an early reset works like extra quota. The `resets_at` time that Codex reports is the latest moment your limit will refill. Checked on 2026-11-23.
+**Your Codex weekly limit resets early when OpenAI runs a global reset on selected accounts.** OpenAI refills your limit to 100% and starts a new weekly period on the spot. You lose nothing, so an early reset gives you your quota back early. The `resets_at` time that Codex reports is the latest moment your limit will refill. Checked on 2026-11-23.
 
-- Tibo, who leads Codex at OpenAI (`@thsottiaux` on X), resets usage for everyone from time to time. He usually announces it on X first.
+- Tibo, who leads Codex at OpenAI (`@thsottiaux` on X), resets usage for selected accounts from time to time. He usually announces it on X first.
 - On the author's own ChatGPT Plus account, 9 of the 10 weekly periods between 2026-08-29 and 2026-10-07 ended before `resets_at`: 7 hit a global reset, and 2 ended when the author used a banked reset. Only 1 lasted until `resets_at`.
 - After a reset, your next refresh date moves. The new date replaces the old one.
 
@@ -45,7 +45,7 @@ Suppose you use a banked reset, and a global reset arrives later. The global res
 
 ## What does resets_at mean if resets can happen early?
 
-Think of `resets_at` as the latest time your limit will refill. If no global reset comes first, that is when your week ends.
+Think of `resets_at` as the latest time your limit will refill. If no reset of any kind comes first, that is when your week ends.
 
 When a reset does come early, your schedule moves with it. OpenAI gives an example: a weekly period was due to end on Friday, but a reset restarted it on Tuesday. The next refresh is then the following Tuesday, and the Friday date no longer applies.
 
@@ -57,7 +57,7 @@ There are two free official ways, and a third option if you want the number on s
 
 - **The usage dashboard.** Open the [usage dashboard](https://chatgpt.com/codex/settings/usage) on the web, or **Settings > Usage & billing** in the desktop app. It shows how much you have left, when the limit refills, and any banked resets under **Available**.
 - **Codex CLI.** Run `/status` to see how much you have left. To use a banked reset, run `/usage` and choose **Redeem reset**.
-- **The `usage` app.** `usage` is free and open source. It reads your local Codex logs and shows your 5-hour and weekly limits, with countdowns, in the macOS menu bar or the Windows system tray. A limit turns red as it gets close, and you can get a notification at 50%, 70%, 80%, 90%, or 95%. The default is 90%. When a global reset lands, you see the new countdown without opening anything.
+- **The `usage` app.** [`usage`](https://aqua5230.github.io/usage/) is free and open source. It reads your local Codex logs and shows your 5-hour and weekly limits, with countdowns, in the macOS menu bar or the Windows system tray. A limit turns red as it gets close, and you can get a notification at 50%, 70%, 80%, 90%, or 95%. The default is 90%. After a global reset, the menu bar switches to the new countdown the next time you use Codex, without opening the usage page.
 
 ## Key takeaways
 

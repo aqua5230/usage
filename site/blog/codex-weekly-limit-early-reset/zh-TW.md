@@ -1,15 +1,15 @@
 ---
 title: Codex 每週額度為什麼提早重置？
-description: Codex 的每週額度常比 resets_at 早好幾天重置，原因是 OpenAI 會全體重置。附一個 Plus 帳號 10 週的實際紀錄、官方規則和查法。
+description: Codex 的每週額度常比 resets_at 早好幾天重置，原因是 OpenAI 會全體重置。附一個 Plus 帳號 10 個週期的實際紀錄、官方規則和查法。
 date: 2026-11-23
 updated: 2026-11-24
 tool: codex
-related: claude-code-weekly-limit-reset, how-to-check-antigravity-quota
+related: claude-code-weekly-limit-reset, how-to-check-antigravity-quota, what-is-cli
 ---
 
-**OpenAI 對符合資格的帳號做「全體重置」時，你的 Codex 每週額度就會提早重置**。OpenAI 會把你的額度補回 100%，並且當場開始新的一週。你不會損失任何東西，所以提早重置等於多拿一次額度。Codex 顯示的 `resets_at`，代表額度「最晚」什麼時候會補滿。2026-11-23 查證。
+**OpenAI 對選定的帳號做「全體重置」時，你的 Codex 每週額度就會提早重置**。OpenAI 會把你的額度補回 100%，並且當場開始新的一週。你不會損失任何東西，所以提早重置等於提早拿回額度。Codex 顯示的 `resets_at`，代表額度「最晚」什麼時候會補滿。2026-11-23 查證。
 
-- OpenAI 的 Codex 負責人 Tibo（X 帳號 `@thsottiaux`）會不定期幫所有人重置用量，通常會先在 X 上預告。
+- OpenAI 的 Codex 負責人 Tibo（X 帳號 `@thsottiaux`）會不定期幫選定的帳號重置用量，通常會先在 X 上預告。
 - 作者自己的 ChatGPT Plus 帳號，在 2026-08-29 到 2026-10-07 之間經歷了 10 個週期，其中 9 個比 `resets_at` 提早結束：7 個碰上全體重置，2 個是作者自己用了儲備重置。只有 1 個撐到 `resets_at`。
 - 重置之後，下一次補滿的日期會跟著改，新日期會取代舊日期。
 
@@ -45,7 +45,7 @@ OpenAI 的說明頁把一次性的重置分成三種：
 
 ## 既然會提早重置，resets_at 還有什麼意義？
 
-你可以把 `resets_at` 當成額度「最晚」補滿的時間。如果中間沒有全體重置，這一週就會在這個時間結束。
+你可以把 `resets_at` 當成額度「最晚」補滿的時間。如果中間沒有任何重置，這一週就會在這個時間結束。
 
 如果提早重置了，時間表也會跟著改。OpenAI 舉過一個例子：某個週期原本週五結束，但週二被重置重新開始，那麼下一次補滿就是下週二，原本週五的時間不再適用。
 
@@ -57,7 +57,7 @@ OpenAI 的說明頁把一次性的重置分成三種：
 
 - **用量頁面**：網頁版打開 [usage dashboard](https://chatgpt.com/codex/settings/usage)，桌面版打開 **Settings > Usage & billing**。這裡會顯示剩多少額度、什麼時候補滿，以及 **Available** 底下還有幾次儲備重置。
 - **Codex CLI**：輸入 `/status` 看剩多少額度。要使用儲備重置，輸入 `/usage` 再選 **Redeem reset**。
-- **usage**：`usage` 是免費開源的 app。它讀你電腦上的 Codex 紀錄，把 5 小時和每週額度連同倒數，顯示在 macOS 選單列或 Windows 系統匣。額度快用完時數字會變紅；你也可以在用到 50%、70%、80%、90% 或 95% 時收到通知，預設是 90%。遇到全體重置時，不用打開任何頁面，就能看到新的倒數。
+- **usage**：[`usage`](https://aqua5230.github.io/usage/zh-TW/) 是免費開源的 app。它讀你電腦上的 Codex 紀錄，把 5 小時和每週額度連同倒數，顯示在 macOS 選單列或 Windows 系統匣。額度快用完時數字會變紅；你也可以在用到 50%、70%、80%、90% 或 95% 時收到通知，預設是 90%。遇到全體重置時，你下次用 Codex 之後，選單列就會換成新的倒數，不用打開用量頁面。
 
 ## 重點整理
 

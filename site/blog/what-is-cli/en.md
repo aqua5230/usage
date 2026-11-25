@@ -5,7 +5,7 @@ date: 2026-11-24
 updated: 2026-11-25
 tool: claude-code
 image: pond-poster.jpg
-related: claude-code-weekly-limit-reset
+related: claude-code-idle-compaction, claude-code-weekly-limit-reset
 ---
 
 **A CLI (command-line interface) is a way to control a computer by typing commands.** You type a line in a terminal (the text window built into every Mac and Windows computer), press Enter, and the computer does it. The way you usually use a phone or laptop, by looking at icons and clicking buttons, is called a graphical user interface (GUI).

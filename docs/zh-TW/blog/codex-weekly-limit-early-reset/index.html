@@ -6,9 +6,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <meta name="theme-color" content="#0a0a0a" />
 <title>Codex 每週額度為什麼提早重置？ — usage</title>
-<meta name="description" content="Codex 的每週額度常比 resets_at 早好幾天重置，原因是 OpenAI 會全體重置。附一個 Plus 帳號 10 週的實際紀錄、官方規則和查法。" />
+<meta name="description" content="Codex 的每週額度常比 resets_at 早好幾天重置，原因是 OpenAI 會全體重置。附一個 Plus 帳號 10 個週期的實際紀錄、官方規則和查法。" />
 <meta property="og:title" content="Codex 每週額度為什麼提早重置？ — usage" />
-<meta property="og:description" content="Codex 的每週額度常比 resets_at 早好幾天重置，原因是 OpenAI 會全體重置。附一個 Plus 帳號 10 週的實際紀錄、官方規則和查法。" />
+<meta property="og:description" content="Codex 的每週額度常比 resets_at 早好幾天重置，原因是 OpenAI 會全體重置。附一個 Plus 帳號 10 個週期的實際紀錄、官方規則和查法。" />
 <meta property="og:image" content="https://aqua5230.github.io/usage/og-image.jpg?v=20261120b" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
@@ -27,7 +27,7 @@
   "@context": "https://schema.org",
   "@type": "Article",
   "headline": "Codex 每週額度為什麼提早重置？",
-  "description": "Codex 的每週額度常比 resets_at 早好幾天重置，原因是 OpenAI 會全體重置。附一個 Plus 帳號 10 週的實際紀錄、官方規則和查法。",
+  "description": "Codex 的每週額度常比 resets_at 早好幾天重置，原因是 OpenAI 會全體重置。附一個 Plus 帳號 10 個週期的實際紀錄、官方規則和查法。",
   "image": "https://aqua5230.github.io/usage/og-image.jpg?v=20261120b",
   "datePublished": "2026-11-23",
   "dateModified": "2026-11-24",
@@ -172,15 +172,36 @@ p, li { text-wrap: pretty; }
   letter-spacing: -0.01em;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   white-space: nowrap;
 }
-.brand-mark {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--accent);
-  display: inline-block;
+@property --p { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+.brand-dot { position: relative; width: 20px; height: 20px; flex: 0 0 20px; }
+.brand-dot svg { position: absolute; inset: 0; width: 20px; height: 20px; }
+.brand-ring-base { opacity: 0.3; }
+.brand-ring-progress {
+  --p: 226deg;
+  -webkit-mask: conic-gradient(from 331deg, #000 0deg var(--p), transparent var(--p) 360deg);
+  mask: conic-gradient(from 331deg, #000 0deg var(--p), transparent var(--p) 360deg);
+  animation: brand-draw 0.9s ease-out;
+}
+.brand-cat { opacity: 1; animation: brand-cat-appear 0.35s 0.82s both; }
+.brand-tail { transform-origin: 23px 51px; }
+.brand-ear { transform-box: fill-box; transform-origin: center bottom; }
+.brand:hover .brand-tail { animation: brand-wag 0.52s ease-in-out; }
+.brand:hover .brand-ear-left { animation: brand-ears 0.22s 2 alternate; }
+.brand:hover .brand-ear-right { animation: brand-ears 0.22s 0.05s 2 alternate-reverse; }
+@keyframes brand-draw { from { --p: 0deg; } }
+@keyframes brand-cat-appear { from { opacity: 0; } }
+@keyframes brand-wag {
+  30% { transform: rotate(-18deg); }
+  65% { transform: rotate(13deg); }
+  100% { transform: rotate(0); }
+}
+@keyframes brand-ears { to { transform: rotate(7deg) translateY(-1px); } }
+@media (prefers-reduced-motion: reduce) {
+  .brand-ring-progress, .brand-cat,
+  .brand:hover .brand-tail, .brand:hover .brand-ear { animation: none; }
 }
 .top-nav {
   display: flex;
@@ -232,7 +253,7 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   margin-bottom: 14px;
   overflow-wrap: anywhere;
 }
-.post-desc, .blog-hero p {
+.blog-hero p {
   font-size: 17px;
   color: var(--fg-dim);
   line-height: 1.65;
@@ -388,19 +409,32 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
 .related-section h2 { font-size: 20px; margin-bottom: 14px; }
 .related-list { list-style: none; display: grid; gap: 10px; }
 .related-list a {
-  display: block;
+  display: grid;
+  gap: 4px;
+  overflow-wrap: anywhere;
+}
+.related-section .related-list a {
   padding: 14px 16px;
   border-radius: 10px;
   border: 1px solid var(--border);
   background: var(--bg-card);
-  color: var(--fg);
-  font-weight: 550;
   transition: border-color 140ms ease;
 }
-.related-list a:hover { border-color: rgba(255, 140, 66, 0.45); color: var(--accent); }
+.related-section .related-list a:is(:hover, :focus-visible) { border-color: var(--accent); }
+.related-list a:is(:hover, :focus-visible) .related-title { color: var(--accent); }
+.related-title { font-size: 16px; font-weight: 600; line-height: 1.4; }
+.related-desc { font-size: 14.5px; line-height: 1.55; color: var(--fg-dim); }
+.related-rail .related-list { gap: 0; }
+.related-rail .related-list a {
+  padding: 10px 4px;
+  border-bottom: 1px solid var(--border);
+}
+.related-rail .related-list a:focus-visible { outline-offset: -2px; }
+.related-rail .related-title { font-size: 14px; }
+.related-rail .related-desc { font-size: 13px; line-height: 1.45; }
 .prose h2[id] { scroll-margin-top: 76px; }
 .article-layout { display: block; }
-.toc-rail, .news-rail { display: none; }
+.toc-rail, .related-rail { display: none; }
 .toc-mobile {
   margin-bottom: 28px;
   padding: 14px 16px;
@@ -431,7 +465,7 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   padding-top: 10px;
   border-top: 1px solid var(--border);
 }
-.toc-title {
+.toc-title, .related-rail h2 {
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
@@ -451,54 +485,6 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
 }
 .toc-list a:hover { color: var(--fg); }
 .toc-list a[aria-current="location"] { color: var(--accent); font-weight: 600; }
-.news-title {
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--fg-dimmer);
-  margin-bottom: 4px;
-}
-.news-list { display: grid; }
-.news-item {
-  display: block;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--border);
-}
-.news-item:hover .news-item-name { color: var(--accent); }
-.news-item-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 4px;
-}
-.news-item-name {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--fg);
-  transition: color 140ms ease;
-}
-.news-item-date {
-  font-family: var(--mono);
-  font-size: 11.5px;
-  color: var(--fg-dimmer);
-  white-space: nowrap;
-}
-.news-item-title {
-  font-size: 13px;
-  line-height: 1.45;
-  color: var(--fg-dim);
-  overflow-wrap: anywhere;
-}
-.news-all {
-  display: inline-block;
-  margin-top: 12px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--accent);
-}
-.news-all:hover { color: var(--accent-hover); }
 @media (min-width: 1300px) {
   .wrap-article { max-width: 1300px; }
   .article-layout {
@@ -528,7 +514,7 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   }
   .toc-rail { grid-column: 1; }
   .article-main { grid-column: 3; }
-  .news-rail:not([hidden]) {
+  .related-rail {
     grid-column: 5;
     display: block;
     position: sticky;
@@ -555,10 +541,11 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 </style>
 </head>
 <body>
+<svg class="brand-symbols" width="0" height="0" aria-hidden="true" style="position:absolute"><defs><symbol id="usage-ring" viewBox="0 0 64 64"><path fill="#BF483C" d="M21.32 6.58 L22.74 6.06 L24.18 5.62 L25.64 5.26 L27.12 4.98 L28.60 4.78 L30.10 4.65 L31.60 4.60 L33.10 4.64 L34.60 4.75 L36.08 4.94 L37.56 5.20 L39.02 5.54 L40.45 5.96 L41.87 6.46 L43.25 7.03 L44.60 7.67 L45.92 8.38 L47.19 9.15 L48.42 10.00 L49.61 10.91 L50.74 11.88 L51.83 12.90 L52.85 13.99 L53.82 15.12 L54.72 16.30 L55.56 17.53 L56.34 18.81 L57.05 20.12 L57.68 21.46 L58.24 22.84 L58.73 24.24 L59.15 25.67 L59.49 27.12 L59.75 28.58 L59.93 30.05 L60.04 31.53 L60.07 33.01 L60.02 34.50 L59.89 35.97 L59.68 37.44 L59.40 38.89 L59.04 40.33 L58.60 41.74 L58.09 43.13 L57.50 44.49 L56.83 45.80 L56.09 47.08 L55.28 48.31 L54.41 49.50 L53.48 50.63 L52.48 51.71 L51.43 52.74 L50.33 53.70 L49.18 54.60 L47.98 55.43 L46.75 56.20 L45.47 56.89 L44.16 57.52 L42.83 58.07 L41.47 58.55 L40.09 58.95 L38.69 59.28 L37.28 59.53 L35.86 59.71 L34.44 59.81 L33.01 59.83 L31.60 59.77 L30.19 59.64 L28.79 59.43 L27.41 59.15 L26.06 58.80 L24.72 58.38 L24.94 57.61 L26.27 57.87 L27.61 58.06 L28.94 58.19 L30.28 58.24 L31.62 58.22 L32.95 58.14 L34.27 57.98 L35.58 57.76 L36.87 57.47 L38.14 57.11 L39.38 56.69 L40.60 56.21 L41.79 55.67 L42.95 55.06 L44.07 54.40 L45.15 53.69 L46.19 52.92 L47.19 52.10 L48.15 51.23 L49.05 50.32 L49.91 49.36 L50.71 48.36 L51.46 47.33 L52.16 46.26 L52.80 45.16 L53.39 44.03 L53.91 42.87 L54.38 41.69 L54.80 40.49 L55.15 39.28 L55.44 38.04 L55.66 36.79 L55.82 35.54 L55.91 34.28 L55.93 33.01 L55.89 31.75 L55.78 30.49 L55.60 29.24 L55.36 28.00 L55.05 26.78 L54.68 25.57 L54.25 24.39 L53.75 23.23 L53.20 22.10 L52.58 21.00 L51.91 19.93 L51.18 18.91 L50.40 17.92 L49.57 16.98 L48.69 16.08 L47.77 15.23 L46.80 14.43 L45.79 13.68 L44.75 12.99 L43.67 12.35 L42.56 11.78 L41.42 11.26 L40.25 10.80 L39.06 10.41 L37.86 10.08 L36.64 9.81 L35.40 9.61 L34.16 9.47 L32.92 9.40 L31.67 9.40 L30.42 9.47 L29.18 9.60 L27.95 9.79 L26.74 10.05 L25.54 10.38 L24.36 10.76 L23.20 11.21 A2.50 2.50 0 0 1 21.32 6.58 Z"/></symbol></defs></svg>
 <a class="skip-link" href="#main-content">跳至主要內容</a>
 <header class="topbar">
   <div class="wrap">
-    <a class="brand" href="../../" translate="no"><span class="brand-mark" aria-hidden="true"></span>usage</a>
+    <a class="brand" href="../../" translate="no"><span class="brand-dot" aria-hidden="true"><svg class="brand-ring-base" viewBox="0 0 64 64"><use href="#usage-ring"/></svg><svg class="brand-ring-progress" viewBox="0 0 64 64"><use href="#usage-ring"/></svg><svg class="brand-cat" viewBox="0 0 64 64" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><circle cx="32" cy="24.5" r="7"/><path class="brand-ear brand-ear-left" d="M25.6 22 L26.2 13.2 L31 18.6 Z"/><path class="brand-ear brand-ear-right" d="M33 18.6 L37.8 13.2 L38.4 22 Z"/><path d="M27 29.5 C22.2 33.5 19.6 41 20.4 47.4 C20.9 51 25 52.6 32 52.6 C39 52.6 43.1 51 43.6 47.4 C44.4 41.8 41.8 33.5 37 29.5 Z"/><path class="brand-tail" d="M23 51.2 C16.5 53 12 50 13.2 45.2" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/></svg></span>usage</a>
     <nav class="top-nav">
       <a href="../../">首頁</a>
       <a href="../">部落格</a>
@@ -595,7 +582,6 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
             <span>更新於 <time datetime="2026-11-24">2026-11-24</time></span>
           </div>
           <h1>Codex 每週額度為什麼提早重置？</h1>
-          <p class="post-desc">Codex 的每週額度常比 resets_at 早好幾天重置，原因是 OpenAI 會全體重置。附一個 Plus 帳號 10 週的實際紀錄、官方規則和查法。</p>
         </header>
         <details class="toc-mobile">
           <summary>本文目錄</summary>
@@ -612,17 +598,9 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
           </nav>
         </details>
         <div class="prose">
-<p><strong>OpenAI 對符合資格的帳號做「全體重置」時，你的 Codex 每週額度就會提早重置</strong>。OpenAI 會把你的額度補回 100%，並且當場開始新的一週。你不會損失任何東西，所以提早重置等於多拿一次額度。Codex 顯示的 <code>resets_at</code>，代表額度「最晚」什麼時候會補滿。2026-11-23 查證。</p>
-<aside class="blog-cta-card">
-  <h2>在選單列隨時看 AI 寫程式的額度</h2>
-  <p>usage 是一款免費、開源（AGPL-3.0）的用量工具，提供 macOS 選單列與 Windows 系統匣，支援 Claude Code、Codex、Antigravity、Grok 與 Muse。</p>
-  <div class="blog-cta-actions">
-    <a class="btn btn-primary" href="../../#install">安裝 usage</a>
-    <a class="btn btn-secondary" href="https://github.com/aqua5230/usage" target="_blank" rel="noopener">GitHub</a>
-  </div>
-</aside>
+<p><strong>OpenAI 對選定的帳號做「全體重置」時，你的 Codex 每週額度就會提早重置</strong>。OpenAI 會把你的額度補回 100%，並且當場開始新的一週。你不會損失任何東西，所以提早重置等於提早拿回額度。Codex 顯示的 <code>resets_at</code>，代表額度「最晚」什麼時候會補滿。2026-11-23 查證。</p>
 <ul>
-<li>OpenAI 的 Codex 負責人 Tibo（X 帳號 <code>@thsottiaux</code>）會不定期幫所有人重置用量，通常會先在 X 上預告。</li>
+<li>OpenAI 的 Codex 負責人 Tibo（X 帳號 <code>@thsottiaux</code>）會不定期幫選定的帳號重置用量，通常會先在 X 上預告。</li>
 <li>作者自己的 ChatGPT Plus 帳號，在 2026-08-29 到 2026-10-07 之間經歷了 10 個週期，其中 9 個比 <code>resets_at</code> 提早結束：7 個碰上全體重置，2 個是作者自己用了儲備重置。只有 1 個撐到 <code>resets_at</code>。</li>
 <li>重置之後，下一次補滿的日期會跟著改，新日期會取代舊日期。</li>
 </ul>
@@ -672,7 +650,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 </table>
 <p>假設你先用了一次儲備重置，之後又遇到全體重置。全體重置只會把額度補回 100%，不會疊成 200%。還沒用掉的儲備重置會留在帳號裡。</p>
 <h2 id="既然會提早重置resets_at-還有什麼意義">既然會提早重置，resets_at 還有什麼意義？</h2>
-<p>你可以把 <code>resets_at</code> 當成額度「最晚」補滿的時間。如果中間沒有全體重置，這一週就會在這個時間結束。</p>
+<p>你可以把 <code>resets_at</code> 當成額度「最晚」補滿的時間。如果中間沒有任何重置，這一週就會在這個時間結束。</p>
 <p>如果提早重置了，時間表也會跟著改。OpenAI 舉過一個例子：某個週期原本週五結束，但週二被重置重新開始，那麼下一次補滿就是下週二，原本週五的時間不再適用。</p>
 <p><img src="../../../blog/codex-weekly-limit-early-reset/early-reset.svg" alt="Codex 在週二全體重置時，已用百分比歸零，下一次補滿的時間從原本的週五改成下週二。" /></p>
 <h2 id="怎麼查-codex-還剩多少額度多久重置">怎麼查 Codex 還剩多少額度、多久重置？</h2>
@@ -680,7 +658,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <ul>
 <li><strong>用量頁面</strong>：網頁版打開 <a href="https://chatgpt.com/codex/settings/usage">usage dashboard</a>，桌面版打開 <strong>Settings &gt; Usage &amp; billing</strong>。這裡會顯示剩多少額度、什麼時候補滿，以及 <strong>Available</strong> 底下還有幾次儲備重置。</li>
 <li><strong>Codex CLI</strong>：輸入 <code>/status</code> 看剩多少額度。要使用儲備重置，輸入 <code>/usage</code> 再選 <strong>Redeem reset</strong>。</li>
-<li><strong>usage</strong>：<code>usage</code> 是免費開源的 app。它讀你電腦上的 Codex 紀錄，把 5 小時和每週額度連同倒數，顯示在 macOS 選單列或 Windows 系統匣。額度快用完時數字會變紅；你也可以在用到 50%、70%、80%、90% 或 95% 時收到通知，預設是 90%。遇到全體重置時，不用打開任何頁面，就能看到新的倒數。</li>
+<li><strong>usage</strong>：<a href="https://aqua5230.github.io/usage/zh-TW/"><code>usage</code></a> 是免費開源的 app。它讀你電腦上的 Codex 紀錄，把 5 小時和每週額度連同倒數，顯示在 macOS 選單列或 Windows 系統匣。額度快用完時數字會變紅；你也可以在用到 50%、70%、80%、90% 或 95% 時收到通知，預設是 90%。遇到全體重置時，你下次用 Codex 之後，選單列就會換成新的倒數，不用打開用量頁面。</li>
 </ul>
 <h2 id="重點整理">重點整理</h2>
 <ul>
@@ -695,6 +673,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <li><a href="https://help.openai.com/en/articles/20001625-understanding-chatgpt-and-codex-usage-limits">Understanding ChatGPT and Codex usage limits</a></li>
 <li><a href="https://codex-resets.com/">Codex Limit Reset Tracker</a></li>
 </ul>
+        </div>
 <aside class="blog-cta-card">
   <h2>在選單列隨時看 AI 寫程式的額度</h2>
   <p>usage 是一款免費、開源（AGPL-3.0）的用量工具，提供 macOS 選單列與 Windows 系統匣，支援 Claude Code、Codex、Antigravity、Grok 與 Muse。</p>
@@ -703,21 +682,22 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
     <a class="btn btn-secondary" href="https://github.com/aqua5230/usage" target="_blank" rel="noopener">GitHub</a>
   </div>
 </aside>
-        </div>
-    <section class="related-section">
-      <h2>相關文章</h2>
-      <ul class="related-list">
-      <li><a href="../../../zh-TW/blog/claude-code-weekly-limit-reset/">Claude Code 每週額度什麼時候重置？</a></li>
-      <li><a href="../../../zh-TW/blog/how-to-check-antigravity-quota/">怎麼查 Antigravity（agy）剩多少額度？</a></li>
-      </ul>
-    </section>
+        <section class="related-section">
+          <h2>相關文章</h2>
+        <ul class="related-list">
+          <li><a href="../../../zh-TW/blog/claude-code-weekly-limit-reset/"><span class="related-title">Claude Code 每週額度什麼時候重置？</span><span class="related-desc">Claude Code 的每週額度在帳號固定的星期與時間重置。這篇說明它和 5 小時額度的差別，以及怎麼看重置倒數。</span></a></li>
+          <li><a href="../../../zh-TW/blog/how-to-check-antigravity-quota/"><span class="related-title">怎麼查 Antigravity（agy）剩多少額度？</span><span class="related-desc">在 Antigravity CLI 輸入 /usage，或在終端機跑 agy -p /usage --output-format json，不用呼叫模型就能查額度。這篇說明兩個額度池各有哪些模型，以及額度何時重置。</span></a></li>
+          <li><a href="../../../zh-TW/blog/what-is-cli/"><span class="related-title">CLI 是什麼？從 Claude Code 看懂終端機</span><span class="related-desc">CLI 是用打字下命令操作電腦的方式。這篇用一個真的做出來的網頁，說明 CLI 和 GUI（圖形介面）差在哪、為什麼很多 AI 助手做在終端機裡、Claude Code 怎麼替你打指令，以及它要動你的檔案前，你該看懂哪一行。</span></a></li>
+        </ul>
+        </section>
       </article>
-      <aside class="news-rail" aria-label="AI 更新日報" hidden>
-        <div class="news-card">
-          <h2 class="news-title">AI 更新日報</h2>
-          <div class="news-list"></div>
-          <a class="news-all" href="https://aqua5230.github.io/ai-updates/" target="_blank" rel="noopener">看全部更新 →</a>
-        </div>
+      <aside class="related-rail" aria-labelledby="related-rail-heading">
+        <h2 id="related-rail-heading">相關文章</h2>
+        <ul class="related-list">
+          <li><a href="../../../zh-TW/blog/claude-code-weekly-limit-reset/"><span class="related-title">Claude Code 每週額度什麼時候重置？</span><span class="related-desc">Claude Code 的每週額度在帳號固定的星期與時間重置。這篇說明它和 5 小時額度的差別，以及怎麼看重置倒數。</span></a></li>
+          <li><a href="../../../zh-TW/blog/how-to-check-antigravity-quota/"><span class="related-title">怎麼查 Antigravity（agy）剩多少額度？</span><span class="related-desc">在 Antigravity CLI 輸入 /usage，或在終端機跑 agy -p /usage --output-format json，不用呼叫模型就能查額度。這篇說明兩個額度池各有哪些模型，以及額度何時重置。</span></a></li>
+          <li><a href="../../../zh-TW/blog/what-is-cli/"><span class="related-title">CLI 是什麼？從 Claude Code 看懂終端機</span><span class="related-desc">CLI 是用打字下命令操作電腦的方式。這篇用一個真的做出來的網頁，說明 CLI 和 GUI（圖形介面）差在哪、為什麼很多 AI 助手做在終端機裡、Claude Code 怎麼替你打指令，以及它要動你的檔案前，你該看懂哪一行。</span></a></li>
+        </ul>
       </aside>
     </div>
   </div>
@@ -782,118 +762,6 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
       { passive: true }
     );
     pickActive();
-  }
-
-  var rail = document.querySelector(".news-rail");
-  var listEl = rail && rail.querySelector(".news-list");
-  if (!rail || !listEl || !window.matchMedia || !window.fetch) return;
-
-  var mq = window.matchMedia("(min-width: 1440px)");
-  var started = false;
-  var pageLang = document.documentElement.lang || "en";
-
-  function getPeriod(tool) {
-    return (tool && tool.latest && tool.latest.raw && tool.latest.raw.period) || "";
-  }
-
-  function renderNews(tools) {
-    var sorted = tools
-      .filter(function (t) {
-        return t && t.id && t.name && t.latest;
-      })
-      .slice()
-      .sort(function (a, b) {
-        var pa = getPeriod(a);
-        var pb = getPeriod(b);
-        if (pb > pa) return 1;
-        if (pb < pa) return -1;
-        return 0;
-      })
-      .slice(0, 4);
-
-    if (!sorted.length) return;
-
-    while (listEl.firstChild) {
-      listEl.removeChild(listEl.firstChild);
-    }
-
-    sorted.forEach(function (tool) {
-      var version = (tool.latest && tool.latest.version) || "";
-      var period = getPeriod(tool);
-
-      var a = document.createElement("a");
-      a.className = "news-item";
-      a.href =
-        "https://aqua5230.github.io/ai-updates/#" +
-        encodeURIComponent(tool.id) +
-        "/" +
-        encodeURIComponent(version);
-      a.target = "_blank";
-      a.rel = "noopener";
-
-      var head = document.createElement("div");
-      head.className = "news-item-head";
-
-      var nameEl = document.createElement("span");
-      nameEl.className = "news-item-name";
-      nameEl.textContent = version ? tool.name + " " + version : tool.name;
-      head.appendChild(nameEl);
-
-      if (period) {
-        var dateEl = document.createElement("time");
-        dateEl.className = "news-item-date";
-        dateEl.dateTime = period;
-        dateEl.textContent = period;
-        head.appendChild(dateEl);
-      }
-
-      a.appendChild(head);
-
-      var curated = tool.latest && tool.latest.curated;
-      var items = curated && curated.items;
-      var firstItem = Array.isArray(items) && items.length > 0 ? items[0] : null;
-      var titleObj = firstItem && firstItem.title;
-      var headline = titleObj && (titleObj[pageLang] || titleObj.en);
-      if (headline) {
-        var titleEl = document.createElement("p");
-        titleEl.className = "news-item-title";
-        titleEl.textContent = headline;
-        a.appendChild(titleEl);
-      }
-
-      listEl.appendChild(a);
-    });
-
-    rail.hidden = false;
-  }
-
-  function loadNews() {
-    if (started || !mq.matches) return;
-    started = true;
-    if (typeof mq.removeEventListener === "function") {
-      mq.removeEventListener("change", loadNews);
-    } else if (typeof mq.removeListener === "function") {
-      mq.removeListener(loadNews);
-    }
-    fetch("https://aqua5230.github.io/ai-updates/data.json")
-      .then(function (res) {
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        return res.json();
-      })
-      .then(function (data) {
-        if (data && Array.isArray(data.tools)) {
-          renderNews(data.tools);
-        }
-      })
-      .catch(function () {});
-  }
-
-  if (mq.matches) {
-    loadNews();
-  } else if (typeof mq.addEventListener === "function") {
-    mq.addEventListener("change", loadNews);
-  } else if (typeof mq.addListener === "function") {
-    mq.addListener(loadNews);
   }
 })();
 </script>
