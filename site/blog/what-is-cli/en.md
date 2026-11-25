@@ -59,7 +59,7 @@ The command for deleting files is `rm`, and it doesn't ask before it acts. A pho
 
 ## Can you use a terminal without memorizing commands?
 
-In the last couple of years, yes: let an AI type for you. Claude Code is an AI assistant made by Anthropic. It works in the terminal and understands plain language. You say what you want, and it decides which commands to run and what code to write.
+Yes, with AI: let it type for you. Claude Code is an AI assistant made by Anthropic. It works in the terminal and understands plain language. You say what you want, and it decides which commands to run and what code to write.
 
 Once Claude Code is installed (the steps are in "Try it yourself" at the end), type `claude` in the terminal and press Enter. The first time, it asks you to sign in; after that, you see a screen like this. At the terminal's own `%` prompt you type commands; at Claude Code's `❯` prompt you describe what you want in plain language:
 

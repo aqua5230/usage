@@ -657,7 +657,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <p>回覆開頭的 zsh，是 Mac 終端機裡負責接收指令的程式。整句中文中間沒有空格，所以它把整句當成指令名稱，結果找不到。前面的 <code>mkdir 練習</code> 能用，是因為指令名稱是 <code>mkdir</code>，「練習」只是資料夾的名字。</p>
 <p>刪除檔案的指令是 <code>rm</code>，它也不會先跟你確認。手機刪掉的照片會先放進「最近刪除」，過一陣子才真的消失；用 <code>rm</code> 刪掉的檔案不經過垃圾桶，直接就沒了。指令要背，打字還不能出錯，所以以前會用終端機的，多半是工程師。</p>
 <h2 id="不會背指令怎麼用終端機">不會背指令，怎麼用終端機？</h2>
-<p>這兩年多了一個辦法：讓 AI 替你打。Claude Code 是 Anthropic 做的 AI 助手，在終端機裡工作，聽得懂中文。你說想要什麼，它會自己決定要打哪些指令、寫哪些程式。</p>
+<p>有了 AI 之後，多了一個辦法：讓 AI 替你打。Claude Code 是 Anthropic 做的 AI 助手，在終端機裡工作，聽得懂中文。你說想要什麼，它會自己決定要打哪些指令、寫哪些程式。</p>
 <p>裝好 Claude Code 之後（安裝步驟在文末「自己試一次」），在終端機打 <code>claude</code> 再按 Enter。第一次會先請你登入，登入後會看到類似這樣的畫面。終端機原本的 <code>%</code> 後面要打指令；進到 Claude Code 之後，<code>❯</code> 後面打的是你想做的事，用中文就可以：</p>
 <p><img src="../../../blog/what-is-cli/claude-start.svg" alt="Claude Code 剛打開的畫面：Opus 5.5 with high effort · Claude Pro 是 AI 模型和你訂的方案，~/池塘 是目前所在的資料夾，❯ 後面打你想做的事" /></p>
 <p>資料夾前面的 <code>~</code> 代表你的個人資料夾，桌面、文件、下載都在裡面。</p>
