@@ -20,6 +20,7 @@ from loaders import claude_desktop, claude_usage
 from menubar import state
 from quota.burn_rate import BurnRateTracker
 from quota.notifications import QuotaNotifier
+from tests.test_chromium_cache import Response, _simple_cache
 from usage_common.i18n import _t
 
 NOW = 2_000_000_000.0
@@ -423,7 +424,7 @@ def _desktop(
     monkeypatch: pytest.MonkeyPatch, *, age: float = 60, org: str | None = "org-a"
 ) -> None:
     quota = claude_desktop.DesktopQuota(55, 8, NOW - age, FIVE_RESET, WEEKLY_RESET, org=org)
-    monkeypatch.setattr(claude_desktop, "load_desktop_quota", lambda _now: quota)
+    monkeypatch.setattr(claude_desktop, "load_desktop_quota", lambda _now, _org: quota)
 
 
 def test_idle_hook_switches_to_newer_same_org_desktop_quota(
@@ -477,3 +478,121 @@ def test_recent_hook_skips_desktop_scan(sources: Path, monkeypatch: pytest.Monke
     )
     assert _snapshot("hook").polled_at == NOW - 60
     assert rate_limits.load_rate_limits() is not None
+
+
+@pytest.mark.parametrize(
+    ("cached_age", "desktop_age", "source", "percent"),
+    [
+        (None, 580, "claude-desktop", 55),
+        (270, 60, "claude-desktop", 55),
+        (60, 270, "claude-json", 22),
+        (60, 60, "claude-json", 22),
+    ],
+)
+def test_newest_eligible_quota_wins_in_app_and_cli(
+    sources: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    cached_age: float | None,
+    desktop_age: float,
+    source: str,
+    percent: int,
+) -> None:
+    _write_hook(sources, age=600 if cached_age is None else 1200)
+    _write_cache(sources, age=cached_age, org="org-a")
+    _desktop(monkeypatch, age=desktop_age)
+    assert _snapshot(source).current_percent == percent
+    cli = rate_limits.load_rate_limits()
+    assert cli is not None and cli.five_hour_pct == percent
+
+
+def test_polls_reuse_claude_json_and_skip_unknown_or_mismatched_orgs(
+    sources: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _write_hook(sources)
+    _write_cache(sources, age=None)
+    history = sources / claude_desktop.HISTORY_NAME
+    _write_json(
+        history,
+        {"version": 2, "samples": [{"org": "org-b", "t": NOW * 1000, "u": {"fh": 91}}]},
+    )
+    discoveries = []
+    reads = []
+    read_config = claude_usage._read_claude_json
+
+    def read() -> claude_usage._ClaudeJson:
+        reads.append(True)
+        return read_config()
+
+    def paths() -> tuple[Path, ...]:
+        discoveries.append(True)
+        return (history,)
+
+    def forbidden(*args: object) -> None:
+        pytest.fail("must not scan HTTP cache for an unknown or mismatched organization")
+
+    monkeypatch.setattr(claude_usage, "_read_claude_json", read)
+    monkeypatch.setattr(claude_desktop, "desktop_history_paths", paths)
+    monkeypatch.setattr(claude_desktop, "load_cached_json", forbidden)
+    client = claude_usage.ClaudeUsageClient()
+    for _ in range(2):
+        outcome = _poll(client)
+        assert outcome.snapshot is not None and outcome.snapshot.data_source == "hook"
+    assert reads == [True]
+    assert discoveries == []
+
+    _write_cache(sources, age=None, org="org-a")
+    config_path = sources / ".claude.json"
+    os.utime(config_path, (NOW, NOW))
+    for _ in range(2):
+        outcome = _poll(client)
+        assert outcome.snapshot is not None and outcome.snapshot.data_source == "hook"
+    assert reads == [True, True]
+    assert discoveries == [True, True]
+    cli = rate_limits.load_rate_limits()
+    assert cli is not None and cli.five_hour_pct == 12.25
+
+
+def test_two_desktop_profiles_only_compare_the_signed_in_org(
+    sources: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _write_hook(sources)
+    _write_cache(sources, age=None, org="org-a")
+    histories = []
+    for org, age, percent in (("org-a", 80, 55), ("org-b", 20, 91)):
+        profile = sources / org
+        profile.mkdir()
+        history = profile / claude_desktop.HISTORY_NAME
+        _write_json(
+            history,
+            {
+                "version": 2,
+                "samples": [{"org": org, "t": (NOW - age) * 1000, "u": {"fh": percent}}],
+            },
+        )
+        histories.append(history)
+    monkeypatch.setattr(claude_desktop, "desktop_history_paths", lambda: tuple(histories))
+    assert _snapshot("claude-desktop").current_percent == 55
+    cli = rate_limits.load_rate_limits()
+    assert cli is not None and cli.five_hour_pct == 55
+
+
+@pytest.mark.parametrize("org", ["org-a", "org-b", None])
+def test_cache_without_history_requires_matching_code_org(
+    sources: Path, monkeypatch: pytest.MonkeyPatch, org: str | None
+) -> None:
+    _write_cache(sources, age=None, org=org)
+    monkeypatch.setattr(
+        claude_desktop, "desktop_history_paths", lambda: (sources / claude_desktop.HISTORY_NAME,)
+    )
+    _simple_cache(
+        sources / "Cache" / "Cache_Data",
+        Response(url=b"https://claude.ai/api/organizations/org-a/usage?via=plan"),
+        Response(url=b"https://claude.ai/api/organizations/org-c/usage?via=plan"),
+    )
+    gui = _poll().snapshot
+    cli = rate_limits.load_rate_limits()
+    if org == "org-a":
+        assert gui is not None and gui.current_percent == 14 and gui.weekly_percent == 1
+        assert cli is not None and cli.five_hour_pct == 14 and cli.seven_day_pct == 1
+    else:
+        assert gui is None and cli is None

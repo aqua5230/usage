@@ -50,23 +50,19 @@ def load_rate_limits() -> RateLimits | None:
         snapshot = usage_client.read_quota_fallback()
         return _snapshot_rate_limits(snapshot) if snapshot is not None else None
 
-    current_account, cached_snapshot = usage_client._read_claude_json()
-    if usage_client._hook_account_mismatch(data, current_account):
-        return _snapshot_rate_limits(cached_snapshot) if cached_snapshot is not None else None
+    config = usage_client._read_claude_json()
+    if usage_client._hook_account_mismatch(data, config.account):
+        return _snapshot_rate_limits(config.snapshot) if config.snapshot is not None else None
 
     now_ts = time.time()
     if not usage_client._has_rate_limits(data):
-        snapshot = usage_client.read_quota_fallback(lambda: cached_snapshot)
+        snapshot = usage_client.read_quota_fallback(config)
         if snapshot is not None:
             return _snapshot_rate_limits(snapshot)
     elif (hook_snapshot := usage_client._build_snapshot(data)) is not None:
-        if cached_snapshot is not None and usage_client._should_prefer_claude_json(
-            data, hook_snapshot, cached_snapshot, now_ts
-        ):
-            return _snapshot_rate_limits(cached_snapshot)
-        desktop_snapshot = usage_client._newer_desktop_snapshot(data, hook_snapshot, now_ts)
-        if desktop_snapshot is not None:
-            return _snapshot_rate_limits(desktop_snapshot)
+        override = usage_client._quota_override(data, hook_snapshot, config, now_ts)
+        if override is not None:
+            return _snapshot_rate_limits(override)
 
     rl = usage_client._as_dict(data.get("rate_limits"))
     five = usage_client._as_dict(rl.get("five_hour"))

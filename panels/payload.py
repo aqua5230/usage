@@ -181,14 +181,7 @@ def _state_payload(
         "footer": {
             "rate": state.rate_text,
             "status": state.status_text,
-            "today": {
-                **_period_payload(state.today_total, state.language),
-                "byService": [
-                    {"card": card, "tokens": tokens, "tokensText": _compact_tokens(tokens)}
-                    for card, tokens in state.today_by_service
-                    if tokens > 0
-                ],
-            },
+            "today": _today_payload(state),
             "yesterday": _period_payload(state.yesterday_total, state.language),
             "totalsReady": state.totals_ready,
             "serviceAlerts": list(state.service_alerts),
@@ -201,6 +194,24 @@ def _state_payload(
     if system_accent_color is not None:
         payload["system_accent_color"] = system_accent_color
     return payload
+
+
+def _today_payload(state: PopoverState) -> dict[str, object]:
+    today = state.today_total
+    agy_tokens = state.today_share_agy_tokens
+    by_service = dict(state.today_by_service)
+    if agy_tokens and sum(by_service.values()) == today.tokens:
+        by_service["agy"] = by_service.get("agy", 0) + agy_tokens
+    return {
+        **_period_payload(today, state.language),
+        "day": today.day.isoformat() if today.day is not None else None,
+        "shareTokensCount": f"{today.tokens + agy_tokens:,}" if agy_tokens is not None else None,
+        "byService": [
+            {"card": card, "tokens": tokens, "tokensText": _compact_tokens(tokens)}
+            for card, tokens in by_service.items()
+            if tokens > 0
+        ],
+    }
 
 
 def _token_fields(tokens: int, language: str) -> dict[str, str]:

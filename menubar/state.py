@@ -12,13 +12,13 @@ import threading
 import time
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from datetime import time as datetime_time
 from itertools import islice
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, NotRequired, Protocol, TypedDict, cast
 
-from loaders import codex_loader, grok_loader, muse_loader
+from loaders import agy_loader, codex_loader, grok_loader, muse_loader
 from loaders.claude_paths import claude_config_dirs
 from loaders.claude_usage import PollOutcome, PollState
 from loaders.codex_paths import codex_home
@@ -95,6 +95,7 @@ def _bar_color(pct: float, brand: tuple[float, float, float]) -> tuple[float, fl
 class PeriodTotal:
     tokens: int = 0
     cost: float = 0.0
+    day: date | None = field(default=None, compare=False)
 
 
 @dataclass(slots=True)
@@ -169,6 +170,7 @@ class PopoverState:
     today_total: PeriodTotal
     yesterday_total: PeriodTotal
     today_by_service: tuple[tuple[str, int], ...] = field(default=(), kw_only=True)
+    today_share_agy_tokens: int | None = field(default=None, kw_only=True)
     service_alerts: tuple[str, ...] = ()
     # Card ids ("claude", "codex") behind service_alerts, for panels that react per card.
     service_alert_cards: tuple[str, ...] = ()
@@ -1366,15 +1368,15 @@ def _today_usage(
     mock: bool = False,
     entries: list[UsageEntry] | None = None,
 ) -> tuple[PeriodTotal, tuple[tuple[str, int], ...]]:
+    today = datetime.now().astimezone().date()
     if mock:
-        return PeriodTotal(tokens=50_193_442, cost=45.20), (
+        return PeriodTotal(tokens=50_193_442, cost=45.20, day=today), (
             ("claude", 34_865_000),
             ("codex", 12_528_442),
             ("agy", 2_800_000),
         )
 
     try:
-        today = datetime.now().astimezone().date()
         start = datetime.combine(today, datetime_time.min).astimezone(UTC)
         end = datetime.combine(today + timedelta(days=1), datetime_time.min).astimezone(UTC)
         total_tokens = 0
@@ -1403,7 +1405,19 @@ def _today_usage(
     # An unclassified entry still counts toward the total, so omit an incomplete breakdown.
     if sum(tokens for _, tokens in breakdown) != total_tokens:
         breakdown = ()
-    return PeriodTotal(tokens=total_tokens, cost=total_cost), breakdown
+    return PeriodTotal(tokens=total_tokens, cost=total_cost, day=today), breakdown
+
+
+def _today_share_agy_tokens(day: date | None, *, mock: bool) -> int | None:
+    if day is None:
+        return None
+    if mock:
+        return 0  # Mock totals already include Antigravity.
+    return sum(
+        entry.total_tokens
+        for entry in agy_loader.load_entries(hours_back=48)
+        if entry.timestamp.astimezone().date() == day
+    )
 
 
 def _yesterday_total(

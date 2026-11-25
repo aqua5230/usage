@@ -81,11 +81,11 @@ def _anchor(message: dict[str, Any]) -> tuple[float, float, float, float]:
     return 0.0, 0.0, 1.0, 1.0
 
 
-def share_pal_card(web_view: Any, message: dict[str, Any]) -> None:
+def share_pal_card(web_view: Any, message: dict[str, Any]) -> bool:
     parsed = parse(message)
     if parsed is None:
         logger.warning("ignored a malformed share_pal_card message")
-        return
+        return False
     target, name, png, text = parsed
     from AppKit import (
         NSImage,
@@ -99,13 +99,19 @@ def share_pal_card(web_view: Any, message: dict[str, Any]) -> None:
     )
     from Foundation import NSURL, NSData
 
+    data = NSData.dataWithBytes_length_(png, len(png))
+    image = NSImage.alloc().initWithData_(data)
+    if image is None or not image.isValid():
+        logger.warning("could not decode share card image")
+        return False
+
     if target == "save":
         path = free_path(Path.home() / "Downloads", f"usage-{name}")
         path.write_bytes(png)
         NSWorkspace.sharedWorkspace().activateFileViewerSelectingURLs_(
             [NSURL.fileURLWithPath_(str(path))]
         )
-        return
+        return True
     if target == "more":
         # A file URL, not an NSImage: AirDrop and Telegram take files.
         path = Path(tempfile.gettempdir()) / f"usage-{name}.png"
@@ -115,14 +121,18 @@ def share_pal_card(web_view: Any, message: dict[str, Any]) -> None:
         picker.showRelativeToRect_ofView_preferredEdge_(
             NSMakeRect(*_anchor(message)), web_view, NSMaxYEdge
         )
-        return
-    data = NSData.dataWithBytes_length_(png, len(png))
+        return True
+    # Some apps paste images only as TIFF.
+    tiff = image.TIFFRepresentation()
+    if tiff is None:
+        return False
     board = NSPasteboard.generalPasteboard()
     board.declareTypes_owner_([NSPasteboardTypePNG, NSPasteboardTypeTIFF], None)
-    board.setData_forType_(data, NSPasteboardTypePNG)
-    # Some apps paste images only as TIFF.
-    board.setData_forType_(
-        NSImage.alloc().initWithData_(data).TIFFRepresentation(), NSPasteboardTypeTIFF
-    )
+    if not board.setData_forType_(data, NSPasteboardTypePNG):
+        return False
+    board.setData_forType_(tiff, NSPasteboardTypeTIFF)
     if target in INTENTS:
-        NSWorkspace.sharedWorkspace().openURL_(NSURL.URLWithString_(intent_url(target, text)))
+        return bool(
+            NSWorkspace.sharedWorkspace().openURL_(NSURL.URLWithString_(intent_url(target, text)))
+        )
+    return True

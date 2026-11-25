@@ -43,6 +43,11 @@ _REAL_NATIVE_WORK_AREA = wintray._WindowsTrayController._native_work_area_for_po
 
 
 @pytest.fixture(autouse=True)
+def _isolate_webview_storage(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(wintray, "_WEBVIEW_STORAGE_DIR", tmp_path / ".usage" / "webview")
+
+
+@pytest.fixture(autouse=True)
 def _no_real_monitor_lookup(monkeypatch: pytest.MonkeyPatch) -> None:
     """Keep placement tests on their fake screens when CI runs on real Windows."""
     monkeypatch.setattr(
@@ -1416,7 +1421,7 @@ def test_switch_panel_keeps_dragged_position_before_new_height_is_measured(
         move=lambda x, y: moves.append((x, y)),
         show=lambda: None,
         hide=lambda: None,
-        load_html=lambda html: None,
+        load_url=lambda html: None,
         evaluate_js=lambda code: None,
     )
     controller = wintray._WindowsTrayController(mock=True, interval=60)
@@ -1466,7 +1471,7 @@ def test_switch_panel_keeps_dragged_position_on_secondary_monitor(
         move=lambda x, y: moves.append((x, y)),
         show=lambda: None,
         hide=lambda: None,
-        load_html=lambda html: None,
+        load_url=lambda html: None,
         evaluate_js=lambda code: None,
     )
     controller = wintray._WindowsTrayController(mock=True, interval=60)
@@ -1777,7 +1782,7 @@ def test_card_order_persists_into_the_next_loaded_panel(
     loaded: list[str] = []
     window = SimpleNamespace(
         evaluate_js=injected.append,
-        load_html=loaded.append,
+        load_url=loaded.append,
     )
     controller = wintray._WindowsTrayController(mock=True, interval=60)
     controller.window = window
@@ -1833,13 +1838,19 @@ def test_run_app_wires_pystray_and_pywebview(
 
     def create_window(*args: object, **kwargs: object) -> object:
         events.append(("window", args[0], kwargs["hidden"], kwargs["background_color"]))
+        assert "html" not in kwargs
+        felt = wintray._WEBVIEW_STORAGE_DIR.parent / "usage-panels" / "usage-felt.html"
+        assert kwargs["url"] == felt.as_uri()
+        assert felt.stat().st_size > 2 * 1024 * 1024
         return window
 
     FakeMenu.SEPARATOR = object()  # type: ignore[attr-defined]
     fake_pystray = SimpleNamespace(Icon=FakeIcon, Menu=FakeMenu, MenuItem=FakeMenuItem)
     fake_webview = SimpleNamespace(
         create_window=create_window,
-        start=lambda **kwargs: events.append(("start", kwargs["gui"], kwargs["storage_path"])),
+        start=lambda **kwargs: events.append(
+            ("start", kwargs["gui"], kwargs["storage_path"], kwargs["private_mode"])
+        ),
     )
     monkeypatch.setitem(sys.modules, "pystray", fake_pystray)
     monkeypatch.setitem(sys.modules, "webview", fake_webview)
@@ -1849,19 +1860,56 @@ def test_run_app_wires_pystray_and_pywebview(
     monkeypatch.setattr(wintray._WindowsTrayController, "attach", lambda self, icon, view: None)
     # A tray may genuinely be running on the machine executing the tests.
     monkeypatch.setattr(wintray, "_acquire_single_instance_lock", lambda: True)
+    monkeypatch.setattr(wintray, "_active_panel_id", lambda: "felt")
 
     wintray.run_app(mock=True, interval=60)
 
     assert wintray._WEBVIEW_STORAGE_DIR.name == "webview"
-    assert wintray._WEBVIEW_STORAGE_DIR.parent == Path.home() / ".usage"
     assert events == [
         ("window", "usage", True, "#eef2f7"),
         "loaded_handler",
         ("icon", "usage"),
         "tray_menu",
         "run_detached",
-        ("start", "edgechromium", str(wintray._WEBVIEW_STORAGE_DIR)),
+        ("start", "edgechromium", str(wintray._WEBVIEW_STORAGE_DIR), False),
     ]
+
+
+def test_felt_file_url_stays_stable_across_panel_switches(monkeypatch: pytest.MonkeyPatch) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    loaded: list[str] = []
+    controller.window = _window(load_url=loaded.append)
+    monkeypatch.setattr(wintray, "_save_active_panel_id", lambda _panel: None)
+    for panel in ("felt", "classic", "felt"):
+        controller.switch_panel(panel)
+
+    directory = wintray._WEBVIEW_STORAGE_DIR.parent / "usage-panels"
+    felt = directory / "usage-felt.html"
+    assert loaded == [felt.as_uri(), (directory / "usage-classic.html").as_uri(), felt.as_uri()]
+    assert felt.stat().st_size > 2 * 1024 * 1024
+    html = felt.read_text(encoding="utf-8")
+    assert 'window.usageHost = "windows"' in html
+    assert "data:image/webp;base64," in html
+    assert "usageApplyState" in html
+
+
+def test_switch_panel_keeps_previous_selection_when_page_cannot_be_written(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.active_panel_id = "classic"
+    controller.window = _window(load_url=lambda url: pytest.fail(f"unexpected navigation: {url}"))
+    monkeypatch.setattr(
+        wintray, "_save_active_panel_id", lambda panel: pytest.fail(f"unexpected save: {panel}")
+    )
+
+    def fail(_path: Path, _html: str) -> None:
+        raise PermissionError("panel directory")
+
+    monkeypatch.setattr(wintray, "_atomic_write_text", fail)
+    with pytest.raises(PermissionError, match="panel directory"):
+        controller.switch_panel("felt")
+    assert controller.active_panel_id == "classic"
 
 
 def test_on_loaded_does_not_place_hidden_window() -> None:

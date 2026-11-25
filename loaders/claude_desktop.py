@@ -7,6 +7,7 @@ from __future__ import annotations
 import json
 import math
 import os
+import re
 import sys
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -81,13 +82,17 @@ def _percent(value: object) -> int | None:
     return round(number) if number is not None and 0 <= number <= 100 else None
 
 
-def _read_history(path: Path, now: float) -> DesktopQuota | None:
+def _read_history(path: Path, now: float, expected_org: str | None = None) -> DesktopQuota | None:
     try:
         with path.open("rb") as file:
             raw = file.read(MAX_FILE_BYTES + 1)
         if len(raw) > MAX_FILE_BYTES:
             return None
         data = json.loads(raw)
+    except FileNotFoundError:
+        if expected_org is None:
+            return None
+        return _with_cached_usage(path, now, expected_org)
     except (OSError, ValueError, UnicodeError, RecursionError):
         return None
     if (
@@ -118,6 +123,8 @@ def _read_history(path: Path, now: float) -> DesktopQuota | None:
     ):
         return None
     org = str(latest["org"])
+    if expected_org is not None and org != expected_org:
+        return None
     utilization = latest.get("u")
     if not isinstance(utilization, dict):
         return None
@@ -134,11 +141,21 @@ def _read_history(path: Path, now: float) -> DesktopQuota | None:
         if now - polled_at <= MAX_AGE_SECONDS
         else None
     )
-    try:
-        url = f"https://claude.ai/api/organizations/{latest['org']}/usage".encode()
-    except UnicodeEncodeError:
+    return _with_cached_usage(path, now, org, quota, polled_at - 60)
+
+
+def _with_cached_usage(
+    path: Path,
+    now: float,
+    org: str,
+    quota: DesktopQuota | None = None,
+    earliest: float = 0,
+) -> DesktopQuota | None:
+    if not re.fullmatch(r"[A-Za-z0-9_-]+", org):
         return None
-    response = load_cached_json(path.parent / "Cache" / "Cache_Data", url, polled_at - 60, now)
+    url = f"https://claude.ai/api/organizations/{org}/usage".encode()
+    earliest = max(earliest, now - MAX_AGE_SECONDS)
+    response = load_cached_json(path.parent / "Cache" / "Cache_Data", url, earliest, now)
     if response is None:
         return quota
     # Desktop history is throttled to one sample every few minutes. The HTTP
@@ -146,12 +163,14 @@ def _read_history(path: Path, now: float) -> DesktopQuota | None:
     five, seven = response.data.get("five_hour"), response.data.get("seven_day")
     cached_current = _percent(five.get("utilization")) if isinstance(five, dict) else None
     cached_weekly = _percent(seven.get("utilization")) if isinstance(seven, dict) else None
-    if response.fetched_at >= polled_at and (
+    if (quota is None or response.fetched_at >= quota.polled_at) and (
         cached_current is not None or cached_weekly is not None
     ):
         current, weekly, polled_at = cached_current, cached_weekly, response.fetched_at
     elif quota is None:
         return None
+    else:
+        current, weekly, polled_at = quota.current_percent, quota.weekly_percent, quota.polled_at
     current_reset = _reset_time(five, polled_at, now + 5 * 3600 + 60, current)
     weekly_reset = _reset_time(seven, polled_at, now + 7 * 86400 + 60, weekly)
     # Expiry is part of the loaded quota, not a presentation-only adjustment.
@@ -169,7 +188,7 @@ def _reset_time(
     if not isinstance(window, dict) or not isinstance(value := window.get("resets_at"), str):
         return None
     cached_percent = _percent(window.get("utilization"))
-    if cached_percent is None or (percent is not None and cached_percent != percent):
+    if cached_percent is None or cached_percent != percent:
         return None
     try:
         date = datetime.fromisoformat(value)
@@ -181,8 +200,10 @@ def _reset_time(
     return timestamp if observed_at < timestamp <= latest else None
 
 
-def load_desktop_quota(now: float) -> DesktopQuota | None:
+def load_desktop_quota(now: float, expected_org: str | None = None) -> DesktopQuota | None:
     observations = (
-        quota for path in desktop_history_paths() if (quota := _read_history(path, now)) is not None
+        quota
+        for path in desktop_history_paths()
+        if (quota := _read_history(path, now, expected_org)) is not None
     )
     return max(observations, key=lambda quota: quota.polled_at, default=None)

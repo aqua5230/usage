@@ -143,6 +143,7 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
     project_rows_all = list(fallback_state.projects_all)
     today_total = fallback_state.today_total
     today_by_service = fallback_state.today_by_service
+    today_share_agy_tokens = None
     yesterday_total = fallback_state.yesterday_total
     hide_claude = fallback_state.hide_claude
     hide_codex = fallback_state.hide_codex
@@ -179,6 +180,9 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
         hide_codex = _hide_codex_enabled()
         hide_agy = agy_result.hide_agy or _hide_agy_enabled()
         hide_grok = grok_result.hide_grok or _hide_grok_enabled()
+        today_share_agy_tokens = menubar_state._today_share_agy_tokens(
+            today_total.day, mock=app.mock
+        )
     except Exception:
         if os.environ.get("USAGE_DEBUG") == "1":
             logger.warning("local usage refresh failed", exc_info=True)
@@ -295,6 +299,7 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
         state.hide_grok = hide_grok
         state.card_order = card_order
 
+    state.today_share_agy_tokens = today_share_agy_tokens
     if not app.mock:
         quota_snapshot.write_snapshot()
         model_registry.update(entries=all_entries)
