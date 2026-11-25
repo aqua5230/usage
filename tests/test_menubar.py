@@ -736,6 +736,9 @@ def test_switch_panel_menu_contains_update_items(
     assert daily_item.action == "toggleAiDaily:"
     assert daily_item.representedObject() is None
     assert daily_item.state == 0
+    blog_item = main_menu.items[main_menu.items.index(daily_item) + 1]
+    assert blog_item.title == "Blog"
+    assert blog_item.action == "openBlog:"
 
     # Panel themes are collapsed into a submenu, not listed inline on the main menu.
     assert "Default" not in main_titles
@@ -2942,20 +2945,30 @@ def test_switching_visible_panel_reuses_popover(monkeypatch: pytest.MonkeyPatch)
     assert delegate.popover.shown == 0
 
 
-def test_daily_link_closes_popover_then_opens_browser(
+@pytest.mark.parametrize(
+    ("action", "url"),
+    [
+        ("toggleAiDaily_", "https://aqua5230.github.io/ai-updates/"),
+        ("openBlog_", "https://getusage.app/zh-TW/blog/"),
+    ],
+)
+def test_menu_link_closes_popover_then_opens_browser(
     monkeypatch: pytest.MonkeyPatch,
+    action: str,
+    url: str,
 ) -> None:
     events: list[str] = []
     delegate = menubar.AppDelegate.alloc().initWithMock_interval_(True, 60)
+    delegate.language = "zh-CN"
     delegate.popover = SimpleNamespace(
         isVisible=lambda: True,
         close=lambda: events.append("close"),
     )
     monkeypatch.setattr("menubar.app.webbrowser.open", lambda url: events.append(url))
 
-    menubar.AppDelegate.toggleAiDaily_(delegate, object())
+    getattr(delegate, action)(object())
 
-    assert events == ["close", "https://aqua5230.github.io/ai-updates/"]
+    assert events == ["close", url]
     assert delegate._switch_menu_action_taken is True
 
 

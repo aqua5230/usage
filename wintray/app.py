@@ -70,6 +70,7 @@ from usage_common.app_version import current_version as _current_version
 from usage_common.i18n import _t
 from usage_common.prefs import _load_preferences, _save_preferences
 from usage_common.pricing import calculate_cost
+from usage_common.site_links import blog_url
 from usage_common.usage_lang import detect_lang
 from wintray import login_item as win_login_item
 from wintray import menu as wintray_menu
@@ -1976,6 +1977,9 @@ class _WindowsTrayController:
     def open_ai_daily(self, _icon: Any = None, _item: Any = None) -> None:
         webbrowser.open("https://aqua5230.github.io/ai-updates/")
 
+    def open_blog(self, _icon: Any = None, _item: Any = None) -> None:
+        webbrowser.open(blog_url(self.language))
+
     def report_issue(self, _icon: Any = None, _item: Any = None) -> None:
         from usage_common.issue_report import open_issue_report
 
@@ -2453,6 +2457,8 @@ class _WindowsTrayController:
                     self.toggle_hide_section(preference_key)
             elif action == "open_ai_daily":
                 self.open_ai_daily()
+            elif action == "open_blog":
+                self.open_blog()
             elif action == "reset_panel_position":
                 self.reset_panel_position()
             elif action == "refresh":

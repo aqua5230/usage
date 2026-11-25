@@ -8,7 +8,7 @@
 
 `usage` は5時間と週ごとの上限を macOS のメニューバーや Windows のシステムトレイに表示し、上限が近づくと赤で知らせます。長いリファクタリングの途中で上限に達して残量不足に気づくのは、痛いものです。これなら事前に把握できます。コマンドを実行する必要も、ページを開く必要もありません。
 
-[繁體中文](README.zh-TW.md) · [简体中文](README.zh-CN.md) · [English](../README.md) · 日本語 · [한국어](README.ko.md) &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [公式サイト](https://aqua5230.github.io/usage/) &nbsp;|&nbsp; [ブログ（英語）](https://aqua5230.github.io/usage/blog/)
+[繁體中文](README.zh-TW.md) · [简体中文](README.zh-CN.md) · [English](../README.md) · 日本語 · [한국어](README.ko.md) &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [公式サイト](https://getusage.app/) &nbsp;|&nbsp; [ブログ（英語）](https://getusage.app/blog/)
 
 [インストール](#インストール) · [機能](#主な機能) · [サイドペイン](#claude-code-サイドペイン) · [テーマ](#テーマギャラリー) · [比較](#比較) · [プライバシー](#プライバシーとデータソース) · [トラブルシューティング](#トラブルシューティング)
 

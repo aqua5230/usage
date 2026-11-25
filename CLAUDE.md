@@ -10,7 +10,7 @@ Run the full set before pushing; CI (`.github/workflows/check.yml`) runs the sam
 - Lint: `uv run ruff check .` and `uv run ruff format --check .`
 - Typecheck: `uv run mypy .` and `uv run mypy . --platform win32` — both include `tests/`
 - Tests: `uv run pytest`; one file: `uv run pytest tests/test_x.py`
-- Repo checks: `uv run python scripts/check_doc_parity.py`, `uv run python scripts/build_site_pages.py --check`, `uv run python scripts/check_file_size.py`
+- Repo checks: `uv run python scripts/check_doc_parity.py`, `uv run python scripts/build_redirects.py --check`, `uv run python scripts/check_file_size.py`
 - After changing a hook or what it writes: `uv run python scripts/check_upstream.py`
 
 ## Gotchas
@@ -32,5 +32,6 @@ Run the full set before pushing; CI (`.github/workflows/check.yml`) runs the sam
 - The price table is downloaded only from `https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json` and cached in `~/.usage/pricing_cache.json` for 7 days. A fallback retries after 10 minutes; the old `~/.claude/pricing_cache.json` is read-only.
 - Service status reads only Claude Code / Claude API and Codex API, from the `components.json` and `incidents.json` URLs pinned in `usage_common/service_status.py` (`CLAUDE_STATUS` / `CODEX_STATUS`); incidents are fetched only when a watched component is abnormal. Never switch to `summary.json` or `incidents/unresolved.json` — the comment above `CLAUDE_STATUS` and the docstrings in `tests/test_service_status.py` explain why. Never switch to the overall indicator, OpenAI's shared components, or `Codex Web` / `Codex in ChatGPT Desktop` either — all cause false alarms.
 - Public docs default to English, with Traditional Chinese as `.zh-TW.md`. README also has `zh-CN`, `ja`, and `ko`, which CI does not enforce — sync them by hand when README changes. `scripts/check_doc_parity.py` only checks English ↔ Traditional Chinese.
+- The website lives in `aqua5230/usage-site` (getusage.app). This repo's `docs/` holds README assets, panel demos synced by usage-site, and legacy redirects.
 - Everything user-visible and everything on disk uses the `usage` prefix, including `com.lollapalooza.usage`. `usag-*` exists only for reading older installs.
 - The build script renames `dist/main.app` to `dist/usage.app`. That is expected.

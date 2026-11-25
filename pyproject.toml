@@ -61,7 +61,6 @@ dev = [
     "ruff>=0.16.2",
     "mypy>=2.3.1",
     "pytest>=9.1.1",
-    "markdown-it-py",
 ]
 build = [
     "py2app>=0.28; sys_platform == 'darwin'",
