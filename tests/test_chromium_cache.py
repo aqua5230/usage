@@ -399,6 +399,20 @@ def test_simple_cache_reads_only_matching_entries_in_full(
     assert len(full_reads) == 1
 
 
+def test_simple_cache_finds_plain_key_by_name_beyond_the_scan_cap(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # A freshly installed Desktop writes thousands of newer files within minutes.
+    usage, *_ = _simple_cache(
+        tmp_path, Response(), *(Response(url=b"https://claude.ai/api/other") for _ in range(3))
+    )
+    os.utime(usage, (NOW - 30, NOW - 30))
+    usage.rename(tmp_path / cache._simple_name(b"1/0/" + URL))
+    monkeypatch.setattr(cache, "MAX_SIMPLE_CANDIDATES", 1)
+    result = cache.load_cached_json(tmp_path, URL, NOW - 60, NOW)
+    assert result is not None and result.fetched_at == NOW
+
+
 def test_simple_cache_skips_entries_not_written_recently(tmp_path: Path) -> None:
     _simple_cache(tmp_path, Response(), mtime=NOW - 7300)
     assert cache.load_cached_json(tmp_path, URL, NOW - 10000, NOW) is None
