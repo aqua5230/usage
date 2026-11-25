@@ -46,7 +46,10 @@ DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 H2_RE = re.compile(r"<h2>(.*?)</h2>", re.DOTALL)
 TAG_RE = re.compile(r"<[^>]+>")
 IMG_SRC_RE = re.compile(r'<img\b([^>]*?\s)src="([^"]*)"([^>]*>)')
-IMAGE_EXTENSIONS: frozenset[str] = frozenset({".jpg", ".jpeg", ".png", ".webp", ".svg"})
+IMAGE_EXTENSIONS: frozenset[str] = frozenset({".jpg", ".jpeg", ".png", ".webp", ".svg", ".gif"})
+# A body image pointing at one of these is embedded as a live page instead.
+EMBED_EXTENSIONS: frozenset[str] = frozenset({".html"})
+IMG_ALT_RE = re.compile(r'\balt="([^"]*)"')
 
 UI_STRINGS: dict[str, dict[str, str]] = {
     "en": {
@@ -64,13 +67,14 @@ UI_STRINGS: dict[str, dict[str, str]] = {
         "updated": "Updated",
         "card_title": "Track your AI coding quotas in the menu bar",
         "card_desc": (
-            "usage is a free, open-source (AGPL-3.0) app for macOS menu bar, Windows tray, "
-            "and terminal TUI supporting Claude Code, Codex, Antigravity, Grok, and Muse."
+            "usage is a free, open-source (AGPL-3.0) app for the macOS menu bar and "
+            "Windows tray, supporting Claude Code, Codex, Antigravity, Grok, and Muse."
         ),
         "card_install": "Install usage",
         "card_github": "GitHub",
         "related_heading": "Related Articles",
         "toc_title": "In this article",
+        "embed_open": "Open full screen ↗",
         "news_title": "AI Update Daily",
         "news_all": "See all updates →",
         "footer_tag_pre": "Built by",
@@ -84,18 +88,19 @@ UI_STRINGS: dict[str, dict[str, str]] = {
         "nav_blog": "部落格",
         "nav_install": "安裝",
         "blog_title": "部落格",
-        "blog_subtitle": "關於 AI 開發配額管理、本機優先追蹤與打造 usage 的筆記。",
+        "blog_subtitle": "關於 AI 寫程式工具的額度、在自己電腦上追蹤用量，以及打造 usage 的筆記。",
         "published": "發布於",
         "updated": "更新於",
-        "card_title": "在選單列掌握你的 AI 開發配額",
+        "card_title": "在選單列隨時看 AI 寫程式的額度",
         "card_desc": (
-            "usage 是一款免費、開源（AGPL-3.0）的用量工具，提供 macOS 選單列、Windows "
-            "系統匣與終端機 TUI，支援 Claude Code、Codex、Antigravity、Grok 與 Muse。"
+            "usage 是一款免費、開源（AGPL-3.0）的用量工具，提供 macOS 選單列與 Windows "
+            "系統匣，支援 Claude Code、Codex、Antigravity、Grok 與 Muse。"
         ),
         "card_install": "安裝 usage",
         "card_github": "GitHub",
         "related_heading": "相關文章",
         "toc_title": "本文目錄",
+        "embed_open": "全螢幕打開 ↗",
         "news_title": "AI 更新日報",
         "news_all": "看全部更新 →",
         "footer_tag_pre": "作者：",
@@ -114,13 +119,14 @@ UI_STRINGS: dict[str, dict[str, str]] = {
         "updated": "更新于",
         "card_title": "在菜单栏掌握你的 AI 开发额度",
         "card_desc": (
-            "usage 是一款免费、开源（AGPL-3.0）的用量工具，提供 macOS 菜单栏、Windows "
-            "系统托盘与终端 TUI，支持 Claude Code、Codex、Antigravity、Grok 与 Muse。"
+            "usage 是一款免费、开源（AGPL-3.0）的用量工具，提供 macOS 菜单栏与 Windows "
+            "系统托盘，支持 Claude Code、Codex、Antigravity、Grok 与 Muse。"
         ),
         "card_install": "安装 usage",
         "card_github": "GitHub",
         "related_heading": "相关文章",
         "toc_title": "本文目录",
+        "embed_open": "全屏打开 ↗",
         "news_title": "AI 更新日报",
         "news_all": "查看全部更新 →",
         "footer_tag_pre": "作者：",
@@ -139,13 +145,14 @@ UI_STRINGS: dict[str, dict[str, str]] = {
         "updated": "更新日",
         "card_title": "AI コーディングのクォータをメニューバーで把握",
         "card_desc": (
-            "usage は無料・オープンソース（AGPL-3.0）のツールで、macOS メニューバー、"
-            "Windows トレイ、TUI で Claude Code、Codex、Antigravity、Grok、Muse に対応します。"
+            "usage は無料・オープンソース（AGPL-3.0）のツールで、macOS メニューバーと"
+            "Windows トレイで Claude Code、Codex、Antigravity、Grok、Muse に対応します。"
         ),
         "card_install": "usage をインストール",
         "card_github": "GitHub",
         "related_heading": "関連記事",
         "toc_title": "この記事の内容",
+        "embed_open": "全画面で開く ↗",
         "news_title": "AI更新日報",
         "news_all": "すべての更新を見る →",
         "footer_tag_pre": "制作：",
@@ -164,13 +171,14 @@ UI_STRINGS: dict[str, dict[str, str]] = {
         "updated": "수정일",
         "card_title": "메뉴 막대에서 AI 코딩 할당량을 바로 확인하세요",
         "card_desc": (
-            "usage는 무료 오픈소스(AGPL-3.0) 앱으로 macOS 메뉴 막대, Windows 트레이, "
-            "터미널 TUI에서 Claude Code, Codex, Antigravity, Grok, Muse를 지원합니다."
+            "usage는 무료 오픈소스(AGPL-3.0) 앱으로 macOS 메뉴 막대와 "
+            "Windows 트레이에서 Claude Code, Codex, Antigravity, Grok, Muse를 지원합니다."
         ),
         "card_install": "usage 설치하기",
         "card_github": "GitHub",
         "related_heading": "관련 글",
         "toc_title": "이 글의 내용",
+        "embed_open": "전체 화면으로 열기 ↗",
         "news_title": "AI 업데이트 데일리",
         "news_all": "모든 업데이트 보기 →",
         "footer_tag_pre": "제작:",
@@ -217,6 +225,12 @@ body {
 }
 a { color: inherit; text-decoration: none; }
 img { max-width: 100%; height: auto; display: block; }
+.embed { display: block; }
+.embed iframe {
+  display: block; width: 100%; aspect-ratio: 16 / 10;
+  border: 0; border-radius: 10px; background: #000;
+}
+.embed a { display: inline-block; margin-top: 6px; font-size: 14px; color: var(--accent); }
 ::selection { background: rgba(255, 140, 66, 0.3); color: #fff; }
 :where(a, button):focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 :lang(ko) :is(h1, h2, h3) { word-break: keep-all; }
@@ -730,7 +744,7 @@ def load_slug_images(slug_dir: Path) -> dict[str, Path]:
     for entry in sorted(slug_dir.iterdir()):
         if not entry.is_file() or entry.name.startswith("."):
             continue
-        if entry.suffix.lower() in IMAGE_EXTENSIONS:
+        if entry.suffix.lower() in IMAGE_EXTENSIONS | EMBED_EXTENSIONS:
             images[entry.name] = entry
     return images
 
@@ -1200,7 +1214,16 @@ def _rewrite_image_sources(
         if src not in slug_images:
             raise ValueError(f"site/blog/{slug}/{lang}.md: unknown image {src!r}")
         new_src = src if lang == "en" else f"../../../blog/{slug}/{src}"
-        return f'<img{prefix}src="{html.escape(new_src, quote=True)}"{suffix}'
+        attr_src = html.escape(new_src, quote=True)
+        if Path(src).suffix.lower() in EMBED_EXTENSIONS:
+            alt = IMG_ALT_RE.search(match.group(0))
+            title = alt.group(1) if alt else ""
+            label = html.escape(UI_STRINGS[lang]["embed_open"])
+            return (
+                f'<span class="embed"><iframe src="{attr_src}" title="{title}" loading="lazy">'
+                f'</iframe><a href="{attr_src}" target="_blank" rel="noopener">{label}</a></span>'
+            )
+        return f'<img{prefix}src="{attr_src}"{suffix}'
 
     return IMG_SRC_RE.sub(_replace, body_html)
 

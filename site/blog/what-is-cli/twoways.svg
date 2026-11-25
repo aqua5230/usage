@@ -36,19 +36,17 @@
 <rect x="503" y="126" width="54" height="22" rx="6" fill="#2F6FD6"/>
 <text x="530" y="142" font-size="14" fill="#fff" text-anchor="middle">練習</text>
 <g filter="url(#sh)">
-<rect x="150" y="240" width="410" height="160" rx="12" fill="#1E2228" stroke="#FFFFFF1A"/>
+<rect x="150" y="262" width="410" height="128" rx="10" fill="#161616" stroke="#FFFFFF1A"/>
 </g>
-<circle cx="170" cy="259" r="6" fill="#FF5F57"/><circle cx="188" cy="259" r="6" fill="#FEBC2E"/><circle cx="206" cy="259" r="6" fill="#28C840"/>
-<text x="355" y="264" font-size="13" fill="#9AA0A6" text-anchor="middle">Desktop — zsh</text>
-<line x1="150" y1="276" x2="560" y2="276" stroke="#FFFFFF14"/>
-<text x="170" y="306" font-size="16" font-family="Menlo, Consolas, monospace"><tspan fill="#8A939E">you@MacBook ~ % </tspan><tspan fill="#F2F2F2">cd Desktop</tspan></text>
-<text x="170" y="336" font-size="16" font-family="Menlo, Consolas, monospace"><tspan fill="#8A939E">you@MacBook Desktop % </tspan><tspan fill="#F2F2F2">mkdir 練習</tspan></text>
-<text x="170" y="366" font-size="16" font-family="Menlo, Consolas, monospace" fill="#8A939E">you@MacBook Desktop % </text>
-<rect x="382" y="352" width="9" height="18" fill="#F2F2F2"/>
+<circle cx="167" cy="278" r="5" fill="#FF5F57"/><circle cx="183" cy="278" r="5" fill="#FEBC2E"/><circle cx="199" cy="278" r="5" fill="#28C840"/>
+<text x="168" y="316" font-size="15" font-family="Menlo, Consolas, monospace" fill="#E0E0E0" xml:space="preserve">you@MacBook ~ % cd Desktop</text>
+<text x="168" y="340" font-size="15" font-family="Menlo, Consolas, monospace" fill="#E0E0E0" xml:space="preserve">you@MacBook Desktop % mkdir 練習</text>
+<text x="168" y="364" font-size="15" font-family="Menlo, Consolas, monospace" fill="#E0E0E0" xml:space="preserve">you@MacBook Desktop % </text>
+<rect x="367" y="351" width="9" height="17" fill="#E0E0E0"/>
 <g filter="url(#glow)">
 <path d="M246 80 C330 80 400 82 478 86" fill="none" stroke="#fff" stroke-width="2.5" stroke-dasharray="7 6" stroke-linecap="round" marker-end="url(#a)"/>
-<path d="M524 234 C526 206 528 182 530 160" fill="none" stroke="#fff" stroke-width="2.5" stroke-dasharray="7 6" stroke-linecap="round" marker-end="url(#a)"/>
+<path d="M524 254 C526 220 528 188 530 160" fill="none" stroke="#fff" stroke-width="2.5" stroke-dasharray="7 6" stroke-linecap="round" marker-end="url(#a)"/>
 </g>
-<rect x="262" y="94" width="112" height="28" rx="14" fill="#1F2329" filter="url(#glow)"/><text x="318" y="113" font-size="15" fill="#fff" text-anchor="middle">① 按按鈕</text>
-<rect x="414" y="180" width="94" height="28" rx="14" fill="#1F2329" filter="url(#glow)"/><text x="461" y="199" font-size="15" fill="#fff" text-anchor="middle">② 打字</text>
+<rect x="262" y="94" width="112" height="28" rx="14" fill="#1F2329" filter="url(#glow)"/><text x="318" y="113" font-size="15" fill="#fff" text-anchor="middle">① GUI</text>
+<rect x="414" y="180" width="94" height="28" rx="14" fill="#1F2329" filter="url(#glow)"/><text x="461" y="199" font-size="15" fill="#fff" text-anchor="middle">② CLI</text>
 </svg>

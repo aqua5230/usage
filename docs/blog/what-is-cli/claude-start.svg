@@ -1,23 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 318" role="img" aria-label="Claude Code 剛打開的畫面：第一行 Claude Code v2.1.277；第二行 Opus 5 · Claude Pro，標註「AI 模型和你訂的方案」；第三行 ~/池塘，標註「目前所在的資料夾」；最後是 ❯ 後面打的那句話，標註「在 ❯ 後面打你想做的事，用中文就可以」" font-family="Noto Sans TC, -apple-system, sans-serif">
-<title>Claude Code 剛打開的畫面：第一行 Claude Code v2.1.277；第二行 Opus 5 · Claude Pro，標註「AI 模型和你訂的方案」；第三行 ~/池塘，標註「目前所在的資料夾」；最後是 ❯ 後面打的那句話，標註「在 ❯ 後面打你想做的事，用中文就可以」</title>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 340" role="img" aria-label="Claude Code 剛打開的畫面：左邊是橘色像素吉祥物；Claude Code v2.1.332；Opus 5.5 with high effort · Claude Pro，標註「AI 模型和你訂的方案」；~/池塘，標註「目前所在的資料夾」；下面的輸入框在 ❯ 後面打了池塘那句話，標註「在 ❯ 後面打你想做的事，用中文就可以」" font-family="Noto Sans TC, -apple-system, sans-serif">
+<title>Claude Code 剛打開的畫面：左邊是橘色像素吉祥物；Claude Code v2.1.332；Opus 5.5 with high effort · Claude Pro，標註「AI 模型和你訂的方案」；~/池塘，標註「目前所在的資料夾」；下面的輸入框在 ❯ 後面打了池塘那句話，標註「在 ❯ 後面打你想做的事，用中文就可以」</title>
 <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#A9CFC0"/><stop offset=".55" stop-color="#6E9E8E"/><stop offset="1" stop-color="#3F6E61"/></linearGradient><radialGradient id="g1" cx=".1" cy=".95" r=".6"><stop offset="0" stop-color="#E8D9B5" stop-opacity=".55"/><stop offset="1" stop-color="#E8D9B5" stop-opacity="0"/></radialGradient><filter id="sh" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#0B2A22" flood-opacity=".38"/></filter></defs>
-<rect width="600" height="318" rx="16" fill="url(#bg)"/><rect width="600" height="318" rx="16" fill="url(#g1)"/>
-<g filter="url(#sh)"><rect x="20" y="20" width="560" height="278" rx="12" fill="#1E2228" stroke="#FFFFFF1A"/></g>
-<circle cx="40" cy="38" r="6" fill="#FF5F57"/><circle cx="58" cy="38" r="6" fill="#FEBC2E"/><circle cx="76" cy="38" r="6" fill="#28C840"/>
-<text x="300.0" y="43" font-size="13" fill="#9AA0A6" text-anchor="middle">池塘 — claude</text>
-<line x1="20" y1="56" x2="580" y2="56" stroke="#FFFFFF14"/>
-<text x="40" y="86" font-size="15" font-family="Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#E8A87C">Claude Code v2.1.277</tspan></text>
-<text x="40" y="109" font-size="15" font-family="Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#8A939E">Opus 5 · Claude Pro</tspan></text>
-<text x="40" y="132" font-size="15" font-family="Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#8A939E">~/池塘</tspan></text>
-<text x="40" y="155" font-size="15" font-family="Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#8A939E"></tspan></text>
-<text x="40" y="178" font-size="15" font-family="Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#F2C46D">❯</tspan><tspan fill="#F2F2F2"> 做一個網頁：夜裡的池塘，一條小魚在游，</tspan></text>
-<text x="40" y="201" font-size="15" font-family="Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#F2F2F2">  游過月亮的倒影時倒影會晃開；點一下水面會</tspan></text>
-<text x="40" y="224" font-size="15" font-family="Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#F2F2F2">  起漣漪。不要用任何圖片，全部用程式碼畫，</tspan></text>
-<text x="40" y="247" font-size="15" font-family="Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#F2F2F2">  存成 pond.html。</tspan></text>
-<line x1="221.57" y1="104" x2="322" y2="104" stroke="#9FD3BD" stroke-width="1.3" stroke-dasharray="2 4" stroke-linecap="round"/>
-<text x="330" y="109" font-size="14" fill="#9FD3BD">AI 模型和你訂的方案</text>
-<line x1="98.06" y1="127" x2="322" y2="127" stroke="#8AB4F8" stroke-width="1.3" stroke-dasharray="2 4" stroke-linecap="round"/>
-<text x="330" y="132" font-size="14" fill="#8AB4F8">目前所在的資料夾</text>
-<path d="M41 156 V261 H 60" fill="none" stroke="#F2C46D" stroke-width="1.4" stroke-linecap="round"/>
-<text x="68" y="266" font-size="14" fill="#F2C46D">在 ❯ 後面打你想做的事，用中文就可以</text>
+<rect width="700" height="340" rx="16" fill="url(#bg)"/><rect width="700" height="340" rx="16" fill="url(#g1)"/><g filter="url(#sh)"><rect x="20" y="20" width="660" height="300" rx="10" fill="#161616" stroke="#FFFFFF1A"/></g><circle cx="37" cy="36" r="5" fill="#FF5F57"/><circle cx="53" cy="36" r="5" fill="#FEBC2E"/><circle cx="69" cy="36" r="5" fill="#28C840"/>
+<g shape-rendering="crispEdges"><rect x="47.50" y="65.00" width="69.75" height="39.75" fill="#D77657"/><rect x="42.25" y="74.75" width="5.25" height="9.75" fill="#D77657"/><rect x="117.25" y="74.75" width="4.50" height="9.75" fill="#D77657"/><rect x="61.75" y="74.75" width="5.25" height="9.75" fill="#161616"/><rect x="97.00" y="74.75" width="6.00" height="9.75" fill="#161616"/><rect x="47.50" y="104.75" width="4.50" height="9.00" fill="#D77657"/><rect x="57.25" y="104.75" width="4.50" height="9.00" fill="#D77657"/><rect x="103.00" y="104.75" width="4.50" height="9.00" fill="#D77657"/><rect x="112.75" y="104.75" width="4.50" height="9.00" fill="#D77657"/></g>
+<text x="136" y="82" font-size="15" font-family="Menlo, Consolas, monospace" xml:space="preserve"><tspan fill="#E0E0E0" font-weight="700">Claude Code</tspan><tspan fill="#8A939E"> v2.1.332</tspan></text>
+<text x="136" y="104" font-size="15" font-family="Menlo, Consolas, monospace" fill="#8A939E" xml:space="preserve">Opus 5.5 with high effort · Claude Pro</text>
+<text x="136" y="126" font-size="15" font-family="Menlo, Consolas, monospace" fill="#8A939E" xml:space="preserve">~/池塘</text>
+<line x1="487.2" y1="99" x2="501.2" y2="99" stroke="#9FD3BD" stroke-width="1.4" stroke-linecap="round"/>
+<rect x="505.2" y="88" width="145.6" height="22" rx="11" fill="#9FD3BD" fill-opacity=".14" stroke="#9FD3BD" stroke-opacity=".6"/><text x="578.0" y="103.5" font-size="13" font-weight="500" fill="#9FD3BD" text-anchor="middle">AI 模型和你訂的方案</text>
+<line x1="192.7" y1="121" x2="206.7" y2="121" stroke="#8AB4F8" stroke-width="1.4" stroke-linecap="round"/>
+<rect x="210.7" y="110" width="124.0" height="22" rx="11" fill="#8AB4F8" fill-opacity=".14" stroke="#8AB4F8" stroke-opacity=".6"/><text x="272.7" y="125.5" font-size="13" font-weight="500" fill="#8AB4F8" text-anchor="middle">目前所在的資料夾</text>
+<line x1="40" y1="160" x2="660" y2="160" stroke="#3A3F45"/>
+<line x1="40" y1="258" x2="660" y2="258" stroke="#3A3F45"/>
+<text x="44" y="190" font-size="15" font-family="Menlo, Consolas, monospace" fill="#E0E0E0">❯</text>
+<text x="64" y="190" font-size="15" font-family="Menlo, Consolas, monospace" fill="#E0E0E0" xml:space="preserve">做一個網頁：夜裡的池塘，一條小魚在游，游過月亮的倒影時倒影會晃開；</text>
+<text x="64" y="214" font-size="15" font-family="Menlo, Consolas, monospace" fill="#E0E0E0" xml:space="preserve">點一下水面會起漣漪。不要用任何圖片，全部用程式碼畫，</text>
+<text x="64" y="238" font-size="15" font-family="Menlo, Consolas, monospace" fill="#E0E0E0" xml:space="preserve">存成 pond.html。</text>
+<rect x="34" y="168" width="632" height="82" rx="8" fill="none" stroke="#F2C46D" stroke-width="1.4" stroke-dasharray="4 4"/>
+<rect x="44.0" y="270" width="255.4" height="22" rx="11" fill="#F2C46D" fill-opacity=".14" stroke="#F2C46D" stroke-opacity=".6"/><text x="171.7" y="285.5" font-size="13" font-weight="500" fill="#F2C46D" text-anchor="middle">在 ❯ 後面打你想做的事，用中文就可以</text>
+<line x1="56" y1="250" x2="56" y2="270" stroke="#F2C46D" stroke-width="1.2" stroke-opacity=".8"/>
 </svg>
