@@ -340,6 +340,7 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   line-height: 1.5;
 }
 .prose pre code { background: none; padding: 0; font-size: inherit; }
+.prose pre code.language-text { white-space: pre-wrap; overflow-wrap: anywhere; }
 .prose table {
   display: block;
   width: 100%;
@@ -433,26 +434,6 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
 .breadcrumb a:hover { color: var(--fg); text-decoration: underline; }
 .breadcrumb span[aria-hidden] { margin-inline: 0.45em; color: var(--fg-dimmer); }
 .post-header .post-meta { align-items: center; justify-content: space-between; margin-bottom: 0; }
-.copy-markdown {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  border: 1px solid var(--fg-dimmer);
-  border-radius: 6px;
-  padding: 7px 12px;
-  min-height: 36px;
-  font: inherit;
-  font-weight: 600;
-  color: var(--fg);
-  background: var(--bg);
-  cursor: pointer;
-}
-.copy-markdown:hover { background: var(--bg-soft); }
-.copy-markdown:disabled { cursor: wait; }
-.copy-markdown svg { width: 15px; height: 15px; }
-.copy-status { font-size: 13px; color: var(--fg-dim); margin-top: 8px; }
-.copy-status:empty { display: none; }
-.copy-source { width: 100%; margin-top: 8px; font: inherit; }
 .mobile-menu { margin-bottom: 28px; }
 .categories, .mobile-menu { border-top: 1px solid var(--border); }
 .mobile-menu .categories { border-top: 0; }
@@ -686,10 +667,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
           <h1>Why Did My Codex Weekly Limit Reset Early?</h1>
           <div class="post-meta">
             <span>Updated <time datetime="2026-11-24">2026-11-24</time></span>
-            <button class="copy-markdown" type="button" data-copied="Article Markdown copied to the clipboard." data-manual="Press ⌘C or Ctrl+C to copy the selected text below."><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="9" height="10" rx="1.5"/><path d="M5 13H4V3h9v2"/></svg>Copy for AI</button>
           </div>
-          <p class="copy-status" role="status"></p>
-          <textarea class="copy-source" aria-label="Article Markdown source" rows="6" readonly hidden></textarea>
         </header>
         <details class="mobile-menu">
           <summary>Article categories and contents</summary>
@@ -844,46 +822,8 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
     <p>Built by <a href="https://github.com/aqua5230" target="_blank" rel="noopener">@aqua5230</a> · AGPL-3.0 · No uploads. No tracking. Just yours.</p>
   </div>
 </footer>
-<script type="application/json" id="article-markdown">"---\ntitle: Why Did My Codex Weekly Limit Reset Early?\ndescription: Codex weekly limits often reset days before resets_at because OpenAI runs global resets. Ten weekly periods of data from one Plus account, the official reset rules, and how to check.\ndate: 2026-11-23\nupdated: 2026-11-24\ntool: codex\nrelated: claude-code-weekly-limit-reset, how-to-check-antigravity-quota, what-is-cli\n---\n\n**Your Codex weekly limit resets early when OpenAI runs a global reset on selected accounts.** OpenAI refills your limit to 100% and starts a new weekly period on the spot. You lose nothing, so an early reset gives you your quota back early. The `resets_at` time that Codex reports is the latest moment your limit will refill. Checked on 2026-11-23.\n\n- Tibo, who leads Codex at OpenAI (`@thsottiaux` on X), resets usage for selected accounts from time to time. He usually announces it on X first.\n- On the author's own ChatGPT Plus account, 9 of the 10 weekly periods between 2026-08-29 and 2026-10-07 ended before `resets_at`: 7 hit a global reset, and 2 ended when the author used a banked reset. Only 1 lasted until `resets_at`.\n- After a reset, your next refresh date moves. The new date replaces the old one.\n\n## Why does the Codex weekly limit reset before the scheduled time?\n\nChatGPT Work and Codex share the same pricing, credits, and usage limits. On ChatGPT Plus and Business Standard, Codex has a 5-hour limit and a weekly limit. The Pro plans (`Pro 100`, `Pro 200`, and `Pro 500`) have a weekly limit only, with no 5-hour limit for now.\n\nNormally the weekly limit refills at `resets_at`. But OpenAI often applies what its help center calls an \"OpenAI-granted automatic reset\", also known as a global reset. OpenAI applies it to selected accounts directly, and you don't have to claim anything. Tibo usually announces these resets on X. His posts give reasons such as fixing usage problems, reaching a user milestone, or launching a new model.\n\nA global reset does not show up in your reset **History**. So what you notice is this: your used percentage drops to zero, and your next refresh date moves later.\n\n## How often does an early reset happen?\n\nThe author tracked their own ChatGPT Plus account from 2026-08-29 to 2026-10-07. That period covered 10 weekly periods, and only 1 lasted until `resets_at`:\n\n- **7** hit a global reset and ended **1 to 6 days early**, and a new period started right away. Each one ended on the day a global reset was announced.\n- **2** ended 2 to 3 days early because the author used a banked reset.\n- In **3** of the 10, the author had already used **100%**. Twice a banked reset let them keep working; once they waited for `resets_at`.\n\nAn unofficial site, [codex-resets.com](https://codex-resets.com/), follows `@thsottiaux` on X and logs each reset. As of 2026-11-23 it had logged 72 resets. The average wait between them was 5.9 days, and the longest was 67.7 days. The site notes that an AI sorts its entries, and that nothing on it is a promise from OpenAI. OpenAI also says that free resets are promotional and have no fixed schedule.\n\n## What is the difference between a global reset and a banked reset?\n\nOpenAI's help center describes three kinds of one-time reset:\n\n| Type | How you get it | What it refills | Shown in History? |\n| --- | --- | --- | --- |\n| Global (automatic) | OpenAI applies it to selected accounts | The covered limits, back to 100% | No |\n| Banked | Saved to your account. You use it before it expires, when a covered limit is below 80% left (10% or less if your assistant uses it for you) | Go: monthly. Plus and Business Standard: 5-hour and weekly. Pro 100, 200, and 500: weekly | Yes, for 30 days |\n| Purchased | Bought by some Plus and Pro accounts | The covered limits, right away | No |\n\nSuppose you use a banked reset, and a global reset arrives later. The global reset brings you back to 100%, not 200%. Banked resets that you haven't used stay in your account.\n\n## What does resets_at mean if resets can happen early?\n\nThink of `resets_at` as the latest time your limit will refill. If no reset of any kind comes first, that is when your week ends.\n\nWhen a reset does come early, your schedule moves with it. OpenAI gives an example: a weekly period was due to end on Friday, but a reset restarted it on Tuesday. The next refresh is then the following Tuesday, and the Friday date no longer applies.\n\n![A Codex global reset on Tuesday drops the used percentage to zero and moves the next refill from Friday to the following Tuesday.](early-reset-en.svg)\n\n## How can you check your Codex limit and countdown?\n\nThere are two free official ways, and a third option if you want the number on screen all the time:\n\n- **The usage dashboard.** Open the [usage dashboard](https://chatgpt.com/codex/settings/usage) on the web, or **Settings > Usage & billing** in the desktop app. It shows how much you have left, when the limit refills, and any banked resets under **Available**.\n- **Codex CLI.** Run `/status` to see how much you have left. To use a banked reset, run `/usage` and choose **Redeem reset**.\n- **The `usage` app.** [`usage`](https://aqua5230.github.io/usage/) is free and open source. It reads your local Codex logs and shows your 5-hour and weekly limits, with countdowns, in the macOS menu bar or the Windows system tray. A limit turns red as it gets close, and you can get a notification at 50%, 70%, 80%, 90%, or 95%. The default is 90%. After a global reset, the menu bar switches to the new countdown the next time you use Codex, without opening the usage page.\n\n## Key takeaways\n\n- A Codex weekly limit resets early because OpenAI ran a global reset. You get a full limit back and a new weekly period.\n- On the author's own Plus account, of the 10 weekly periods from 2026-08-29 to 2026-10-07, 7 ended 1 to 6 days early after a global reset, 2 ended when the author used a banked reset, and only 1 lasted until `resets_at`.\n- `resets_at` is the latest time your limit will refill. To see the current number, use the usage dashboard, `/status`, or the `usage` app.\n\n## Sources\n\n- [How resets work in Codex](https://help.openai.com/en/articles/20001498-how-resets-work-in-codex)\n- [Pricing | ChatGPT Learn](https://learn.chatgpt.com/docs/pricing)\n- [Understanding ChatGPT and Codex usage limits](https://help.openai.com/en/articles/20001625-understanding-chatgpt-and-codex-usage-limits)\n- [Codex Limit Reset Tracker](https://codex-resets.com/)\n"</script>
 <script>
 (function () {
-  var copyButton = document.querySelector(".copy-markdown");
-  var copyStatus = document.querySelector(".copy-status");
-  var copySource = document.querySelector(".copy-source");
-  var markdown = JSON.parse(document.getElementById("article-markdown").textContent);
-
-  function copyWithSelection() {
-    copySource.value = markdown;
-    copySource.hidden = false;
-    copySource.focus({ preventScroll: true });
-    copySource.select();
-    try {
-      return document.execCommand("copy");
-    } catch {
-      return false;
-    }
-  }
-
-  copyButton.addEventListener("click", async function () {
-    copyStatus.textContent = "";
-    copyButton.disabled = true;
-    var copied = false;
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      try {
-        await navigator.clipboard.writeText(markdown);
-        copied = true;
-      } catch {
-        copied = copyWithSelection();
-      }
-    } else {
-      copied = copyWithSelection();
-    }
-    copyButton.disabled = false;
-    copySource.hidden = copied;
-    copyStatus.textContent = copied ? copyButton.dataset.copied : copyButton.dataset.manual;
-    if (copied) copyButton.focus({ preventScroll: true });
-  });
-
   var tocLinks = Array.prototype.slice.call(
     document.querySelectorAll('.page-toc a[href^="#"]')
   );

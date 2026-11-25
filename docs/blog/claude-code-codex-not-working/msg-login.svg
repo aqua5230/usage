@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 606 160" role="img" aria-label="Claude Code 提示輸入 /login 重新登入" font-family="Noto Sans TC, -apple-system, sans-serif">
+<title>Claude Code 提示輸入 /login 重新登入</title>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#DDE6E1"/>
+    <stop offset="1" stop-color="#CEDBD4"/>
+  </linearGradient>
+  <filter id="sh" x="-10%" y="-10%" width="120%" height="130%">
+    <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#141414" flood-opacity="0.20"/>
+  </filter>
+</defs>
+<rect width="606" height="160" rx="16" fill="url(#bg)"/>
+<g filter="url(#sh)">
+  <rect x="26" y="26" width="362" height="108" rx="10" fill="#161616" stroke="#2C2C2C" stroke-width="1"/>
+</g>
+<circle cx="43" cy="42" r="5" fill="#FF5F57"/>
+<circle cx="59" cy="42" r="5" fill="#FEBC2E"/>
+<circle cx="75" cy="42" r="5" fill="#28C840"/>
+<rect x="125.39" y="34" width="163.22" height="16" fill="#161616" data-role="watermark-mask"/>
+<text x="207" y="46" font-size="12" font-family="-apple-system, Noto Sans TC, sans-serif" fill="#8A8A8A" text-anchor="middle" data-role="watermark">aqua5230.github.io/usage</text>
+<rect x="36" y="64" width="342" height="22" rx="4" fill="#262626"/>
+<text x="44" y="80" font-size="14" font-family="Menlo, Consolas, monospace" xml:space="preserve" data-role="terminal"><tspan fill="#8A939E">❯ </tspan><tspan fill="#E0E0E0">幫我把首頁標題改短一點</tspan></text>
+<text x="44" y="106" font-size="14" font-family="Menlo, Consolas, monospace" fill="#F2777A" xml:space="preserve" data-role="terminal">  ⎿  Not logged in · Please run /login</text>
+<line x1="379.88" y1="102" x2="388" y2="102" stroke="#8C8C8C" stroke-width="1.25"/>
+<line x1="388" y1="102" x2="406" y2="102" stroke="#666666" stroke-width="1.25"/>
+<text x="414" y="106" font-size="13" font-weight="500" fill="#1F2A26" text-anchor="start" data-role="label">沒有登入，輸入 /login 登入</text>
+</svg>

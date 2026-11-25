@@ -158,7 +158,7 @@ def test_bilingual_article_renders_seo_cards_escaping_and_sitemap(
         date="2026-10-01",
         body="First paragraph.\n\nSecond paragraph.",
     )
-    en_source = _write_post(
+    _write_post(
         source_dir,
         "new-post",
         "en",
@@ -177,7 +177,7 @@ def test_bilingual_article_renders_seo_cards_escaping_and_sitemap(
             "| Claude | Yes |\n"
         ),
     )
-    tw_source = _write_post(
+    _write_post(
         source_dir,
         "new-post",
         "zh-TW",
@@ -222,9 +222,9 @@ def test_bilingual_article_renders_seo_cards_escaping_and_sitemap(
         article_ld = next(block for block in _parse_json_ld(page) if block["@type"] == "Article")
         assert article_ld["description"] == description
 
-    for page, source, category in (
-        (en_html, en_source, "Claude Code"),
-        (tw_html, tw_source, "新手入門"),
+    for page, category in (
+        (en_html, "Claude Code"),
+        (tw_html, "新手入門"),
     ):
         sidebar = page.split('<aside class="left-rail">', 1)[1].split("</aside>", 1)[0]
         mobile = page.split('<details class="mobile-menu">', 1)[1]
@@ -237,11 +237,6 @@ def test_bilingual_article_renders_seo_cards_escaping_and_sitemap(
         assert '<a href="../new-post/" aria-current="page">' in active_category
         assert '<nav class="breadcrumb"' in page
         assert f'<span aria-hidden="true">›</span><span>{category}</span></nav>' in page
-        assert '<button class="copy-markdown" type="button"' in page
-        raw_json = page.split('<script type="application/json" id="article-markdown">', 1)[1]
-        raw_json = raw_json.split("</script>", 1)[0]
-        assert "<" not in raw_json
-        assert json.loads(raw_json) == source.read_bytes().decode("utf-8")
         assert "toc-rail" not in page
 
     assert '<a href="../">Blog</a><span aria-hidden="true">›</span>' in en_html
@@ -515,10 +510,6 @@ def test_article_ui_strings_exist_for_all_langs() -> None:
             "categories",
             "categories_and_toc",
             "breadcrumb",
-            "copy_markdown",
-            "copy_success",
-            "copy_manual",
-            "markdown_source",
         ):
             assert ui[key]
 

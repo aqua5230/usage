@@ -340,6 +340,7 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   line-height: 1.5;
 }
 .prose pre code { background: none; padding: 0; font-size: inherit; }
+.prose pre code.language-text { white-space: pre-wrap; overflow-wrap: anywhere; }
 .prose table {
   display: block;
   width: 100%;
@@ -433,26 +434,6 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
 .breadcrumb a:hover { color: var(--fg); text-decoration: underline; }
 .breadcrumb span[aria-hidden] { margin-inline: 0.45em; color: var(--fg-dimmer); }
 .post-header .post-meta { align-items: center; justify-content: space-between; margin-bottom: 0; }
-.copy-markdown {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  border: 1px solid var(--fg-dimmer);
-  border-radius: 6px;
-  padding: 7px 12px;
-  min-height: 36px;
-  font: inherit;
-  font-weight: 600;
-  color: var(--fg);
-  background: var(--bg);
-  cursor: pointer;
-}
-.copy-markdown:hover { background: var(--bg-soft); }
-.copy-markdown:disabled { cursor: wait; }
-.copy-markdown svg { width: 15px; height: 15px; }
-.copy-status { font-size: 13px; color: var(--fg-dim); margin-top: 8px; }
-.copy-status:empty { display: none; }
-.copy-source { width: 100%; margin-top: 8px; font: inherit; }
 .mobile-menu { margin-bottom: 28px; }
 .categories, .mobile-menu { border-top: 1px solid var(--border); }
 .mobile-menu .categories { border-top: 0; }
@@ -686,10 +667,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
           <h1>When Does the Claude Code Weekly Limit Reset?</h1>
           <div class="post-meta">
             <span>Updated <time datetime="2026-11-23">2026-11-23</time></span>
-            <button class="copy-markdown" type="button" data-copied="Article Markdown copied to the clipboard." data-manual="Press ⌘C or Ctrl+C to copy the selected text below."><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="9" height="10" rx="1.5"/><path d="M5 13H4V3h9v2"/></svg>Copy for AI</button>
           </div>
-          <p class="copy-status" role="status"></p>
-          <textarea class="copy-source" aria-label="Article Markdown source" rows="6" readonly hidden></textarea>
         </header>
         <details class="mobile-menu">
           <summary>Article categories and contents</summary>
@@ -850,46 +828,8 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
     <p>Built by <a href="https://github.com/aqua5230" target="_blank" rel="noopener">@aqua5230</a> · AGPL-3.0 · No uploads. No tracking. Just yours.</p>
   </div>
 </footer>
-<script type="application/json" id="article-markdown">"---\ntitle: When Does the Claude Code Weekly Limit Reset?\ndescription: Claude Code's weekly limit resets at a fixed day and time assigned to your account. Here is how that works with the 5-hour limit, and how to see your countdown.\ndate: 2026-11-23\ntool: claude-code\nrelated: codex-weekly-limit-early-reset, claude-code-idle-compaction, how-to-check-antigravity-quota\n---\n\n**Your Claude Code weekly limit resets once a week, on a fixed day and time that Anthropic assigns to your account.** It does not count from your last prompt. The day and time stay the same no matter when you started coding or when you subscribed, and each new week gives you the full allowance again. Checked on 2026-11-23.\n\n- The weekly limit resets at the same day and time every week.\n- Pro and Max plans also have a 5-hour limit. That clock starts when you send your first message, and the limit refills five hours later.\n- Claude Code reports both limits, with their reset times, in the data it sends to your status line.\n\n## How is the 5-hour limit different from the weekly limit?\n\nPaid Claude plans have two limits. One is a session limit that resets every five hours. The other is a weekly limit that resets once a week. You use both of them up whenever you chat or run coding tasks.\n\nThe 5-hour limit starts when you send your first message, and it refills completely five hours later. If you run out before then, you have three choices: wait for the reset, turn on usage credits, or upgrade your plan.\n\nThe weekly limit works on a fixed schedule. Anthropic gives every account a weekly reset day and time, and that slot never moves. On Max and Ultra plans, Fable also has its own separate weekly limit.\n\n![Claude Code’s 5-hour limit refills five hours after your first message, and its weekly limit resets at a fixed day and time for your account.](windows-en.svg)\n\n## Does Claude Code share its limits with claude.ai and Claude Desktop?\n\nYes. Everything you do on claude.ai, Claude Desktop, the mobile apps, and Claude Code counts against the same limits. That includes Claude Code in your terminal and in IDEs such as VS Code, Cursor, IntelliJ, and PyCharm.\n\nClaude Code tends to use up your limit faster than chat does. On every turn, Claude Code sends the whole conversation again. The repeated part is cached and counts for less, but a longer session still costs more per message. The model matters too: a turn on Opus costs several times more than a turn on Sonnet, and Sonnet costs more than Haiku. Anthropic suggests running `/clear` when you start a new task and [`/compact`](../claude-code-idle-compaction/) when you continue a long one. Content that you reuse inside Projects is cached, so it counts for less.\n\n## How do the Pro and Max limits compare?\n\nPro, Max, and Ultra all let you use Claude and Claude Code with one subscription. Here is how their limits differ. The last column, the wrap-up allowance, is a small allowance that lets Claude Code finish the step it is on when you run out; the next section covers it:\n\n| Plan | Price per month | 5-hour limit | Weekly limit | Separate Fable limit | Wrap-up allowance |\n| --- | --- | --- | --- | --- | --- |\n| Pro | $20 | Refills 5 hours after your first message | Fixed weekly reset | No | Once per weekly period at most |\n| Max | $100 | 5 times Pro | 5 times Pro | Yes | Each time you hit the 5-hour limit, while weekly usage remains |\n| Ultra | See the plan page | None for verified accounts | Fixed weekly reset | Yes | Does not apply |\n\nIf you upgrade after you hit a limit, the new plan's limits apply right away.\n\n## What happens if you hit the limit in the middle of a task?\n\nSuppose Claude Code is halfway through a response when you reach the 5-hour limit. Anthropic gives you a small wrap-up allowance, so Claude Code can finish the step it is working on. While it finishes, you see `\"Usage limit reached · wrapping up\"`. The allowance has a cap, it counts toward your weekly limit, and you cannot use it to start something new.\n\nAnthropic also gives eligible plans a free limit reset from time to time. When you use one, your 5-hour or weekly limit refills right away, and your usual weekly reset time does not change. You cannot claim it from the terminal or the IDE. Open **Settings > Usage** on the web, in Claude Desktop, or in the mobile app instead.\n\n## How can you check your weekly limit and reset time?\n\nThere are two free official ways, and a third option if you want the number on screen all the time:\n\n- **Settings > Usage.** In claude.ai or Claude Desktop, this page shows progress bars for your current session and your weekly limits, along with the time remaining and your next reset time.\n- **Claude Code's status line.** The status line is the bottom line of the Claude Code screen, and it shows your limits only after you set it up. Claude Code sends `rate_limits.five_hour` and `rate_limits.seven_day` to it. Each one has a usage percentage and a reset time.\n- **The `usage` app.** [`usage`](https://aqua5230.github.io/usage/) is free and open source. It reads the same status line data and shows your 5-hour and weekly limits, with countdowns, in the macOS menu bar or the Windows system tray. If Claude Code isn't running, it can read the local usage history of a running Claude Desktop instead. A limit turns red as it gets close, and you can get a notification at 50%, 70%, 80%, 90%, or 95%. The default is 90%.\n\n## Key takeaways\n\n- The weekly limit resets at a fixed day and time assigned to your account. The 5-hour limit refills five hours after your first message.\n- claude.ai, Claude Desktop, the mobile apps, and Claude Code all draw from the same limits.\n- Claude Code reports `rate_limits.five_hour` and `rate_limits.seven_day` to your status line, and `usage` turns that data into a countdown in your menu bar or tray.\n\n## Sources\n\n- [How do usage and length limits work?](https://support.claude.com/en/articles/11647753-how-do-usage-and-length-limits-work)\n- [Usage limit best practices](https://support.claude.com/en/articles/9797557-usage-limit-best-practices)\n- [Use Claude Code with your Pro, Max, or Ultra plan](https://support.claude.com/en/articles/11145838-use-claude-code-with-your-pro-max-or-ultra-plan)\n- [What is the Pro plan?](https://support.claude.com/en/articles/8325606-what-is-the-pro-plan)\n- [What is the Max plan?](https://support.claude.com/en/articles/11049741-what-is-the-max-plan)\n- [What is a limit reset?](https://support.claude.com/en/articles/17007452-what-is-a-limit-reset)\n- [Models, usage, and limits in Claude Code](https://support.claude.com/en/articles/14552983-models-usage-and-limits-in-claude-code)\n"</script>
 <script>
 (function () {
-  var copyButton = document.querySelector(".copy-markdown");
-  var copyStatus = document.querySelector(".copy-status");
-  var copySource = document.querySelector(".copy-source");
-  var markdown = JSON.parse(document.getElementById("article-markdown").textContent);
-
-  function copyWithSelection() {
-    copySource.value = markdown;
-    copySource.hidden = false;
-    copySource.focus({ preventScroll: true });
-    copySource.select();
-    try {
-      return document.execCommand("copy");
-    } catch {
-      return false;
-    }
-  }
-
-  copyButton.addEventListener("click", async function () {
-    copyStatus.textContent = "";
-    copyButton.disabled = true;
-    var copied = false;
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      try {
-        await navigator.clipboard.writeText(markdown);
-        copied = true;
-      } catch {
-        copied = copyWithSelection();
-      }
-    } else {
-      copied = copyWithSelection();
-    }
-    copyButton.disabled = false;
-    copySource.hidden = copied;
-    copyStatus.textContent = copied ? copyButton.dataset.copied : copyButton.dataset.manual;
-    if (copied) copyButton.focus({ preventScroll: true });
-  });
-
   var tocLinks = Array.prototype.slice.call(
     document.querySelectorAll('.page-toc a[href^="#"]')
   );
