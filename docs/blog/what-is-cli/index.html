@@ -716,7 +716,16 @@ cd first-try
 pwd
 claude --permission-mode manual
 </code></pre>
-<p>The first line creates a folder called &quot;first-try&quot;, and the second moves into it. The third line, <code>pwd</code>, prints the folder you're in. Check that it ends in &quot;first-try&quot; before going on. This matters because Claude Code works in the folder where you start it. The fourth line starts Claude Code set to ask you before any change or command. If the first line says <code>File exists</code>, a folder with that name is already there. Pick another name and type all four lines again. The first time, it opens a browser so you can log in, and asks whether you trust this folder. It's the empty folder you just made, so choose to trust it. Type <code>/exit</code> to leave.</p>
+<p>Each line does one thing:</p>
+<ol>
+<li><code>mkdir first-try</code>: creates a new folder called &quot;first-try&quot;. It prints nothing when it works, and that's normal.</li>
+<li><code>cd first-try</code>: moves into that folder. Claude Code works in the folder where you start it, so you need to be inside first.</li>
+<li><code>pwd</code>: asks the terminal which folder you're in. It replies with a path. If the path ends in &quot;first-try&quot;, you're in the right place.</li>
+<li><code>claude --permission-mode manual</code>: starts Claude Code. The part after <code>claude</code> tells it to ask you before it changes anything or runs a command.</li>
+</ol>
+<p>The first time, it opens a browser so you can log in. After you log in, go back to the terminal. It asks whether you trust this folder. It's the empty folder you just made, so choose to trust it.</p>
+<p>If the first line says <code>File exists</code>, a folder with that name is already there. Replace &quot;first-try&quot; in all four lines with another name and type them again.</p>
+<p>When you're done, type <code>/exit</code> and press Enter.</p>
 <p><strong>Start with something small.</strong> Replace March 14 with your own birthday and type:</p>
 <pre><code>Make a web page that counts down to my birthday (March 14) and save it as birthday.html.
 </code></pre>

@@ -710,7 +710,16 @@ cd 第一次練習
 pwd
 claude --permission-mode manual
 </code></pre>
-<p>第一行建一個叫「第一次練習」的資料夾，第二行進到這個資料夾。第三行 <code>pwd</code> 會印出你現在在哪個資料夾，看到結尾是「第一次練習」再往下。Claude Code 會在你打開它的那個資料夾裡工作，所以這一步要先確認。第四行打開 Claude Code，並設定成改東西、執行指令前都先問你。如果第一行顯示 <code>File exists</code>，代表已經有同名的資料夾，換個名字再打一次這四行。第一次打開時，它會開瀏覽器請你登入，也會問你信不信任這個資料夾；這是你剛建的空資料夾，選信任就好。要離開時打 <code>/exit</code>。</p>
+<p>這四行各做一件事：</p>
+<ol>
+<li><code>mkdir 第一次練習</code>：建一個叫「第一次練習」的新資料夾。打完不會有任何回應，這是正常的。</li>
+<li><code>cd 第一次練習</code>：走進這個資料夾。Claude Code 會在你打開它的那個資料夾裡工作，所以要先走進來。</li>
+<li><code>pwd</code>：問終端機「我現在在哪個資料夾」。它會回一串路徑，結尾是「第一次練習」就對了。</li>
+<li><code>claude --permission-mode manual</code>：打開 Claude Code。後面那段設定，是讓它改東西、執行指令前都先問你。</li>
+</ol>
+<p>第一次打開時，它會先開瀏覽器請你登入。登入後回到終端機，它會問你信不信任這個資料夾。這是你剛建的空資料夾，選信任就好。</p>
+<p>如果第一行打完出現 <code>File exists</code>，代表已經有同名的資料夾。把四行裡的「第一次練習」換成別的名字，再打一次。</p>
+<p>用完要離開，打 <code>/exit</code> 再按 Enter。</p>
 <p><strong>從一件小事開始</strong>：把 3 月 14 日換成你的生日，打這句話：</p>
 <pre><code>做一張網頁，倒數到我的生日（3 月 14 日），存成 birthday.html。
 </code></pre>
