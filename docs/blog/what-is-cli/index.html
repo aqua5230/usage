@@ -233,7 +233,6 @@ p, li { text-wrap: pretty; }
 }
 main { flex: 1 0 auto; padding: 48px 0 72px; }
 @media (max-width: 640px) { main { padding: 32px 0 56px; } }
-.post-header { margin-bottom: 32px; }
 .post-meta time { font-family: var(--mono); }
 .post-meta {
   font-size: 13px;
@@ -422,15 +421,83 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
 .related-list a:is(:hover, :focus-visible) .related-title { color: var(--accent); }
 .related-title { font-size: 16px; font-weight: 600; line-height: 1.4; }
 .related-desc { font-size: 14.5px; line-height: 1.55; color: var(--fg-dim); }
-.prose h2[id] { scroll-margin-top: 76px; }
-.article-layout { display: block; }
-.toc-rail, .news-rail { display: none; }
+.prose h2[id] { scroll-margin-top: 84px; }
+.wrap-article { max-width: 800px; }
+.article-main { min-width: 0; }
+.left-rail, .right-rail, .news-rail { display: none; }
+.post-header { margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
+.post-header h1 { margin-bottom: 20px; }
+.breadcrumb { color: var(--fg-dim); font-size: 14px; margin-bottom: 16px; overflow-wrap: anywhere; }
+.breadcrumb a:hover { color: var(--fg); text-decoration: underline; }
+.breadcrumb span[aria-hidden] { margin-inline: 0.45em; color: var(--fg-dimmer); }
+.post-header .post-meta { align-items: center; justify-content: space-between; margin-bottom: 0; }
+.copy-markdown {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--fg-dimmer);
+  border-radius: 6px;
+  padding: 7px 12px;
+  min-height: 36px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--fg);
+  background: var(--bg);
+  cursor: pointer;
+}
+.copy-markdown:hover { background: var(--bg-soft); }
+.copy-markdown:disabled { cursor: wait; }
+.copy-markdown svg { width: 15px; height: 15px; }
+.copy-status { font-size: 13px; color: var(--fg-dim); margin-top: 8px; }
+.copy-status:empty { display: none; }
+.copy-source { width: 100%; margin-top: 8px; font: inherit; }
+.mobile-menu { margin-bottom: 28px; }
+.categories, .mobile-menu { border-top: 1px solid var(--border); }
+.mobile-menu .categories { border-top: 0; }
+.category, .mobile-menu { border-bottom: 1px solid var(--border); }
+.mobile-menu .category:last-child { border-bottom: 0; }
+.category > summary, .mobile-menu > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 43px;
+  list-style: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+.category > summary::-webkit-details-marker, .mobile-menu > summary::-webkit-details-marker {
+  display: none;
+}
+.category > summary::after, .mobile-menu > summary::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-right: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+  transform: rotate(-45deg);
+  margin-inline: auto 5px;
+  color: var(--fg-dim);
+}
+.category[open] > summary::after, .mobile-menu[open] > summary::after { transform: rotate(45deg); }
+.category > summary:hover, .mobile-menu > summary:hover { color: var(--fg-dim); }
+.article-layout summary:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.category > summary svg { width: 18px; height: 18px; flex: 0 0 18px; color: var(--fg-dim); }
+.category-articles { list-style: none; padding: 0 0 10px 28px; }
+.category-articles a {
+  display: block;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--fg-dim);
+  padding: 5px 0;
+  overflow-wrap: anywhere;
+}
+.category-articles a:hover, .category-articles a[aria-current="page"] { color: var(--fg); }
+.category-articles a[aria-current="page"] { font-weight: 650; }
 .toc-mobile {
-  margin-bottom: 28px;
-  padding: 14px 16px;
-  border-radius: 14px;
-  border: 1px solid var(--border);
-  background: var(--bg-card);
+  padding: 14px 0;
+  border-top: 1px solid var(--border);
 }
 .toc-mobile summary {
   cursor: pointer;
@@ -474,7 +541,19 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   overflow-wrap: anywhere;
 }
 .toc-list a:hover { color: var(--fg); }
-.toc-list a[aria-current="location"] { color: var(--accent); font-weight: 600; }
+.toc-list a[aria-current="location"] { color: var(--fg); font-weight: 600; }
+.page-toc .toc-list { border-inline-start: 1px solid var(--border); }
+.page-toc .toc-list a {
+  border-inline-start: 1px solid transparent;
+  margin-inline-start: -1px;
+  padding-inline-start: 12px;
+}
+.page-toc .toc-list a[aria-current="location"] { border-inline-start-color: var(--fg); }
+.page-toc + .news-rail:not([hidden]) {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
 .news-title {
   font-size: 12px;
   font-weight: 600;
@@ -523,43 +602,28 @@ main { flex: 1 0 auto; padding: 48px 0 72px; }
   color: var(--accent);
 }
 .news-all:hover { color: var(--accent-hover); }
-@media (min-width: 1300px) {
-  .wrap-article { max-width: 1300px; }
+@media (min-width: 1025px) {
+  .wrap-article { max-width: 1360px; }
   .article-layout {
     display: grid;
-    grid-template-columns: 200px minmax(0, 772px) 200px;
-    justify-content: center;
+    grid-template-columns: clamp(185px, 17vw, 222px) minmax(0, 1fr) clamp(180px, 17vw, 222px);
     align-items: start;
-    column-gap: 40px;
+    gap: clamp(24px, 3.25vw, 48px);
   }
-  .article-main { grid-column: 2; min-width: 0; }
-  .toc-rail {
-    grid-column: 1;
+  .left-rail, .right-rail {
     display: block;
     position: sticky;
-    top: 76px;
-    max-height: calc(100vh - 96px);
+    top: 84px;
+    max-height: calc(100vh - 108px);
     overflow-y: auto;
+    scrollbar-width: thin;
+    padding: 4px;
+    margin: -4px;
   }
-  .toc-mobile { display: none; }
+  .mobile-menu { display: none; }
 }
 @media (min-width: 1440px) {
-  .wrap-article { max-width: 1440px; }
-  .article-layout {
-    grid-template-columns: 240px 40px minmax(0, 772px) 40px 240px;
-    column-gap: 0;
-    justify-content: center;
-  }
-  .toc-rail { grid-column: 1; }
-  .article-main { grid-column: 3; }
-  .news-rail:not([hidden]) {
-    grid-column: 5;
-    display: block;
-    position: sticky;
-    top: 76px;
-    max-height: calc(100vh - 96px);
-    overflow-y: auto;
-  }
+  .news-rail:not([hidden]) { display: block; }
 }
 footer {
   padding: 36px 0 28px;
@@ -599,31 +663,47 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
 <main id="main-content">
   <div class="wrap wrap-article">
     <div class="article-layout">
-      <aside class="toc-rail">
-        <nav aria-label="In this article">
-          <p class="toc-title">In this article</p>
-        <ol class="toc-list">
-          <li><a href="#what-did-that-one-sentence-look-like">What did that one sentence look like?</a></li>
-          <li><a href="#how-is-a-cli-different-from-a-gui">How is a CLI different from a GUI?</a></li>
-          <li><a href="#if-typing-is-so-flexible-why-did-so-few-people-use-it">If typing is so flexible, why did so few people use it?</a></li>
-          <li><a href="#can-you-use-a-terminal-without-memorizing-commands">Can you use a terminal without memorizing commands?</a></li>
-          <li><a href="#why-are-many-ai-assistants-built-to-work-in-the-terminal">Why are many AI assistants built to work in the terminal?</a></li>
-          <li><a href="#how-does-ai-learn-to-use-a-new-cli">How does AI learn to use a new CLI?</a></li>
-          <li><a href="#does-claude-code-ask-before-it-touches-your-files">Does Claude Code ask before it touches your files?</a></li>
-          <li><a href="#when-it-says-its-done-is-it-really-done">When it says it&#x27;s done, is it really done?</a></li>
-          <li><a href="#try-it-yourself">Try it yourself</a></li>
-          <li><a href="#sources">Sources</a></li>
-        </ol>
-        </nav>
+      <aside class="left-rail">
+<nav class="categories" aria-label="Article categories">
+<details class="category" open><summary><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5h14v11H3z M6 8l2.5 2L6 12 M10.5 12H14"/></svg>Claude Code</summary><ul class="category-articles">
+<li><a href="../claude-code-idle-compaction/">Why Does Claude Code Compact Your Conversation on Its Own?</a></li>
+<li><a href="../what-is-cli/" aria-current="page">What Is a CLI? Learn How the Terminal Works with Claude Code</a></li>
+<li><a href="../claude-code-weekly-limit-reset/">When Does the Claude Code Weekly Limit Reset?</a></li>
+</ul></details>
+<details class="category"><summary><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 5l-5 5 5 5 M13 5l5 5-5 5 M11.5 4l-3 12"/></svg>Codex</summary><ul class="category-articles">
+<li><a href="../codex-weekly-limit-early-reset/">Why Did My Codex Weekly Limit Reset Early?</a></li>
+</ul></details>
+<details class="category"><summary><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2.5c0 4 3.5 7.5 7.5 7.5-4 0-7.5 3.5-7.5 7.5 0-4-3.5-7.5-7.5-7.5 4 0 7.5-3.5 7.5-7.5Z"/></svg>Antigravity</summary><ul class="category-articles">
+<li><a href="../how-to-check-antigravity-quota/">How to Check Your Antigravity (agy) Quota</a></li>
+</ul></details>
+</nav>
       </aside>
       <article class="article-main">
         <header class="post-header">
-          <div class="post-meta">
-            <span>Published <time datetime="2026-11-24">2026-11-24</time></span>
-            <span>Updated <time datetime="2026-11-25">2026-11-25</time></span>
-          </div>
+          <nav class="breadcrumb" aria-label="Breadcrumb"><a href="../">Blog</a><span aria-hidden="true">›</span><span>Claude Code</span></nav>
           <h1>What Is a CLI? Learn How the Terminal Works with Claude Code</h1>
+          <div class="post-meta">
+            <span>Updated <time datetime="2026-11-25">2026-11-25</time></span>
+            <button class="copy-markdown" type="button" data-copied="Article Markdown copied to the clipboard." data-manual="Press ⌘C or Ctrl+C to copy the selected text below."><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="9" height="10" rx="1.5"/><path d="M5 13H4V3h9v2"/></svg>Copy for AI</button>
+          </div>
+          <p class="copy-status" role="status"></p>
+          <textarea class="copy-source" aria-label="Article Markdown source" rows="6" readonly hidden></textarea>
         </header>
+        <details class="mobile-menu">
+          <summary>Article categories and contents</summary>
+<nav class="categories" aria-label="Article categories">
+<details class="category" open><summary><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5h14v11H3z M6 8l2.5 2L6 12 M10.5 12H14"/></svg>Claude Code</summary><ul class="category-articles">
+<li><a href="../claude-code-idle-compaction/">Why Does Claude Code Compact Your Conversation on Its Own?</a></li>
+<li><a href="../what-is-cli/" aria-current="page">What Is a CLI? Learn How the Terminal Works with Claude Code</a></li>
+<li><a href="../claude-code-weekly-limit-reset/">When Does the Claude Code Weekly Limit Reset?</a></li>
+</ul></details>
+<details class="category"><summary><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 5l-5 5 5 5 M13 5l5 5-5 5 M11.5 4l-3 12"/></svg>Codex</summary><ul class="category-articles">
+<li><a href="../codex-weekly-limit-early-reset/">Why Did My Codex Weekly Limit Reset Early?</a></li>
+</ul></details>
+<details class="category"><summary><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2.5c0 4 3.5 7.5 7.5 7.5-4 0-7.5 3.5-7.5 7.5 0-4-3.5-7.5-7.5-7.5 4 0 7.5-3.5 7.5-7.5Z"/></svg>Antigravity</summary><ul class="category-articles">
+<li><a href="../how-to-check-antigravity-quota/">How to Check Your Antigravity (agy) Quota</a></li>
+</ul></details>
+</nav>
         <details class="toc-mobile">
           <summary>In this article</summary>
           <nav aria-label="In this article">
@@ -640,6 +720,7 @@ footer a { text-decoration: underline; text-underline-offset: 3px; color: var(--
           <li><a href="#sources">Sources</a></li>
         </ol>
           </nav>
+        </details>
         </details>
         <div class="prose">
 <p><strong>A CLI (command-line interface) is a way to control a computer by typing commands.</strong> You type a line in a terminal (the text window built into every Mac and Windows computer), press Enter, and the computer does it. The way you usually use a phone or laptop, by looking at icons and clicking buttons, is called a graphical user interface (GUI).</p>
@@ -771,6 +852,22 @@ claude
         </ul>
         </section>
       </article>
+      <div class="right-rail">
+        <nav class="page-toc" aria-label="In this article">
+          <h2 class="toc-title">In this article</h2>
+        <ol class="toc-list">
+          <li><a href="#what-did-that-one-sentence-look-like">What did that one sentence look like?</a></li>
+          <li><a href="#how-is-a-cli-different-from-a-gui">How is a CLI different from a GUI?</a></li>
+          <li><a href="#if-typing-is-so-flexible-why-did-so-few-people-use-it">If typing is so flexible, why did so few people use it?</a></li>
+          <li><a href="#can-you-use-a-terminal-without-memorizing-commands">Can you use a terminal without memorizing commands?</a></li>
+          <li><a href="#why-are-many-ai-assistants-built-to-work-in-the-terminal">Why are many AI assistants built to work in the terminal?</a></li>
+          <li><a href="#how-does-ai-learn-to-use-a-new-cli">How does AI learn to use a new CLI?</a></li>
+          <li><a href="#does-claude-code-ask-before-it-touches-your-files">Does Claude Code ask before it touches your files?</a></li>
+          <li><a href="#when-it-says-its-done-is-it-really-done">When it says it&#x27;s done, is it really done?</a></li>
+          <li><a href="#try-it-yourself">Try it yourself</a></li>
+          <li><a href="#sources">Sources</a></li>
+        </ol>
+        </nav>
       <aside class="news-rail" aria-label="AI Update Daily" hidden>
         <div class="news-card">
           <h2 class="news-title">AI Update Daily</h2>
@@ -778,6 +875,7 @@ claude
           <a class="news-all" href="https://aqua5230.github.io/ai-updates/" target="_blank" rel="noopener">See all updates →</a>
         </div>
       </aside>
+      </div>
     </div>
   </div>
 </main>
@@ -786,10 +884,48 @@ claude
     <p>Built by <a href="https://github.com/aqua5230" target="_blank" rel="noopener">@aqua5230</a> · AGPL-3.0 · No uploads. No tracking. Just yours.</p>
   </div>
 </footer>
+<script type="application/json" id="article-markdown">"---\ntitle: What Is a CLI? Learn How the Terminal Works with Claude Code\ndescription: A CLI is a way to control a computer by typing commands. Using a web page that was actually built with one typed sentence, this post explains how a CLI differs from a graphical user interface (GUI), why many AI assistants work in the terminal, how Claude Code types commands for you, and which line to read before it touches your files.\ndate: 2026-11-24\nupdated: 2026-11-25\ntool: claude-code\nimage: pond-poster.jpg\nrelated: claude-code-idle-compaction, claude-code-weekly-limit-reset\n---\n\n**A CLI (command-line interface) is a way to control a computer by typing commands.** You type a line in a terminal (the text window built into every Mac and Windows computer), press Enter, and the computer does it. The way you usually use a phone or laptop, by looking at icons and clicking buttons, is called a graphical user interface (GUI).\n\n- Buttons only cover what engineers built in advance. Typing lets you ask for almost anything the computer can do.\n- A terminal only understands specific commands. One wrong letter and it says it can't find the command, and deleted files skip the trash. That is why terminal users used to be mostly engineers.\n- AI reads and writes text. A terminal takes text in and gives text back, so many AI assistants are built to work in it.\n- Claude Code is an AI assistant that works inside the terminal. You describe what you want in plain language; it types the commands, writes the code, and saves the result straight into your folder.\n\n![A pond at night with a red-and-white koi swimming. Click the water to make ripples.](pond.html)\n\nThe pond above is a web page. Try clicking the water. When the fish swims through the moon's reflection, the reflection breaks up and sways. The fish, the moon, and the lily pads are all drawn by code, and the page contains no image files. I didn't write any code. I typed one sentence in a terminal. The rest of this post uses that example to explain what a CLI is, how Claude Code works, and which line to read when it wants to touch your files.\n\n## What did that one sentence look like?\n\nI opened Claude Code in the Mac terminal and typed this:\n\n![The Claude Code start screen showing a prompt typed in Chinese after ❯. It asks for a pond at night with a small fish that disturbs the moon's reflection and water that ripples when clicked. It asks for everything to be drawn with code, without images, and saved as pond.html.](typing.gif)\n\nHere's the English translation of what I typed.\n\n```\nMake a web page: a pond at night with a small fish swimming.\nWhen the fish swims through the moon's reflection, the reflection\nbreaks up and sways; clicking the water sends out ripples. Don't use any\nimages; draw everything with code and save it as pond.html.\n```\n\nAfter pressing Enter, I didn't touch the keyboard again. 19 minutes later, a file called `pond.html` appeared in the folder, and opening it showed the pond. In those 19 minutes, Claude Code went through 28 rounds on its own: take a step, check the result, decide the next step. It ended up writing 476 lines of code.\n\nThose three numbers are for the first version. Afterwards I asked it to turn the fish into a red-and-white koi and brighten the lily pads; the picture above shows that revised version. The model was Claude Opus 5, and at pay-as-you-go API prices the run would have cost about $5.16.\n\n## How is a CLI different from a GUI?\n\nOn a phone or computer, the screens you see and tap or click make up the graphical user interface (GUI). The screen shows you what you can do. A terminal window is all text, with no options laid out for you. You tell the computer what to do by typing a line, and that is what a CLI is.\n\nBoth ways can do the same job. Take creating a folder called \"practice\":\n\n- Using a GUI: right-click the desktop, choose New Folder, and name it \"practice\".\n- Using a CLI: in the terminal, type `cd Desktop` and press Enter to move to the desktop, then type `mkdir practice` and press Enter. The folder is created wherever the terminal currently is.\n\n![Two ways to make a folder on the desktop: (1) right-click the desktop and choose New Folder, (2) move Terminal to the desktop and type mkdir practice. Both arrows point to the same practice folder in the top-right corner of the desktop.](twoways-en.svg)\n\nEither way, you end up with a folder called \"practice\". When `mkdir` succeeds, it prints nothing; if a folder with that name already exists, it replies `File exists`.\n\nIf a GUI can do the job, why use a CLI? Think about two ways to order at a stir-fry restaurant. You can look at the menu and point to a dish, but you can only order what's listed. Regulars can skip the menu and tell the owner what they want. They can order anything the kitchen can make, as long as they know how to ask for it.\n\nA GUI is like that menu. You can only click the buttons the engineers put there. A CLI is like talking to the owner. You can type a request for almost anything the computer can do, but you have to know how to ask.\n\n## If typing is so flexible, why did so few people use it?\n\nBecause a terminal only understands specific words, called commands. It treats the first word you type, up to the first space, as the command name. Misspell the command name by one letter, or type a plain sentence, and it says the command doesn't exist:\n\n![A terminal window. The first line is you@MacBook pond % followed by the typed text build me a pond web page, with labels for the user, the computer, the folder, and what you typed. The second line is the terminal's reply: zsh: command not found: build](notfound-en.svg)\n\nThe `zsh` at the start of the reply is the program in the Mac terminal that receives commands. It takes the first word, `build`, as the command name and can't find it. `mkdir practice` works because `mkdir` is the command and practice is just the folder name.\n\nThe command for deleting files is `rm`, and it doesn't ask before it acts. A photo you delete on your phone goes to Recently Deleted first and only disappears later. A file deleted with `rm` skips the trash and is gone immediately. You had to memorize commands and type them without mistakes, so the people who used terminals were mostly engineers.\n\n## Can you use a terminal without memorizing commands?\n\nYes, with AI: let it type for you. Claude Code is an AI assistant made by Anthropic. It works in the terminal and understands plain language. You say what you want, and it decides which commands to run and what code to write.\n\nOnce Claude Code is installed (the steps are in \"Try it yourself\" at the end), type `claude` in the terminal and press Enter. The first time, it asks you to sign in; after that, you see a screen like this. At the terminal's own `%` prompt you type commands; at Claude Code's `❯` prompt you describe what you want in plain language:\n\n![The Claude Code start screen: Opus 5.5 with high effort · Claude Pro is the AI model and your plan, ~/pond is the folder it is working in, and you type what you want after ❯](claude-start-en.svg)\n\nThe model and plan on the first line come from your own setup, so yours may differ; the pond was built with Opus 5. The `~` before the folder name is your home folder, which holds Desktop, Documents, and Downloads.\n\nYou may have used the Claude or ChatGPT chat apps. Ask one for the same page and it can write the code too. The difference is where the result ends up:\n\n- Chat app: if it only gives you code in the conversation, you copy it and save it as a file yourself, and every revision means copying and saving again.\n- Claude Code: it saves the file straight into a folder on your computer. When you want a change, it edits that file directly.\n\nSo Claude Code can reach the files on your computer: it can read them, write them, and delete them. That is what makes it useful, and it is also what you need to watch.\n\n## Why are many AI assistants built to work in the terminal?\n\nA terminal takes text in and gives text back. That's what AI is good at.\n\nPeople use a GUI by looking for a button, moving to it, and clicking. AI reads and writes text. In a terminal, it types a command and the computer prints the result as text. The AI reads the result and decides what to type next. That's how it built the pond, one round at a time for 28 rounds.\n\nAI can use a GUI too. It takes a screenshot, finds the button, then moves to it and clicks. It has to look at the screen again at every step. If a button moves, a pop-up gets in the way, or the app changes its layout, the AI might click the wrong thing. Commands work independently of what's on the screen.\n\nThat's why more apps offer their own CLI so AI can use them by typing commands.\n\n## How does AI learn to use a new CLI?\n\nEvery CLI has its own command names, and AI may never have seen them. It can type `--help`, a help option most CLIs have, to look up how to use it. Starting from scratch each time can take several extra rounds.\n\nAnother way is to give it a skill, a set of instructions written for AI. The first sentence or two says when to use it. The rest lists the commands and explains how to use them. Claude Code usually reads just the first sentence or two of each skill. When a task calls for one, it reads the whole thing.\n\n## Does Claude Code ask before it touches your files?\n\nIt can. Claude Code has a permission mode called Manual. In this mode, it stops and asks you before it creates a file, edits a file, or runs most commands. Simply reading files in the folder usually doesn't prompt.\n\nIf it wants to create `pond.html`, you see a screen like the one below. I captured it when I asked it to create a test file, then replaced the file name and contents with `pond.html`:\n\n![Claude Code asking before it creates pond.html: 1. Yes means yes, this time; 2. Yes, and switch to accept edits means it stops asking even before ordinary deletions; 3. No means no](ask-write-en.svg)\n\nThe one thing to understand is what it is about to do. Be careful with option 2: once you choose it, it won't ask again even before ordinary file deletions in this folder. If you're not sure, choose 1.\n\nWhen it built the pond, it never asked me anything. I ran it without the interactive screen (`claude -p`, which hands over the whole task in one command), and I had allowed only file writes before starting. I was comfortable doing that because it was a brand-new, empty folder with nothing to break. In any normal folder, I read every prompt.\n\n![Three settings compared from top to bottom: Manual usually asks before a change; with accept edits, creating, editing, and ordinary deletions in the folder are allowed without asking; auto mode blocks only actions that look risky.](modes-en.svg)\n\nOne more thing to know: since Claude Code 2.1.283, a session started in the terminal begins in auto mode, as long as your model supports it and your organization's admin hasn't turned it off. In auto mode, a second AI model reviews actions instead of you. Actions that look safe go ahead, and actions that look risky are blocked first. If you want it to ask before every change or command, start it with `claude --permission-mode manual`.\n\n## When it says it's done, is it really done?\n\nWhen the pond was finished, Claude Code told me: \"I've written pond.html, but I haven't run it. This environment doesn't allow opening a browser or running scripts, so I only checked it line by line.\" It wrote 476 lines without ever seeing the result, because I had only allowed it to save files, not to open a browser or run programs.\n\nSo I checked twice myself. First, I opened the file: the fish was swimming, and clicking the water made ripples. Second, I asked it in plain language whether the page used any images. It needed to run a command, so it stopped to ask me first. Newer versions of Claude Code run read-only commands like this without asking; you see this kind of prompt for commands that change something:\n\n![Claude Code asking before it runs a command: four steps, cd moves into the pond folder, ls -la lists the files, wc -l counts the lines, grep searches for images or URLs; option 2 stops asking before cd in this project, option 3 switches to auto mode](ask-bash-en.svg)\n\nAll four steps only look and search; none of them edits or deletes anything, so I pressed 1. If you can't tell what a step does, choose No to decline, ask it to explain the command piece by piece, and then decide.\n\nIt replied: \"No. pond.html doesn't use any image files or URLs.\" The search found no image files or URLs.\n\n## Try it yourself\n\n**Open a terminal** and try a command that only shows something and changes nothing:\n\n- Mac: hold ⌘ Command and press Space, type \"Terminal\", and press Enter. When the window opens, type `cal` and press Enter. It prints this month's calendar.\n- Windows: open Start, search for \"PowerShell\" (the Windows terminal), and open it. Type `Get-Date` and press Enter. It shows the current date and time.\n\n**Install Claude Code.** Installing doesn't require an account, but signing in to use it requires a paid Claude plan (Pro or higher) or an Anthropic Console account; the free plan doesn't include Claude Code. Your computer needs macOS 13 or later, or Windows 10 (version 1809) or later. Install commands put software on your computer, so only paste the line from the [official setup page](https://code.claude.com/docs/en/setup).\n\nMac:\n\n```\ncurl -fsSL https://claude.ai/install.sh | bash\n```\n\nWindows (PowerShell):\n\n```\nirm https://claude.ai/install.ps1 | iex\n```\n\nAfter installing, close the terminal window and open a new one. Otherwise, typing `claude` may say the command isn't found. That doesn't mean the install failed; the old window just doesn't know the new command yet.\n\n**Open Claude Code in an empty folder.** If an empty folder gets messy, nothing is lost. Press Enter after each line:\n\n```\nmkdir first-try\ncd first-try\npwd\nclaude\n```\n\nEach line does one thing:\n\n1. `mkdir first-try`: creates a new folder called \"first-try\". It prints nothing when it works, and that's normal. If it says `File exists`, a folder with that name is already there. Replace \"first-try\" in all four lines with another name and type them again.\n2. `cd first-try`: moves into that folder. Claude Code works in the folder where you start it, so you need to be inside first.\n3. `pwd`: asks the terminal which folder you're in. It replies with a path, such as `/Users/your-name/first-try` on a Mac or `C:\\Users\\your-name\\first-try` on Windows. If the path ends in \"first-try\", you're in the right place.\n4. `claude`: starts Claude Code. The first time, it asks you to log in: it opens your browser, you sign in to your Claude account, and then you return to the terminal. Next it asks whether you trust this folder. It's the empty folder you just made, so choose to trust it. Starting it this way uses auto mode; if you want it to ask before every change, type `claude --permission-mode manual` instead.\n\n**Start with something small.** Replace March 14 with your own birthday and type:\n\n```\nMake a web page that counts down to my birthday (March 14) and save it as birthday.html.\n```\n\nIf it's going in the wrong direction, press Esc to stop it. The work it's already done stays in place. Tell it in plain language what to change.\n\nWhen it says it's done, ask it to open the page, then check the countdown yourself. I tried this sentence on October 2, 2026. When it finished, it said it \"couldn't verify the date logic\", so I counted the days myself. It was correct.\n\nIf you don't like how it looks, tell it what to change, for example:\n\n```\nMake the background dark blue and the numbers twice as big.\n```\n\nWhen it's done, ask it to open the page again and see if it looks the way you want.\n\n## Sources\n\n- [Set up Claude Code](https://code.claude.com/docs/en/setup)\n- [Choose a permission mode](https://code.claude.com/docs/en/permission-modes)\n- [Extend Claude with skills](https://code.claude.com/docs/en/skills)\n- [Interactive mode](https://code.claude.com/docs/en/interactive-mode)\n"</script>
 <script>
 (function () {
+  var copyButton = document.querySelector(".copy-markdown");
+  var copyStatus = document.querySelector(".copy-status");
+  var copySource = document.querySelector(".copy-source");
+  var markdown = JSON.parse(document.getElementById("article-markdown").textContent);
+
+  function copyWithSelection() {
+    copySource.value = markdown;
+    copySource.hidden = false;
+    copySource.focus({ preventScroll: true });
+    copySource.select();
+    try {
+      return document.execCommand("copy");
+    } catch {
+      return false;
+    }
+  }
+
+  copyButton.addEventListener("click", async function () {
+    copyStatus.textContent = "";
+    copyButton.disabled = true;
+    var copied = false;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      try {
+        await navigator.clipboard.writeText(markdown);
+        copied = true;
+      } catch {
+        copied = copyWithSelection();
+      }
+    } else {
+      copied = copyWithSelection();
+    }
+    copyButton.disabled = false;
+    copySource.hidden = copied;
+    copyStatus.textContent = copied ? copyButton.dataset.copied : copyButton.dataset.manual;
+    if (copied) copyButton.focus({ preventScroll: true });
+  });
+
   var tocLinks = Array.prototype.slice.call(
-    document.querySelectorAll('.toc-rail a[href^="#"]')
+    document.querySelectorAll('.page-toc a[href^="#"]')
   );
   var mobileLinks = Array.prototype.slice.call(
     document.querySelectorAll('.toc-mobile a[href^="#"]')
@@ -814,6 +950,7 @@ claude
     // The current section is the last heading that has scrolled past the sticky top bar.
     // Recomputed on every scroll frame, so jumps (TOC clicks, Page Down) cannot skip it.
     function pickActive() {
+      if (!targets.length) return;
       var root = document.documentElement;
       if (window.innerHeight + window.scrollY >= root.scrollHeight - 2) {
         setActive(targets[targets.length - 1].id);
@@ -840,6 +977,7 @@ claude
       },
       { passive: true }
     );
+    window.addEventListener("resize", pickActive);
     pickActive();
   }
 

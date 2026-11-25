@@ -100,6 +100,7 @@ def _write_post(
     updated: str | None = None,
     related: str | None = None,
     image: str | None = None,
+    tool: str | None = None,
     body: str,
 ) -> Path:
     post_dir = source_dir / slug
@@ -116,6 +117,8 @@ def _write_post(
         lines.append(f"related: {related}")
     if image is not None:
         lines.append(f"image: {image}")
+    if tool is not None:
+        lines.append(f"tool: {tool}")
     lines.append("---")
     lines.append("")
     lines.append(body)
@@ -155,7 +158,7 @@ def test_bilingual_article_renders_seo_cards_escaping_and_sitemap(
         date="2026-10-01",
         body="First paragraph.\n\nSecond paragraph.",
     )
-    _write_post(
+    en_source = _write_post(
         source_dir,
         "new-post",
         "en",
@@ -164,15 +167,17 @@ def test_bilingual_article_renders_seo_cards_escaping_and_sitemap(
         date="2026-11-20",
         updated="2026-11-22",
         related="older-post",
+        tool="claude-code",
         body=(
             "Intro paragraph.\n\n"
             "<script>alert(1)</script>\n\n"
+            "`</ScRiPt>` `<!-- <script>`\n\n"
             "| Tool | Support |\n"
             "| --- | --- |\n"
             "| Claude | Yes |\n"
         ),
     )
-    _write_post(
+    tw_source = _write_post(
         source_dir,
         "new-post",
         "zh-TW",
@@ -209,13 +214,42 @@ def test_bilingual_article_renders_seo_cards_escaping_and_sitemap(
         assert "#install" in page
         assert "https://github.com/aqua5230/usage" in page
     for page, description in ((en_html, "New post summary"), (tw_html, "繁體中文摘要")):
-        body = page.split("<body>", 1)[1]
+        body = page.split("<body>", 1)[1].split("</main>", 1)[0]
         assert 'class="post-desc"' not in body
         assert description not in body
         assert f'<meta name="description" content="{description}" />' in page
         assert f'<meta property="og:description" content="{description}" />' in page
         article_ld = next(block for block in _parse_json_ld(page) if block["@type"] == "Article")
         assert article_ld["description"] == description
+
+    for page, source, category in (
+        (en_html, en_source, "Claude Code"),
+        (tw_html, tw_source, "新手入門"),
+    ):
+        sidebar = page.split('<aside class="left-rail">', 1)[1].split("</aside>", 1)[0]
+        mobile = page.split('<details class="mobile-menu">', 1)[1]
+        assert sidebar.strip() in mobile
+        assert '<nav class="categories"' in sidebar
+        assert sidebar.count('class="category" open') == 1
+        active_category = sidebar.split('<details class="category" open>', 1)[1]
+        active_category = active_category.split("</details>", 1)[0]
+        assert f"</svg>{category}</summary>" in active_category
+        assert '<a href="../new-post/" aria-current="page">' in active_category
+        assert '<nav class="breadcrumb"' in page
+        assert f'<span aria-hidden="true">›</span><span>{category}</span></nav>' in page
+        assert '<button class="copy-markdown" type="button"' in page
+        raw_json = page.split('<script type="application/json" id="article-markdown">', 1)[1]
+        raw_json = raw_json.split("</script>", 1)[0]
+        assert "<" not in raw_json
+        assert json.loads(raw_json) == source.read_bytes().decode("utf-8")
+        assert "toc-rail" not in page
+
+    assert '<a href="../">Blog</a><span aria-hidden="true">›</span>' in en_html
+    assert '<a href="../">部落格</a><span aria-hidden="true">›</span>' in tw_html
+    assert '<time datetime="2026-11-22">2026-11-22</time>' in en_html
+    assert '<time datetime="2026-11-20">2026-11-20</time>' in tw_html
+    assert 'href="../older-post/">Older &amp; &lt;Post&gt;</a>' in en_html
+    assert 'href="../older-post/"' not in tw_html
 
     # Raw HTML in markdown must be escaped.
     assert "<script>alert(1)</script>" not in en_html
@@ -398,7 +432,7 @@ def test_toc_omitted_when_fewer_than_three_h2s(
 
     assert '<h2 id="first-section">First Section</h2>' in article_html
     assert '<h2 id="second-section">Second Section</h2>' in article_html
-    assert '<aside class="toc-rail">' not in article_html
+    assert '<nav class="page-toc"' not in article_html
     assert '<details class="toc-mobile">' not in article_html
     assert '<aside class="news-rail"' in article_html
     assert "related-rail" not in article_html
@@ -437,11 +471,14 @@ def test_toc_links_match_body_h2_and_exclude_related_and_cta(
     article_html = (docs_dir / "blog" / "full-post" / "index.html").read_text(encoding="utf-8")
     list_html = (docs_dir / "blog" / "index.html").read_text(encoding="utf-8")
 
-    assert '<aside class="toc-rail">' in article_html
     assert '<details class="toc-mobile">' in article_html
+    assert "<summary>Article categories and contents</summary>" in article_html
     assert "<summary>In this article</summary>" in article_html
 
-    toc_block = article_html.split('<aside class="toc-rail">', 1)[1].split("</aside>", 1)[0]
+    right_rail = article_html.split('<div class="right-rail">', 1)[1].split("</aside>", 1)[0]
+    toc_block, news_block = right_rail.split("</nav>", 1)
+    assert '<nav class="page-toc"' in toc_block
+    assert '<aside class="news-rail" aria-label="AI Update Daily" hidden>' in news_block
     toc_hrefs = re.findall(r'href="#([^"]+)"', toc_block)
     assert toc_hrefs == ["alpha-one", "beta-two", "gamma-three"]
     for heading_id in toc_hrefs:
@@ -452,26 +489,38 @@ def test_toc_links_match_body_h2_and_exclude_related_and_cta(
     assert '<section class="related-section">\n          <h2>Related Articles</h2>' in article_html
 
     # List page has no article rails.
-    assert '<aside class="toc-rail">' not in list_html
+    assert '<aside class="left-rail">' not in list_html
+    assert '<div class="right-rail">' not in list_html
+    assert '<nav class="categories"' not in list_html
     assert '<details class="toc-mobile">' not in list_html
     assert '<aside class="related-rail"' not in list_html
     assert '<aside class="news-rail"' not in list_html
     assert "ai-updates/data.json" not in list_html
 
-    assert '<aside class="news-rail" aria-label="AI Update Daily" hidden>' in article_html
     assert "related-rail" not in article_html
     assert 'window.matchMedia("(min-width: 1440px)")' in article_html
     assert f'fetch("{build_blog.AI_UPDATES_DATA_URL}")' in article_html
     assert "innerHTML" not in article_html
 
 
-def test_ui_strings_include_toc_news_and_related_keys_for_all_langs() -> None:
+def test_article_ui_strings_exist_for_all_langs() -> None:
     for lang in build_blog.LANGS:
         ui = build_blog.UI_STRINGS[lang]
         assert ui["toc_title"]
         assert ui["news_title"]
         assert ui["news_all"]
         assert ui["related_heading"]
+        for key in (
+            "getting_started",
+            "categories",
+            "categories_and_toc",
+            "breadcrumb",
+            "copy_markdown",
+            "copy_success",
+            "copy_manual",
+            "markdown_source",
+        ):
+            assert ui[key]
 
 
 def test_homepage_latest_posts_top_three_hrefs_hidden_and_language_pages(
