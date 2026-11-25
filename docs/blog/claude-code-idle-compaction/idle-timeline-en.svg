@@ -1,35 +1,47 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 338" role="img" aria-labelledby="title desc" xml:lang="en" font-family="Noto Sans TC, -apple-system, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 364" role="img" aria-labelledby="title desc" xml:lang="en" font-family="Noto Sans TC, -apple-system, sans-serif">
 <title id="title">Idle compaction timeline after your last message</title>
 <desc id="desc">0 min — Your last message / About 54 min — Idle compaction: the summary is written while the cache is still there / 60 min — The one-hour cache expires / After 60 min — You come back: Claude Code works from the summary / Without idle compaction — The whole conversation is processed again / Applies to conversations over 200K tokens on the one-hour cache</desc>
-<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#A9CFC0"/><stop offset=".55" stop-color="#6E9E8E"/><stop offset="1" stop-color="#3F6E61"/></linearGradient><radialGradient id="g1" cx=".1" cy=".95" r=".6"><stop offset="0" stop-color="#E8D9B5" stop-opacity=".55"/><stop offset="1" stop-color="#E8D9B5" stop-opacity="0"/></radialGradient><filter id="sh" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#0B2A22" flood-opacity=".38"/></filter></defs>
-<rect width="600" height="338" rx="16" fill="url(#bg)"/>
-<rect width="600" height="338" rx="16" fill="url(#g1)"/>
-<g filter="url(#sh)"><rect x="20" y="20" width="560" height="298" rx="14" fill="#1E2228" stroke="#FFFFFF1A"/></g>
-<text x="48" y="171" fill="#F2F2F2" font-size="15" text-anchor="start" font-weight="400">Your last message</text>
-<text x="350" y="53" fill="#9FD3BD" font-size="15" text-anchor="end"><tspan x="350" font-weight="600">Idle compaction:</tspan><tspan x="350" dy="20"> the summary is written</tspan><tspan x="350" dy="20"> while the cache is still there</tspan></text>
-<text x="552" y="53" fill="#8AB4F8" font-size="15" text-anchor="end"><tspan x="552" font-weight="600">You come back:</tspan><tspan x="552" dy="20"> Claude Code works</tspan><tspan x="552" dy="20"> from the summary</tspan></text>
-<path d="M48 137H408" fill="none" stroke="#8A939E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M408 137H548" fill="none" stroke="#8A939E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="3 5"/>
-<path d="M548 133L552 137L548 141" fill="none" stroke="#8A939E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M372 137H408" fill="none" stroke="#9FD3BD" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M357 86H372V108" fill="none" stroke="#9FD3BD" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 4"/>
-<path d="M526 101V108" fill="none" stroke="#8AB4F8" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2 4"/>
-<path d="M48 132V142" fill="none" stroke="#8A939E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M408 137V153" fill="none" stroke="#F2C46D" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="372" cy="137" r="5" fill="#9FD3BD"/>
-<circle cx="408" cy="137" r="4" fill="#F2C46D"/>
-<circle cx="526" cy="137" r="5" fill="#8AB4F8"/>
-<text x="48" y="124" fill="#8A939E" font-size="14" text-anchor="start" font-weight="400">0 min</text>
-<text x="372" y="124" fill="#9FD3BD" font-size="14" text-anchor="middle" font-weight="600">About 54 min</text>
-<text x="552" y="124" fill="#8AB4F8" font-size="14" text-anchor="end" font-weight="600">After 60 min</text>
-<text x="408" y="171" fill="#F2C46D" font-size="14" text-anchor="middle" font-weight="600">60 min</text>
-<text x="408" y="192" fill="#F2C46D" font-size="15" text-anchor="middle" font-weight="400">The one-hour cache expires</text>
-<text x="48" y="221" fill="#8A939E" font-size="15" text-anchor="start" font-weight="600">Without idle compaction</text>
-<path d="M48 235H408" fill="none" stroke="#8A939E" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M408 235H548" fill="none" stroke="#8A939E" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="3 5"/>
-<path d="M48 231V239M408 231V239M548 231L552 235L548 239" fill="none" stroke="#8A939E" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="526" cy="235" r="4" fill="#F6A9A2"/>
-<text x="552" y="260" fill="#F6A9A2" font-size="15" text-anchor="end" font-weight="400">The whole conversation is processed again</text>
-<path d="M48 276H552" fill="none" stroke="#FFFFFF1A" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
-<text x="48" y="300" fill="#8A939E" font-size="14" text-anchor="start" font-weight="400">Applies to conversations over 200K tokens on the one-hour cache</text>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#DDE6E1"/>
+    <stop offset="1" stop-color="#CEDBD4"/>
+  </linearGradient>
+  <filter id="sh" x="-10%" y="-10%" width="120%" height="130%">
+    <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#141414" flood-opacity="0.20"/>
+  </filter>
+</defs>
+<rect width="640" height="364" rx="16" fill="url(#bg)"/>
+<g filter="url(#sh)">
+  <rect x="26" y="42" width="588" height="296" rx="10" fill="#161616" stroke="#2C2C2C" stroke-width="1"/>
+</g>
+<text x="372" y="66" fill="#E0E0E0" font-size="13.5" text-anchor="end" data-role="label"><tspan x="372" font-weight="600">Idle compaction:</tspan><tspan x="372" dy="18" font-weight="400"> the summary is written</tspan><tspan x="372" dy="18" font-weight="400"> while the cache is still there</tspan></text>
+<text x="582" y="66" fill="#E0E0E0" font-size="13.5" text-anchor="end" data-role="label"><tspan x="582" font-weight="600">You come back:</tspan><tspan x="582" dy="18" font-weight="400"> Claude Code works</tspan><tspan x="582" dy="18" font-weight="400"> from the summary</tspan></text>
+<path d="M 380 96 H 392 V 117" fill="none" stroke="#F2C46D" stroke-width="1.25"/>
+<line x1="548" y1="108" x2="548" y2="117" stroke="#8C8C8C" stroke-width="1.25"/>
+<text x="56" y="135" fill="#8A939E" font-size="13" text-anchor="start" font-weight="400" data-role="label">0 min</text>
+<text x="392" y="135" fill="#E0E0E0" font-size="13" text-anchor="middle" font-weight="600" data-role="label">About 54 min</text>
+<text x="582" y="135" fill="#8A939E" font-size="13" text-anchor="end" font-weight="500" data-role="label">After 60 min</text>
+<line x1="56" y1="148" x2="430" y2="148" stroke="#8A939E" stroke-width="1.5"/>
+<line x1="430" y1="148" x2="578" y2="148" stroke="#8A939E" stroke-width="1.5" stroke-dasharray="3 4"/>
+<path d="M 576 144 L 582 148 L 576 152" fill="none" stroke="#8A939E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<line x1="56" y1="143" x2="56" y2="153" stroke="#8A939E" stroke-width="1.5"/>
+<line x1="392" y1="148" x2="430" y2="148" stroke="#F2C46D" stroke-width="3.5"/>
+<line x1="430" y1="148" x2="430" y2="167" stroke="#8C8C8C" stroke-width="1.25"/>
+<circle cx="392" cy="148" r="4.5" fill="#F2C46D"/>
+<circle cx="430" cy="148" r="3.5" fill="#8A939E"/>
+<circle cx="548" cy="148" r="4" fill="#E0E0E0"/>
+<text x="56" y="182" fill="#E0E0E0" font-size="13.5" text-anchor="start" font-weight="400" data-role="label">Your last message</text>
+<text x="430" y="182" fill="#E0E0E0" font-size="13" text-anchor="middle" font-weight="600" data-role="label">60 min</text>
+<text x="430" y="200" fill="#8A939E" font-size="13" text-anchor="middle" font-weight="400" data-role="label">The one-hour cache expires</text>
+<text x="56" y="232" fill="#8A939E" font-size="13.5" text-anchor="start" font-weight="600" data-role="label">Without idle compaction</text>
+<line x1="56" y1="248" x2="430" y2="248" stroke="#8A939E" stroke-width="1.25"/>
+<line x1="430" y1="248" x2="578" y2="248" stroke="#8A939E" stroke-width="1.25" stroke-dasharray="3 4"/>
+<path d="M 56 244 V 252 M 430 244 V 252 M 576 244 L 582 248 L 576 252" fill="none" stroke="#8A939E" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+<line x1="548" y1="248" x2="548" y2="262" stroke="#F6A9A2" stroke-width="1.25"/>
+<circle cx="548" cy="248" r="4.5" fill="#F6A9A2"/>
+<text x="582" y="276" fill="#E0E0E0" font-size="13.5" text-anchor="end" font-weight="500" data-role="label">The whole conversation is processed again</text>
+<line x1="56" y1="294" x2="582" y2="294" stroke="#2C2C2C" stroke-width="1"/>
+<text x="56" y="318" fill="#8A939E" font-size="13" text-anchor="start" font-weight="400" data-role="label">Applies to conversations over 200K tokens on the one-hour cache</text>
+<rect x="238.39" y="16" width="163.22" height="16" fill="#DCE5E0" data-role="watermark-mask"/>
+<text x="320" y="28" font-size="12" font-family="-apple-system, Noto Sans TC, sans-serif" fill="#8A8A8A" text-anchor="middle" data-role="watermark">aqua5230.github.io/usage</text>
 </svg>

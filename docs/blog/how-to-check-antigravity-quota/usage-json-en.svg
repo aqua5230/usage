@@ -1,44 +1,56 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 512" role="img" aria-label="Antigravity’s JSON output lists two quota pools in groups and shows the window, fraction remaining, and refill time for the Gemini weekly limit." font-family="Noto Sans TC, -apple-system, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 776 396" role="img" aria-label="Antigravity’s JSON output lists two quota pools in groups and shows the window, fraction remaining, and refill time for the Gemini weekly limit." font-family="Noto Sans TC, -apple-system, sans-serif">
 <title>Antigravity’s JSON output lists two quota pools in groups and shows the window, fraction remaining, and refill time for the Gemini weekly limit.</title>
 <defs>
-<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#A9CFC0"/><stop offset=".55" stop-color="#6E9E8E"/><stop offset="1" stop-color="#3F6E61"/></linearGradient>
-<radialGradient id="g1" cx=".1" cy=".95" r=".6"><stop offset="0" stop-color="#E8D9B5" stop-opacity=".55"/><stop offset="1" stop-color="#E8D9B5" stop-opacity="0"/></radialGradient>
-<filter id="sh" x="-10%" y="-20%" width="120%" height="150%"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#0B2A22" flood-opacity=".38"/></filter>
+  <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#DDE6E1"/>
+    <stop offset="1" stop-color="#CEDBD4"/>
+  </linearGradient>
+  <filter id="sh" x="-10%" y="-10%" width="120%" height="130%">
+    <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#141414" flood-opacity="0.20"/>
+  </filter>
 </defs>
-<rect width="600" height="512" rx="16" fill="url(#bg)"/><rect width="600" height="512" rx="16" fill="url(#g1)"/>
-<g filter="url(#sh)"><rect x="20" y="20" width="560" height="472" rx="12" fill="#1E2228" stroke="#FFFFFF1A"/></g>
-<circle cx="40" cy="38" r="6" fill="#FF5F57"/><circle cx="58" cy="38" r="6" fill="#FEBC2E"/><circle cx="76" cy="38" r="6" fill="#28C840"/>
-<text x="300" y="43" font-size="13" fill="#9AA0A6" text-anchor="middle">~ — zsh</text>
-<line x1="20" y1="56" x2="580" y2="56" stroke="#FFFFFF14"/>
-<g font-family="Menlo, Consolas, monospace" font-size="14" fill="#F2F2F2">
-<text x="36" y="84"><tspan fill="#8A939E">you@MacBook ~ % </tspan><tspan>agy -p /usage --output-format json</tspan></text>
-<text x="36" y="115">"command": {</text>
-<text x="52.8" y="136">"data": {</text>
-<text x="69.6" y="157">"<tspan fill="#9FD3BD">groups</tspan>": [</text>
-<text x="86.4" y="183">{ "name": "Gemini Models",</text>
-<text x="103.2" y="204">"buckets": [</text>
-<text x="120" y="225">{ "<tspan fill="#8AB4F8">window</tspan>": "weekly",</text>
-<text x="136.8" y="251">"<tspan fill="#F2C46D">remaining_fraction</tspan>": 0.958730936050415,</text>
-<text x="136.8" y="277">"<tspan fill="#F6A9A2">reset_time</tspan>": "2026-11-30T22:13:16Z" },</text>
-<text x="120" y="303">{ "<tspan fill="#8AB4F8">window</tspan>": "5h", … } ] },</text>
-<text x="86.4" y="322">{ "name": "Claude and GPT models", … }</text>
-<text x="69.6" y="340">] } }</text>
+<rect width="776" height="396" rx="16" fill="url(#bg)"/>
+<g filter="url(#sh)">
+  <rect x="26" y="26" width="474" height="344" rx="10" fill="#161616" stroke="#2C2C2C" stroke-width="1"/>
 </g>
-<g fill="none" stroke-width="1.6" stroke-linecap="round">
-<path d="M78 162V167H129V162" stroke="#7FB59F"/>
-<path d="M146 230V235H196V230" stroke="#8AB4F8"/>
-<path d="M146 256V261H297V256" stroke="#F2C46D"/>
-<path d="M146 282V287H230V282" stroke="#F28B82"/>
-</g>
-<path d="M36 359H564" stroke="#FFFFFF1A"/>
-<g font-size="15">
-<text x="36" y="388" fill="#9FD3BD" font-family="Menlo, Consolas, monospace">groups</text>
-<text x="36" y="410" fill="#F2F2F2">Two quota pools</text>
-<text x="302" y="388" fill="#8AB4F8" font-family="Menlo, Consolas, monospace">window</text>
-<text x="302" y="410" fill="#F2F2F2">weekly = weekly limit, 5h = 5 hours</text>
-<text x="36" y="451" fill="#F2C46D" font-family="Menlo, Consolas, monospace">remaining_fraction</text>
-<text x="36" y="473" fill="#F2F2F2">About 96% left in this example</text>
-<text x="302" y="451" fill="#F6A9A2" font-family="Menlo, Consolas, monospace">reset_time</text>
-<text x="302" y="473" fill="#F2F2F2">Refill time (UTC)</text>
-</g>
+<circle cx="43" cy="42" r="5" fill="#FF5F57"/>
+<circle cx="59" cy="42" r="5" fill="#FEBC2E"/>
+<circle cx="75" cy="42" r="5" fill="#28C840"/>
+<text x="44" y="80" font-size="14" font-family="Menlo, Consolas, monospace" xml:space="preserve" data-role="terminal"><tspan fill="#8A939E">you@MacBook ~ % </tspan><tspan fill="#E0E0E0">agy -p /usage --output-format json</tspan></text>
+<text x="44" y="110" font-size="14" font-family="Menlo, Consolas, monospace" fill="#E0E0E0" xml:space="preserve" data-role="terminal">&quot;command&quot;: {</text>
+<text x="60.8" y="133" font-size="14" font-family="Menlo, Consolas, monospace" fill="#E0E0E0" xml:space="preserve" data-role="terminal">&quot;data&quot;: {</text>
+<text x="77.6" y="156" font-size="14" font-family="Menlo, Consolas, monospace" fill="#E0E0E0" xml:space="preserve" data-role="terminal">&quot;groups&quot;: [</text>
+<text x="94.4" y="181" font-size="14" font-family="Menlo, Consolas, monospace" fill="#E0E0E0" xml:space="preserve" data-role="terminal">{ &quot;name&quot;: &quot;Gemini Models&quot;,</text>
+<text x="111.2" y="204" font-size="14" font-family="Menlo, Consolas, monospace" fill="#E0E0E0" xml:space="preserve" data-role="terminal">&quot;buckets&quot;: [</text>
+<text x="128" y="227" font-size="14" font-family="Menlo, Consolas, monospace" fill="#E0E0E0" xml:space="preserve" data-role="terminal">{ &quot;window&quot;: &quot;weekly&quot;,</text>
+<text x="144.8" y="252" font-size="14" font-family="Menlo, Consolas, monospace" fill="#E0E0E0" xml:space="preserve" data-role="terminal">&quot;remaining_fraction&quot;: 0.958730936050415,</text>
+<text x="144.8" y="277" font-size="14" font-family="Menlo, Consolas, monospace" fill="#E0E0E0" xml:space="preserve" data-role="terminal">&quot;reset_time&quot;: &quot;2026-11-30T22:13:16Z&quot; },</text>
+<text x="128" y="302" font-size="14" font-family="Menlo, Consolas, monospace" fill="#E0E0E0" xml:space="preserve" data-role="terminal">{ &quot;window&quot;: &quot;5h&quot;, … } ] },</text>
+<text x="94.4" y="325" font-size="14" font-family="Menlo, Consolas, monospace" fill="#E0E0E0" xml:space="preserve" data-role="terminal">{ &quot;name&quot;: &quot;Claude and GPT models&quot;, … }</text>
+<text x="77.6" y="348" font-size="14" font-family="Menlo, Consolas, monospace" fill="#E0E0E0" xml:space="preserve" data-role="terminal">] } }</text>
+<path d="M 86.02 159.5 V 162.5 H 136.62 V 159.5" fill="none" stroke="#8C8C8C" stroke-width="1.25"/>
+<line x1="178.3" y1="152" x2="500" y2="152" stroke="#8C8C8C" stroke-width="1.25"/>
+<line x1="500" y1="152" x2="540" y2="152" stroke="#666666" stroke-width="1.25"/>
+<text x="548" y="146" font-size="13" font-weight="600" font-family="Menlo, Consolas, monospace" fill="#1F2A26" text-anchor="start" data-role="label">groups</text>
+<text x="548" y="166" font-size="13" font-weight="500" fill="#1F2A26" text-anchor="start" data-role="label">Two quota pools</text>
+
+<path d="M 153.28 230.5 V 233.5 H 203.86 V 230.5" fill="none" stroke="#8C8C8C" stroke-width="1.25"/>
+<line x1="313" y1="223" x2="500" y2="223" stroke="#8C8C8C" stroke-width="1.25"/>
+<path d="M 500 223 H 514 V 210 H 540" fill="none" stroke="#666666" stroke-width="1.25"/>
+<text x="548" y="204" font-size="13" font-weight="600" font-family="Menlo, Consolas, monospace" fill="#1F2A26" text-anchor="start" data-role="label">window</text>
+<text x="548" y="224" font-size="13" font-weight="500" fill="#1F2A26" text-anchor="start" data-role="label">weekly = weekly limit, 5h = 5 hours</text>
+
+<path d="M 153.22 255.5 V 258.5 H 304.96 V 255.5" fill="none" stroke="#F2C46D" stroke-width="1.25"/>
+<line x1="489.9" y1="248" x2="500" y2="248" stroke="#F2C46D" stroke-width="1.25"/>
+<path d="M 500 248 H 528 V 268 H 540" fill="none" stroke="#666666" stroke-width="1.25"/>
+<text x="548" y="262" font-size="13" font-weight="600" font-family="Menlo, Consolas, monospace" fill="#1F2A26" text-anchor="start" data-role="label">remaining_fraction</text>
+<text x="548" y="282" font-size="13" font-weight="500" fill="#1F2A26" text-anchor="start" data-role="label">About 96% left in this example</text>
+
+<path d="M 153.22 280.5 V 283.5 H 237.52 V 280.5" fill="none" stroke="#8C8C8C" stroke-width="1.25"/>
+<line x1="481.5" y1="273" x2="500" y2="273" stroke="#8C8C8C" stroke-width="1.25"/>
+<path d="M 500 273 H 516 V 326 H 540" fill="none" stroke="#666666" stroke-width="1.25"/>
+<text x="548" y="320" font-size="13" font-weight="600" font-family="Menlo, Consolas, monospace" fill="#1F2A26" text-anchor="start" data-role="label">reset_time</text>
+<text x="548" y="340" font-size="13" font-weight="500" fill="#1F2A26" text-anchor="start" data-role="label">Refill time (UTC)</text>
+<rect x="181.39" y="34" width="163.22" height="16" fill="#161616" data-role="watermark-mask"/>
+<text x="263.0" y="46" font-size="12" font-family="-apple-system, Noto Sans TC, sans-serif" fill="#8A8A8A" text-anchor="middle" data-role="watermark">aqua5230.github.io/usage</text>
 </svg>
