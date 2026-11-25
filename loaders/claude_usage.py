@@ -33,6 +33,8 @@ TT_STATUS_FILE = os.path.expanduser("~/.claude/tt-status.json")
 # Stale files only affect hints; quota values still render.
 STALE_SECONDS = 6 * 3600
 HOOK_IDLE_SECONDS = 15 * 60
+# A hook reading this recent is never worth a Desktop cache scan.
+DESKTOP_OVERRIDE_MIN_HOOK_AGE_SECONDS = 2 * 60
 RECENT_ACTIVITY_SECONDS = 30 * 60
 RECENT_ACTIVITY_CACHE_TTL_SECONDS = 75
 HOOK_BROKEN_NOT_INSTALLED = "hook_broken_not_installed"
@@ -447,6 +449,12 @@ def read_quota_fallback(
     desktop = claude_desktop.load_desktop_quota(now)
     if desktop is None:
         return None
+    return _desktop_snapshot(desktop, now)
+
+
+def _desktop_snapshot(
+    desktop: claude_desktop.DesktopQuota, now: float, account_uuid: str | None = None
+) -> UsageSnapshot:
     return UsageSnapshot(
         current_percent=desktop.current_percent,
         current_reset_at=desktop.current_reset_at,
@@ -456,7 +464,41 @@ def read_quota_fallback(
         polled_at=desktop.polled_at,
         is_stale=now - desktop.polled_at > claude_desktop.STALE_SECONDS,
         data_source="claude-desktop",
+        account_uuid=account_uuid,
     )
+
+
+def _signed_in_org() -> str | None:
+    """The organization Claude Code is signed in to, from `~/.claude.json`."""
+    try:
+        with open(_claude_json_file(), encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, json.JSONDecodeError, UnicodeDecodeError):
+        return None
+    if not isinstance(data, dict):
+        return None
+    return _account_uuid(_as_dict(data.get("oauthAccount")).get("organizationUuid"))
+
+
+def _newer_desktop_snapshot(
+    data: dict[str, Any], hook: UsageSnapshot, now: float
+) -> UsageSnapshot | None:
+    """Desktop's quota when it is newer than the hook's and for the same organization.
+
+    The hook only moves when a terminal session gets a reply, so quota used in the
+    desktop app afterwards never reaches it. Desktop polls the same usage endpoint,
+    so a newer Desktop observation for the signed-in organization is the better
+    number. Without a known organization on both sides nothing is compared.
+    """
+    observed_at = _hook_observed_at(data, now)
+    if observed_at is None or now - observed_at < DESKTOP_OVERRIDE_MIN_HOOK_AGE_SECONDS:
+        return None
+    desktop = claude_desktop.load_desktop_quota(now)
+    if desktop is None or desktop.org is None or desktop.polled_at <= observed_at + 60:
+        return None
+    if desktop.org != _signed_in_org():
+        return None
+    return _desktop_snapshot(desktop, now, hook.account_uuid)
 
 
 class ClaudeUsageClient:
@@ -549,10 +591,14 @@ class ClaudeUsageClient:
         # shares that account's notification history instead of starting a new one.
         if snapshot.account_uuid is None:
             snapshot.account_uuid = current_account
+        now = time.time()
         if cached_snapshot is not None and _should_prefer_claude_json(
-            data, snapshot, cached_snapshot, time.time()
+            data, snapshot, cached_snapshot, now
         ):
             return self._success_outcome(cached_snapshot)
+        desktop_snapshot = _newer_desktop_snapshot(data, snapshot, now)
+        if desktop_snapshot is not None:
+            return self._success_outcome(desktop_snapshot)
         return self._success_outcome(snapshot, mtime=mtime, source_path=source_path)
 
     def _read_claude_json_cached(self) -> tuple[str | None, UsageSnapshot | None]:

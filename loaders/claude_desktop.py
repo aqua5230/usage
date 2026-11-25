@@ -8,7 +8,7 @@ import json
 import math
 import os
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 
@@ -27,6 +27,9 @@ class DesktopQuota:
     polled_at: float
     current_reset_at: float | None = None
     weekly_reset_at: float | None = None
+    # The Desktop organization the observation belongs to. Not part of equality:
+    # it only lets callers refuse to compare quota across organizations.
+    org: str | None = field(default=None, compare=False)
 
 
 def desktop_history_paths() -> tuple[Path, ...]:
@@ -100,6 +103,7 @@ def _read_history(path: Path, now: float) -> DesktopQuota | None:
         or now - polled_at < -60
     ):
         return None
+    org = str(latest["org"])
     utilization = latest.get("u")
     if not isinstance(utilization, dict):
         return None
@@ -111,7 +115,11 @@ def _read_history(path: Path, now: float) -> DesktopQuota | None:
     # may refresh its HTTP cache without appending to the throttled history.
     # Only return history percentages while they are fresh; independently
     # bounded HTTP observations can replace them even after history expires.
-    quota = DesktopQuota(current, weekly, polled_at) if now - polled_at <= MAX_AGE_SECONDS else None
+    quota = (
+        DesktopQuota(current, weekly, polled_at, org=org)
+        if now - polled_at <= MAX_AGE_SECONDS
+        else None
+    )
     try:
         url = f"https://claude.ai/api/organizations/{latest['org']}/usage".encode()
     except UnicodeEncodeError:
@@ -138,7 +146,7 @@ def _read_history(path: Path, now: float) -> DesktopQuota | None:
         current = 0
     if weekly is not None and weekly_reset is not None and weekly_reset <= now:
         weekly = 0
-    return DesktopQuota(current, weekly, polled_at, current_reset, weekly_reset)
+    return DesktopQuota(current, weekly, polled_at, current_reset, weekly_reset, org=org)
 
 
 def _reset_time(

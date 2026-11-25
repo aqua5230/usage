@@ -15,6 +15,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Fixed
 - **Claude quota from the desktop app works again on macOS.** Claude Desktop now keeps its HTTP cache in Chromium's simple-cache format, one file per response, and has stopped adding samples to `plan-usage-history.json`. usage only read the older block-file cache, so if you used Claude only in the desktop app the Claude card stayed at `--` or kept an old number. usage now also reads the simple-cache format. It takes the newest usage response Desktop stored in the last two hours, including ones with a query string such as `?via=plan`, and checks each one's checksums before using it. As before, it reads only local files, read-only, and sends nothing over the network.
+- **Quota used in the desktop app now shows up even after a terminal session.** Before, once a terminal Claude Code session had reported quota, usage kept showing that number and never looked at the desktop app, so usage in the app afterwards went missing (for example 37% in the menu bar while the app's own Usage page said 55%). Now, when the terminal reading is more than two minutes old and Claude Desktop has a newer one for the same organization you are signed in to in Claude Code, usage shows the Desktop number, in the app and in `usage status`. If the organization can't be matched, the terminal number stays.
 
 ## [0.35.1] - 2026-11-23
 

@@ -89,10 +89,13 @@ def _write_cache(
     weekly_only: bool = False,
     five_reset: float = FIVE_RESET,
     weekly_reset: float = WEEKLY_RESET,
+    org: str | None = None,
 ) -> None:
     data: dict[str, Any] = {}
     if account is not None:
         data["oauthAccount"] = {"accountUuid": account}
+        if org is not None:
+            data["oauthAccount"]["organizationUuid"] = org
     if age is not None:
         windows = {"seven_day": {"utilization": 33, "resets_at": _iso(weekly_reset)}}
         if not weekly_only:
@@ -414,3 +417,63 @@ def test_unknown_weekly_reset_does_not_block_newer_cache(sources: Path) -> None:
     _write_hook(sources, weekly_reset=None)
     _write_cache(sources, weekly_reset=NOW - 120)
     assert _snapshot("claude-json").weekly_reset_at == NOW - 120
+
+
+def _desktop(
+    monkeypatch: pytest.MonkeyPatch, *, age: float = 60, org: str | None = "org-a"
+) -> None:
+    quota = claude_desktop.DesktopQuota(55, 8, NOW - age, FIVE_RESET, WEEKLY_RESET, org=org)
+    monkeypatch.setattr(claude_desktop, "load_desktop_quota", lambda _now: quota)
+
+
+def test_idle_hook_switches_to_newer_same_org_desktop_quota(
+    sources: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Quota used in the desktop app after the last terminal reply never reaches the hook.
+    _write_hook(sources, age=10 * 60)
+    _write_cache(sources, age=None, org="org-a")
+    _desktop(monkeypatch)
+    snapshot = _snapshot("claude-desktop")
+    assert (snapshot.current_percent, snapshot.weekly_percent, snapshot.account_uuid) == (
+        55,
+        8,
+        "A",
+    )
+    assert (snapshot.current_reset_at, snapshot.weekly_reset_at) == (FIVE_RESET, WEEKLY_RESET)
+    cli = rate_limits.load_rate_limits()
+    assert cli is not None and (cli.five_hour_pct, cli.seven_day_pct) == (55, 8)
+
+
+@pytest.mark.parametrize(
+    ("desktop_age", "desktop_org", "signed_in_org"),
+    [
+        (10 * 60, "org-a", "org-a"),
+        (11 * 60, "org-a", "org-a"),
+        (60, "org-b", "org-a"),
+        (60, "org-a", None),
+        (60, None, "org-a"),
+    ],
+)
+def test_hook_keeps_quota_unless_desktop_is_newer_for_the_same_org(
+    sources: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    desktop_age: int,
+    desktop_org: str | None,
+    signed_in_org: str | None,
+) -> None:
+    _write_hook(sources, age=10 * 60)
+    _write_cache(sources, age=None, org=signed_in_org)
+    _desktop(monkeypatch, age=desktop_age, org=desktop_org)
+    assert _snapshot("hook").current_percent == 12
+    cli = rate_limits.load_rate_limits()
+    assert cli is not None and cli.five_hour_pct == 12.25
+
+
+def test_recent_hook_skips_desktop_scan(sources: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    _write_hook(sources, age=60)
+    _write_cache(sources, age=None, org="org-a")
+    monkeypatch.setattr(
+        claude_desktop, "load_desktop_quota", lambda _: pytest.fail("Desktop must not be read")
+    )
+    assert _snapshot("hook").polled_at == NOW - 60
+    assert rate_limits.load_rate_limits() is not None
