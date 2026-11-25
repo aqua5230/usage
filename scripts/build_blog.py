@@ -51,6 +51,17 @@ IMAGE_EXTENSIONS: frozenset[str] = frozenset({".jpg", ".jpeg", ".png", ".webp", 
 EMBED_EXTENSIONS: frozenset[str] = frozenset({".html"})
 IMG_ALT_RE = re.compile(r'\balt="([^"]*)"')
 
+
+def _landing_brand() -> tuple[str, str]:
+    """The landing page's ring-and-cat logo: its shared SVG symbols and the mark itself."""
+    text = (DOCS_DIR / "index.html").read_text(encoding="utf-8")
+    symbols = re.search(r'<svg class="brand-symbols".*?</svg>', text, re.DOTALL)
+    mark = re.search(r'<span class="brand-dot".*?</span>', text, re.DOTALL)
+    if symbols is None or mark is None:
+        raise ValueError("docs/index.html: the brand logo markup was not found")
+    return symbols.group(0), mark.group(0)
+
+
 UI_STRINGS: dict[str, dict[str, str]] = {
     "en": {
         "lang_label": "EN",
@@ -284,15 +295,36 @@ p, li { text-wrap: pretty; }
   letter-spacing: -0.01em;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   white-space: nowrap;
 }
-.brand-mark {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--accent);
-  display: inline-block;
+@property --p { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+.brand-dot { position: relative; width: 20px; height: 20px; flex: 0 0 20px; }
+.brand-dot svg { position: absolute; inset: 0; width: 20px; height: 20px; }
+.brand-ring-base { opacity: 0.3; }
+.brand-ring-progress {
+  --p: 226deg;
+  -webkit-mask: conic-gradient(from 331deg, #000 0deg var(--p), transparent var(--p) 360deg);
+  mask: conic-gradient(from 331deg, #000 0deg var(--p), transparent var(--p) 360deg);
+  animation: brand-draw 0.9s ease-out;
+}
+.brand-cat { opacity: 1; animation: brand-cat-appear 0.35s 0.82s both; }
+.brand-tail { transform-origin: 23px 51px; }
+.brand-ear { transform-box: fill-box; transform-origin: center bottom; }
+.brand:hover .brand-tail { animation: brand-wag 0.52s ease-in-out; }
+.brand:hover .brand-ear-left { animation: brand-ears 0.22s 2 alternate; }
+.brand:hover .brand-ear-right { animation: brand-ears 0.22s 0.05s 2 alternate-reverse; }
+@keyframes brand-draw { from { --p: 0deg; } }
+@keyframes brand-cat-appear { from { opacity: 0; } }
+@keyframes brand-wag {
+  30% { transform: rotate(-18deg); }
+  65% { transform: rotate(13deg); }
+  100% { transform: rotate(0); }
+}
+@keyframes brand-ears { to { transform: rotate(7deg) translateY(-1px); } }
+@media (prefers-reduced-motion: reduce) {
+  .brand-ring-progress, .brand-cat,
+  .brand:hover .brand-tail, .brand:hover .brand-ear { animation: none; }
 }
 .top-nav {
   display: flex;
@@ -1111,6 +1143,7 @@ def _render_shell(
     og_image: str | None = None,
 ) -> str:
     ui = UI_STRINGS[lang]
+    brand_symbols, brand_mark = _landing_brand()
     resolved_og_image = og_image if og_image is not None else f"{_site_root()}{OG_IMAGE_PATH}"
     escaped_title = html.escape(title)
     escaped_desc = html.escape(description, quote=True)
@@ -1159,11 +1192,12 @@ def _render_shell(
         f"<style>\n{BASE_CSS}</style>\n"
         "</head>\n"
         "<body>\n"
+        f"{brand_symbols}\n"
         f'<a class="skip-link" href="#main-content">{html.escape(ui["skip_main"])}</a>\n'
         '<header class="topbar">\n'
         '  <div class="wrap">\n'
         f'    <a class="brand" href="{home_rel}" translate="no">'
-        '<span class="brand-mark" aria-hidden="true"></span>usage</a>\n'
+        f"{brand_mark}usage</a>\n"
         '    <nav class="top-nav">\n'
         f'      <a href="{home_rel}">{html.escape(ui["nav_home"])}</a>\n'
         f'      <a href="{blog_rel}">{html.escape(ui["nav_blog"])}</a>\n'

@@ -59,6 +59,8 @@ INDEX_TEMPLATE = (
     "</script>\n"
     "</head>\n"
     "<body>\n"
+    '<svg class="brand-symbols"><symbol id="usage-ring"></symbol></svg>\n'
+    '<a class="brand"><span class="brand-dot"><svg class="brand-cat"></svg></span>usage</a>\n'
     '<section id="latest-posts">\n'
     "<!-- latest-posts:start -->\n"
     "<!-- latest-posts:end -->\n"
@@ -189,6 +191,10 @@ def test_bilingual_article_renders_seo_cards_escaping_and_sitemap(
 
     assert en_html.startswith(build_blog.BANNER)
     assert tw_html.startswith(build_blog.BANNER)
+    # The header reuses the landing page's logo instead of a separate mark.
+    for page in (en_html, tw_html):
+        assert '<svg class="brand-symbols"><symbol id="usage-ring"></symbol></svg>' in page
+        assert '<span class="brand-dot"><svg class="brand-cat"></svg></span>usage</a>' in page
 
     site = build_blog._site_root()
     assert f'<link rel="canonical" href="{site}blog/new-post/" />' in en_html
