@@ -29,7 +29,7 @@
 - **读取你电脑上已有数据：** Claude Code、Codex、Grok CLI、Muse Code 的 token 与费用来自本地日志。Antigravity 配额先问它自己的 CLI（不调用模型），不行再用该 CLI 本就保存在本机的登录身份向 Google 官方接口查询。Muse 额度则先运行不调用模型的 `muse usage --json`（Muse 1.4.13 起支持），读不到才退回在空文件夹用 `muse exec` 在后台发送一次小模型调用。
 - **在 token 浪费前提醒：** Claude Code 状态栏会在上下文窗口膨胀和 prompt 缓存变冷前发出提醒。横幅会显示 Claude 或 Codex 故障。
 - **Claude Code 内置辅助：** 侧边面板、更短的回复、新会话的进度交接，以及额度感知规划。全部可选。
-- **报告与 18 款主题：** 展示 token 趋势和费用的 HTML 报告，以及 18 款可供选择的面板主题。
+- **报告与 19 款主题：** 展示 token 趋势和费用的 HTML 报告，以及 19 款可供选择的面板主题。
 
 ## 安装
 
@@ -112,7 +112,7 @@ uvx usage-cli
 - **HTML 报告：** 每日和每周 token 趋势、项目排名、费用，以及带有贡献热图的年度回顾。完全离线导出为 .html、.csv 或 .png，支持可选的项目名称遮蔽。如果你从 Claude Code 把工作派给 Codex 或 Antigravity，报告会列出哪些对话用掉了各家多少每周额度。
 - **终端集成：** `usage status --json` 会将你的 Claude Code、Codex、Antigravity、Grok 和 Muse 额度交给 Starship、tmux 或你自己的脚本。[现成的片段](DEVELOPMENT.md#quota-status-for-other-tools-usage-status)。
 - **AI 更新日报：** 每日公开[网页](https://aqua5230.github.io/ai-updates/)，涵盖 Claude Code、Codex、Antigravity、Grok Build、Muse Code、GitHub CLI 以及 usage 本身的变更，并提供五种语言的白话摘要。
-- **个性布局：** 面板可自由拖动到任意位置，拖拽配额卡重新排序，并可从“⚙ 设置 → 切换面板”在 18 款主题间切换。界面自动匹配系统语言：繁体中文、简体中文、英语、日语或韩语。同时显示四张以上额度卡时，全部自动改用精简布局；三张以下保持原样。
+- **个性布局：** 面板可自由拖动到任意位置，拖拽配额卡重新排序，并可从“⚙ 设置 → 切换面板”在 19 款主题间切换。界面自动匹配系统语言：繁体中文、简体中文、英语、日语或韩语。同时显示四张以上额度卡时，全部自动改用精简布局；三张以下保持原样。
 - **绒毛小伙伴收藏：** 绒毛小伙伴主题藏了 12 只隐藏版小伙伴。12 月 1 日起每周解锁一只，下次打开面板时就会跳进队伍。遇到过的小伙伴都会收进收藏册。
 - **分享卡片（macOS）：** 把今天的用量或找到的隐藏版小伙伴做成图卡，分享到 Threads、X，或复制、保存到“下载”。用量卡不含项目名称与花费，除了世界杯 2026，每款面板都能用。
 
@@ -169,7 +169,7 @@ uvx usage-cli
 
 ## 主题图库
 
-直接在界面中切换 **18 个视觉主题**：
+直接在界面中切换 **19 个视觉主题**：
 
 <p align="center">
   <img src="classic.en.png" width="24%" align="top" alt="Classic 主题" />
@@ -179,7 +179,7 @@ uvx usage-cli
 </p>
 
 <details>
-<summary>查看其余 14 款主题</summary>
+<summary>查看其余 15 款主题</summary>
 
 <p align="center">
   <img src="cloud_observation.en.png" width="24%" align="top" alt="Cloud Observation 主题" />
@@ -196,6 +196,7 @@ uvx usage-cli
   <img src="heart_monitor.en.png" width="24%" align="top" alt="心电图主题" />
   <img src="maple.en.png" width="24%" align="top" alt="枫红暮色主题" />
   <img src="felt.en.png" width="24%" align="top" alt="绒毛小伙伴主题" />
+  <img src="skyline.en.png" width="24%" align="top" alt="天际线主题" />
 </p>
 
 </details>
@@ -223,7 +224,7 @@ uvx usage-cli
 
 ## Windows 支持
 
-Windows 原生支持完整核心功能：提供与 macOS 相同的 18 款主题的系统托盘 UI、Claude Code 状态栏 hook 以及 Codex 记录解析均可原生运行。系统托盘 UI 需要 Microsoft Edge WebView2 Runtime；Windows 10 和 11 通常已经内置。
+Windows 原生支持完整核心功能：提供与 macOS 相同的 19 款主题的系统托盘 UI、Claude Code 状态栏 hook 以及 Codex 记录解析均可原生运行。系统托盘 UI 需要 Microsoft Edge WebView2 Runtime；Windows 10 和 11 通常已经内置。
 
 <details>
 <summary>托盘图标、任务栏标签及其他差异</summary>

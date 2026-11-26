@@ -1,0 +1,2767 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f3ede0;
+      --paper-top-wash: rgba(200, 223, 239, 0.42);
+      --paper-bot-wash: rgba(214, 226, 232, 0.34);
+      --paper-grain: rgba(42, 36, 30, 0.014);
+      --paper-card: rgba(252, 249, 242, 0.96);
+      --ink: #26211b;
+      --ink-line: rgba(38, 33, 27, 0.78);
+      --ink-line-soft: rgba(38, 33, 27, 0.48);
+      --ink-divider: rgba(38, 33, 27, 0.34);
+      --ink-shadow: rgba(38, 33, 27, 0.08);
+      --ink-border: var(--ink-line);
+      --ink-border-strong: rgba(38, 33, 27, 0.88);
+      --muse: #3c6ea8;
+      --bg: var(--paper);
+      --panel: var(--paper-card);
+      --panel-border: var(--ink-line);
+      --line: var(--ink-divider);
+      --text: #1f1a15;
+      --muted: #665e54;
+      --track: rgba(38, 33, 27, 0.06);
+      --tick: rgba(38, 33, 27, 0.62);
+      --button: rgba(38, 33, 27, 0.04);
+      --button-border: rgba(38, 33, 27, 0.48);
+      --button-hover: rgba(38, 33, 27, 0.10);
+      --rank-bg: rgba(38, 33, 27, 0.06);
+      --rank-top-bg: rgba(71, 138, 91, 0.18);
+      --rank-top-border: rgba(47, 105, 64, 0.62);
+      --projects-btn-bg: rgba(71, 138, 91, 0.09);
+      --projects-btn-border: rgba(47, 105, 64, 0.52);
+      --projects-btn-text: #275c36;
+      --primary-btn-bg: rgba(59, 141, 153, 0.13);
+      --primary-btn-border: rgba(42, 110, 121, 0.56);
+      --primary-btn-text: #1d4a52;
+      --primary-btn-hover-bg: #3b8d99;
+      --primary-btn-hover-text: #fbf8f1;
+      --alert-bg: rgba(186, 68, 58, 0.10);
+      --alert-border: rgba(186, 68, 58, 0.48);
+      --alert-text: #9c342b;
+      --tooltip-bg: #26211b;
+      --tooltip-text: #fbf8f1;
+      --tooltip-border: rgba(38, 33, 27, 0.6);
+      --hatch-mix-base: #1f1a15;
+      --hatch-mix-pct: 12%;
+      /* Desaturated ink-sketch brand accents */
+      --claude: #c96f4a;
+      --codex: #3b8d99;
+      --agy: #4d6eb3;
+      --grok: #3a3530;
+      --projects: #478a5b;
+      --warn: #b87f24;
+      --danger: #ba443a;
+      --radius: 5px;
+      /* Numeric readouts use the system mono face; no webfont, panel stays offline. */
+      --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+
+      /* Skyline dynamic colors (updated by skylineUpdate) */
+      --sky-ink: #26211b;
+      --sky-ink-soft: rgba(38, 33, 27, 0.46);
+      --sky-mtn-far: #c2d6e3;
+      --sky-mtn-mid: #a2bcc9;
+      --sky-mtn-near: #87a4b3;
+      --sky-cloud-fill: rgba(253, 253, 255, 0.90);
+      --sky-bldg-fill: #f2efe8;
+      --sky-bldg-alt: #e4dfd5;
+      --sky-bldg-far: #d3d5d9;
+      --sky-win-fill: rgba(135, 168, 194, 0.36);
+      --sky-win-stroke: rgba(38, 33, 27, 0.64);
+      --sky-snow-fill: #ffffff;
+      --sky-snow-shade: #84a4c4;
+      --sky-tree-fill: #458a44;
+      --sky-tree-shade: #357337;
+      --sky-mist: #fcfdfe;
+      --sky-water-fill: rgba(142, 192, 222, 0.48);
+      --sky-shimmer: rgba(246, 196, 69, 0.45);
+      --sky-sidelight: #ffffff;
+      --sky-sidelight-op: 0.30;
+      --sky-beam-op: 0;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden;
+      background: var(--paper);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang TC", "Noto Sans TC", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      letter-spacing: 0;
+      overscroll-behavior: none;
+    }
+
+    body {
+      padding: 12px;
+      background-color: var(--paper);
+      background-image:
+        linear-gradient(180deg, var(--paper-top-wash) 0px, transparent 104px),
+        linear-gradient(0deg, var(--paper-bot-wash) 0px, transparent 116px),
+        repeating-linear-gradient(
+          0deg,
+          var(--paper-grain) 0px,
+          var(--paper-grain) 1px,
+          transparent 1px,
+          transparent 4px
+        );
+    }
+
+    .skyline-filters {
+      position: absolute;
+      width: 0;
+      height: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* In-header panoramic miniature landscape strips: height 38px, aligned to continuous vertical skyline */
+    .skyline-strip {
+      position: absolute;
+      top: -4px;
+      right: -8px;
+      width: 192px;
+      height: 38px;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 1;
+      color: var(--sky-ink);
+    }
+
+    .card[data-card="projects"] .skyline-strip {
+      top: -4px;
+      height: 38px;
+    }
+
+    .skyline-strip--footer {
+      top: 6px;
+      right: 5px;
+      width: 146px;
+      height: 34px;
+    }
+
+    .skyline-strip svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    .skyline-strip [data-parallax] {
+      transition: transform 120ms ease-out;
+      will-change: transform;
+    }
+
+    .skyline-strip .sky-ink {
+      stroke: var(--sky-ink);
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .skyline-strip .sky-hatch {
+      stroke: var(--sky-ink-soft);
+      stroke-linecap: round;
+    }
+
+    .skyline-strip .sky-sidelight {
+      fill: var(--sky-sidelight);
+      opacity: var(--sky-sidelight-op);
+      transition: fill 240ms ease, opacity 240ms ease;
+    }
+
+    .skyline-strip .sky-rim-stroke {
+      stroke: var(--sky-sidelight);
+      opacity: var(--sky-sidelight-op);
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: stroke 240ms ease, opacity 240ms ease;
+    }
+
+    .skyline-strip .lighthouse-beam {
+      opacity: var(--sky-beam-op);
+      transition: opacity 240ms ease;
+    }
+
+    .skyline-strip .town-win {
+      fill: var(--sky-win-fill);
+      stroke: var(--sky-win-stroke);
+      stroke-width: 0.55;
+      transition: fill 240ms ease, stroke 240ms ease;
+    }
+
+    .skyline-strip[data-period="dusk"] .town-win {
+      filter: drop-shadow(0 0 1.2px rgba(255, 198, 92, 0.7));
+    }
+
+    .skyline-strip[data-period="night"] .town-win {
+      filter: drop-shadow(0 0 2.0px rgba(255, 214, 102, 0.92));
+    }
+
+    .skyline-strip .harbor-shimmer {
+      opacity: 0.25;
+    }
+
+    .skyline-strip[data-period="dawn"] .harbor-shimmer {
+      opacity: 0.45;
+    }
+
+    .skyline-strip[data-period="dusk"] .harbor-shimmer {
+      opacity: 0.85;
+    }
+
+    .skyline-strip[data-period="night"] .harbor-shimmer {
+      opacity: 0.98;
+    }
+
+    .skyline-strip .sky-birds {
+      display: block;
+    }
+
+    .skyline-strip[data-period="night"] .sky-birds {
+      display: none;
+    }
+
+    .skyline-strip .sky-snow,
+    .skyline-strip .sky-snowflakes,
+    .skyline-strip .season-spring,
+    .skyline-strip .season-summer,
+    .skyline-strip .season-autumn,
+    .skyline-strip .tree-snow,
+    .skyline-strip .tree-blossom,
+    .skyline-strip .tree-autumn,
+    .skyline-strip .tree-bare {
+      display: none;
+    }
+
+    .skyline-strip[data-season="spring"] .season-spring,
+    .skyline-strip[data-season="spring"] .tree-blossom {
+      display: block;
+    }
+
+    .skyline-strip[data-season="spring"] .tree-canopy {
+      display: none;
+    }
+
+    .skyline-strip[data-season="summer"] .season-summer {
+      display: block;
+    }
+
+    .skyline-strip[data-season="autumn"] .season-autumn,
+    .skyline-strip[data-season="autumn"] .tree-autumn {
+      display: block;
+    }
+
+    .skyline-strip[data-season="autumn"] .tree-canopy {
+      display: none;
+    }
+
+    .skyline-strip[data-season="winter"] .sky-snow,
+    .skyline-strip[data-season="winter"] .tree-snow,
+    .skyline-strip[data-season="winter"] .tree-bare,
+    .skyline-strip[data-season="winter"] .sky-snowflakes {
+      display: block;
+    }
+
+    .skyline-strip[data-season="winter"] .tree-canopy {
+      display: none;
+    }
+
+    .skyline-strip[data-season="winter"] .sky-snowflakes {
+      opacity: 0.94;
+    }
+
+    .skyline-strip[data-season="winter"][data-period="night"] .sky-snowflakes {
+      opacity: 0.98;
+    }
+
+    /* Fountain-pen sketched cards: ::before holds paper fill + wobbly ink stroke so text stays razor sharp */
+    .card {
+      position: relative;
+      background: transparent;
+      border: none;
+      border-radius: var(--radius);
+      box-shadow: none;
+      overflow: visible;
+      padding: 13px 15px 12px;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 6px;
+      background: var(--panel);
+      border: 1.45px solid var(--panel-border);
+      filter: url(#pen-wobble);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .card > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .card > .brand {
+      position: relative;
+      z-index: 3;
+    }
+
+    .brand > img,
+    .brand > .brand-icon,
+    .brand > h1 {
+      position: relative;
+      z-index: 2;
+    }
+
+    .brand > .switch,
+    .brand > .codex-stale,
+    .brand > .agy-group-toggle {
+      position: relative;
+      z-index: 4;
+    }
+
+    /* Footer uses ::before for its sketched card surface */
+    .footer {
+      position: relative;
+      padding: 12px 15px 12px;
+      background: transparent;
+      border: none;
+      border-radius: var(--radius);
+      box-shadow: none;
+      overflow: visible;
+    }
+
+    .footer::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 6px;
+      background: var(--panel);
+      border: 1.45px solid var(--panel-border);
+      filter: url(#pen-wobble);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .footer > * {
+      position: relative;
+      z-index: 2;
+    }
+
+    .footer > .skyline-strip--footer {
+      position: absolute;
+      z-index: 1;
+    }
+
+    .card[data-card="codex"],
+    .card[data-card="agy"] {
+      overflow: visible;
+      z-index: 2;
+    }
+
+    /* Chasing halo. No box-shadow anywhere: the effect is a conic gradient
+       clipped to the card's own border ring, so it cannot bleed past the box
+       even on the codex/agy cards, which are overflow:visible for tooltips. */
+    @property --halo-angle {
+      syntax: "<angle>";
+      initial-value: 0deg;
+      inherits: false;
+    }
+
+    .card[data-critical="true"]::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 2px;
+      pointer-events: none;
+      z-index: 2;
+      background: conic-gradient(from var(--halo-angle),
+          transparent 0deg 232deg,
+          color-mix(in srgb, var(--danger) 30%, transparent) 286deg,
+          var(--danger) 334deg,
+          color-mix(in srgb, var(--danger) 30%, transparent) 352deg,
+          transparent 360deg);
+      -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      mask-composite: exclude;
+      animation: halo-spin 2.6s linear infinite;
+    }
+
+    @keyframes halo-spin {
+      to {
+        --halo-angle: 360deg;
+      }
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      height: 32px;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .brand img {
+      width: 30px;
+      height: 30px;
+      border-radius: 7px;
+      object-fit: cover;
+      flex: none;
+      box-shadow:
+        0 0 0 1.15px var(--panel-border),
+        1px 1px 0 var(--ink-shadow);
+    }
+
+    .brand-icon {
+      width: 30px;
+      height: 30px;
+      font-size: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: none;
+      border-radius: 7px;
+      background: color-mix(in srgb, var(--accent) 12%, var(--paper));
+      box-shadow: inset 0 0 0 1.15px color-mix(in srgb, var(--accent) 44%, var(--ink-line-soft));
+    }
+
+    .card[data-card="agy"] .brand-icon svg,
+    .card[data-card="grok"] .brand-icon svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .card[data-card="agy"] .brand-icon,
+    .card[data-card="grok"] .brand-icon {
+      color: var(--accent);
+    }
+
+    .brand h1 {
+      margin: 0;
+      min-width: 0;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 17.5px;
+      line-height: 1;
+      font-weight: 700;
+      color: var(--text);
+      /* Room for descenders (g, y) inside the ellipsis clip; the negative margin keeps the layout unchanged. */
+      padding-block: 0.2em;
+      margin-block: -0.2em;
+    }
+
+    .codex-stale {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      flex: none;
+      min-width: 0;
+      color: var(--warn);
+      font-size: 11px;
+      line-height: 1;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .codex-stale[hidden] {
+      display: none;
+    }
+
+    /* Codex has no live report, so an old reading is normal, not a warning. */
+    [data-codex-stale] {
+      color: var(--muted);
+    }
+
+    .codex-credits {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .card[data-card="agy"] .brand h1 {
+      flex: none;
+      overflow: visible;
+    }
+
+    .card[data-card="agy"] .codex-stale {
+      margin-left: auto;
+    }
+
+    .card[data-card="codex"] .brand.usage-switch-host h1 {
+      flex: none;
+      overflow: visible;
+    }
+
+    .card[data-card="codex"] .brand.usage-switch-host .codex-stale {
+      flex: 1 1 0;
+      overflow: hidden;
+    }
+
+    .card[data-card="codex"] .brand.usage-switch-host [data-codex-stale-age] {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .codex-stale-info {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 14px;
+      height: 14px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1;
+    }
+
+    .codex-stale-tooltip {
+      position: absolute;
+      z-index: 20;
+      top: calc(100% + 8px);
+      right: 0;
+      display: none;
+      width: max-content;
+      max-width: 260px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      background: var(--tooltip-bg);
+      color: var(--tooltip-text);
+      border: 1px solid var(--tooltip-border);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
+      font-size: 11px;
+      line-height: 1.45;
+      font-weight: 500;
+      white-space: normal;
+    }
+
+    .codex-stale-info:hover .codex-stale-tooltip {
+      display: block;
+    }
+
+    .card[data-card="projects"] .brand {
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr);
+      align-items: center;
+      height: auto;
+      row-gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .card[data-card="projects"] .brand-icon {
+      grid-column: 1;
+    }
+
+    .card[data-card="projects"] h1 {
+      grid-column: 2;
+    }
+
+    .project-actions {
+      grid-column: 1 / 3;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .project-actions .switch {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-width: 0;
+      height: 28px;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    /* The range toggle leads with muted sage text and a thin ink outline, so a red quota stays louder. */
+    .project-actions [data-action="toggle-project-range"] {
+      border-color: var(--projects-btn-border);
+      background: var(--projects-btn-bg);
+      color: var(--projects-btn-text);
+    }
+
+    .project-actions [data-action="toggle-project-range"]:hover {
+      border-color: var(--projects);
+      background: color-mix(in srgb, var(--projects) 18%, transparent);
+    }
+
+    .project-actions .switch:not([data-action="toggle-project-range"]) {
+      background: var(--button);
+      color: var(--muted);
+    }
+
+    .project-actions .switch:not([data-action="toggle-project-range"]):hover {
+      background: var(--button-hover);
+      color: var(--text);
+    }
+
+    .switch {
+      height: 28px;
+      padding: 0 10px;
+      border: 1.15px solid var(--button-border);
+      border-radius: 5px 6px 5px 6px;
+      background: var(--button);
+      color: var(--text);
+      font: 600 12px/26px -apple-system, BlinkMacSystemFont, "PingFang TC", "Noto Sans TC", sans-serif;
+      white-space: nowrap;
+    }
+
+    /* Settings sits in a card header, so it is header-sized and quieter than the actions. */
+    .brand .switch[data-action="switch"] {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 22px;
+      padding: 0 8px;
+      border: 1.1px solid var(--button-border);
+      border-radius: 5px;
+      background: var(--paper-card);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 1;
+    }
+
+    .brand .switch[data-action="switch"]:hover {
+      background: var(--button-hover);
+      border-color: var(--ink-border-strong);
+      color: var(--text);
+    }
+
+    /* Hand-drawn horizontal ink divider between rows */
+    .row + .row {
+      position: relative;
+      border-top: none;
+      margin-top: 10px;
+      padding-top: 10px;
+    }
+
+    .row + .row::before {
+      content: "";
+      position: absolute;
+      top: -2px;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background-color: var(--ink-divider);
+      -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 4' preserveAspectRatio='none'%3E%3Cpath d='M 1 2.1 Q 45 1.2 95 2.2 T 185 1.7 T 275 2.3 Q 302 1.8 319 2.1' stroke='black' stroke-width='1.35' stroke-linecap='round' fill='none'/%3E%3C/svg%3E");
+      -webkit-mask-size: 100% 100%;
+      mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 4' preserveAspectRatio='none'%3E%3Cpath d='M 1 2.1 Q 45 1.2 95 2.2 T 185 1.7 T 275 2.3 Q 302 1.8 319 2.1' stroke='black' stroke-width='1.35' stroke-linecap='round' fill='none'/%3E%3C/svg%3E");
+      mask-size: 100% 100%;
+      pointer-events: none;
+    }
+
+    .row-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 5px;
+    }
+
+    .row-title {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 18px;
+      font-weight: 600;
+    }
+
+    .percent {
+      font-size: 14px;
+      line-height: 18px;
+      font-weight: 800;
+      color: var(--text);
+      white-space: nowrap;
+      font-family: var(--mono);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Ink-boxed progress bar with diagonal pen-hatched fill */
+    .track {
+      position: relative;
+      height: 9px;
+      border-radius: 3px 4px 3px 4px;
+      border: 1.25px solid var(--ink-line);
+      overflow: hidden;
+      background: var(--track);
+      filter: url(#pen-wobble-track);
+    }
+
+    /* Tick marks the 80% danger threshold from colorFor(); drawn above the fill
+       so a bar past it still shows where the line was crossed. */
+    .track::after {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 calc(80% - 1px);
+      width: 1.5px;
+      background: var(--tick);
+      pointer-events: none;
+    }
+
+    .fill {
+      width: 0%;
+      height: 100%;
+      min-width: 4px;
+      border-radius: 1px;
+      background-color: color-mix(in srgb, var(--fill-color, var(--accent)) 22%, transparent);
+      background-image: repeating-linear-gradient(
+        -55deg,
+        color-mix(in srgb, var(--fill-color, var(--accent)) 88%, var(--hatch-mix-base) var(--hatch-mix-pct)) 0px,
+        color-mix(in srgb, var(--fill-color, var(--accent)) 88%, var(--hatch-mix-base) var(--hatch-mix-pct)) 1.6px,
+        transparent 1.6px,
+        transparent 4.4px
+      );
+      border-right: 1.25px solid var(--ink-line);
+      transition: width 140ms ease-out, background-color 140ms ease-out;
+    }
+
+    .reset {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 13px;
+      font-weight: 600;
+      text-align: right;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .reset[data-warning="true"] {
+      color: var(--danger);
+    }
+
+    .row[data-available="false"] .percent,
+    .row[data-available="false"] .reset {
+      color: var(--muted);
+    }
+
+    .row[data-available="false"] .fill {
+      width: 0%;
+      border-right: none;
+    }
+
+    /* min-width keeps a sub-1% bar visible; a genuine 0% must stay empty. */
+    .fill[style*="width: 0%"] {
+      min-width: 0;
+      border-right: none;
+    }
+
+    .proj-row {
+      position: relative;
+      display: grid;
+      grid-template-columns: 16px minmax(0, 1fr) auto auto;
+      align-items: center;
+      gap: 5px 8px;
+      padding: 7px 0 8px;
+      font-size: 13.5px;
+      line-height: 20px;
+    }
+
+    .proj-row + .proj-row {
+      border-top: none;
+    }
+
+    .proj-row + .proj-row::before {
+      content: "";
+      position: absolute;
+      top: -2px;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background-color: var(--ink-divider);
+      -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 4' preserveAspectRatio='none'%3E%3Cpath d='M 1 1.9 Q 52 2.5 110 1.7 T 212 2.2 T 290 1.7 Q 306 2.1 319 2.0' stroke='black' stroke-width='1.3' stroke-linecap='round' fill='none'/%3E%3C/svg%3E");
+      -webkit-mask-size: 100% 100%;
+      mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 4' preserveAspectRatio='none'%3E%3Cpath d='M 1 1.9 Q 52 2.5 110 1.7 T 212 2.2 T 290 1.7 Q 306 2.1 319 2.0' stroke='black' stroke-width='1.3' stroke-linecap='round' fill='none'/%3E%3C/svg%3E");
+      mask-size: 100% 100%;
+      pointer-events: none;
+    }
+
+    .proj-row:first-child {
+      font-weight: 600;
+    }
+
+    .proj-rank {
+      width: 16px;
+      height: 16px;
+      align-self: center;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      border: 1.15px solid var(--ink-line-soft);
+      background: var(--rank-bg);
+      color: var(--text);
+      font-weight: 700;
+      font-size: 10px;
+    }
+
+    .proj-row:first-child .proj-rank {
+      border-color: var(--rank-top-border);
+      background: var(--rank-top-bg);
+      color: var(--projects-btn-text);
+    }
+
+    .proj-name {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--text);
+    }
+
+    .proj-tokens {
+      color: var(--text);
+      font-weight: 700;
+      white-space: nowrap;
+      text-align: right;
+      min-width: 92px;
+      font-family: var(--mono);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.3px;
+    }
+
+    .proj-cost {
+      min-width: 52px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 500;
+      text-align: right;
+      white-space: nowrap;
+      font-family: var(--mono);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.3px;
+    }
+
+    .proj-bar {
+      grid-column: 1 / -1;
+      height: 6px;
+      border-radius: 2px 3px 2px 3px;
+      border: 1.1px solid var(--ink-line-soft);
+      background: var(--track);
+      overflow: hidden;
+      align-self: end;
+      filter: url(#pen-wobble-track);
+    }
+
+    .proj-bar-fill {
+      width: 0%;
+      height: 100%;
+      border-radius: 1px;
+      background-color: color-mix(in srgb, var(--accent) 22%, transparent);
+      background-image: repeating-linear-gradient(
+        -55deg,
+        color-mix(in srgb, var(--accent) 84%, var(--hatch-mix-base) var(--hatch-mix-pct)) 0px,
+        color-mix(in srgb, var(--accent) 84%, var(--hatch-mix-base) var(--hatch-mix-pct)) 1.5px,
+        transparent 1.5px,
+        transparent 4.2px
+      );
+      border-right: 1.1px solid var(--ink-line-soft);
+      opacity: 0.88;
+    }
+
+    .proj-bar-fill[style*="width: 0%"] {
+      border-right: none;
+    }
+
+    .proj-row:first-child .proj-bar {
+      height: 6.5px;
+    }
+
+    .proj-row:first-child .proj-bar-fill {
+      opacity: 1;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      max-width: calc(100% - 140px);
+    }
+
+    .meta > div {
+      padding: 2px 6.5px;
+      border-radius: 999px;
+      background: var(--button);
+      border: 1.1px solid var(--button-border);
+      color: var(--muted);
+      font-size: 10.5px;
+      line-height: 15px;
+      font-weight: 600;
+      /* The harbour scenery leaves these pills about 155px, so a long status wraps rather than truncates. */
+      white-space: normal;
+      overflow-wrap: anywhere;
+      max-width: 100%;
+    }
+
+    .service-alert {
+      padding: 3px 8px;
+      border-radius: 5px;
+      background: var(--alert-bg);
+      border: 1.1px solid var(--alert-border);
+      color: var(--alert-text);
+      font-size: 12px;
+      line-height: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    [data-footer="service-alerts"] {
+      display: grid;
+      gap: 4px;
+    }
+
+    .today {
+      margin-top: 10px;
+      color: var(--text);
+      font-size: 14px;
+      line-height: 20px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.2px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .action {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 32px;
+      height: auto;
+      border: 1.15px solid var(--button-border);
+      border-radius: 5px 6px 5px 6px;
+      background: var(--button);
+      color: var(--muted);
+      font: 700 13px/1 -apple-system, BlinkMacSystemFont, "PingFang TC", "Noto Sans TC", sans-serif;
+      white-space: normal;
+      min-width: 0;
+      line-height: 1.3;
+      flex: 1;
+    }
+
+    .action,
+    .switch {
+      transition:
+        filter 80ms ease-out,
+        transform 80ms ease-out,
+        background 160ms ease-out,
+        background-color 160ms ease-out,
+        border-color 160ms ease-out,
+        color 160ms ease-out;
+    }
+
+    .action:focus-visible,
+    .switch:focus-visible {
+      outline: 2px solid var(--accent, var(--codex));
+      outline-offset: 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .action,
+      .switch,
+      .fill,
+      .skyline-strip [data-parallax] {
+        transition: none;
+      }
+
+      .skyline-strip [data-parallax] {
+        transform: none !important;
+      }
+
+      .card[data-critical="true"]::after {
+        animation: none;
+        background: color-mix(in srgb, var(--danger) 72%, transparent);
+      }
+    }
+
+    .action:active,
+    .switch:active {
+      filter: brightness(0.92);
+      transform: scale(0.98);
+    }
+
+    .action.primary {
+      border-color: var(--primary-btn-border);
+      background: var(--primary-btn-bg);
+      color: var(--primary-btn-text);
+    }
+
+    .action.primary:hover {
+      border-color: var(--codex);
+      background: var(--primary-btn-hover-bg);
+      color: var(--primary-btn-hover-text);
+    }
+
+    .action:not(.primary):hover {
+      background: var(--button-hover);
+      color: var(--text);
+    }
+
+    .action[data-action="install"] {
+      display: none;
+    }
+
+    .action[data-action="install"][data-visible="true"] {
+      display: inline-block;
+      flex: 1;
+    }
+
+    .switch:hover {
+      background: var(--button-hover);
+      border-color: var(--ink-border-strong);
+    }
+
+    .attribution {
+      font-size: 10px;
+      color: var(--muted);
+      opacity: 0.78;
+      text-align: center;
+      margin: 6px 0 0;
+    }
+
+    .attribution a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .hide-codex [data-card="codex"] { display: none; }
+    .hide-claude [data-card="claude"] { display: none; }
+    .hide-agy [data-card="agy"] { display: none; }
+    .hide-grok [data-card="grok"] { display: none; }
+    .card[data-card="claude"],
+    .card[data-card="codex"],
+    .card[data-card="agy"] { cursor: grab; }
+    .card.is-dragging { cursor: grabbing; opacity: 0.72; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.22); transform: translateY(-2px); }
+    .is-card-dragging, .is-card-dragging * { user-select: none; }
+
+    .card[data-card="agy"] .agy-group-toggle {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      height: 20px;
+      border: 1.1px solid color-mix(in srgb, var(--agy) 48%, transparent);
+      border-radius: 999px;
+      padding: 0 8px;
+      background: color-mix(in srgb, var(--agy) 12%, transparent);
+      color: var(--agy);
+      font-family: inherit;
+      font-size: 10.5px;
+      font-weight: 600;
+      line-height: 1;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    /* display above would otherwise override the hidden attribute. */
+    .card[data-card="agy"] .agy-group-toggle[hidden] {
+      display: none;
+    }
+    .card[data-card="agy"] .brand h1 {
+      flex: 0 1 auto;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .card[data-card="agy"] .agy-group-toggle:hover,
+    .card[data-card="agy"] .agy-group-toggle:focus-visible {
+      background: color-mix(in srgb, var(--agy) 22%, transparent);
+    }
+
+    .card[data-card="muse"] .brand-icon svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .card[data-card="muse"] .brand-icon {
+      color: var(--accent);
+    }
+
+    .hide-muse [data-card="muse"] { display: none; }
+
+    /* Compact layout keeps this theme's header geometry and decoration. */
+    html.compact-cards body .card[data-card="projects"] { padding-inline: 13px; }
+    html.compact-cards body .card[data-card="projects"] .brand {
+      grid-template-columns: 24px minmax(0, 1fr);
+      column-gap: 8px;
+    }
+    html.compact-cards body .card[data-card] .brand-icon svg { width: 15px; height: 15px; }
+    /* The folder artwork carries its own padding inside the viewBox. */
+    html.compact-cards body .card[data-card="projects"] .brand-icon svg { width: 20px; height: 20px; }
+    html.compact-cards body .footer {
+      min-height: 0;
+      padding-inline: 13px;
+      padding-top: 10px;
+      padding-bottom: 10px;
+    }
+    html.compact-cards body .skyline-strip {
+      top: -2px;
+      width: 174px;
+      height: 30px;
+      right: -6px;
+    }
+    html.compact-cards body .card[data-card="projects"] .skyline-strip {
+      top: -2px;
+      height: 30px;
+    }
+    html.compact-cards body .skyline-strip--footer {
+      top: 5px;
+      right: 5px;
+      width: 142px;
+      height: 28px;
+    }
+    html.compact-cards body .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"], [data-card="muse"]):not([data-compact-single="true"]) {
+      column-gap: 0;
+    }
+    html.compact-cards body .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"], [data-card="muse"]):not([data-compact-single="true"]) > .row[data-row="session"] {
+      padding-right: 12px;
+    }
+    html.compact-cards body .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"], [data-card="muse"]):not([data-compact-single="true"]) > .row[data-row="weekly"] {
+      position: relative;
+      border-left: none;
+      padding-left: 12px;
+    }
+    html.compact-cards body .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"], [data-card="muse"]):not([data-compact-single="true"]) > .row[data-row="weekly"]::before {
+      content: "";
+      position: absolute;
+      top: 2px;
+      bottom: 2px;
+      left: -2px;
+      right: auto;
+      width: 4px;
+      height: auto;
+      background-color: var(--ink-divider);
+      -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 80' preserveAspectRatio='none'%3E%3Cpath d='M 2.1 1 Q 1.3 22 2.2 42 T 1.9 79' stroke='black' stroke-width='1.35' stroke-linecap='round' fill='none'/%3E%3C/svg%3E");
+      -webkit-mask-size: 100% 100%;
+      mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 80' preserveAspectRatio='none'%3E%3Cpath d='M 2.1 1 Q 1.3 22 2.2 42 T 1.9 79' stroke='black' stroke-width='1.35' stroke-linecap='round' fill='none'/%3E%3C/svg%3E");
+      mask-size: 100% 100%;
+      pointer-events: none;
+    }
+    html.compact-cards body .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"], [data-card="muse"]) .row-title {
+      font-size: 11.5px;
+    }
+    html.compact-cards body .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"], [data-card="muse"]) .percent {
+      font-size: 13.5px;
+    }
+    /* Shrink the projects card and footer to match the compact quota cards. */
+    html.compact-cards body .card[data-card="projects"] .project-actions { gap: 8px; }
+    html.compact-cards body .card[data-card="projects"] .project-actions .switch { height: 24px; font-size: 11.5px; }
+    html.compact-cards body .proj-row { padding: 4px 0 5px; font-size: 12.5px; line-height: 18px; row-gap: 4px; }
+    html.compact-cards body .proj-cost { font-size: 11px; }
+    html.compact-cards body .today { margin-top: 8px; font-size: 13px; }
+    html.compact-cards body .actions { margin-top: 8px; gap: 8px; }
+    html.compact-cards body .action { min-height: 28px; font-size: 12px; }
+    html.compact-cards body .brand .switch[data-action="switch"] { height: 22px; }
+  </style>
+</head>
+<body>
+  <svg class="skyline-filters" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <filter id="pen-wobble" x="-6%" y="-6%" width="112%" height="112%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.022" numOctaves="2" seed="5" result="noise"/>
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.15" xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+      <filter id="pen-wobble-track" x="-4%" y="-60%" width="108%" height="220%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="17" result="noise"/>
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.15" xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+    </defs>
+  </svg>
+  <main class="wrap">
+    <section class="card" data-card="claude" style="--accent: var(--claude)">
+      <header class="brand">
+        <img src="{{CLAUDE_ICON}}" alt="">
+        <h1 data-i18n="claude_name">Claude Code</h1>
+        <div class="skyline-strip skyline-strip--claude" aria-hidden="true">
+          <svg viewBox="0 0 192 38" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMaxYMid meet">
+            <defs>
+              <linearGradient id="skyFadeGradClaude" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="42.24" y2="0">
+                <stop offset="0%" stop-color="#000"/>
+                <stop offset="100%" stop-color="#fff"/>
+              </linearGradient>
+              <mask id="skyFadeClaude"><rect x="0" y="0" width="192" height="38" fill="url(#skyFadeGradClaude)"/></mask>
+              <linearGradient id="skyGradClaude" x1="0" y1="0" x2="0" y2="1">
+                <stop id="skyClaudeStop0" offset="0%" stop-color="#7ab8e8" stop-opacity="0.96"/>
+                <stop id="skyClaudeStop1" offset="56%" stop-color="#b9ddf5" stop-opacity="0.82"/>
+                <stop id="skyClaudeStop2" offset="100%" stop-color="#edf6fc" stop-opacity="0.34"/>
+              </linearGradient>
+              <radialGradient id="skyGlowGrad" cx="50%" cy="50%" r="50%">
+                <stop id="skyGlowInner" offset="0%" stop-color="#fff4cc" stop-opacity="0.86"/>
+                <stop id="skyGlowOuter" offset="100%" stop-color="#fff4cc" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+            <g mask="url(#skyFadeClaude)">
+              <rect x="0" y="0" width="192" height="38" rx="3" fill="url(#skyGradClaude)"/>
+              <g data-parallax="far">
+                <g id="sky-stars" class="sky-stars" opacity="0">
+                  <path d="M 42 6 Q 42 8 44 8 Q 42 8 42 10 Q 42 8 40 8 Q 42 8 42 6 Z" fill="#fff5cc"/>
+                  <path d="M 86 4.5 Q 86 6.8 88.3 6.8 Q 86 6.8 86 9.1 Q 86 6.8 83.7 6.8 Q 86 6.8 86 4.5 Z" fill="#fff5cc"/>
+                  <path d="M 118 7 Q 118 9 120 9 Q 118 9 118 11 Q 118 9 116 9 Q 118 9 118 7 Z" fill="#fff5cc"/>
+                  <circle cx="34" cy="13" r="0.7" fill="#fff5cc" opacity="0.85"/>
+                  <circle cx="56" cy="14" r="0.65" fill="#fff5cc" opacity="0.75"/>
+                  <circle cx="69" cy="5.5" r="0.8" fill="#fff5cc" opacity="0.92"/>
+                  <circle cx="99" cy="13" r="0.7" fill="#fff5cc" opacity="0.82"/>
+                  <circle cx="107" cy="5" r="0.65" fill="#fff5cc" opacity="0.78"/>
+                  <circle cx="130" cy="5.5" r="0.7" fill="#fff5cc" opacity="0.78"/>
+                </g>
+                <g id="sky-sun" transform="translate(86, 11.5)">
+                  <circle cx="0" cy="0" r="12.5" fill="url(#skyGlowGrad)"/>
+                  <circle id="sky-sun-disc" cx="0" cy="0" r="4.5" fill="#f6c445" class="sky-ink" stroke-width="0.95"/>
+                  <g class="sky-ink" stroke-width="0.8" opacity="0.86">
+                    <line x1="0" y1="-6.4" x2="0" y2="-8.4"/>
+                    <line x1="0" y1="6.4" x2="0" y2="8.2"/>
+                    <line x1="-6.4" y1="0" x2="-8.4" y2="0"/>
+                    <line x1="6.4" y1="0" x2="8.4" y2="0"/>
+                    <line x1="-4.6" y1="-4.6" x2="-6.1" y2="-6.1"/>
+                    <line x1="4.6" y1="-4.6" x2="6.1" y2="-6.1"/>
+                    <line x1="-4.6" y1="4.6" x2="-6.0" y2="6.0"/>
+                    <line x1="4.6" y1="4.6" x2="6.1" y2="6.1"/>
+                  </g>
+                </g>
+                <g id="sky-moon" transform="translate(72, 13.5)" opacity="0">
+                  <circle cx="0" cy="0" r="11.5" fill="url(#skyGlowGrad)"/>
+                  <path d="M 2.2 -5.2 A 5.4 5.4 0 1 0 4.6 3.8 A 4.2 4.2 0 1 1 2.2 -5.2 Z" fill="#fff4cf" class="sky-ink" stroke-width="0.95"/>
+                </g>
+                <!-- Subtle distant ridge crests linking down to Codex mountains -->
+                <path d="M 46 37.5 Q 70 32 92 34.5 Q 114 29.5 138 33.5 Q 160 30 180 33.5 L 192 35.5 L 192 37.5 Z" fill="var(--sky-mtn-far)" opacity="0.34"/>
+                <path d="M 70 34.2 Q 114 29.6 138 33.5 Q 160 30 180 33.5" class="sky-ink" fill="none" stroke-width="0.55" opacity="0.32"/>
+              </g>
+              <g data-parallax="mid">
+                <g id="sky-clouds">
+                  <path d="M 44 29 Q 44 25.8 47.8 25.8 Q 49.5 22.6 53.8 23.5 Q 57 22 60.2 24.8 Q 63.8 24.8 64.8 29 Z" fill="var(--sky-cloud-fill)" class="sky-ink" stroke-width="0.85"/>
+                  <path d="M 88 27.5 Q 88 24.7 91.5 24.7 Q 93.5 21.5 98 22.5 Q 101.5 21 105 24 Q 109 24 110 27.5 Z" fill="var(--sky-cloud-fill)" class="sky-ink" stroke-width="0.85"/>
+                  <path d="M 122 29.5 Q 122 27.3 125 27.3 Q 126.8 24.9 130.5 25.7 Q 134 24.5 136.8 26.9 Q 140 26.9 140.8 29.5 Z" fill="var(--sky-cloud-fill)" class="sky-ink" stroke-width="0.8" opacity="0.88"/>
+                </g>
+                <g class="sky-birds sky-ink" fill="none" stroke-width="0.8" opacity="0.78">
+                  <path d="M 65 19.5 Q 67.2 17.3 69.4 19.5 Q 71.6 17.3 73.8 19.5"/>
+                  <path d="M 76 16 Q 77.7 14.3 79.4 16 Q 81.1 14.3 82.8 16"/>
+                  <path d="M 114 18.5 Q 115.5 17 117 18.5 Q 118.5 17 120 18.5"/>
+                </g>
+              </g>
+              <g data-parallax="near">
+                <g class="season-spring" opacity="0.95">
+                  <ellipse cx="52" cy="31" rx="1.8" ry="0.95" transform="rotate(-24 52 31)" fill="#f49bb4" stroke="#b85877" stroke-width="0.35"/>
+                  <ellipse cx="77" cy="23" rx="1.6" ry="0.85" transform="rotate(18 77 23)" fill="#f9c9d7" stroke="#b85877" stroke-width="0.35"/>
+                  <ellipse cx="104" cy="30" rx="1.7" ry="0.85" transform="rotate(-14 104 30)" fill="#f49bb4" stroke="#b85877" stroke-width="0.35"/>
+                  <ellipse cx="122" cy="21" rx="1.5" ry="0.8" transform="rotate(26 122 21)" fill="#f9c9d7" stroke="#b85877" stroke-width="0.3"/>
+                </g>
+                <g class="season-autumn" opacity="0.94">
+                  <ellipse cx="52" cy="31" rx="1.7" ry="0.85" transform="rotate(24 52 31)" fill="#d96236" stroke="#7d2f18" stroke-width="0.35"/>
+                  <ellipse cx="79" cy="24" rx="1.5" ry="0.8" transform="rotate(-18 79 24)" fill="#e8963a" stroke="#7d2f18" stroke-width="0.35"/>
+                  <ellipse cx="115" cy="28" rx="1.6" ry="0.85" transform="rotate(14 115 28)" fill="#be432c" stroke="#7d2f18" stroke-width="0.3"/>
+                </g>
+                <g class="sky-snowflakes">
+                  <circle cx="48" cy="10.5" r="1.15" fill="var(--sky-snow-fill)" stroke="var(--sky-snow-shade)" stroke-width="0.42"/>
+                  <circle cx="62" cy="21" r="1.0" fill="var(--sky-snow-fill)" stroke="var(--sky-snow-shade)" stroke-width="0.4"/>
+                  <circle cx="76" cy="8.5" r="1.2" fill="var(--sky-snow-fill)" stroke="var(--sky-snow-shade)" stroke-width="0.42"/>
+                  <circle cx="96" cy="17.5" r="1.05" fill="var(--sky-snow-fill)" stroke="var(--sky-snow-shade)" stroke-width="0.4"/>
+                  <circle cx="114" cy="9" r="1.15" fill="var(--sky-snow-fill)" stroke="var(--sky-snow-shade)" stroke-width="0.42"/>
+                  <circle cx="132" cy="18.5" r="1.05" fill="var(--sky-snow-fill)" stroke="var(--sky-snow-shade)" stroke-width="0.4"/>
+                </g>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <button class="switch" data-action="switch" data-i18n="settings_button">⚙ Settings</button>
+      </header>
+      <div class="row" data-row="session"></div>
+      <div class="row" data-row="weekly"></div>
+    </section>
+
+    <section class="card" data-card="codex" style="--accent: var(--codex)">
+      <header class="brand">
+        <img src="{{CODEX_ICON}}" alt="">
+        <h1 data-i18n="codex_name">Codex</h1>
+        <div class="skyline-strip skyline-strip--codex" aria-hidden="true">
+          <svg viewBox="0 0 208 38" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMaxYMid meet">
+            <defs>
+              <linearGradient id="skyFadeGradCodex" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="37.44" y2="0">
+                <stop offset="0%" stop-color="#000"/>
+                <stop offset="100%" stop-color="#fff"/>
+              </linearGradient>
+              <mask id="skyFadeCodex"><rect x="0" y="0" width="208" height="38" fill="url(#skyFadeGradCodex)"/></mask>
+              <linearGradient id="skyGradCodex" x1="0" y1="0" x2="0" y2="1">
+                <stop id="skyCodexStop0" offset="0%" stop-color="#8ec4ec" stop-opacity="0.92"/>
+                <stop id="skyCodexStop1" offset="94%" stop-color="#fcfdfe" stop-opacity="0.26"/>
+              </linearGradient>
+            </defs>
+            <g mask="url(#skyFadeCodex)">
+              <rect x="0" y="0" width="208" height="38" rx="3" fill="url(#skyGradCodex)"/>
+              <g data-parallax="far">
+                <g class="sky-stars" opacity="0">
+                  <circle cx="48" cy="6.5" r="0.75" fill="#fff5cc" opacity="0.88"/>
+                  <circle cx="98" cy="5" r="0.8" fill="#fff5cc" opacity="0.92"/>
+                  <circle cx="152" cy="5.5" r="0.7" fill="#fff5cc" opacity="0.85"/>
+                  <path d="M 184 4.5 Q 184 6.5 186 6.5 Q 184 6.5 184 8.5 Q 184 6.5 182 6.5 Q 184 6.5 184 4.5 Z" fill="#fff5cc"/>
+                </g>
+                <!-- Far alpine range -->
+                <path d="M 28 36.2 Q 52 29 74 17 Q 88 9.5 103 18 Q 121 25 140 13 Q 155 5 170 15 Q 186 22 197 12 L 208 18 L 208 36.2 Z" fill="var(--sky-mtn-far)" class="sky-ink" stroke-width="0.9"/>
+                <!-- Warm sun-facing slope facets & ridge rim-light -->
+                <path d="M 88 10.6 Q 94 14 102 18 L 98 18.6 Q 91.5 14.5 87.5 11.4 Z" class="sky-sidelight" opacity="0.72"/>
+                <path d="M 155 5.8 Q 162 10 169.5 15 L 165.5 15.6 Q 159 11 154.5 6.8 Z" class="sky-sidelight" opacity="0.72"/>
+                <path d="M 88 10.8 Q 95 14 103 18 M 155 6 Q 163 10.5 170 15 M 197 12.2 L 207 17.5" class="sky-rim-stroke" stroke-width="1.3"/>
+                <g class="sky-hatch" stroke-width="0.6" opacity="0.46">
+                  <line x1="78" y1="15.5" x2="84" y2="20"/>
+                  <line x1="81" y1="17.5" x2="87" y2="22"/>
+                  <line x1="143" y1="11.5" x2="149" y2="16.5"/>
+                  <line x1="146" y1="14" x2="152" y2="19"/>
+                  <line x1="186" y1="18" x2="191" y2="22.5"/>
+                </g>
+                <!-- Bold winter snow caps on far peaks -->
+                <g class="sky-snow">
+                  <path d="M 69 19.6 Q 78.5 14.5 88 9.5 Q 97.5 14.8 107 19.6 Q 100 21.8 94.5 18.8 Q 88 22.6 81.5 18.8 Q 75.5 21.4 69 19.6 Z" fill="var(--sky-snow-fill)" class="sky-ink" stroke-width="0.9"/>
+                  <path d="M 97 15.2 L 105.8 19.4 Q 100.5 21.2 95.8 19.0 L 94 17.0 Z" fill="var(--sky-snow-shade)" opacity="0.36"/>
+                  <path d="M 134 16.4 Q 144.5 10.6 155 5 Q 164.5 11.4 174 16.8 Q 166.5 19.5 160.5 16.2 Q 154.5 20.2 147.5 16.2 Q 141 18.8 134 16.4 Z" fill="var(--sky-snow-fill)" class="sky-ink" stroke-width="0.9"/>
+                  <path d="M 164 11.4 L 173 16.4 Q 166.8 18.8 162 16.4 L 160 14.0 Z" fill="var(--sky-snow-shade)" opacity="0.36"/>
+                  <path d="M 184 18.6 Q 191 15 197 12 L 208 18 L 208 20.6 Q 202 18.8 197 21.0 Q 191 18.8 184 18.6 Z" fill="var(--sky-snow-fill)" class="sky-ink" stroke-width="0.88"/>
+                </g>
+              </g>
+              <g data-parallax="mid">
+                <!-- Mid ridge -->
+                <path d="M 32 36.2 Q 56 31.5 82 28 Q 106 23 126 17 Q 143 23 164 25.5 Q 186 19.5 208 24 L 208 36.2 Z" fill="var(--sky-mtn-mid)" class="sky-ink" stroke-width="0.95"/>
+                <path d="M 126 17.3 Q 134 20.5 143 23 M 186 20.5 L 207 24" class="sky-rim-stroke" stroke-width="1.25"/>
+                <g class="sky-hatch" stroke-width="0.6" opacity="0.45">
+                  <line x1="115" y1="21" x2="121" y2="25.5"/>
+                  <line x1="119" y1="22.5" x2="125" y2="27"/>
+                </g>
+                <!-- Ridge pines -->
+                <g class="sky-ink" fill="var(--sky-mtn-mid)" stroke-width="0.78">
+                  <path d="M 111 21 L 113.2 15.2 L 115.4 21 Z"/>
+                  <path d="M 115.8 20 L 118.2 13.8 L 120.6 20 Z"/>
+                  <path d="M 173 23 L 175.2 17.5 L 177.4 23 Z"/>
+                  <path d="M 178 22.5 L 180.2 16.5 L 182.4 22.5 Z"/>
+                </g>
+                <g class="sky-snow">
+                  <path d="M 119 20.0 Q 126 16.5 138 21.5 Q 133 23.4 128 21.3 Q 123.5 23.6 119 20.0 Z" fill="var(--sky-snow-fill)" class="sky-ink" stroke-width="0.82"/>
+                  <path d="M 182 21.5 Q 194 19.0 208 23.8 L 208 25.8 Q 199 23.8 193 25.4 Q 187.5 23.4 182 21.5 Z" fill="var(--sky-snow-fill)" class="sky-ink" stroke-width="0.78"/>
+                </g>
+              </g>
+              <g data-parallax="near">
+                <!-- Near foothills & subtle rooftop silhouettes connecting to Antigravity below -->
+                <path d="M 144 36.2 Q 168 29 208 26.5 L 208 36.2 Z" fill="var(--sky-mtn-near)" class="sky-ink" stroke-width="0.95"/>
+                <path d="M 148 36.2 L 148 33 L 154 33 L 154 36.2 M 162 36.2 L 162 31.5 L 169 31.5 L 169 36.2" fill="var(--sky-bldg-far)" class="sky-ink" stroke-width="0.6" opacity="0.72"/>
+                <g class="season-spring">
+                  <circle cx="66" cy="33" r="2.3" fill="#f49bb4" stroke="#8f435c" stroke-width="0.45"/><circle cx="69.5" cy="32" r="2.0" fill="#f9c9d7" stroke="#8f435c" stroke-width="0.4"/>
+                  <circle cx="136" cy="31.5" r="2.1" fill="#f49bb4" stroke="#8f435c" stroke-width="0.45"/><circle cx="139.5" cy="30.8" r="1.8" fill="#f9c9d7" stroke="#8f435c" stroke-width="0.4"/>
+                  <circle cx="186" cy="31.5" r="2.3" fill="#e67e9c" stroke="#8f435c" stroke-width="0.45"/><circle cx="189.5" cy="30.5" r="2.0" fill="#f9c9d7" stroke="#8f435c" stroke-width="0.4"/>
+                  <ellipse cx="96" cy="24" rx="1.4" ry="0.7" transform="rotate(-20 96 24)" fill="#f49bb4"/>
+                </g>
+                <g class="season-summer">
+                  <circle cx="66" cy="33" r="2.2" fill="var(--sky-tree-fill)" class="sky-ink" stroke-width="0.55"/><circle cx="69.5" cy="32" r="1.8" fill="var(--sky-tree-shade)" class="sky-ink" stroke-width="0.5"/>
+                  <circle cx="186" cy="31.5" r="2.2" fill="var(--sky-tree-fill)" class="sky-ink" stroke-width="0.55"/><circle cx="189.5" cy="30.5" r="1.8" fill="var(--sky-tree-shade)" class="sky-ink" stroke-width="0.5"/>
+                </g>
+                <g class="season-autumn">
+                  <circle cx="66" cy="33" r="2.3" fill="#d96236" stroke="#782c16" stroke-width="0.45"/><circle cx="69.5" cy="32" r="1.9" fill="#e8963a" stroke="#782c16" stroke-width="0.4"/>
+                  <circle cx="136" cy="31.5" r="2.1" fill="#be432c" stroke="#782c16" stroke-width="0.45"/><circle cx="139.5" cy="30.8" r="1.8" fill="#e8963a" stroke="#782c16" stroke-width="0.4"/>
+                  <circle cx="186" cy="31.5" r="2.3" fill="#e8963a" stroke="#782c16" stroke-width="0.45"/><circle cx="189.5" cy="30.5" r="2.0" fill="#d96236" stroke="#782c16" stroke-width="0.4"/>
+                </g>
+                <g class="sky-snowflakes">
+                  <circle cx="56" cy="10.5" r="1.05" fill="var(--sky-snow-fill)" stroke="var(--sky-snow-shade)" stroke-width="0.4"/>
+                  <circle cx="110" cy="8" r="1.15" fill="var(--sky-snow-fill)" stroke="var(--sky-snow-shade)" stroke-width="0.42"/>
+                  <circle cx="136" cy="19" r="1.0" fill="var(--sky-snow-fill)" stroke="var(--sky-snow-shade)" stroke-width="0.4"/>
+                  <circle cx="176" cy="8.5" r="1.1" fill="var(--sky-snow-fill)" stroke="var(--sky-snow-shade)" stroke-width="0.42"/>
+                </g>
+                <line x1="28" y1="36.2" x2="208" y2="36.2" class="sky-ink" stroke-width="0.9" opacity="0.65"/>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <div class="codex-stale" data-codex-stale hidden>
+          <span data-codex-stale-age></span>
+          <span class="codex-stale-info" aria-hidden="true">ⓘ
+            <span class="codex-stale-tooltip" data-codex-stale-tooltip></span>
+          </span>
+        </div>
+      </header>
+      <div class="row" data-row="session"></div>
+      <div class="row" data-row="weekly"></div>
+    </section>
+
+    <section class="card" data-card="agy" style="--accent: var(--agy)">
+      <header class="brand">
+        <div class="brand-icon"><svg fill="currentColor" fill-rule="evenodd" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M21.751 22.607c1.34 1.005 3.35.335 1.508-1.508C17.73 15.74 18.904 1 12.037 1 5.17 1 6.342 15.74.815 21.1c-2.01 2.009.167 2.511 1.507 1.506 5.192-3.517 4.857-9.714 9.715-9.714 4.857 0 4.522 6.197 9.714 9.715z"></path></svg></div>
+        <h1 data-i18n="agy_name">Antigravity</h1>
+        <div class="skyline-strip skyline-strip--agy" aria-hidden="true">
+          <svg viewBox="0 0 208 38" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMaxYMid meet">
+            <defs>
+              <linearGradient id="skyFadeGradAgy" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="35.36" y2="0">
+                <stop offset="0%" stop-color="#000"/>
+                <stop offset="100%" stop-color="#fff"/>
+              </linearGradient>
+              <mask id="skyFadeAgy"><rect x="0" y="0" width="208" height="38" fill="url(#skyFadeGradAgy)"/></mask>
+              <linearGradient id="skyGradAgy" x1="0" y1="0" x2="0" y2="1">
+                <stop id="skyAgyStop0" offset="0%" stop-color="#8ec4ec" stop-opacity="0.88"/>
+                <stop id="skyAgyStop1" offset="95%" stop-color="#fcfdfe" stop-opacity="0.22"/>
+              </linearGradient>
+            </defs>
+            <g mask="url(#skyFadeAgy)">
+              <rect x="0" y="0" width="208" height="38" rx="3" fill="url(#skyGradAgy)"/>
+              <g data-parallax="far">
+                <g class="sky-stars" opacity="0">
+                  <circle cx="46" cy="6.5" r="0.7" fill="#fff5cc" opacity="0.85"/>
+                  <circle cx="102" cy="4.5" r="0.75" fill="#fff5cc" opacity="0.9"/>
+                  <circle cx="142" cy="4.5" r="0.7" fill="#fff5cc" opacity="0.85"/>
+                  <circle cx="192" cy="6" r="0.75" fill="#fff5cc" opacity="0.85"/>
+                </g>
+                <!-- Foothills descending directly from Codex mountain range above -->
+                <path d="M 28 36.2 Q 58 29 94 25 Q 128 28 160 22 Q 186 26 208 24 L 208 36.2 Z" fill="var(--sky-mtn-far)" opacity="0.54"/>
+                <!-- Distant back towers -->
+                <rect x="68" y="16" width="12" height="20.2" fill="var(--sky-bldg-far)" class="sky-ink" stroke-width="0.65" opacity="0.76"/>
+                <rect x="108" y="13" width="12" height="23.2" fill="var(--sky-bldg-far)" class="sky-ink" stroke-width="0.65" opacity="0.76"/>
+                <rect x="148" y="14" width="12" height="22.2" fill="var(--sky-bldg-far)" class="sky-ink" stroke-width="0.65" opacity="0.76"/>
+                <rect x="184" y="16" width="12" height="20.2" fill="var(--sky-bldg-far)" class="sky-ink" stroke-width="0.65" opacity="0.72"/>
+              </g>
+              <g data-parallax="mid">
+                <!-- 1. Left corner shop/apartment -->
+                <rect x="42" y="23.5" width="14" height="12.7" fill="var(--sky-bldg-alt)" class="sky-ink" stroke-width="0.88"/>
+                <rect x="53.6" y="23.9" width="2.0" height="11.9" class="sky-sidelight"/>
+                <!-- 2. Stepped Art-Deco mid-rise -->
+                <path d="M 59 36.2 L 59 16 L 62.5 16 L 62.5 12.5 L 70.5 12.5 L 70.5 16 L 74 16 L 74 36.2 Z" fill="var(--sky-bldg-fill)" class="sky-ink" stroke-width="0.9"/>
+                <rect x="71.6" y="16.4" width="2.0" height="19.4" class="sky-sidelight"/>
+                <!-- 3. Tall spire skyscraper -->
+                <rect x="77" y="8" width="13.5" height="28.2" fill="var(--sky-bldg-alt)" class="sky-ink" stroke-width="0.92"/>
+                <rect x="88" y="8.4" width="2.1" height="27.4" class="sky-sidelight"/>
+                <line x1="83.8" y1="8" x2="83.8" y2="2" class="sky-ink" stroke-width="0.85"/>
+                <!-- 4. Flat-roof studio with rooftop water tank -->
+                <rect x="93.5" y="16.5" width="16" height="19.7" fill="var(--sky-bldg-fill)" class="sky-ink" stroke-width="0.9"/>
+                <rect x="107.1" y="16.9" width="2.0" height="18.9" class="sky-sidelight"/>
+                <rect x="98.5" y="11.8" width="6.2" height="3.2" rx="0.6" fill="var(--sky-bldg-alt)" class="sky-ink" stroke-width="0.75"/>
+                <line x1="100" y1="15" x2="100" y2="16.5" class="sky-ink" stroke-width="0.7"/>
+                <line x1="103" y1="15" x2="103" y2="16.5" class="sky-ink" stroke-width="0.7"/>
+                <!-- 5. Gabled clocktower -->
+                <path d="M 113 36.2 L 113 15 L 122 8 L 131 15 L 131 36.2 Z" fill="var(--sky-bldg-alt)" class="sky-ink" stroke-width="0.92"/>
+                <path d="M 122 8.6 L 130.5 15.2 L 130.5 35.8 L 128.4 35.8 L 128.4 15.8 Z" class="sky-sidelight"/>
+                <line x1="122" y1="8" x2="122" y2="3.8" class="sky-ink" stroke-width="0.8"/>
+                <circle cx="122" cy="15.5" r="2.0" class="town-win"/>
+                <!-- 6. Setback modern skyscraper -->
+                <rect x="134" y="9" width="18" height="27.2" fill="var(--sky-bldg-fill)" class="sky-ink" stroke-width="0.92"/>
+                <rect x="138" y="5.2" width="10" height="3.8" fill="var(--sky-bldg-alt)" class="sky-ink" stroke-width="0.85"/>
+                <rect x="149.5" y="9.4" width="2.1" height="26.4" class="sky-sidelight"/>
+                <line x1="143" y1="5.2" x2="143" y2="1.8" class="sky-ink" stroke-width="0.8"/>
+                <!-- 7. Domed hall -->
+                <path d="M 155 36.2 L 155 18 Q 163.5 11.5 172 18 L 172 36.2 Z" fill="var(--sky-bldg-alt)" class="sky-ink" stroke-width="0.9"/>
+                <rect x="169.6" y="18.5" width="2.0" height="17.3" class="sky-sidelight"/>
+                <!-- 8. Avenue tower & east edge -->
+                <rect x="175" y="11" width="15" height="25.2" fill="var(--sky-bldg-fill)" class="sky-ink" stroke-width="0.92"/>
+                <rect x="187.6" y="11.4" width="2.0" height="24.4" class="sky-sidelight"/>
+                <rect x="193" y="16.5" width="15" height="19.7" fill="var(--sky-bldg-alt)" class="sky-ink" stroke-width="0.9"/>
+
+                <!-- Windows -->
+                <g id="agy-windows">
+                  <rect x="44.5" y="26.5" width="2.6" height="3.0" class="town-win"/>
+                  <rect x="49.5" y="26.5" width="2.6" height="3.0" class="town-win"/>
+                  <rect x="62" y="18.5" width="2.8" height="3.2" class="town-win"/>
+                  <rect x="67.2" y="18.5" width="2.8" height="3.2" class="town-win"/>
+                  <rect x="62" y="25" width="2.8" height="3.2" class="town-win"/>
+                  <rect x="67.2" y="25" width="2.8" height="3.2" class="town-win"/>
+                  <rect x="79.5" y="11" width="2.8" height="3.2" class="town-win"/>
+                  <rect x="84.5" y="11" width="2.8" height="3.2" class="town-win"/>
+                  <rect x="79.5" y="17" width="2.8" height="3.2" class="town-win"/>
+                  <rect x="84.5" y="17" width="2.8" height="3.2" class="town-win"/>
+                  <rect x="79.5" y="23" width="2.8" height="3.2" class="town-win"/>
+                  <rect x="84.5" y="23" width="2.8" height="3.2" class="town-win"/>
+                  <rect x="96.5" y="20" width="3.0" height="3.2" class="town-win"/>
+                  <rect x="102.5" y="20" width="3.0" height="3.2" class="town-win"/>
+                  <rect x="96.5" y="26" width="3.0" height="3.2" class="town-win"/>
+                  <rect x="102.5" y="26" width="3.0" height="3.2" class="town-win"/>
+                  <rect x="116" y="20.5" width="3.0" height="3.5" class="town-win"/>
+                  <rect x="124.5" y="20.5" width="3.0" height="3.5" class="town-win"/>
+                  <rect x="116" y="26.8" width="3.0" height="3.5" class="town-win"/>
+                  <rect x="124.5" y="26.8" width="3.0" height="3.5" class="town-win"/>
+                  <rect x="137" y="12.5" width="3.0" height="3.2" class="town-win"/>
+                  <rect x="142" y="12.5" width="3.0" height="3.2" class="town-win"/>
+                  <rect x="146.8" y="12.5" width="2.4" height="3.2" class="town-win"/>
+                  <rect x="137" y="18.5" width="3.0" height="3.2" class="town-win"/>
+                  <rect x="146.8" y="18.5" width="2.4" height="3.2" class="town-win"/>
+                  <rect x="137" y="24.8" width="3.0" height="3.2" class="town-win"/>
+                  <rect x="142" y="24.8" width="3.0" height="3.2" class="town-win"/>
+                  <rect x="158.5" y="21" width="3.2" height="4.0" rx="1.4" class="town-win"/>
+                  <rect x="164.5" y="21" width="3.2" height="4.0" rx="1.4" class="town-win"/>
+                  <rect x="178" y="14.5" width="3.0" height="3.2" class="town-win"/>
+                  <rect x="183.5" y="14.5" width="3.0" height="3.2" class="town-win"/>
+                  <rect x="178" y="20.5" width="3.0" height="3.2" class="town-win"/>
+                  <rect x="183.5" y="20.5" width="3.0" height="3.2" class="town-win"/>
+                  <rect x="178" y="26.5" width="3.0" height="3.2" class="town-win"/>
+                  <rect x="196" y="20" width="3.0" height="3.2" class="town-win"/>
+                  <rect x="201.5" y="20" width="3.0" height="3.2" class="town-win"/>
+                  <rect x="196" y="26" width="3.0" height="3.2" class="town-win"/>
+                </g>
+
+                <!-- Bold winter roof snow drifts with crisp ink outline on every building -->
+                <g class="sky-snow">
+                  <!-- 1. Left shop -->
+                  <path d="M 41.0 23.8 Q 49 20.6 57.0 23.8 Q 54.8 25.5 52 24.7 Q 49 25.9 46 24.7 Q 43.2 25.5 41.0 23.8 Z" fill="var(--sky-snow-fill)" class="sky-ink" stroke-width="0.8"/>
+                  <!-- 2. Stepped Art-Deco shoulders + top -->
+                  <path d="M 58.3 16.2 Q 60.4 14.3 62.6 16.0 L 62.4 17.3 Q 60.4 16.7 58.5 17.3 Z" fill="var(--sky-snow-fill)" class="sky-ink" stroke-width="0.72"/>
+                  <path d="M 61.6 12.8 Q 66.5 9.7 71.4 12.8 Q 69.2 14.4 66.5 13.8 Q 63.8 14.4 61.6 12.8 Z" fill="var(--sky-snow-fill)" class="sky-ink" stroke-width="0.78"/>
+                  <path d="M 70.4 16.0 Q 72.5 14.3 74.7 16.2 L 74.5 17.3 Q 72.6 16.7 70.6 17.3 Z" fill="var(--sky-snow-fill)" class="sky-ink" stroke-width="0.72"/>
+                  <!-- 3. Tall spire skyscraper -->
+                  <path d="M 76.0 8.3 Q 83.8 4.8 91.5 8.3 Q 89 10.0 86.2 9.2 Q 83.8 10.3 81.2 9.2 Q 78.5 10.0 76.0 8.3 Z" fill="var(--sky-snow-fill)" class="sky-ink" stroke-width="0.82"/>
+                  <!-- 4. Studio roof + water tank top -->
+                  <path d="M 97.8 12.0 Q 101.6 9.8 105.4 12.0 L 105.0 13.1 Q 101.6 12.4 98.2 13.1 Z" fill="var(--sky-snow-fill)" class="sky-ink" stroke-width="0.72"/>
+                  <path d="M 92.6 16.8 Q 101.5 13.5 110.4 16.8 Q 107.6 18.5 104.4 17.6 Q 101.5 18.8 98.4 17.6 Q 95.4 18.5 92.6 16.8 Z" fill="var(--sky-snow-fill)" class="sky-ink" stroke-width="0.8"/>
+                  <!-- 5. Gabled clocktower -->
+                  <path d="M 111.4 15.4 L 122 6.6 L 132.6 15.4 L 130.8 17.1 L 122 10.1 L 113.2 17.1 Z" fill="var(--sky-snow-fill)" class="sky-ink" stroke-width="0.82"/>
+                  <!-- 6. Setback skyscraper shoulders + top -->
+                  <path d="M 133.2 9.2 Q 135.8 7.2 138.2 9.0 L 138 10.4 Q 135.8 9.8 133.4 10.4 Z" fill="var(--sky-snow-fill)" class="sky-ink" stroke-width="0.72"/>
+                  <path d="M 137.0 5.5 Q 143 2.4 149.0 5.5 L 148.5 7.1 Q 143 6.2 137.5 7.1 Z" fill="var(--sky-snow-fill)" class="sky-ink" stroke-width="0.78"/>
+                  <path d="M 147.8 9.0 Q 150.2 7.2 152.8 9.2 L 152.6 10.4 Q 150.2 9.8 148 10.4 Z" fill="var(--sky-snow-fill)" class="sky-ink" stroke-width="0.72"/>
+                  <!-- 7. Domed hall -->
+                  <path d="M 153.8 18.4 Q 163.5 9.6 173.2 18.4 L 171.2 19.7 Q 163.5 13.5 155.8 19.7 Z" fill="var(--sky-snow-fill)" class="sky-ink" stroke-width="0.82"/>
+                  <!-- 8. Avenue tower -->
+                  <path d="M 174.0 11.3 Q 182.5 7.9 191.0 11.3 Q 188.4 13.1 185.4 12.2 Q 182.5 13.3 179.4 12.2 Q 176.6 13.1 174.0 11.3 Z" fill="var(--sky-snow-fill)" class="sky-ink" stroke-width="0.82"/>
+                  <!-- 9. East edge building -->
+                  <path d="M 192.0 16.8 Q 200 13.5 208 16.8 L 208 18.4 Q 204 17.5 200 18.6 Q 196 17.5 192.4 18.4 Z" fill="var(--sky-snow-fill)" class="sky-ink" stroke-width="0.8"/>
+                </g>
+              </g>
+              <g data-parallax="near">
+                <!-- Street-level seasonal park bushes linking into Projects street below -->
+                <g class="season-spring">
+                  <circle cx="56" cy="34.2" r="2.2" fill="#f49bb4" stroke="#8f435c" stroke-width="0.45"/><circle cx="58.5" cy="33.5" r="1.8" fill="#f9c9d7" stroke="#8f435c" stroke-width="0.4"/>
+                  <circle cx="153" cy="34.2" r="2.2" fill="#f49bb4" stroke="#8f435c" stroke-width="0.45"/><circle cx="155.5" cy="33.5" r="1.8" fill="#f9c9d7" stroke="#8f435c" stroke-width="0.4"/>
+                  <ellipse cx="106" cy="10" rx="1.3" ry="0.65" transform="rotate(-18 106 10)" fill="#f49bb4"/>
+                </g>
+                <g class="season-summer">
+                  <circle cx="56" cy="34.2" r="2.2" fill="var(--sky-tree-fill)" class="sky-ink" stroke-width="0.55"/>
+                  <circle cx="153" cy="34.2" r="2.2" fill="var(--sky-tree-shade)" class="sky-ink" stroke-width="0.55"/>
+                </g>
+                <g class="season-autumn">
+                  <circle cx="56" cy="34.2" r="2.2" fill="#d96236" stroke="#782c16" stroke-width="0.45"/>
+                  <circle cx="153" cy="34.2" r="2.2" fill="#e8963a" stroke="#782c16" stroke-width="0.45"/>
+                </g>
+                <g class="sky-snow">
+                  <path d="M 38 36.2 Q 52 34.0 68 35.6 Q 88 34.2 108 35.8 Q 130 34.0 152 35.6 Q 174 34.2 194 35.5 L 208 34.8 L 208 36.6 L 38 36.6 Z" fill="var(--sky-snow-fill)" class="sky-ink" stroke-width="0.72"/>
+                </g>
+                <line x1="28" y1="36.2" x2="208" y2="36.2" class="sky-ink" stroke-width="0.95"/>
+                <g class="sky-snowflakes">
+                  <circle cx="48" cy="11" r="1.05" fill="var(--sky-snow-fill)" stroke="var(--sky-snow-shade)" stroke-width="0.4"/>
+                  <circle cx="98" cy="6.8" r="1.15" fill="var(--sky-snow-fill)" stroke="var(--sky-snow-shade)" stroke-width="0.42"/>
+                  <circle cx="130" cy="5.5" r="1.0" fill="var(--sky-snow-fill)" stroke="var(--sky-snow-shade)" stroke-width="0.4"/>
+                  <circle cx="172" cy="7.2" r="1.1" fill="var(--sky-snow-fill)" stroke="var(--sky-snow-shade)" stroke-width="0.42"/>
+                  <circle cx="198" cy="11" r="1.0" fill="var(--sky-snow-fill)" stroke="var(--sky-snow-shade)" stroke-width="0.4"/>
+                </g>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <button type="button" class="agy-group-toggle" data-action="set_agy_quota_group" title="" aria-label=""></button>
+        <div class="codex-stale" data-agy-stale hidden>
+          <span aria-hidden="true">⚠</span>
+          <span data-agy-stale-age></span>
+          <span class="codex-stale-info" aria-hidden="true">ⓘ
+            <span class="codex-stale-tooltip" data-agy-stale-tooltip></span>
+          </span>
+        </div>
+      </header>
+      <div class="row" data-row="session"></div>
+      <div class="row" data-row="weekly"></div>
+    </section>
+
+    <section class="card" data-card="grok" style="--accent: var(--grok)">
+      <header class="brand">
+        <div class="brand-icon" aria-hidden="true"><svg fill="currentColor" fill-rule="evenodd" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9.27 15.29l7.978-5.897c.391-.29.95-.177 1.137.272.98 2.369.542 5.215-1.41 7.169-1.951 1.954-4.667 2.382-7.149 1.406l-2.711 1.257c3.889 2.661 8.611 2.003 11.562-.953 2.341-2.344 3.066-5.539 2.388-8.42l.006.007c-.983-4.232.242-5.924 2.75-9.383.06-.082.12-.164.179-.248l-3.301 3.305v-.01L9.267 15.292M7.623 16.723c-2.792-2.67-2.31-6.801.071-9.184 1.761-1.763 4.647-2.483 7.166-1.425l2.705-1.25a7.808 7.808 0 00-1.829-1A8.975 8.975 0 005.984 5.83c-2.533 2.536-3.33 6.436-1.962 9.764 1.022 2.487-.653 4.246-2.34 6.022-.599.63-1.199 1.259-1.682 1.925l7.62-6.815"></path></svg></div>
+        <h1 data-i18n="grok_name">Grok</h1>
+        <div class="skyline-strip skyline-strip--grok" aria-hidden="true">
+          <svg viewBox="0 0 208 38" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMaxYMid meet">
+            <defs>
+              <linearGradient id="skyFadeGradGrok" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="35" y2="0">
+                <stop offset="0%" stop-color="#000"/>
+                <stop offset="100%" stop-color="#fff"/>
+              </linearGradient>
+              <mask id="skyFadeGrok"><rect x="0" y="0" width="208" height="38" fill="url(#skyFadeGradGrok)"/></mask>
+            </defs>
+            <g mask="url(#skyFadeGrok)">
+              <g data-parallax="mid">
+                <path d="M 32 34.5 L 208 34.5 M 56 34.5 L 56 23 M 98 34.5 L 98 20 M 140 34.5 L 140 20 M 182 34.5 L 182 23" class="sky-ink" stroke-width="0.9" fill="none"/>
+                <path d="M 40 34.5 Q 78 21 98 21.5 Q 118 21 140 21.5 Q 160 21 198 34.5" class="sky-ink" stroke-width="0.85" fill="none"/>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <div class="codex-stale" data-grok-stale hidden>
+          <span aria-hidden="true">⚠</span><span data-grok-stale-age></span>
+          <span class="codex-stale-info" aria-hidden="true">ⓘ<span class="codex-stale-tooltip" data-grok-stale-tooltip></span></span>
+        </div>
+      </header>
+      <div class="row" data-row="weekly"></div>
+    </section>
+
+    <section class="card" data-card="muse" style="--accent: var(--muse)">
+      <header class="brand">
+        <div class="brand-icon" aria-hidden="true"><svg viewBox="0 0 100 100" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M24.6257 16.1214C28.2365 16.1214 30.8187 18.9408 30.8187 23.3643C30.8185 27.7868 30.1055 31.7765 28.9225 40.2466C28.0743 46.1813 26.62 55.2418 26.0132 59.0088C27.1782 56.7815 29.9074 51.5757 30.3914 50.5982C36.1081 39.061 42.0657 28.7544 43.7826 26.0254C46.0594 22.382 48.062 20.9229 51.1597 20.9229C52.7685 20.923 54.6826 21.7357 55.6315 22.819C56.9178 24.2895 57.1859 26.6602 57.1411 29.244C57.0738 33.2073 56.5599 39.5264 55.8553 46.5698C55.5416 49.7057 54.9365 56.1066 54.5288 60.4004C58.1883 53.8532 64.9609 41.8109 67.6921 37.6058C70.0727 33.9402 72.466 31.5797 75.6836 31.5796C78.4595 31.5796 81.8809 33.5416 81.6772 38.7573C81.3774 46.4556 80.2673 63.2232 79.7607 70.7479C83.1662 65.7913 87.6377 58.4543 89.3148 55.6966C91.0104 52.908 92.75 50.6542 95.3898 50.5778C98.0987 50.4995 99.913 52.341 99.9959 55.1839C100.078 58.0277 98.3835 61.2256 96.1344 64.856C93.6937 68.7957 90.9621 73.0123 87.6383 76.9491C84.3148 80.8856 81.2604 83.8782 76.5991 83.8786C72.4243 83.8786 69.4869 81.1043 69.283 76.0254C69.1768 73.364 69.6804 67.6405 70.0602 63.1673C70.5 57.9875 71.0315 52.9861 71.403 49.6786C67.7337 56.3979 60.0101 70.4676 56.5348 75.9603C53.1343 81.3339 51.4774 83.2269 47.8882 83.2275C44.2977 83.2275 42.7226 80.6416 42.6717 76.7497C42.6142 72.5285 45.7852 47.1821 46.8587 38.737C45.1183 42.4616 40.839 51.6056 38.1551 57.0435C35.5587 62.3055 31.204 71.3978 28.0436 76.6357C25.7668 80.4094 23.2092 83.2273 19.4173 83.2275C15.6252 83.2275 13.4847 80.6784 13.4847 76.5788C13.4847 72.4794 14.6716 65.6492 15.9465 57.1777C16.5839 53.0781 17.3108 48.6133 18.1315 43.8761C18.7324 40.448 19.7764 34.4169 20.4183 30.7129C17.502 35.2539 12.2536 43.4278 10.6567 45.8903C8.88113 48.6291 7.28747 50.626 4.64681 50.6266C1.7329 50.6266 0.000532901 48.3522 0 45.7113C0 43.0703 1.34323 41.0344 3.52376 37.4512C6.32403 32.8465 11.3578 26.57 14.1154 23.2747C17.3656 19.3912 20.6139 16.1219 24.6257 16.1214Z"/></svg></div>
+        <h1 data-i18n="muse_name">Muse</h1>
+        <div class="skyline-strip skyline-strip--muse" aria-hidden="true">
+          <svg viewBox="0 0 208 38" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMaxYMid meet">
+            <defs>
+              <linearGradient id="skyFadeGradMuse" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="35" y2="0">
+                <stop offset="0%" stop-color="#000"/>
+                <stop offset="100%" stop-color="#fff"/>
+              </linearGradient>
+              <mask id="skyFadeMuse"><rect x="0" y="0" width="208" height="38" fill="url(#skyFadeGradMuse)"/></mask>
+            </defs>
+            <g mask="url(#skyFadeMuse)">
+              <g data-parallax="mid">
+                <path d="M 32 34.5 L 208 34.5 M 44 34.5 Q 90 25 134 30 Q 172 24 208 28" class="sky-ink" stroke-width="0.9" fill="none"/>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <div class="codex-stale" data-muse-stale hidden>
+          <span aria-hidden="true">⚠</span><span data-muse-stale-age></span>
+          <span class="codex-stale-info" aria-hidden="true">ⓘ<span class="codex-stale-tooltip" data-muse-stale-tooltip></span></span>
+        </div>
+      </header>
+      <div class="row" data-row="session"></div>
+      <div class="row" data-row="weekly"></div>
+    </section>
+
+    <section class="card" data-card="projects" style="--accent: var(--projects)">
+      <header class="brand">
+        <div class="brand-icon"><svg width="30" height="30" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M4.75 8.25C4.75 7.14543 5.64543 6.25 6.75 6.25H10.5729C10.9737 6.25 11.3598 6.40073 11.6548 6.67228L12.9952 7.90522C13.2902 8.17677 13.6763 8.3275 14.0771 8.3275H19.25C20.3546 8.3275 21.25 9.22293 21.25 10.3275V17.75C21.25 18.8546 20.3546 19.75 19.25 19.75H6.75C5.64543 19.75 4.75 18.8546 4.75 17.75V8.25Z" stroke="var(--projects)" stroke-width="1.6" stroke-linejoin="round"/><path d="M7.25 11.25H18.75" stroke="var(--projects)" stroke-width="1.6" stroke-linecap="round" opacity="0.9"/><path d="M8.75 14.15C8.75 13.4596 9.30964 12.9 10 12.9H10.3C10.9904 12.9 11.55 13.4596 11.55 14.15V16.5H8.75V14.15Z" fill="var(--projects)" opacity="0.18" stroke="var(--projects)" stroke-width="1.4"/><path d="M12.6 13.25C12.6 12.6425 13.0925 12.15 13.7 12.15H14.05C14.6575 12.15 15.15 12.6425 15.15 13.25V16.5H12.6V13.25Z" fill="var(--projects)" opacity="0.3" stroke="var(--projects)" stroke-width="1.4"/><path d="M16.2 14.85C16.2 14.1873 16.7373 13.65 17.4 13.65H17.75C18.4127 13.65 18.95 14.1873 18.95 14.85V16.5H16.2V14.85Z" fill="var(--projects)" opacity="0.48" stroke="var(--projects)" stroke-width="1.4"/></svg></div>
+        <h1 data-i18n="projects_title">Project Usage</h1>
+        <div class="skyline-strip skyline-strip--projects" aria-hidden="true">
+          <svg viewBox="0 0 208 38" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMaxYMid meet">
+            <defs>
+              <linearGradient id="skyFadeGradProjects" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="33.28" y2="0">
+                <stop offset="0%" stop-color="#000"/>
+                <stop offset="100%" stop-color="#fff"/>
+              </linearGradient>
+              <mask id="skyFadeProjects"><rect x="0" y="0" width="208" height="38" fill="url(#skyFadeGradProjects)"/></mask>
+              <linearGradient id="skyGradProjects" x1="0" y1="0" x2="0" y2="1">
+                <stop id="skyProjStop0" offset="0%" stop-color="#8ec4ec" stop-opacity="0.86"/>
+                <stop id="skyProjStop1" offset="100%" stop-color="#fcfdfe" stop-opacity="0.18"/>
+              </linearGradient>
+            </defs>
+            <g mask="url(#skyFadeProjects)">
+              <rect x="0" y="0" width="208" height="38" rx="3" fill="url(#skyGradProjects)"/>
+              <g data-parallax="far">
+                <g class="sky-stars" opacity="0">
+                  <circle cx="54" cy="6" r="0.65" fill="#fff5cc" opacity="0.82"/>
+                  <circle cx="112" cy="4.5" r="0.7" fill="#fff5cc" opacity="0.85"/>
+                  <circle cx="164" cy="5.5" r="0.65" fill="#fff5cc" opacity="0.82"/>
+                </g>
+                <!-- Distant Antigravity city eaves softly continuing behind street trees -->
+                <path d="M 52 34.5 L 52 20 L 66 13 L 80 20 L 80 34.5 Z" fill="var(--sky-bldg-far)" class="sky-ink" stroke-width="0.6" opacity="0.46"/>
+                <rect x="120" y="15" width="24" height="19.5" fill="var(--sky-bldg-far)" class="sky-ink" stroke-width="0.6" opacity="0.46"/>
+                <rect x="160" y="18" width="18" height="16.5" fill="var(--sky-bldg-far)" class="sky-ink" stroke-width="0.6" opacity="0.42"/>
+              </g>
+              <g data-parallax="mid">
+                <!-- Cozy neighborhood cafe with striped awning & warm sidelight -->
+                <rect x="94" y="18" width="28" height="16.5" fill="var(--sky-bldg-fill)" class="sky-ink" stroke-width="0.9"/>
+                <rect x="119.5" y="18.4" width="2.1" height="15.7" class="sky-sidelight"/>
+                <path d="M 92 25 L 124 25 L 125.8 27.6 L 90.2 27.6 Z" fill="var(--sky-bldg-alt)" class="sky-ink" stroke-width="0.8"/>
+                <rect x="99" y="29" width="7" height="4.2" rx="0.5" class="town-win"/>
+                <rect x="109.5" y="29" width="6.5" height="4.2" rx="0.5" class="town-win"/>
+                <rect x="103" y="20" width="9" height="3.2" rx="0.4" class="town-win"/>
+                <!-- Park bench & harbor seawall balustrade on the right -->
+                <line x1="156" y1="31.5" x2="170" y2="31.5" class="sky-ink" stroke-width="0.9"/>
+                <line x1="158.5" y1="31.5" x2="158.5" y2="34.5" class="sky-ink" stroke-width="0.85"/>
+                <line x1="167.5" y1="31.5" x2="167.5" y2="34.5" class="sky-ink" stroke-width="0.85"/>
+                <line x1="191" y1="31" x2="208" y2="31" class="sky-ink" stroke-width="0.85"/>
+                <line x1="195" y1="31" x2="195" y2="34.5" class="sky-ink" stroke-width="0.75"/>
+                <line x1="202" y1="31" x2="202" y2="34.5" class="sky-ink" stroke-width="0.75"/>
+                <g class="sky-snow">
+                  <path d="M 92.8 18.3 Q 108 14.8 123.2 18.3 Q 116 19.8 108 19.1 Q 100 19.8 92.8 18.3 Z" fill="var(--sky-snow-fill)" class="sky-ink" stroke-width="0.75"/>
+                  <path d="M 90.0 25.0 Q 108 22.6 126.0 25.0 L 125.4 26.8 Q 108 25.7 90.6 26.8 Z" fill="var(--sky-snow-fill)" class="sky-ink" stroke-width="0.75"/>
+                  <path d="M 155.2 31.3 Q 163 29.2 170.8 31.3 L 170.2 32.5 L 155.8 32.5 Z" fill="var(--sky-snow-fill)" class="sky-ink" stroke-width="0.65"/>
+                  <path d="M 190.4 31.1 Q 199 29.1 208 31.0 L 208 32.3 L 190.8 32.3 Z" fill="var(--sky-snow-fill)" class="sky-ink" stroke-width="0.65"/>
+                </g>
+              </g>
+              <g data-parallax="near">
+                <!-- Tree 1 (x=50) -->
+                <g class="town-tree">
+                  <path d="M 50 34.5 L 50 22.5 M 50 26.5 L 45.5 22 M 50 24.5 L 54.5 21" class="sky-ink" stroke-width="1.05" fill="none"/>
+                  <path d="M 50 22.5 L 47 18.5 M 50 22.5 L 53 18.5 M 45.5 22 L 43 20 M 54.5 21 L 57 19" class="tree-bare sky-ink" stroke-width="0.85" fill="none"/>
+                  <path d="M 41.5 22.5 Q 39.5 15.5 45.5 13.8 Q 50 9.5 54.5 13.8 Q 60 15.5 58.5 22.5 Q 50 25 41.5 22.5 Z" fill="var(--sky-tree-fill)" class="tree-canopy sky-ink" stroke-width="0.9"/>
+                  <g class="tree-blossom">
+                    <path d="M 41 22 Q 39 15.5 45 13.5 Q 50 9 55 13.5 Q 60.5 15.5 59 22 Q 50 24.5 41 22 Z" fill="#f49bb4" stroke="#8f435c" stroke-width="0.85"/>
+                    <circle cx="45.5" cy="17.5" r="3.1" fill="#f9c9d7" stroke="#8f435c" stroke-width="0.55"/>
+                    <circle cx="51" cy="13.5" r="3.4" fill="#fde1ea" stroke="#8f435c" stroke-width="0.55"/>
+                    <circle cx="55" cy="18.5" r="2.9" fill="#e67e9c" stroke="#8f435c" stroke-width="0.55"/>
+                  </g>
+                  <g class="tree-autumn">
+                    <path d="M 41 22 Q 39 15.5 45 13.5 Q 50 9 55 13.5 Q 60.5 15.5 59 22 Q 50 24.5 41 22 Z" fill="#d96236" stroke="#782c16" stroke-width="0.85"/>
+                    <circle cx="45.5" cy="17.5" r="3.0" fill="#e8963a" stroke="#782c16" stroke-width="0.5"/>
+                    <circle cx="51" cy="13.5" r="3.2" fill="#f0b34c" stroke="#782c16" stroke-width="0.5"/>
+                    <circle cx="55" cy="18.5" r="2.8" fill="#be432c" stroke="#782c16" stroke-width="0.5"/>
+                  </g>
+                  <g class="tree-snow sky-ink" fill="var(--sky-snow-fill)" stroke-width="0.58">
+                    <ellipse cx="42.8" cy="19.3" rx="1.7" ry="0.9"/>
+                    <ellipse cx="46.8" cy="17.9" rx="1.8" ry="0.95"/>
+                    <ellipse cx="53.2" cy="17.9" rx="1.8" ry="0.95"/>
+                    <ellipse cx="57.2" cy="18.4" rx="1.7" ry="0.9"/>
+                  </g>
+                </g>
+
+                <!-- Tree 2 (x=80) -->
+                <g class="town-tree">
+                  <path d="M 80 34.5 L 80 19.5 M 80 24 L 75 19 M 80 22 L 85 18.5" class="sky-ink" stroke-width="1.1" fill="none"/>
+                  <path d="M 80 19.5 L 77 15 M 80 19.5 L 83.5 15 M 75 19 L 72.5 16.8 M 85 18.5 L 87.5 16.5" class="tree-bare sky-ink" stroke-width="0.85" fill="none"/>
+                  <path d="M 70.5 20 Q 68.5 12 75 10 Q 80 5.5 85 10 Q 91 12 89.5 20 Q 80 22.8 70.5 20 Z" fill="var(--sky-tree-shade)" class="tree-canopy sky-ink" stroke-width="0.9"/>
+                  <g class="tree-blossom">
+                    <path d="M 70 19.8 Q 68 12 75 9.8 Q 80 5 85 9.8 Q 91.5 12 90 19.8 Q 80 22.5 70 19.8 Z" fill="#f9c9d7" stroke="#8f435c" stroke-width="0.85"/>
+                    <circle cx="75.5" cy="15" r="3.3" fill="#f49bb4" stroke="#8f435c" stroke-width="0.55"/>
+                    <circle cx="81" cy="10.5" r="3.6" fill="#fde1ea" stroke="#8f435c" stroke-width="0.55"/>
+                    <circle cx="85.5" cy="16" r="3.1" fill="#e67e9c" stroke="#8f435c" stroke-width="0.55"/>
+                  </g>
+                  <g class="tree-autumn">
+                    <path d="M 70 19.8 Q 68 12 75 9.8 Q 80 5 85 9.8 Q 91.5 12 90 19.8 Q 80 22.5 70 19.8 Z" fill="#be432c" stroke="#782c16" stroke-width="0.85"/>
+                    <circle cx="75.5" cy="15" r="3.2" fill="#d96236" stroke="#782c16" stroke-width="0.5"/>
+                    <circle cx="81" cy="10.5" r="3.5" fill="#e8963a" stroke="#782c16" stroke-width="0.5"/>
+                    <circle cx="85.5" cy="16" r="3.0" fill="#f0b34c" stroke="#782c16" stroke-width="0.5"/>
+                  </g>
+                  <g class="tree-snow sky-ink" fill="var(--sky-snow-fill)" stroke-width="0.58">
+                    <ellipse cx="72.4" cy="16.1" rx="1.75" ry="0.9"/>
+                    <ellipse cx="76.8" cy="14.3" rx="1.85" ry="0.95"/>
+                    <ellipse cx="83.6" cy="14.3" rx="1.85" ry="0.95"/>
+                    <ellipse cx="87.6" cy="15.8" rx="1.75" ry="0.9"/>
+                  </g>
+                </g>
+
+                <!-- Tree 3 (x=139) -->
+                <g class="town-tree">
+                  <path d="M 139 34.5 L 139 20.5 M 139 24.8 L 134.5 20 M 139 22.8 L 143.5 19.5" class="sky-ink" stroke-width="1.05" fill="none"/>
+                  <path d="M 139 20.5 L 136 16 M 139 20.5 L 142 16 M 134.5 20 L 132 18 M 143.5 19.5 L 146 17.5" class="tree-bare sky-ink" stroke-width="0.85" fill="none"/>
+                  <path d="M 130 21 Q 128 13.5 134 11.8 Q 139 7 144 11.8 Q 149.5 13.5 148 21 Q 139 23.5 130 21 Z" fill="var(--sky-tree-fill)" class="tree-canopy sky-ink" stroke-width="0.9"/>
+                  <g class="tree-blossom">
+                    <path d="M 129.5 20.8 Q 127.5 13.5 134 11.5 Q 139 6.8 144 11.5 Q 150 13.5 148.5 20.8 Q 139 23.2 129.5 20.8 Z" fill="#f49bb4" stroke="#8f435c" stroke-width="0.85"/>
+                    <circle cx="135" cy="16" r="3.1" fill="#fde1ea" stroke="#8f435c" stroke-width="0.55"/>
+                    <circle cx="140.5" cy="12" r="3.4" fill="#f9c9d7" stroke="#8f435c" stroke-width="0.55"/>
+                    <circle cx="144.5" cy="17" r="2.9" fill="#e67e9c" stroke="#8f435c" stroke-width="0.55"/>
+                  </g>
+                  <g class="tree-autumn">
+                    <path d="M 129.5 20.8 Q 127.5 13.5 134 11.5 Q 139 6.8 144 11.5 Q 150 13.5 148.5 20.8 Q 139 23.2 129.5 20.8 Z" fill="#e8963a" stroke="#782c16" stroke-width="0.85"/>
+                    <circle cx="135" cy="16" r="3.0" fill="#be432c" stroke="#782c16" stroke-width="0.5"/>
+                    <circle cx="140.5" cy="12" r="3.3" fill="#d96236" stroke="#782c16" stroke-width="0.5"/>
+                    <circle cx="144.5" cy="17" r="2.8" fill="#f0b34c" stroke="#782c16" stroke-width="0.5"/>
+                  </g>
+                  <g class="tree-snow sky-ink" fill="var(--sky-snow-fill)" stroke-width="0.58">
+                    <ellipse cx="131.8" cy="17.3" rx="1.7" ry="0.9"/>
+                    <ellipse cx="135.8" cy="15.3" rx="1.8" ry="0.95"/>
+                    <ellipse cx="142.2" cy="15.3" rx="1.8" ry="0.95"/>
+                    <ellipse cx="146.2" cy="16.8" rx="1.7" ry="0.9"/>
+                  </g>
+                </g>
+
+                <!-- Tree 4 (x=180) -->
+                <g class="town-tree">
+                  <path d="M 180 34.5 L 180 22.5 M 180 26.5 L 175.8 22 M 180 25 L 184.2 21.5" class="sky-ink" stroke-width="1.05" fill="none"/>
+                  <path d="M 180 22.5 L 177.2 18.5 M 180 22.5 L 182.8 18.5 M 175.8 22 L 173.5 20 M 184.2 21.5 L 186.5 19.5" class="tree-bare sky-ink" stroke-width="0.85" fill="none"/>
+                  <path d="M 171.8 22.5 Q 170 15.8 175.8 14 Q 180 10 184.5 14 Q 189.5 15.8 188 22.5 Q 180 24.8 171.8 22.5 Z" fill="var(--sky-tree-shade)" class="tree-canopy sky-ink" stroke-width="0.9"/>
+                  <g class="tree-blossom">
+                    <path d="M 171.5 22.2 Q 169.5 15.8 175.5 13.8 Q 180 9.6 184.5 13.8 Q 190 15.8 188.5 22.2 Q 180 24.5 171.5 22.2 Z" fill="#f9c9d7" stroke="#8f435c" stroke-width="0.85"/>
+                    <circle cx="176" cy="17.8" r="2.9" fill="#f49bb4" stroke="#8f435c" stroke-width="0.55"/>
+                    <circle cx="181" cy="14" r="3.1" fill="#fde1ea" stroke="#8f435c" stroke-width="0.55"/>
+                    <circle cx="184.8" cy="18.2" r="2.7" fill="#e67e9c" stroke="#8f435c" stroke-width="0.55"/>
+                  </g>
+                  <g class="tree-autumn">
+                    <path d="M 171.5 22.2 Q 169.5 15.8 175.5 13.8 Q 180 9.6 184.5 13.8 Q 190 15.8 188.5 22.2 Q 180 24.5 171.5 22.2 Z" fill="#d96236" stroke="#782c16" stroke-width="0.85"/>
+                    <circle cx="176" cy="17.8" r="2.8" fill="#e8963a" stroke="#782c16" stroke-width="0.5"/>
+                    <circle cx="181" cy="14" r="3.0" fill="#be432c" stroke="#782c16" stroke-width="0.5"/>
+                    <circle cx="184.8" cy="18.2" r="2.6" fill="#f0b34c" stroke="#782c16" stroke-width="0.5"/>
+                  </g>
+                  <g class="tree-snow sky-ink" fill="var(--sky-snow-fill)" stroke-width="0.58">
+                    <ellipse cx="173.4" cy="19.3" rx="1.65" ry="0.88"/>
+                    <ellipse cx="177.0" cy="17.8" rx="1.75" ry="0.9"/>
+                    <ellipse cx="183.0" cy="17.8" rx="1.75" ry="0.9"/>
+                    <ellipse cx="186.6" cy="18.8" rx="1.65" ry="0.88"/>
+                  </g>
+                </g>
+
+                <!-- Streetlamps -->
+                <g class="sky-ink" stroke-width="0.9">
+                  <line x1="65" y1="34.5" x2="65" y2="22"/>
+                  <circle cx="65" cy="20.8" r="1.45" class="town-win"/>
+                  <line x1="128" y1="34.5" x2="128" y2="22"/>
+                  <circle cx="128" cy="20.8" r="1.45" class="town-win"/>
+                  <line x1="192" y1="34.5" x2="192" y2="23"/>
+                  <circle cx="192" cy="21.8" r="1.35" class="town-win"/>
+                </g>
+
+                <!-- Continuous winter snow line along ground -->
+                <g class="sky-snow">
+                  <path d="M 28 34.5 Q 40 31.6 54 33.7 Q 69 31.4 85 33.8 Q 102 32.8 119 34.0 Q 135 31.5 151 33.7 Q 167 32.0 183 33.8 Q 196 32.0 208 33.6 L 208 35.3 L 28 35.3 Z" fill="var(--sky-snow-fill)" class="sky-ink" stroke-width="0.78"/>
+                </g>
+
+                <!-- Seasonal street petals / fallen leaves -->
+                <g class="season-spring" opacity="0.95">
+                  <ellipse cx="62" cy="26" rx="1.6" ry="0.8" transform="rotate(-24 62 26)" fill="#f49bb4" stroke="#8f435c" stroke-width="0.3"/>
+                  <ellipse cx="116" cy="14" rx="1.4" ry="0.7" transform="rotate(20 116 14)" fill="#f9c9d7" stroke="#8f435c" stroke-width="0.3"/>
+                  <ellipse cx="163" cy="25" rx="1.5" ry="0.75" transform="rotate(-15 163 25)" fill="#f49bb4" stroke="#8f435c" stroke-width="0.3"/>
+                  <ellipse cx="56" cy="33.8" rx="1.5" ry="0.6" fill="#f49bb4"/>
+                  <ellipse cx="146" cy="33.8" rx="1.5" ry="0.6" fill="#f9c9d7"/>
+                </g>
+                <g class="season-autumn" opacity="0.94">
+                  <ellipse cx="62" cy="26" rx="1.5" ry="0.75" transform="rotate(22 62 26)" fill="#d96236" stroke="#782c16" stroke-width="0.3"/>
+                  <ellipse cx="158" cy="25" rx="1.4" ry="0.7" transform="rotate(-20 158 25)" fill="#e8963a" stroke="#782c16" stroke-width="0.3"/>
+                  <ellipse cx="57" cy="33.7" rx="1.6" ry="0.7" fill="#d96236"/>
+                  <ellipse cx="87" cy="33.7" rx="1.5" ry="0.65" fill="#be432c"/>
+                  <ellipse cx="148" cy="33.7" rx="1.6" ry="0.7" fill="#e8963a"/>
+                  <ellipse cx="174" cy="33.7" rx="1.5" ry="0.65" fill="#d96236"/>
+                </g>
+
+                <!-- Sidewalk line & sketchy pen hatching -->
+                <line x1="28" y1="34.5" x2="208" y2="34.5" class="sky-ink" stroke-width="1.0"/>
+                <g class="sky-hatch" stroke-width="0.6" opacity="0.44">
+                  <line x1="42" y1="35.8" x2="46" y2="37.5"/>
+                  <line x1="74" y1="35.8" x2="78" y2="37.5"/>
+                  <line x1="112" y1="35.8" x2="116" y2="37.5"/>
+                  <line x1="154" y1="35.8" x2="158" y2="37.5"/>
+                  <line x1="188" y1="35.8" x2="192" y2="37.5"/>
+                </g>
+
+                <g class="sky-snowflakes">
+                  <circle cx="44" cy="9" r="1.1" fill="var(--sky-snow-fill)" stroke="var(--sky-snow-shade)" stroke-width="0.42"/>
+                  <circle cx="62" cy="15.5" r="1.0" fill="var(--sky-snow-fill)" stroke="var(--sky-snow-shade)" stroke-width="0.4"/>
+                  <circle cx="96" cy="7" r="1.15" fill="var(--sky-snow-fill)" stroke="var(--sky-snow-shade)" stroke-width="0.42"/>
+                  <circle cx="118" cy="11.5" r="1.0" fill="var(--sky-snow-fill)" stroke="var(--sky-snow-shade)" stroke-width="0.4"/>
+                  <circle cx="158" cy="10.5" r="1.05" fill="var(--sky-snow-fill)" stroke="var(--sky-snow-shade)" stroke-width="0.4"/>
+                  <circle cx="195" cy="13" r="1.05" fill="var(--sky-snow-fill)" stroke="var(--sky-snow-shade)" stroke-width="0.42"/>
+                </g>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <div class="codex-stale" data-history-error hidden>
+          <span aria-hidden="true">⚠</span>
+          <span data-history-error-text></span>
+          <span class="codex-stale-info" aria-hidden="true">ⓘ
+            <span class="codex-stale-tooltip" data-history-error-tooltip></span>
+          </span>
+        </div>
+        <div class="project-actions">
+          <button class="switch" data-action="toggle-project-range">Today</button>
+          <button class="switch" data-action="analyze" data-i18n="analyze_usage">Analyze</button>
+        </div>
+      </header>
+      <div data-project-list></div>
+    </section>
+
+    <section class="footer">
+      <div class="skyline-strip skyline-strip--footer" aria-hidden="true">
+        <svg viewBox="0 0 154 34" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMaxYMid meet">
+          <defs>
+            <linearGradient id="skyFadeGradFooter" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="27.72" y2="0">
+              <stop offset="0%" stop-color="#000"/>
+              <stop offset="100%" stop-color="#fff"/>
+            </linearGradient>
+            <mask id="skyFadeFooter"><rect x="0" y="0" width="154" height="34" fill="url(#skyFadeGradFooter)"/></mask>
+            <linearGradient id="skyGradFooter" x1="0" y1="0" x2="0" y2="1">
+              <stop id="skyFootStop0" offset="0%" stop-color="#fcfdfe" stop-opacity="0.35"/>
+              <stop id="skyFootStop1" offset="100%" stop-color="#bddcf0" stop-opacity="0.88"/>
+            </linearGradient>
+            <linearGradient id="skyWaterGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop id="skyWaterStop0" offset="0%" stop-color="#8ec0de" stop-opacity="0.78"/>
+              <stop id="skyWaterStop1" offset="100%" stop-color="#6fa4c7" stop-opacity="0.34"/>
+            </linearGradient>
+            <linearGradient id="lighthouseBeamGrad" x1="1" y1="0.5" x2="0" y2="0.4">
+              <stop offset="0%" stop-color="#ffe896" stop-opacity="0.82"/>
+              <stop offset="100%" stop-color="#ffe896" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <g mask="url(#skyFadeFooter)">
+            <rect x="0" y="0" width="154" height="16" fill="url(#skyGradFooter)"/>
+            <rect x="0" y="15.8" width="154" height="18.2" rx="2" fill="url(#skyWaterGrad)"/>
+            <g data-parallax="far">
+              <!-- Distant harbor hills & town echo from Projects card above -->
+              <path d="M 22 16 Q 48 11.5 76 14 Q 98 11 122 14 L 154 14 L 154 16 Z" fill="var(--sky-mtn-far)" class="sky-ink" stroke-width="0.6" opacity="0.65"/>
+              <g class="sky-stars" opacity="0">
+                <circle cx="32" cy="5" r="0.65" fill="#fff5cc" opacity="0.85"/>
+                <circle cx="68" cy="3.8" r="0.7" fill="#fff5cc" opacity="0.9"/>
+                <circle cx="102" cy="5.2" r="0.65" fill="#fff5cc" opacity="0.8"/>
+              </g>
+            </g>
+            <g data-parallax="mid">
+              <!-- Sweeping lighthouse light beam (lit at dusk & night) -->
+              <polygon points="135,4.2 66,0.5 66,11.5 135,5.8" fill="url(#lighthouseBeamGrad)" class="lighthouse-beam"/>
+
+              <!-- Sailboat with cabin, mast, mainsail & jib -->
+              <path d="M 37 15.8 L 57 15.8 L 54.2 18.8 L 39.8 18.8 Z" fill="var(--sky-bldg-fill)" class="sky-ink" stroke-width="0.9"/>
+              <rect x="44" y="14.2" width="6.5" height="1.6" rx="0.4" fill="var(--sky-bldg-alt)" class="sky-ink" stroke-width="0.7"/>
+              <path d="M 48 14 L 48 3.2 L 56.5 13.5 Z" fill="var(--sky-cloud-fill)" class="sky-ink" stroke-width="0.9"/>
+              <path d="M 46.6 14 L 46.6 5.5 L 40 13.5 Z" fill="var(--sky-cloud-fill)" class="sky-ink" stroke-width="0.8"/>
+              <path d="M 48 3.2 L 50.8 4.0 L 48 4.8 Z" fill="#d96236"/>
+
+              <!-- Wooden harbor pier & pilings -->
+              <line x1="78" y1="13.8" x2="124" y2="13.8" class="sky-ink" stroke-width="1.2"/>
+              <line x1="78" y1="15.0" x2="124" y2="15.0" class="sky-ink" stroke-width="0.7" opacity="0.75"/>
+              <line x1="82" y1="13.8" x2="82" y2="21.5" class="sky-ink" stroke-width="1.05"/>
+              <line x1="94" y1="13.8" x2="94" y2="21.5" class="sky-ink" stroke-width="1.05"/>
+              <line x1="106" y1="13.8" x2="106" y2="21.5" class="sky-ink" stroke-width="1.05"/>
+              <line x1="118" y1="13.8" x2="118" y2="21.5" class="sky-ink" stroke-width="1.05"/>
+              <!-- Pier bollard & glowing lantern post -->
+              <line x1="82" y1="13.8" x2="82" y2="9.2" class="sky-ink" stroke-width="0.9"/>
+              <circle cx="82" cy="8.2" r="1.45" class="town-win"/>
+
+              <!-- Small moored rowboat beside the pier -->
+              <path d="M 96 17.0 L 106 17.0 L 104.2 18.8 L 97.8 18.8 Z" fill="var(--sky-bldg-alt)" class="sky-ink" stroke-width="0.8"/>
+
+              <!-- Rocky headland & prominent striped Lighthouse on right -->
+              <path d="M 121 16 L 126 12.6 L 147 12.2 L 154 14 L 154 16 Z" fill="var(--sky-mtn-near)" class="sky-ink" stroke-width="0.9"/>
+              <path d="M 133.2 12.6 L 134.5 5.2 L 139.5 5.2 L 140.8 12.6 Z" fill="var(--sky-bldg-fill)" class="sky-ink" stroke-width="0.9"/>
+              <line x1="134.1" y1="8.0" x2="139.9" y2="8.0" stroke="#c95042" stroke-width="1.35"/>
+              <line x1="133.6" y1="10.6" x2="140.4" y2="10.6" stroke="#c95042" stroke-width="1.25"/>
+              <rect x="139.0" y="5.4" width="1.2" height="7.0" class="sky-sidelight"/>
+              <!-- Lighthouse lantern room & cap -->
+              <line x1="133.4" y1="5.2" x2="140.6" y2="5.2" class="sky-ink" stroke-width="0.95"/>
+              <rect x="135.2" y="2.8" width="3.6" height="2.4" class="town-win"/>
+              <path d="M 134.5 2.8 L 137 0.8 L 139.5 2.8 Z" fill="#c95042" class="sky-ink" stroke-width="0.8"/>
+
+              <!-- Winter snow on lighthouse cap, headland, pier & boat roofs -->
+              <g class="sky-snow">
+                <path d="M 43.3 14.3 Q 47.2 12.2 51.2 14.3 L 50.8 15.1 Q 47.2 14.4 43.7 15.1 Z" fill="var(--sky-snow-fill)" class="sky-ink" stroke-width="0.62"/>
+                <path d="M 36.8 15.8 Q 40.3 14.3 43.8 15.8 Z" fill="var(--sky-snow-fill)" class="sky-ink" stroke-width="0.58"/>
+                <path d="M 50.8 15.8 Q 54.0 14.3 57.3 15.8 Z" fill="var(--sky-snow-fill)" class="sky-ink" stroke-width="0.58"/>
+                <path d="M 95.8 17.0 Q 101 15.3 106.2 17.0 Z" fill="var(--sky-snow-fill)" class="sky-ink" stroke-width="0.58"/>
+                <path d="M 77.2 13.8 Q 88 11.4 100 12.8 Q 112 11.2 124.5 13.8 Z" fill="var(--sky-snow-fill)" class="sky-ink" stroke-width="0.72"/>
+                <path d="M 80.5 7.4 Q 82 5.7 83.5 7.4 Z" fill="var(--sky-snow-fill)" class="sky-ink" stroke-width="0.52"/>
+                <path d="M 134.2 2.8 Q 137 0.2 139.8 2.8 L 139.0 3.4 L 135.0 3.4 Z" fill="var(--sky-snow-fill)" class="sky-ink" stroke-width="0.58"/>
+                <path d="M 124 12.9 Q 129 11.0 133.5 12.8 L 133 13.9 L 124 13.9 Z" fill="var(--sky-snow-fill)" class="sky-ink" stroke-width="0.62"/>
+                <path d="M 140.5 12.5 Q 147 10.4 154 12.6 L 154 13.9 L 140.5 13.9 Z" fill="var(--sky-snow-fill)" class="sky-ink" stroke-width="0.62"/>
+              </g>
+            </g>
+            <g data-parallax="near">
+              <!-- Crisp waterline & hand-drawn harbor ripples -->
+              <line x1="16" y1="16" x2="154" y2="16" class="sky-ink" stroke-width="0.95"/>
+              <g class="sky-hatch" fill="none" stroke-width="0.75" opacity="0.58">
+                <path d="M 24 20.5 Q 34 19.6 44 20.5"/>
+                <path d="M 60 21.5 Q 72 20.6 84 21.5"/>
+                <path d="M 106 22 Q 118 21.2 130 22"/>
+                <path d="M 32 25.5 Q 46 24.5 60 25.5"/>
+                <path d="M 76 26.2 Q 89 25.3 102 26.2"/>
+                <path d="M 50 29.8 Q 66 28.8 82 29.8"/>
+                <path d="M 110 28.5 Q 124 27.6 138 28.5"/>
+              </g>
+              <!-- Inverted sailboat, pier lantern & lighthouse reflections on water -->
+              <g class="harbor-shimmer" stroke="var(--sky-shimmer)" stroke-linecap="round">
+                <!-- Sailboat soft water reflection -->
+                <line x1="42" y1="20.2" x2="53" y2="20.2" stroke-width="1.0" opacity="0.65"/>
+                <line x1="44" y1="23.0" x2="51" y2="23.0" stroke-width="0.9" opacity="0.52"/>
+                <line x1="46" y1="25.8" x2="49.5" y2="25.8" stroke-width="0.85" opacity="0.40"/>
+                <!-- Pier lantern reflection -->
+                <line x1="79.5" y1="19.5" x2="84.5" y2="19.5" stroke-width="1.1"/>
+                <line x1="80.2" y1="22.5" x2="83.8" y2="22.5" stroke-width="0.95" opacity="0.85"/>
+                <line x1="80.8" y1="25.5" x2="83.2" y2="25.5" stroke-width="0.85" opacity="0.65"/>
+                <!-- Lighthouse tall shimmering reflection column -->
+                <line x1="133" y1="19.0" x2="141" y2="19.0" stroke-width="1.25"/>
+                <line x1="134" y1="22.0" x2="140" y2="22.0" stroke-width="1.15"/>
+                <line x1="135" y1="25.0" x2="139" y2="25.0" stroke-width="1.05" opacity="0.9"/>
+                <line x1="135.8" y1="28.0" x2="138.2" y2="28.0" stroke-width="0.95" opacity="0.72"/>
+                <line x1="136.3" y1="30.8" x2="137.7" y2="30.8" stroke-width="0.85" opacity="0.5"/>
+              </g>
+              <g class="season-spring" opacity="0.94">
+                <ellipse cx="32" cy="22" rx="1.4" ry="0.7" transform="rotate(-15 32 22)" fill="#f49bb4" stroke="#8f435c" stroke-width="0.3"/>
+                <ellipse cx="90" cy="19" rx="1.3" ry="0.65" transform="rotate(18 90 19)" fill="#f9c9d7" stroke="#8f435c" stroke-width="0.3"/>
+              </g>
+              <g class="season-autumn" opacity="0.94">
+                <ellipse cx="32" cy="22" rx="1.4" ry="0.7" transform="rotate(15 32 22)" fill="#d96236" stroke="#782c16" stroke-width="0.3"/>
+                <ellipse cx="90" cy="19" rx="1.3" ry="0.65" transform="rotate(-18 90 19)" fill="#e8963a" stroke="#782c16" stroke-width="0.3"/>
+              </g>
+              <g class="sky-snowflakes">
+                <circle cx="34" cy="7.5" r="0.95" fill="var(--sky-snow-fill)" stroke="var(--sky-snow-shade)" stroke-width="0.38"/>
+                <circle cx="68" cy="5.5" r="1.0" fill="var(--sky-snow-fill)" stroke="var(--sky-snow-shade)" stroke-width="0.4"/>
+                <circle cx="102" cy="7.5" r="0.95" fill="var(--sky-snow-fill)" stroke="var(--sky-snow-shade)" stroke-width="0.38"/>
+                <circle cx="122" cy="5.0" r="1.0" fill="var(--sky-snow-fill)" stroke="var(--sky-snow-shade)" stroke-width="0.4"/>
+              </g>
+            </g>
+          </g>
+        </svg>
+      </div>
+      <div data-footer="service-alerts" hidden></div>
+      <div class="meta">
+        <div data-footer="rate">Rate: --</div>
+        <div data-footer="status">Status: Loading</div>
+      </div>
+      <div class="today" data-footer="today">Today: $0.00 (0 tokens)</div>
+
+      <div class="actions">
+        <button class="action primary" data-action="refresh" data-i18n="refresh_now">↻ Refresh Now</button>
+        <button class="action" data-action="quit" data-i18n="quit">⏻ Quit</button>
+        <button class="action" data-action="install" data-i18n="install_hook">Install Hook</button>
+      </div>
+      <p class="attribution">based on <a href="https://github.com/aqua5230/usage" target="_blank">usage</a> by lollapalooza</p>
+    </section>
+  </main>
+
+  <script>
+    var skylineState = {
+      timer: null,
+      motionQuery: null,
+      hour: 12,
+      period: "day",
+      titleObserver: null,
+      rootObserver: null,
+      resizeObserver: null,
+      defaultFadeEnds: {},
+      reflowRaf: null
+    };
+
+    function skylineGetParams() {
+      var params = new URLSearchParams(window.location.search);
+      var now = new Date();
+      var hourParam = params.get("hour");
+      var monthParam = params.get("month");
+
+      var hour = now.getHours() + now.getMinutes() / 60;
+      if (hourParam !== null && hourParam !== "" && Number.isFinite(Number(hourParam))) {
+        var parsedHour = Number(hourParam);
+        hour = ((parsedHour % 24) + 24) % 24;
+      }
+
+      var month = now.getMonth() + 1;
+      if (monthParam !== null && monthParam !== "" && !isNaN(Number(monthParam))) {
+        var parsedMonth = Math.floor(Number(monthParam));
+        if (parsedMonth >= 1 && parsedMonth <= 12) {
+          month = parsedMonth;
+        }
+      }
+
+      return { hour: hour, month: month };
+    }
+
+    function skylineGetPeriod(hour) {
+      var h = Math.floor(hour);
+      if (h >= 5 && h <= 7) return "dawn";
+      if (h >= 8 && h <= 16) return "day";
+      if (h >= 17 && h <= 19) return "dusk";
+      return "night";
+    }
+
+    function skylineGetSeason(month) {
+      if (month >= 3 && month <= 5) return "spring";
+      if (month >= 6 && month <= 8) return "summer";
+      if (month >= 9 && month <= 11) return "autumn";
+      return "winter";
+    }
+
+    function skylineSetStops(stopIds, colors, opacities) {
+      for (var i = 0; i < stopIds.length; i++) {
+        var el = document.getElementById(stopIds[i]);
+        if (el) {
+          el.setAttribute("stop-color", colors[i]);
+          if (opacities && opacities[i] !== undefined) {
+            el.setAttribute("stop-opacity", opacities[i]);
+          }
+        }
+      }
+    }
+
+    function skylineSetVars(root, vars) {
+      var keys = Object.keys(vars);
+      for (var i = 0; i < keys.length; i++) {
+        root.style.setProperty(keys[i], vars[keys[i]]);
+      }
+    }
+
+    function skylineGetTitleTextRight(h1) {
+      if (!h1) return null;
+      var h1Rect = h1.getBoundingClientRect();
+      if (!h1Rect || h1Rect.width <= 0) return null;
+      var range = document.createRange();
+      range.selectNodeContents(h1);
+      var textRect = range.getBoundingClientRect();
+      if (typeof range.detach === "function") range.detach();
+      if (textRect && textRect.width > 0) {
+        return Math.min(textRect.right, h1Rect.right);
+      }
+      return h1Rect.left;
+    }
+
+    function skylineGetMinCelestialX(svg, h1, leftRadius) {
+      if (!svg || !h1) return -Infinity;
+      var textRight = skylineGetTitleTextRight(h1);
+      if (textRight === null) return -Infinity;
+      var minScreenLeft = textRight + 8;
+      var ctm = typeof svg.getScreenCTM === "function" ? svg.getScreenCTM() : null;
+      if (ctm && ctm.a > 0) {
+        return (minScreenLeft - ctm.e) / ctm.a + leftRadius;
+      }
+      var svgRect = svg.getBoundingClientRect();
+      if (svgRect && svgRect.width > 0) {
+        var viewBox = svg.viewBox && svg.viewBox.baseVal;
+        var vbWidth = viewBox && viewBox.width > 0 ? viewBox.width : 192;
+        var scale = svgRect.width / vbWidth;
+        return (minScreenLeft - svgRect.left) / scale + leftRadius;
+      }
+      return -Infinity;
+    }
+
+    function skylinePositionCelestial(hour, period) {
+      var sun = document.getElementById("sky-sun");
+      var sunDisc = document.getElementById("sky-sun-disc");
+      var moon = document.getElementById("sky-moon");
+      var starGroups = document.querySelectorAll(".sky-stars");
+      var glowInner = document.getElementById("skyGlowInner");
+      var glowOuter = document.getElementById("skyGlowOuter");
+      var claudeSvg = document.querySelector(".skyline-strip--claude svg");
+      var claudeTitle = document.querySelector('.card[data-card="claude"] .brand h1');
+      if (!sun || !moon) return;
+
+      if (period === "night") {
+        sun.setAttribute("opacity", "0");
+        moon.setAttribute("opacity", "1");
+        for (var i = 0; i < starGroups.length; i++) {
+          starGroups[i].setAttribute("opacity", "0.95");
+        }
+        var nightProgress = hour >= 20 ? (hour - 20) / 9 : (hour + 4) / 9;
+        var clampedNight = Math.max(0, Math.min(1, nightProgress));
+        var mx = 54 + clampedNight * 56;
+        mx = Math.max(mx, skylineGetMinCelestialX(claudeSvg, claudeTitle, 7.6));
+        var my = 23 - Math.sin(clampedNight * Math.PI) * 11;
+        moon.setAttribute("transform", "translate(" + mx.toFixed(1) + ", " + my.toFixed(1) + ")");
+        if (glowInner) glowInner.setAttribute("stop-color", "#e8eef8");
+        if (glowOuter) glowOuter.setAttribute("stop-color", "#e8eef8");
+      } else {
+        sun.setAttribute("opacity", "1");
+        moon.setAttribute("opacity", "0");
+        for (var j = 0; j < starGroups.length; j++) {
+          starGroups[j].setAttribute("opacity", "0");
+        }
+        var dayProgress = Math.max(0, Math.min(1, (hour - 5) / 14));
+        var sx = 48 + dayProgress * 66;
+        sx = Math.max(sx, skylineGetMinCelestialX(claudeSvg, claudeTitle, 9.4));
+        var sy = 26.5 - Math.sin(dayProgress * Math.PI) * 15.5;
+        sun.setAttribute("transform", "translate(" + sx.toFixed(1) + ", " + sy.toFixed(1) + ")");
+        var discColor = period === "dawn" ? "#f59d6e" : (period === "dusk" ? "#eb7347" : "#f6c445");
+        var haloColor = period === "dawn" ? "#ffbfa0" : (period === "dusk" ? "#ffae5c" : "#fff2b2");
+        if (sunDisc) sunDisc.setAttribute("fill", discColor);
+        if (glowInner) glowInner.setAttribute("stop-color", haloColor);
+        if (glowOuter) glowOuter.setAttribute("stop-color", haloColor);
+      }
+    }
+
+    function skylineGetStaleRight(el) {
+      if (!el) return null;
+      var elRect = el.getBoundingClientRect();
+      if (!elRect || elRect.width <= 0 || elRect.height <= 0) return null;
+      var maxRight = -Infinity;
+      var children = el.children;
+      for (var i = 0; i < children.length; i++) {
+        var child = children[i];
+        var style = window.getComputedStyle ? window.getComputedStyle(child) : null;
+        if (style && (style.display === "none" || style.visibility === "hidden")) continue;
+        var rect = child.getBoundingClientRect();
+        if (rect && rect.width > 0 && rect.height > 0) {
+          maxRight = Math.max(maxRight, Math.min(rect.right, elRect.right));
+        }
+      }
+      return maxRight > -Infinity ? maxRight : elRect.right;
+    }
+
+    function skylineGetStripObstacleRight(strip) {
+      if (!strip) return -Infinity;
+      var stripRect = strip.getBoundingClientRect();
+      if (!stripRect || stripRect.width <= 0 || stripRect.height <= 0) return -Infinity;
+      var container = strip.closest ? strip.closest(".brand, .footer") : null;
+      if (!container) return -Infinity;
+
+      var candidates = [];
+      if (container.classList.contains("brand")) {
+        for (var i = 0; i < container.children.length; i++) {
+          candidates.push(container.children[i]);
+        }
+      } else {
+        var metaItems = container.querySelectorAll(".meta > div, [data-footer='service-alerts'] > *");
+        for (var j = 0; j < metaItems.length; j++) {
+          candidates.push(metaItems[j]);
+        }
+      }
+
+      var maxRight = -Infinity;
+      for (var k = 0; k < candidates.length; k++) {
+        var el = candidates[k];
+        if (!el || el === strip || el.contains(strip)) continue;
+        if (el.hidden || (el.closest && el.closest("[hidden]"))) continue;
+        if (el.getAttribute && el.getAttribute("data-action") === "switch") continue;
+        var style = window.getComputedStyle ? window.getComputedStyle(el) : null;
+        if (style && (style.display === "none" || style.visibility === "hidden")) continue;
+        var rect = el.getBoundingClientRect();
+        if (!rect || rect.width <= 0 || rect.height <= 0) continue;
+        if (rect.bottom <= stripRect.top || rect.top >= stripRect.bottom) continue;
+
+        var right = null;
+        if (el.tagName === "H1" || el.classList.contains("header-copy")) {
+          right = skylineGetTitleTextRight(el);
+        } else if (el.classList.contains("codex-stale")) {
+          right = skylineGetStaleRight(el);
+        } else {
+          right = rect.right;
+        }
+        if (right !== null && isFinite(right)) {
+          maxRight = Math.max(maxRight, right);
+        }
+      }
+      return maxRight;
+    }
+
+    function skylineUpdateStripFade(strip) {
+      if (!strip) return;
+      var svg = strip.querySelector("svg");
+      if (!svg) return;
+      var grad = svg.querySelector('linearGradient[id^="skyFadeGrad"]');
+      if (!grad) return;
+
+      var viewBox = svg.viewBox && svg.viewBox.baseVal;
+      var vbWidth = viewBox && viewBox.width > 0 ? viewBox.width : 208;
+      var gradId = grad.id || "";
+      if (gradId && skylineState.defaultFadeEnds[gradId] === undefined) {
+        var initX2 = parseFloat(grad.getAttribute("x2"));
+        skylineState.defaultFadeEnds[gradId] = isFinite(initX2) && initX2 > 0 ? initX2 : 35;
+      }
+      var defaultFadeEnd = gradId ? skylineState.defaultFadeEnds[gradId] : 35;
+
+      var ctm = typeof svg.getScreenCTM === "function" ? svg.getScreenCTM() : null;
+      var scale = 0;
+      var originX = 0;
+      if (ctm && ctm.a > 0) {
+        scale = ctm.a;
+        originX = ctm.e;
+      } else {
+        var svgRect = svg.getBoundingClientRect();
+        if (!svgRect || svgRect.width <= 0) return;
+        scale = svgRect.width / vbWidth;
+        originX = svgRect.left;
+      }
+
+      var obstacleRight = skylineGetStripObstacleRight(strip);
+      var x1 = 0;
+      var x2 = defaultFadeEnd;
+
+      if (isFinite(obstacleRight)) {
+        var clearancePx = 6;
+        var avoidX1 = (obstacleRight + clearancePx - originX) / scale;
+        if (avoidX1 > 0) {
+          x1 = avoidX1;
+          x2 = x1 + Math.max(28, 24) / scale;
+        }
+      }
+
+      var nextX1 = x1.toFixed(2);
+      var nextX2 = x2.toFixed(2);
+      if (grad.getAttribute("x1") !== nextX1) grad.setAttribute("x1", nextX1);
+      if (grad.getAttribute("x2") !== nextX2) grad.setAttribute("x2", nextX2);
+    }
+
+    function skylineReflowFades() {
+      var strips = document.querySelectorAll(".skyline-strip");
+      for (var i = 0; i < strips.length; i++) {
+        skylineUpdateStripFade(strips[i]);
+      }
+    }
+
+    function skylineReflowCelestial() {
+      skylinePositionCelestial(skylineState.hour, skylineState.period);
+      skylineReflowFades();
+    }
+
+    function skylineHandleMutations(mutations) {
+      for (var i = 0; i < mutations.length; i++) {
+        var target = mutations[i].target;
+        if (target && target.closest && target.closest(".skyline-strip")) continue;
+        // dynamic_height briefly rewrites .wrap's inline size while measuring; that moves no header.
+        if (mutations[i].type === "attributes" && mutations[i].attributeName === "style" &&
+            target && target.matches && target.matches("main.wrap")) continue;
+        skylineScheduleReflow();
+        return;
+      }
+    }
+
+    function skylineScheduleReflow() {
+      if (typeof requestAnimationFrame !== "function") {
+        skylineReflowCelestial();
+        return;
+      }
+      if (skylineState.reflowRaf !== null) return;
+      skylineState.reflowRaf = requestAnimationFrame(function () {
+        skylineState.reflowRaf = null;
+        skylineReflowCelestial();
+      });
+    }
+
+    function skylineUpdate() {
+      var time = skylineGetParams();
+      var period = skylineGetPeriod(time.hour);
+      var season = skylineGetSeason(time.month);
+
+      var root = document.documentElement;
+      root.setAttribute("data-period", period);
+      root.setAttribute("data-season", season);
+
+      var strips = document.querySelectorAll(".skyline-strip");
+      for (var i = 0; i < strips.length; i++) {
+        strips[i].setAttribute("data-period", period);
+        strips[i].setAttribute("data-season", season);
+      }
+
+      var palettes = {
+        dawn: {
+          claude: ["#e88c99", "#f7bfa0", "#fde6cf"],
+          codex: ["#ee9da4", "#fdf0ed"],
+          agy: ["#f0a8ac", "#fdf0ed"],
+          proj: ["#f2b3b4", "#fdf0ed"],
+          foot: ["#fde8d6", "#f3b3a6"],
+          water: ["#c8a8bd", "#b28fa8"],
+          colorScheme: "light",
+          vars: {
+            "--paper": "#f1d6d3",
+            "--paper-top-wash": "rgba(235, 146, 156, 0.48)",
+            "--paper-bot-wash": "rgba(244, 186, 152, 0.40)",
+            "--paper-grain": "rgba(44, 28, 30, 0.013)",
+            "--paper-card": "rgba(253, 240, 237, 0.97)",
+            "--ink": "#2e1e21",
+            "--ink-line": "rgba(46, 30, 33, 0.78)",
+            "--ink-line-soft": "rgba(46, 30, 33, 0.48)",
+            "--ink-divider": "rgba(46, 30, 33, 0.34)",
+            "--ink-shadow": "rgba(46, 30, 33, 0.08)",
+            "--ink-border-strong": "rgba(46, 30, 33, 0.88)",
+            "--text": "#221416",
+            "--muted": "#695053",
+            "--track": "rgba(46, 30, 33, 0.06)",
+            "--tick": "rgba(46, 30, 33, 0.62)",
+            "--button": "rgba(46, 30, 33, 0.04)",
+            "--button-border": "rgba(46, 30, 33, 0.48)",
+            "--button-hover": "rgba(46, 30, 33, 0.10)",
+            "--rank-bg": "rgba(46, 30, 33, 0.06)",
+            "--rank-top-bg": "rgba(71, 138, 91, 0.18)",
+            "--rank-top-border": "rgba(47, 105, 64, 0.62)",
+            "--projects-btn-bg": "rgba(71, 138, 91, 0.09)",
+            "--projects-btn-border": "rgba(47, 105, 64, 0.52)",
+            "--projects-btn-text": "#275c36",
+            "--primary-btn-bg": "rgba(59, 141, 153, 0.13)",
+            "--primary-btn-border": "rgba(42, 110, 121, 0.56)",
+            "--primary-btn-text": "#1d4a52",
+            "--primary-btn-hover-bg": "#3b8d99",
+            "--primary-btn-hover-text": "#fbf8f1",
+            "--alert-bg": "rgba(186, 68, 58, 0.10)",
+            "--alert-border": "rgba(186, 68, 58, 0.48)",
+            "--alert-text": "#9c342b",
+            "--tooltip-bg": "#2e1e21",
+            "--tooltip-text": "#fdf0ed",
+            "--tooltip-border": "rgba(46, 30, 33, 0.6)",
+            "--hatch-mix-base": "#221416",
+            "--hatch-mix-pct": "12%",
+            "--claude": "#c96f4a",
+            "--codex": "#3b8d99",
+            "--agy": "#4d6eb3",
+            "--grok": "#3a3530",
+            "--projects": "#478a5b",
+            "--muse": "#3c6ea8",
+            "--warn": "#b87f24",
+            "--danger": "#ba443a",
+            "--sky-ink": "#2e1e21",
+            "--sky-ink-soft": "rgba(46, 30, 33, 0.46)",
+            "--sky-mtn-far": "#d9b5b8",
+            "--sky-mtn-mid": "#c39ba3",
+            "--sky-mtn-near": "#aa818d",
+            "--sky-cloud-fill": "rgba(255, 244, 240, 0.90)",
+            "--sky-bldg-fill": "#f6e2da",
+            "--sky-bldg-alt": "#ebd0c8",
+            "--sky-bldg-far": "#d9bab8",
+            "--sky-win-fill": "rgba(182, 166, 170, 0.36)",
+            "--sky-win-stroke": "rgba(46, 30, 33, 0.60)",
+            "--sky-mist": "#fdf0ed",
+            "--sky-water-fill": "rgba(200, 168, 189, 0.52)",
+            "--sky-shimmer": "rgba(245, 157, 110, 0.72)",
+            "--sky-sidelight": "#f8b490",
+            "--sky-sidelight-op": "0.52",
+            "--sky-beam-op": "0.25"
+          }
+        },
+        day: {
+          claude: ["#7ab8e8", "#b9ddf5", "#edf6fc"],
+          codex: ["#8ec4ec", "#fcfdfe"],
+          agy: ["#9bccef", "#fcfdfe"],
+          proj: ["#a6d2f2", "#fcfdfe"],
+          foot: ["#eef6fc", "#bddcf0"],
+          water: ["#8ec0de", "#6fa4c7"],
+          colorScheme: "light",
+          vars: {
+            "--paper": "#e4eef5",
+            "--paper-top-wash": "rgba(122, 184, 232, 0.36)",
+            "--paper-bot-wash": "rgba(164, 206, 232, 0.30)",
+            "--paper-grain": "rgba(30, 36, 42, 0.012)",
+            "--paper-card": "rgba(252, 253, 254, 0.97)",
+            "--ink": "#22262b",
+            "--ink-line": "rgba(34, 38, 43, 0.78)",
+            "--ink-line-soft": "rgba(34, 38, 43, 0.48)",
+            "--ink-divider": "rgba(34, 38, 43, 0.32)",
+            "--ink-shadow": "rgba(34, 38, 43, 0.08)",
+            "--ink-border-strong": "rgba(34, 38, 43, 0.88)",
+            "--text": "#1a1f24",
+            "--muted": "#58636e",
+            "--track": "rgba(34, 38, 43, 0.06)",
+            "--tick": "rgba(34, 38, 43, 0.62)",
+            "--button": "rgba(34, 38, 43, 0.04)",
+            "--button-border": "rgba(34, 38, 43, 0.48)",
+            "--button-hover": "rgba(34, 38, 43, 0.10)",
+            "--rank-bg": "rgba(34, 38, 43, 0.06)",
+            "--rank-top-bg": "rgba(71, 138, 91, 0.18)",
+            "--rank-top-border": "rgba(47, 105, 64, 0.62)",
+            "--projects-btn-bg": "rgba(71, 138, 91, 0.09)",
+            "--projects-btn-border": "rgba(47, 105, 64, 0.52)",
+            "--projects-btn-text": "#275c36",
+            "--primary-btn-bg": "rgba(59, 141, 153, 0.13)",
+            "--primary-btn-border": "rgba(42, 110, 121, 0.56)",
+            "--primary-btn-text": "#1d4a52",
+            "--primary-btn-hover-bg": "#3b8d99",
+            "--primary-btn-hover-text": "#fbf8f1",
+            "--alert-bg": "rgba(186, 68, 58, 0.10)",
+            "--alert-border": "rgba(186, 68, 58, 0.48)",
+            "--alert-text": "#9c342b",
+            "--tooltip-bg": "#1a1f24",
+            "--tooltip-text": "#fcfdfe",
+            "--tooltip-border": "rgba(34, 38, 43, 0.6)",
+            "--hatch-mix-base": "#1a1f24",
+            "--hatch-mix-pct": "12%",
+            "--claude": "#c96f4a",
+            "--codex": "#3b8d99",
+            "--agy": "#4d6eb3",
+            "--grok": "#3a3530",
+            "--projects": "#478a5b",
+            "--muse": "#3c6ea8",
+            "--warn": "#b87f24",
+            "--danger": "#ba443a",
+            "--sky-ink": "#22262b",
+            "--sky-ink-soft": "rgba(34, 38, 43, 0.46)",
+            "--sky-mtn-far": "#c2d6e3",
+            "--sky-mtn-mid": "#a2bcc9",
+            "--sky-mtn-near": "#87a4b3",
+            "--sky-cloud-fill": "rgba(255, 255, 255, 0.92)",
+            "--sky-bldg-fill": "#f2efe8",
+            "--sky-bldg-alt": "#e4dfd5",
+            "--sky-bldg-far": "#d3d5d9",
+            "--sky-win-fill": "rgba(135, 168, 194, 0.38)",
+            "--sky-win-stroke": "rgba(34, 38, 43, 0.62)",
+            "--sky-mist": "#fcfdfe",
+            "--sky-water-fill": "rgba(142, 192, 222, 0.50)",
+            "--sky-shimmer": "rgba(246, 196, 69, 0.48)",
+            "--sky-sidelight": "#ffffff",
+            "--sky-sidelight-op": "0.35",
+            "--sky-beam-op": "0"
+          }
+        },
+        dusk: {
+          claude: ["#6a5591", "#c77378", "#f3a761"],
+          codex: ["#7b629c", "#f5b67a"],
+          agy: ["#8c6ba0", "#f7c48d"],
+          proj: ["#9c769e", "#f7ce9c"],
+          foot: ["#f4be8a", "#d47f7c"],
+          water: ["#a77d9e", "#7f5e84"],
+          colorScheme: "light",
+          vars: {
+            "--paper": "#e3bda5",
+            "--paper-top-wash": "rgba(112, 86, 148, 0.44)",
+            "--paper-bot-wash": "rgba(235, 138, 78, 0.44)",
+            "--paper-grain": "rgba(41, 25, 22, 0.015)",
+            "--paper-card": "rgba(250, 231, 212, 0.97)",
+            "--ink": "#2c1b18",
+            "--ink-line": "rgba(44, 27, 24, 0.78)",
+            "--ink-line-soft": "rgba(44, 27, 24, 0.48)",
+            "--ink-divider": "rgba(44, 27, 24, 0.34)",
+            "--ink-shadow": "rgba(44, 27, 24, 0.09)",
+            "--ink-border-strong": "rgba(44, 27, 24, 0.88)",
+            "--text": "#241512",
+            "--muted": "#6a4f44",
+            "--track": "rgba(44, 27, 24, 0.07)",
+            "--tick": "rgba(44, 27, 24, 0.64)",
+            "--button": "rgba(44, 27, 24, 0.045)",
+            "--button-border": "rgba(44, 27, 24, 0.48)",
+            "--button-hover": "rgba(44, 27, 24, 0.11)",
+            "--rank-bg": "rgba(44, 27, 24, 0.06)",
+            "--rank-top-bg": "rgba(71, 138, 91, 0.20)",
+            "--rank-top-border": "rgba(47, 105, 64, 0.64)",
+            "--projects-btn-bg": "rgba(71, 138, 91, 0.10)",
+            "--projects-btn-border": "rgba(47, 105, 64, 0.54)",
+            "--projects-btn-text": "#255733",
+            "--primary-btn-bg": "rgba(59, 141, 153, 0.14)",
+            "--primary-btn-border": "rgba(42, 110, 121, 0.58)",
+            "--primary-btn-text": "#1b454c",
+            "--primary-btn-hover-bg": "#3b8d99",
+            "--primary-btn-hover-text": "#fbf8f1",
+            "--alert-bg": "rgba(186, 68, 58, 0.12)",
+            "--alert-border": "rgba(186, 68, 58, 0.52)",
+            "--alert-text": "#962e26",
+            "--tooltip-bg": "#2c1b18",
+            "--tooltip-text": "#fae7d4",
+            "--tooltip-border": "rgba(44, 27, 24, 0.65)",
+            "--hatch-mix-base": "#241512",
+            "--hatch-mix-pct": "14%",
+            "--claude": "#c46542",
+            "--codex": "#338390",
+            "--agy": "#4868ab",
+            "--grok": "#362b31",
+            "--projects": "#3f8053",
+            "--muse": "#3969a3",
+            "--warn": "#ad721a",
+            "--danger": "#b33d34",
+            "--sky-ink": "#2c1b18",
+            "--sky-ink-soft": "rgba(44, 27, 24, 0.46)",
+            "--sky-mtn-far": "#b99cb3",
+            "--sky-mtn-mid": "#997c98",
+            "--sky-mtn-near": "#7b5e7c",
+            "--sky-cloud-fill": "rgba(252, 224, 198, 0.86)",
+            "--sky-bldg-fill": "#e6c8ba",
+            "--sky-bldg-alt": "#d6b2aa",
+            "--sky-bldg-far": "#b998a3",
+            "--sky-win-fill": "rgba(255, 200, 92, 0.72)",
+            "--sky-win-stroke": "rgba(44, 27, 24, 0.64)",
+            "--sky-mist": "#fae7d4",
+            "--sky-water-fill": "rgba(167, 125, 158, 0.52)",
+            "--sky-shimmer": "#ffbe6b",
+            "--sky-sidelight": "#ffaa54",
+            "--sky-sidelight-op": "0.94",
+            "--sky-beam-op": "0.55"
+          }
+        },
+        night: {
+          claude: ["#08101f", "#132442", "#1e3357"],
+          codex: ["#0d182d", "#18253d"],
+          agy: ["#101d35", "#18253d"],
+          proj: ["#13213a", "#18253d"],
+          foot: ["#14233d", "#1c3052"],
+          water: ["#10203b", "#091324"],
+          colorScheme: "dark",
+          vars: {
+            "--paper": "#0e1729",
+            "--paper-top-wash": "rgba(8, 16, 31, 0.74)",
+            "--paper-bot-wash": "rgba(28, 46, 76, 0.58)",
+            "--paper-grain": "rgba(185, 205, 232, 0.018)",
+            "--paper-card": "rgba(24, 37, 61, 0.97)",
+            "--ink": "#b9cde8",
+            "--ink-line": "rgba(185, 205, 232, 0.58)",
+            "--ink-line-soft": "rgba(185, 205, 232, 0.36)",
+            "--ink-divider": "rgba(185, 205, 232, 0.28)",
+            "--ink-shadow": "rgba(5, 10, 20, 0.42)",
+            "--ink-border-strong": "rgba(210, 224, 244, 0.80)",
+            "--text": "#f0f5fd",
+            "--muted": "#a0b4d0",
+            "--track": "rgba(185, 205, 232, 0.09)",
+            "--tick": "rgba(240, 245, 253, 0.70)",
+            "--button": "rgba(185, 205, 232, 0.08)",
+            "--button-border": "rgba(185, 205, 232, 0.36)",
+            "--button-hover": "rgba(185, 205, 232, 0.17)",
+            "--rank-bg": "rgba(185, 205, 232, 0.12)",
+            "--rank-top-bg": "rgba(103, 184, 126, 0.22)",
+            "--rank-top-border": "rgba(128, 212, 151, 0.58)",
+            "--projects-btn-bg": "rgba(103, 184, 126, 0.16)",
+            "--projects-btn-border": "rgba(128, 212, 151, 0.50)",
+            "--projects-btn-text": "#9ee3b1",
+            "--primary-btn-bg": "rgba(88, 184, 199, 0.18)",
+            "--primary-btn-border": "rgba(116, 207, 222, 0.52)",
+            "--primary-btn-text": "#a6e9f3",
+            "--primary-btn-hover-bg": "#4aa6b5",
+            "--primary-btn-hover-text": "#0f1928",
+            "--alert-bg": "rgba(234, 108, 98, 0.16)",
+            "--alert-border": "rgba(234, 108, 98, 0.48)",
+            "--alert-text": "#ffb3ac",
+            "--tooltip-bg": "#08101f",
+            "--tooltip-text": "#f0f5fd",
+            "--tooltip-border": "rgba(185, 205, 232, 0.45)",
+            "--hatch-mix-base": "#ffffff",
+            "--hatch-mix-pct": "14%",
+            "--claude": "#e38862",
+            "--codex": "#58b8c7",
+            "--agy": "#7aa0eb",
+            "--grok": "#cad5e4",
+            "--projects": "#6bc083",
+            "--muse": "#72a8eb",
+            "--warn": "#ebb052",
+            "--danger": "#ee7368",
+            "--sky-ink": "#b9cde8",
+            "--sky-ink-soft": "rgba(185, 205, 232, 0.44)",
+            "--sky-mtn-far": "#1f304b",
+            "--sky-mtn-mid": "#18253b",
+            "--sky-mtn-near": "#121c2e",
+            "--sky-cloud-fill": "rgba(52, 74, 108, 0.68)",
+            "--sky-bldg-fill": "#192438",
+            "--sky-bldg-alt": "#202e46",
+            "--sky-bldg-far": "#273752",
+            "--sky-win-fill": "#ffd76b",
+            "--sky-win-stroke": "#f0b949",
+            "--sky-mist": "#0e1729",
+            "--sky-water-fill": "rgba(16, 32, 59, 0.70)",
+            "--sky-shimmer": "#ffd76b",
+            "--sky-sidelight": "#587ab0",
+            "--sky-sidelight-op": "0.28",
+            "--sky-beam-op": "0.92"
+          }
+        }
+      };
+
+      var p = palettes[period];
+      root.style.colorScheme = p.colorScheme;
+      skylineSetStops(["skyClaudeStop0", "skyClaudeStop1", "skyClaudeStop2"], p.claude, ["0.96", "0.82", "0.34"]);
+      skylineSetStops(["skyCodexStop0", "skyCodexStop1"], p.codex, ["0.92", "0.26"]);
+      skylineSetStops(["skyAgyStop0", "skyAgyStop1"], p.agy, ["0.88", "0.22"]);
+      skylineSetStops(["skyProjStop0", "skyProjStop1"], p.proj, ["0.86", "0.18"]);
+      skylineSetStops(["skyFootStop0", "skyFootStop1"], p.foot, ["0.42", "0.90"]);
+      skylineSetStops(["skyWaterStop0", "skyWaterStop1"], p.water, ["0.78", "0.36"]);
+      skylineSetVars(root, p.vars);
+
+      var treePalettes = {
+        spring: { fill: "#f49bb4", shade: "#e37999" },
+        summer: { fill: "#458a44", shade: "#357337" },
+        autumn: { fill: "#d96236", shade: "#be432c" },
+        winter: { fill: "#8b8278", shade: "#736a60" }
+      };
+      var tp = treePalettes[season];
+      if (period === "night") {
+        root.style.setProperty("--sky-tree-fill", season === "autumn" ? "#7a3b2a" : (season === "spring" ? "#73425c" : "#244731"));
+        root.style.setProperty("--sky-tree-shade", season === "autumn" ? "#5d291e" : (season === "spring" ? "#593047" : "#1a3625"));
+        root.style.setProperty("--sky-snow-fill", "#bfd4ee");
+        root.style.setProperty("--sky-snow-shade", "#6a86ad");
+      } else {
+        root.style.setProperty("--sky-tree-fill", tp.fill);
+        root.style.setProperty("--sky-tree-shade", tp.shade);
+        root.style.setProperty("--sky-snow-fill", "#ffffff");
+        root.style.setProperty("--sky-snow-shade", "#84a4c4");
+      }
+
+      var periodChanged = skylineState.period && skylineState.period !== period;
+      skylineState.hour = time.hour;
+      skylineState.period = period;
+      skylineReflowCelestial();
+      // Quota rows bake the accent and warning colours in when drawn; redraw them in the new sky's colours.
+      if (periodChanged && typeof latestState !== "undefined" && latestState &&
+          typeof window.usageApplyState === "function") {
+        window.usageApplyState(latestState);
+      }
+    }
+
+    function skylineResetParallax() {
+      var layers = document.querySelectorAll(".skyline-strip [data-parallax]");
+      for (var i = 0; i < layers.length; i++) {
+        layers[i].style.transform = "translate3d(0px, 0px, 0px)";
+      }
+    }
+
+    function skylineHandleMouseMove(event) {
+      if (skylineState.motionQuery && skylineState.motionQuery.matches) {
+        skylineResetParallax();
+        return;
+      }
+      var w = window.innerWidth || 364;
+      var h = window.innerHeight || 800;
+      var nx = (event.clientX / w - 0.5) * 2;
+      var ny = (event.clientY / h - 0.5) * 2;
+      var weights = { far: 0.6, mid: 1.4, near: 2.2 };
+      var layers = document.querySelectorAll(".skyline-strip [data-parallax]");
+      for (var i = 0; i < layers.length; i++) {
+        var kind = layers[i].getAttribute("data-parallax");
+        var shift = weights[kind] || 0.8;
+        var tx = (nx * shift).toFixed(2);
+        var ty = (ny * shift * 0.35).toFixed(2);
+        layers[i].style.transform = "translate3d(" + tx + "px, " + ty + "px, 0px)";
+      }
+    }
+
+    function skylineInit() {
+      skylineUpdate();
+      if (skylineState.timer) {
+        clearInterval(skylineState.timer);
+      }
+      skylineState.timer = setInterval(skylineUpdate, 5 * 60 * 1000);
+
+      if (window.matchMedia) {
+        skylineState.motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+        if (typeof skylineState.motionQuery.addEventListener === "function") {
+          skylineState.motionQuery.addEventListener("change", skylineResetParallax);
+        }
+      }
+      document.addEventListener("mousemove", skylineHandleMouseMove, { passive: true });
+      document.addEventListener("mouseleave", skylineResetParallax, { passive: true });
+      window.addEventListener("resize", skylineReflowCelestial, { passive: true });
+      window.addEventListener("load", skylineReflowCelestial, { passive: true });
+
+      if (document.fonts && document.fonts.ready && typeof document.fonts.ready.then === "function") {
+        document.fonts.ready.then(skylineReflowCelestial);
+      }
+
+      if (typeof MutationObserver === "function") {
+        var wrapEl = document.querySelector("main.wrap") || document.body;
+        if (wrapEl) {
+          if (skylineState.titleObserver) skylineState.titleObserver.disconnect();
+          skylineState.titleObserver = new MutationObserver(skylineHandleMutations);
+          skylineState.titleObserver.observe(wrapEl, {
+            childList: true,
+            characterData: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ["hidden", "class", "style"]
+          });
+        }
+        if (skylineState.rootObserver) skylineState.rootObserver.disconnect();
+        skylineState.rootObserver = new MutationObserver(skylineScheduleReflow);
+        skylineState.rootObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "lang", "dir"] });
+      }
+
+      if (typeof ResizeObserver === "function") {
+        if (skylineState.resizeObserver) skylineState.resizeObserver.disconnect();
+        skylineState.resizeObserver = new ResizeObserver(skylineScheduleReflow);
+        var observedBoxes = document.querySelectorAll("main.wrap, .card > .brand, .footer");
+        for (var r = 0; r < observedBoxes.length; r++) {
+          skylineState.resizeObserver.observe(observedBoxes[r]);
+        }
+      }
+
+      if (typeof requestAnimationFrame === "function") {
+        requestAnimationFrame(skylineReflowCelestial);
+      }
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", skylineInit);
+    } else {
+      skylineInit();
+    }
+  </script>
+  <script>
+    window.PanelHooks = {
+      percentColor() {
+        return "var(--text)";
+      },
+    };
+  </script>
+  <script>
+{{CORE_SCRIPT}}  </script>
+</body>
+</html>
