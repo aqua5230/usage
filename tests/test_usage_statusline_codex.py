@@ -204,7 +204,9 @@ def test_render_error_still_returns_drawable_text(monkeypatch: pytest.MonkeyPatc
 def test_protocol_round_trip() -> None:
     tools = hook.handle_line(b'{"jsonrpc":"2.0","id":1,"method":"tools/list"}')
     assert tools is not None
-    entry = tools["result"]["tools"][0]["_meta"]["openai/ui"]["entrypoints"][0]
+    meta = tools["result"]["tools"][0]["_meta"]
+    assert meta["ui"] == {"visibility": ["app"]}
+    entry = meta["openai/ui"]["entrypoints"][0]
     assert entry == {"type": "statusline", "resourceUri": hook.URI}
 
     request = {

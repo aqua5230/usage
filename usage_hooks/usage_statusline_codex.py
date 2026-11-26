@@ -37,7 +37,12 @@ TOOL = {
     "title": "usage",
     "description": "Show the usage status line in the Codex footer.",
     "inputSchema": {"type": "object", "properties": {}},
-    "_meta": {"openai/ui": {"entrypoints": [{"type": "statusline", "resourceUri": URI}]}},
+    "_meta": {
+        # Without a visibility list Codex also declares the tool to the model on every
+        # turn; "app" alone keeps it out (codex-mcp tool_catalog.rs tool_is_model_visible).
+        "ui": {"visibility": ["app"]},
+        "openai/ui": {"entrypoints": [{"type": "statusline", "resourceUri": URI}]},
+    },
 }
 
 QUOTA_SNAPSHOT = os.path.expanduser("~/.usage/quota_snapshot.json")
