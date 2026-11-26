@@ -109,6 +109,7 @@ def install_hook_in_background(app: _ActionApp) -> None:
                 session_hooks._migrate_bundled_python_commands_if_needed()
                 statusline_settings._sync_agy_statusline(True)
                 statusline_settings._sync_grok_statusline(True)
+                statusline_settings._sync_codex_provider(True)
     except SystemExit as exc:
         exit_code = exc.code if isinstance(exc.code, int) else 1
         if exc.code:

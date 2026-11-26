@@ -4054,8 +4054,11 @@ def test_install_hook_also_sets_up_agy_and_grok_status_lines(
     monkeypatch.setattr(
         statusline_settings, "_sync_grok_statusline", lambda enable: calls.append(f"grok:{enable}")
     )
+    monkeypatch.setattr(
+        statusline_settings, "_sync_codex_provider", lambda enable: calls.append(f"codex:{enable}")
+    )
     menubar_actions.install_hook_in_background(delegate)
-    assert calls == (["migrate", "agy:True", "grok:True"] if code == 0 else [])
+    assert calls == (["migrate", "agy:True", "grok:True", "codex:True"] if code == 0 else [])
     assert results[0][0] == "_finishHookInstall:"
     assert results[0][1]["success"] is (code == 0)
 
