@@ -921,9 +921,9 @@
       font-size: 10.5px;
       line-height: 15px;
       font-weight: 600;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      /* The harbour scenery leaves these pills about 155px, so a long status wraps rather than truncates. */
+      white-space: normal;
+      overflow-wrap: anywhere;
       max-width: 100%;
     }
 
@@ -2042,7 +2042,7 @@
       var monthParam = params.get("month");
 
       var hour = now.getHours() + now.getMinutes() / 60;
-      if (hourParam !== null && hourParam !== "" && !isNaN(Number(hourParam))) {
+      if (hourParam !== null && hourParam !== "" && Number.isFinite(Number(hourParam))) {
         var parsedHour = Number(hourParam);
         hour = ((parsedHour % 24) + 24) % 24;
       }
@@ -2297,6 +2297,9 @@
       for (var i = 0; i < mutations.length; i++) {
         var target = mutations[i].target;
         if (target && target.closest && target.closest(".skyline-strip")) continue;
+        // dynamic_height briefly rewrites .wrap's inline size while measuring; that moves no header.
+        if (mutations[i].type === "attributes" && mutations[i].attributeName === "style" &&
+            target && target.matches && target.matches("main.wrap")) continue;
         skylineScheduleReflow();
         return;
       }
@@ -2653,9 +2656,15 @@
         root.style.setProperty("--sky-snow-shade", "#84a4c4");
       }
 
+      var periodChanged = skylineState.period && skylineState.period !== period;
       skylineState.hour = time.hour;
       skylineState.period = period;
       skylineReflowCelestial();
+      // Quota rows bake the accent and warning colours in when drawn; redraw them in the new sky's colours.
+      if (periodChanged && typeof latestState !== "undefined" && latestState &&
+          typeof window.usageApplyState === "function") {
+        window.usageApplyState(latestState);
+      }
     }
 
     function skylineResetParallax() {
