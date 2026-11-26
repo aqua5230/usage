@@ -91,7 +91,13 @@ def _menubar_items(
     now = time.time() if now is None else now
     items: list[tuple[Callable[[], Any], float | None]] = []
     if not state.hide_claude:
-        items.append((_claude_menubar_icon, state.claude_session.display_percent))
+        # Weekly-only plans have no 5-hour window, so show their weekly row as Codex does.
+        claude_row = (
+            state.claude_session
+            if state.claude_session.percent is not None
+            else state.claude_weekly
+        )
+        items.append((_claude_menubar_icon, claude_row.display_percent))
     if not state.hide_codex and (app.codex_5h_pct is not None or state.hide_claude):
         codex_row = (
             state.codex_session if state.codex_session.percent is not None else state.codex_weekly

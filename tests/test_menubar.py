@@ -3808,6 +3808,20 @@ def test_agy_projection_shows_recovery_countdown_and_short_poll(
     assert menubar_title.menubar_poll_interval(app, state) == 60
 
 
+@pytest.mark.parametrize(("weekly_pct", "expected"), [(42.0, "42%"), (None, "--")])
+def test_menubar_claude_weekly_only_plan_shows_the_weekly_quota(
+    monkeypatch: pytest.MonkeyPatch, weekly_pct: float | None, expected: str
+) -> None:
+    # Weekly-only plans have no 5-hour window; show the weekly row as Codex does.
+    monkeypatch.setattr(menubar, "_load_preferences", lambda: {})
+    state = menubar._empty_state()
+    state.hide_codex = True
+    state.claude_session.percent = None
+    state.claude_weekly.percent = weekly_pct
+    app = cast(Any, SimpleNamespace(codex_5h_pct=None))
+    assert [text for _icon, text in menubar_title._menubar_items(app, state, 1000000)] == [expected]
+
+
 def test_menubar_countdown_ranks_as_full_and_preserves_codex_path(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

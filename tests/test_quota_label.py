@@ -450,7 +450,11 @@ def test_label_formats_remaining_and_unknown_quota_in_every_language(
     controller.language = language
     state = _state()
     row = replace(state.claude_session, percent=used, available=available)
-    controller.latest_state = replace(state, claude_session=row, codex_session=row)
+    # Claude falls back to its weekly row when the 5-hour one is empty; keep both unknown.
+    weekly = replace(state.claude_weekly, percent=None)
+    controller.latest_state = replace(
+        state, claude_session=row, claude_weekly=weekly, codex_session=row
+    )
     controller._update_quota_label_on_ui_thread()
     assert updates[-1][0] == f"{name}: {expected}"
     assert updates[-1][1] == (used if available else None)
@@ -477,7 +481,12 @@ def test_label_uses_localized_provider_and_format_templates(
     controller._update_quota_label_on_ui_thread()
     assert str(updates[-1][0]) == "75% · 翻訳された名前"
     unknown = replace(_state().claude_session, percent=None)
-    controller.latest_state = replace(_state(), claude_session=unknown, codex_session=unknown)
+    controller.latest_state = replace(
+        _state(),
+        claude_session=unknown,
+        claude_weekly=replace(_state().claude_weekly, percent=None),
+        codex_session=unknown,
+    )
     controller._update_quota_label_on_ui_thread()
     assert str(updates[-1][0]) == "不明 · 翻訳された名前"
 

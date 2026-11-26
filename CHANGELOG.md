@@ -7,6 +7,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+- **Weekly-only Claude plans show their weekly quota in the menu bar.** A plan with no 5-hour window showed `--` there and ranked last; it now shows the weekly percentage, as Codex already did. The Windows tray icon and taskbar label do the same.
+
 ## [0.35.2] - 2026-11-25
 
 ### Added

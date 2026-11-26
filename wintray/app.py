@@ -1800,6 +1800,9 @@ class _WindowsTrayController:
         # that window is absent, rather than temporarily missing its quota.
         if self.tray_provider == "codex" and not row.title and row.percent is None:
             row = self.latest_state.codex_weekly
+        # Weekly-only Claude plans have no 5-hour window, as the macOS menu bar handles.
+        elif self.tray_provider == "claude" and row.percent is None:
+            row = self.latest_state.claude_weekly
         return row.display_percent if row.available else None
 
     def _tray_countdown(self) -> str | None:
