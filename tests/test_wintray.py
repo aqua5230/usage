@@ -2615,6 +2615,25 @@ def test_codex_with_only_weekly_window_uses_weekly_quota(
     assert "Codex :" not in controller.icon.title
 
 
+@pytest.mark.parametrize("weekly_percent", [42.0, None])
+def test_claude_weekly_only_plan_uses_weekly_quota(
+    monkeypatch: pytest.MonkeyPatch, weekly_percent: float | None
+) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.latest_state = replace(
+        _state(),
+        claude_session=replace(_state().claude_session, percent=None),
+        claude_weekly=replace(_state().claude_weekly, percent=weekly_percent),
+    )
+    drawn: list[float | None] = []
+    progress: list[float | None] = []
+    controller.icon = SimpleNamespace(icon=None, title=None, update_menu=lambda: None)
+    monkeypatch.setattr(wintray, "draw_tray_icon", drawn.append)
+    monkeypatch.setattr(controller, "_update_taskbar_progress", progress.append)
+    controller.set_tray_provider("claude")
+    assert drawn == progress == [weekly_percent]
+
+
 def test_selected_provider_is_used_when_showing_and_reloading_panel(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

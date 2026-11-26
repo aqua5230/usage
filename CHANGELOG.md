@@ -10,6 +10,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ### Added
 - **usage is now Codex's status line (macOS, Codex 0.172 or later).** Codex's footer shows the same line as Claude Code's status line: project and branch, 5-hour and weekly quota with reset times, session length, model and reasoning level, cache hit rate and context window, plus the long-chat warning and the update notice. Codex gives a provider one row, so the two lines are joined and the warning comes first. The status line switch sets it up and turns on Codex's experimental Custom status line; a provider or default you pick in Codex's `/statusline` is left alone.
 
+### Fixed
+- **Weekly-only Claude plans show their weekly quota in the menu bar.** A plan with no 5-hour window showed `--` there and ranked last; it now shows the weekly percentage, as Codex already did. The Windows tray icon and taskbar label do the same.
+
 ## [0.35.2] - 2026-11-25
 
 ### Added
