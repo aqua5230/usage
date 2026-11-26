@@ -732,11 +732,8 @@ def test_switch_panel_menu_contains_update_items(
     # The auto-update row is gone — update checks just stay on by default.
     assert "Automatically Check for Updates" not in main_titles
     assert "Usage Alert Notifications" in main_titles
-    daily_item = next(item for item in main_menu.items if item.title == "AI Update Daily")
-    assert daily_item.action == "toggleAiDaily:"
-    assert daily_item.representedObject() is None
-    assert daily_item.state == 0
-    blog_item = main_menu.items[main_menu.items.index(daily_item) + 1]
+    assert "AI Update Daily" not in main_titles
+    blog_item = main_menu.items[0]
     assert blog_item.title == "Blog"
     assert blog_item.action == "openBlog:"
 
@@ -2948,7 +2945,6 @@ def test_switching_visible_panel_reuses_popover(monkeypatch: pytest.MonkeyPatch)
 @pytest.mark.parametrize(
     ("action", "url"),
     [
-        ("toggleAiDaily_", "https://aqua5230.github.io/ai-updates/"),
         ("openBlog_", "https://getusage.app/zh-TW/blog/"),
     ],
 )
