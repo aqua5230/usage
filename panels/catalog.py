@@ -267,4 +267,19 @@ PANEL_SPECS: tuple[PanelSpec, ...] = (
         status_wrap_extra_height=30.0,
         service_alert_height=32.0,
     ),
+    # Classic's card layout re-skinned; the scenery sits inside each card header, so classic's
+    # measurements carry over. The panel measures itself, so this is only the opening size.
+    PanelSpec(
+        "skyline",
+        "panel_skyline",
+        "skyline.html",
+        height=1324.0,
+        claude_card_height=192.0,
+        codex_card_height=192.0,
+        agy_card_height=192.0,
+        muse_card_height=192.0,
+        grok_card_height=128.0,
+        status_wrap_extra_height=30.0,
+        service_alert_height=32.0,
+    ),
 )

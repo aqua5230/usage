@@ -10,6 +10,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ## [0.35.3] - 2026-11-27
 
 ### Added
+- **New Skyline theme that follows your clock and the seasons.** Each card's header carries a pen-drawn strip of one continuous scene: sky, hills, city, street and harbour. Dawn, day, dusk and night each have their own sky, and at night the whole panel turns dark with lit windows. Blossom, green trees, red leaves or snow follow the month. It checks the time every five minutes and only uses your Mac's clock.
 - **usage is now Codex's status line (macOS, Codex 0.172 or later).** Codex's footer shows the same line as Claude Code's status line: project and branch, 5-hour and weekly quota with reset times, session length, model and reasoning level, cache hit rate and context window, plus the long-chat warning and the update notice. Codex gives a provider one row, so the two lines are joined and the warning comes first. The status line switch sets it up and turns on Codex's experimental Custom status line; a provider or default you pick in Codex's `/statusline` is left alone.
 
 ### Changed

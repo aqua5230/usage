@@ -29,7 +29,7 @@
 - **컴퓨터에 이미 있는 데이터 읽기:** Claude Code, Codex, Grok CLI, Muse Code의 토큰과 비용은 로컬 로그에서 가져옵니다. Antigravity 할당량은 먼저 자체 CLI에서 가져오고(모델 호출 없음), 안 되면 CLI가 이미 저장해 둔 로그인 정보로 Google 공식 엔드포인트에서 가져옵니다. Muse 할당량은 먼저 모델을 호출하지 않는 `muse usage --json`(Muse 1.4.13부터 지원)을 실행해 가져오고, 읽지 못할 때만 빈 폴더에서 `muse exec`로 백그라운드 소규모 모델 호출을 실행합니다.
 - **token이 낭비되기 전에 경고:** Claude Code 상태 줄이 컨텍스트 창 비대화와 식은 prompt cache를 미리 알립니다. 배너는 Claude 또는 Codex의 장애를 표시합니다.
 - **Claude Code 내부 도우미:** 사이드 패널, 더 간결한 답변, 새 세션을 위한 진행 상황 인계, 할당량 인식 계획. 모두 선택 사항입니다.
-- **보고서와 18가지 테마:** token 추세와 비용을 보여주는 HTML 보고서, 그리고 선택할 수 있는 18가지 패널 테마.
+- **보고서와 19가지 테마:** token 추세와 비용을 보여주는 HTML 보고서, 그리고 선택할 수 있는 19가지 패널 테마.
 
 ## 설치
 
@@ -112,7 +112,7 @@ macOS에서 Codex 0.172 이상을 쓰면 이 스위치는 usage를 Codex의 상�
 - **HTML 보고서:** 일간 및 주간 token 추세, 프로젝트 순위, 비용, 기여 히트맵이 포함된 Year in Review를 제공합니다. 완전히 오프라인에서 .html, .csv 또는 .png로 내보낼 수 있으며 프로젝트 이름 마스킹도 지원합니다. Claude Code에서 Codex나 Antigravity로 작업을 맡기면, 어떤 대화가 각 도구의 주간 할당량을 얼마나 썼는지도 보여 줍니다.
 - **터미널 통합:** `usage status --json`은 Claude Code, Codex, Antigravity, Grok, Muse 할당량을 Starship, tmux 또는 자체 스크립트에 전달합니다. [미리 준비된 스니펫](DEVELOPMENT.md#quota-status-for-other-tools-usage-status).
 - **AI 업데이트 일보:** 매일 공개되는 [웹 페이지](https://aqua5230.github.io/ai-updates/)에서 Claude Code, Codex, Antigravity, Grok Build, Muse Code, GitHub CLI 및 usage 자체의 변경 사항을 5개 언어의 알기 쉬운 요약으로 제공합니다.
-- **자유로운 레이아웃:** 패널을 원하는 위치로 드래그하고, 할당량 카드를 드래그해 순서를 바꾸며, **⚙ 설정 → 패널 전환**에서 18가지 테마를 전환할 수 있습니다. UI는 시스템 언어(번체 중국어, 간체 중국어, 영어, 일본어, 한국어)를 따릅니다. 할당량 카드가 4개 이상이면 모두 간결한 레이아웃으로 바뀌며, 3개 이하면 기존 레이아웃을 유지합니다.
+- **자유로운 레이아웃:** 패널을 원하는 위치로 드래그하고, 할당량 카드를 드래그해 순서를 바꾸며, **⚙ 설정 → 패널 전환**에서 19가지 테마를 전환할 수 있습니다. UI는 시스템 언어(번체 중국어, 간체 중국어, 영어, 일본어, 한국어)를 따릅니다. 할당량 카드가 4개 이상이면 모두 간결한 레이아웃으로 바뀌며, 3개 이하면 기존 레이아웃을 유지합니다.
 - **봉제 친구들 컬렉션:** 봉제 친구들 테마에는 숨은 친구 12명이 있습니다. 12월 1일부터 매주 한 명씩 잠금 해제되고, 다음에 패널을 열면 줄에 합류합니다. 만난 친구는 컬렉션 북에 모입니다.
 - **공유 카드(macOS):** 오늘의 사용량이나 찾은 숨은 친구를 이미지 카드로 만들어 Threads, X에 올리거나, 클립보드에 복사하거나, 다운로드 폴더에 저장할 수 있습니다. 사용량 카드에는 프로젝트 이름과 비용이 들어가지 않으며, 월드컵 2026을 제외한 모든 패널에서 쓸 수 있습니다.
 
@@ -169,7 +169,7 @@ Claude Code를 떠나지 않고 사용량, 다른 대화, 백그라운드 작업
 
 ## 테마 갤러리
 
-UI에서 직접 **18가지 시각 테마**를 전환하세요.
+UI에서 직접 **19가지 시각 테마**를 전환하세요.
 
 <p align="center">
   <img src="classic.en.png" width="24%" align="top" alt="Classic 테마" />
@@ -179,7 +179,7 @@ UI에서 직접 **18가지 시각 테마**를 전환하세요.
 </p>
 
 <details>
-<summary>다른 14가지 테마 보기</summary>
+<summary>다른 15가지 테마 보기</summary>
 
 <p align="center">
   <img src="cloud_observation.en.png" width="24%" align="top" alt="Cloud Observation 테마" />
@@ -196,6 +196,7 @@ UI에서 직접 **18가지 시각 테마**를 전환하세요.
   <img src="heart_monitor.en.png" width="24%" align="top" alt="심전도 모니터 테마" />
   <img src="maple.en.png" width="24%" align="top" alt="단풍 노을 테마" />
   <img src="felt.en.png" width="24%" align="top" alt="봉제 친구들 테마" />
+  <img src="skyline.en.png" width="24%" align="top" alt="스카이라인 테마" />
 </p>
 
 </details>
@@ -223,7 +224,7 @@ UI에서 직접 **18가지 시각 테마**를 전환하세요.
 
 ## Windows 지원
 
-Windows에서도 핵심 기능을 모두 네이티브로 사용할 수 있습니다: macOS와 동일한 18가지 테마를 갖춘 시스템 트레이 UI, Claude Code 상태 줄 hook, Codex 기록 분석이 모두 네이티브로 작동합니다. 시스템 트레이 UI에는 Microsoft Edge WebView2 Runtime이 필요하며, 보통 Windows 10과 11에 이미 포함되어 있습니다.
+Windows에서도 핵심 기능을 모두 네이티브로 사용할 수 있습니다: macOS와 동일한 19가지 테마를 갖춘 시스템 트레이 UI, Claude Code 상태 줄 hook, Codex 기록 분석이 모두 네이티브로 작동합니다. 시스템 트레이 UI에는 Microsoft Edge WebView2 Runtime이 필요하며, 보통 Windows 10과 11에 이미 포함되어 있습니다.
 
 <details>
 <summary>트레이 아이콘, 작업 표시줄 라벨 및 기타 차이점</summary>

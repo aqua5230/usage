@@ -41,6 +41,7 @@ CARD_PANEL_FILENAMES = (
     "origami.html",
     "prism_arcade.html",
     "stained_glass.html",
+    "skyline.html",
     "win95.html",
 )
 
@@ -82,6 +83,7 @@ def test_registered_panel_ids_are_unique() -> None:
         "catppuccin",
         "maple",
         "felt",
+        "skyline",
     )
     assert len(ids) == len(set(ids))
 
@@ -108,6 +110,7 @@ def test_registered_panel_i18n_keys() -> None:
         "panel_catppuccin",
         "panel_maple",
         "panel_felt",
+        "panel_skyline",
     ]
 
 

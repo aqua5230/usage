@@ -310,6 +310,7 @@ def test_html_panels_expose_analyze_action() -> None:
         "origami.html",
         "prism_arcade.html",
         "stained_glass.html",
+        "skyline.html",
         "win95.html",
     }
 
