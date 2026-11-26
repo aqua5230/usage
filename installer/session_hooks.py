@@ -1271,6 +1271,21 @@ def _self_heal_statuslines() -> None:
             raise
         _debug_self_heal_failure("setup_codex", exc)
 
+    try:
+        from installer import codex_statusline, statusline_settings
+
+        if (
+            setup_hook.CODEX_CONFIG.is_file()
+            and statusline_settings._statusline_enabled()
+            and (not codex_statusline.is_setup() or codex_statusline.script_is_stale())
+            and codex_statusline.setup()
+        ):
+            _append_self_heal_log("setup_codex_provider", "installed or updated Codex provider")
+    except BaseException as exc:
+        if isinstance(exc, KeyboardInterrupt):
+            raise
+        _debug_self_heal_failure("setup_codex_provider", exc)
+
 
 def self_heal() -> None:
     """Repair status lines and independently repair opt-in session hooks."""

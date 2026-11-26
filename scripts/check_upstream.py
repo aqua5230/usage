@@ -26,7 +26,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from installer import session_hooks, setup_hook  # noqa: E402
+from installer import codex_statusline, session_hooks, setup_hook  # noqa: E402
 from loaders import (  # noqa: E402
     agy_loader,
     agy_quota_probe,
@@ -572,6 +572,7 @@ def hook_pairs() -> list[tuple[Path, Path]]:
             ("usage_statusline_forwarder.py", setup_hook.FORWARDER_TARGET),
             ("usage_statusline_agy.py", setup_hook.AGY_HOOK_TARGET),
             ("usage_statusline_grok.py", setup_hook.GROK_HOOK_TARGET),
+            ("usage_statusline_codex.py", codex_statusline.PROVIDER_TARGET),
             ("usage_session_resume.py", session_hooks.RESUME_HOOK_TARGET),
             ("usage_terse_mode.py", session_hooks.TERSE_HOOK_TARGET),
             ("usage_terse_mode.py", session_hooks.CODEX_TERSE_HOOK_TARGET),
@@ -588,9 +589,15 @@ def check_hook_copies(source: Path, target: Path) -> Result:
     original, installed = source.read_bytes(), target.read_bytes()
     pattern = rb'(?m)^__version__\s*=\s*[\'"]([^\'"\r\n]+)[\'"]'
     old, current = re.search(pattern, installed), re.search(pattern, original)
-    # These two installers compare bytes rather than versions (setup_hook's
-    # _agy_hook_script_is_stale / _grok_hook_script_is_stale); neither is versioned.
-    if source.name in {"usage_statusline_agy.py", "usage_statusline_grok.py"} and current is None:
+    # These installers compare bytes rather than versions (setup_hook's
+    # _agy_hook_script_is_stale / _grok_hook_script_is_stale and
+    # codex_statusline.script_is_stale); none is versioned.
+    bytes_compared = {
+        "usage_statusline_agy.py",
+        "usage_statusline_grok.py",
+        "usage_statusline_codex.py",
+    }
+    if source.name in bytes_compared and current is None:
         return _result(
             target,
             []

@@ -37,6 +37,7 @@ try {
         --add-data "$(Join-Path $RepoRoot 'usage_hooks/usage_statusline.py');usage_hooks" `
         --add-data "$(Join-Path $RepoRoot 'usage_hooks/usage_statusline_agy.py');usage_hooks" `
         --add-data "$(Join-Path $RepoRoot 'usage_hooks/usage_statusline_grok.py');usage_hooks" `
+        --add-data "$(Join-Path $RepoRoot 'usage_hooks/usage_statusline_codex.py');usage_hooks" `
         --add-data "$(Join-Path $RepoRoot 'usage_hooks/usage_statusline_forwarder.py');usage_hooks" `
         --add-data "$(Join-Path $RepoRoot 'usage_hooks/usage_session_resume.py');usage_hooks" `
         --add-data "$(Join-Path $RepoRoot 'usage_hooks/usage_terse_mode.py');usage_hooks" `
