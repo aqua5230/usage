@@ -462,11 +462,6 @@ class AppDelegate(NSObject):
         panel_id = str(sender.representedObject())
         self._set_active_panel_id(panel_id)
 
-    def toggleAiDaily_(self, sender: Any) -> None:
-        self._mark_switch_menu_action()
-        self._close_popover_after_menu()
-        webbrowser.open("https://aqua5230.github.io/ai-updates/")
-
     def openBlog_(self, sender: Any) -> None:
         self._mark_switch_menu_action()
         self._close_popover_after_menu()

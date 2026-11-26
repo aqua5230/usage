@@ -1974,9 +1974,6 @@ class _WindowsTrayController:
         except OSError as exc:
             self._message_box(_t(self.language, "launch_at_login_failed", error=str(exc)))
 
-    def open_ai_daily(self, _icon: Any = None, _item: Any = None) -> None:
-        webbrowser.open("https://aqua5230.github.io/ai-updates/")
-
     def open_blog(self, _icon: Any = None, _item: Any = None) -> None:
         webbrowser.open(blog_url(self.language))
 
@@ -2455,8 +2452,6 @@ class _WindowsTrayController:
                     "hide_muse_section",
                 }:
                     self.toggle_hide_section(preference_key)
-            elif action == "open_ai_daily":
-                self.open_ai_daily()
             elif action == "open_blog":
                 self.open_blog()
             elif action == "reset_panel_position":

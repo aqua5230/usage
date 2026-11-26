@@ -81,7 +81,6 @@ def build_switch_menu(app: _SwitchMenuApp, sender: Any) -> None:
     from menubar.app import _session_resume_enabled, _terse_mode_enabled
 
     menu = NSMenu.alloc().initWithTitle_(_t(app.language, "switch_panel"))
-    menu.addItem_(build_menu_item(app.language, "panel_ai_daily", "toggleAiDaily:", target=app))
     menu.addItem_(build_menu_item(app.language, "panel_blog", "openBlog:", target=app))
     menu.addItem_(NSMenuItem.separatorItem())
     # Panel themes live in a submenu so the menu stays short — one "面板主題 ▸"
