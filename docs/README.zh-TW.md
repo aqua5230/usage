@@ -75,6 +75,8 @@ uvx usage-cli
 
 同一顆按鈕在你裝了 Antigravity CLI 與 Grok CLI 時，也會一併幫它們設定狀態列；沒裝的話什麼都不會寫入。你自己在那邊設定過的狀態列會先備份起來，關掉開關時還原。開關在「⚙ 設定 → Claude Code → 狀態列同步額度」；關掉後 Claude 額度就不會再更新。
 
+在 macOS 上用 Codex 0.172 以上時，這個開關也會讓 usage 成為 Codex 的狀態列提供者：Codex 底部會顯示跟 Claude Code 一樣的額度、會話時長、模型、快取與對話窗。Codex 只給提供者一行，所以兩行併成一行。這會打開 Codex 的實驗功能「Custom status line」。你在 Codex 的 `/statusline` 改選別的提供者或預設狀態列，usage 就不會再動它。
+
 設定完成後，Claude Code 視窗底部會出現這樣的狀態列：
 
 <p align="center">

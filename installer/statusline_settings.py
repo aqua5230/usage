@@ -104,11 +104,23 @@ def _sync_grok_statusline(enable: bool) -> None:
             setup_hook._unsetup_grok()
 
 
+def _sync_codex_provider(enable: bool) -> None:
+    """Mirror the switch onto Codex's MCP status line provider (Codex 0.172+, macOS)."""
+    from installer import codex_statusline
+
+    with contextlib.suppress(Exception):
+        if enable:
+            codex_statusline.setup()
+        else:
+            codex_statusline.unsetup()
+
+
 def _disable_statusline_settings() -> int:
     from installer import setup_hook
 
     _sync_agy_statusline(False)
     _sync_grok_statusline(False)
+    _sync_codex_provider(False)
     settings = _load_claude_settings()
     # The switch can be on for agy alone; a user's own Claude status line is not ours to stash.
     if "statusLine" not in settings or setup_hook._detect_current_state(settings) == "external":
@@ -128,6 +140,7 @@ def _enable_statusline_settings() -> int:
 
     _sync_agy_statusline(True)
     _sync_grok_statusline(True)
+    _sync_codex_provider(True)
     settings = _load_claude_settings()
     if "statusLine" in settings:
         if setup_hook._detect_current_state(settings) in {"us-direct", "us-forwarder"}:
@@ -158,6 +171,12 @@ def _enable_statusline_settings() -> int:
     exit_code = setup_hook.setup()
     if exit_code != 0 and (setup_hook.is_agy_setup() or setup_hook.is_grok_setup()):
         return 0
+    if exit_code != 0:
+        from installer import codex_statusline
+
+        with contextlib.suppress(Exception):
+            if codex_statusline.is_setup():
+                return 0
     return exit_code
 
 
@@ -179,7 +198,9 @@ def _statusline_enabled() -> bool:
     if sys.platform not in {"darwin", "win32"}:
         return False
     with contextlib.suppress(Exception):
-        from installer import setup_hook
+        from installer import codex_statusline, setup_hook
 
-        return setup_hook.is_agy_setup() or setup_hook.is_grok_setup()
+        return (
+            setup_hook.is_agy_setup() or setup_hook.is_grok_setup() or codex_statusline.is_setup()
+        )
     return False

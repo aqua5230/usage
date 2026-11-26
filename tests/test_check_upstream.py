@@ -67,6 +67,7 @@ def isolate(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
             check.setup_hook,
             ("HOOK_TARGET", "FORWARDER_TARGET", "AGY_HOOK_TARGET", "GROK_HOOK_TARGET"),
         ),
+        (check.codex_statusline, ("PROVIDER_TARGET",)),
         (
             check.session_hooks,
             (
@@ -611,7 +612,7 @@ def test_main_exit_and_report(
     monkeypatch.setattr(check.sys, "argv", ["check_upstream.py", "--offline"])
     assert check.main() == exit_code
     output = capsys.readouterr().out.splitlines()
-    assert len(output) == 20
+    assert len(output) == 21
     assert f"{status} codex_sqlite — sample" in output
     assert "NO_DATA claude_desktop — Claude Desktop is not installed" in output
     assert output[-1].startswith("TOTAL OK=")

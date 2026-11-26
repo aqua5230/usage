@@ -202,6 +202,16 @@ def _isolate_codex_config(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> No
     monkeypatch.setattr(setup_hook, "CODEX_CONFIG", codex_dir / "config.toml")
     monkeypatch.setattr(setup_hook, "CODEX_BACKUP", codex_dir / "usage-backup.json")
     monkeypatch.setattr(setup_hook, "LEGACY_CODEX_BACKUP", codex_dir / "tt-backup.json")
+    from installer import codex_statusline
+
+    monkeypatch.setattr(
+        codex_statusline, "PROVIDER_TARGET", codex_dir / "usage-statusline-codex.py"
+    )
+    monkeypatch.setattr(
+        codex_statusline, "PROVIDER_STATE", codex_dir / "usage-statusline-provider.json"
+    )
+    # Never run the real `codex --version`; tests that need a version patch it.
+    monkeypatch.setattr(codex_statusline, "codex_version", lambda: None)
     agy_dir = tmp_path / "antigravity-cli"
     monkeypatch.setattr(setup_hook, "AGY_SETTINGS", agy_dir / "settings.json")
     monkeypatch.setattr(setup_hook, "AGY_HOOK_TARGET", agy_dir / "usage-statusline-agy.py")

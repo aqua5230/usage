@@ -1407,6 +1407,9 @@ def unsetup() -> int:
 
     if CODEX_CONFIG.exists():
         _unsetup_codex()
+        from installer import codex_statusline
+
+        codex_statusline.unsetup()
 
     if AGY_SETTINGS.exists():
         _unsetup_agy()
