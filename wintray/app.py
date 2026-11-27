@@ -52,6 +52,7 @@ from menubar.prefs import (
     _save_quota_card_order,
     _window_keeper_enabled,
     toggle_quota_threshold,
+    visible_notification_events,
 )
 from menubar.quota_countdown import _quota_countdown
 from panels.catalog import PANEL_SPECS
@@ -1676,7 +1677,7 @@ class _WindowsTrayController:
         grok = grok_result.projection or menubar_grok.fallback_projection(self.language)
         measure("grok_load", started_at)
         muse_result = menubar_muse.load_refresh_result(
-            self.language, allow_probe=not _hide_muse_enabled()
+            self.language, allow_paid_probe=not _hide_muse_enabled()
         )
         muse = muse_result.projection or menubar_muse.fallback_projection(self.language)
         started_at = time.monotonic() if debug_timing else 0.0
@@ -2191,7 +2192,7 @@ class _WindowsTrayController:
                 },
             )
             if _quota_notifications_enabled() and not self.mock:
-                for event in events:
+                for event in visible_notification_events(events):
                     self._send_quota_notification(event, state)
         except Exception:
             if os.environ.get("USAGE_DEBUG") == "1":

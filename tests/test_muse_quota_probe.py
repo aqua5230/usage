@@ -286,17 +286,45 @@ def test_failure_cools_down_for_30_minutes(monkeypatch: pytest.MonkeyPatch, fail
     thread.return_value.start.assert_called_once()
 
 
-def test_hidden_card_reads_snapshot_without_probing(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_hidden_card_runs_only_the_free_check(monkeypatch: pytest.MonkeyPatch) -> None:
+    # A hidden card keeps Claude's quota hints current without ever spending Muse quota.
     probe.CACHE_PATH.write_text(json.dumps(quota(0)))
     monkeypatch.setattr(probe, "find_muse", lambda: "/fake/muse")
     monkeypatch.setattr(probe, "latest_session_mtime", lambda: 1001)
     thread = Mock()
     monkeypatch.setattr(threading, "Thread", thread)
 
-    assert probe.load_quota_snapshot(allow_probe=False) == (probe.read_cache(), 1001)
-    thread.assert_not_called()
-    probe.load_quota_snapshot()
+    assert probe.load_quota_snapshot(allow_paid_probe=False) == (probe.read_cache(), 1001)
+    thread.assert_called_once_with(
+        target=probe._usage_check_worker, args=("/fake/muse", 1001), daemon=True
+    )
     thread.return_value.start.assert_called_once()
+
+
+def test_ended_plan_waits_for_a_new_session(monkeypatch: pytest.MonkeyPatch) -> None:
+    # After no_allowance, nothing polls Muse again until it writes a newer session.
+    monkeypatch.setattr(probe, "find_muse", lambda: "/fake/muse")
+    monkeypatch.setattr(probe, "read_usage", lambda _executable: probe.NO_ALLOWANCE)
+    latest = [1001]
+    monkeypatch.setattr(probe, "latest_session_mtime", lambda: latest[0])
+    clock = [100.0]
+    monkeypatch.setattr(time, "monotonic", lambda: clock[0])
+    thread = Mock()
+    monkeypatch.setattr(threading, "Thread", thread)
+
+    probe.load_quota_snapshot(allow_paid_probe=False)
+    probe._usage_check_worker("/fake/muse", 1001)
+    thread.reset_mock()
+    clock[0] += probe.USAGE_RECHECK_SECONDS + 1
+    probe.load_quota_snapshot(allow_paid_probe=False)
+    probe.load_quota_snapshot()
+    thread.assert_not_called()
+
+    latest[0] = 1002
+    probe.load_quota_snapshot(allow_paid_probe=False)
+    thread.assert_called_once_with(
+        target=probe._usage_check_worker, args=("/fake/muse", 1002), daemon=True
+    )
 
 
 def test_single_background_probe_returns_old_snapshot(monkeypatch: pytest.MonkeyPatch) -> None:

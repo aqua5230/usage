@@ -41,6 +41,8 @@ _probe_running = False
 _retry_after = 0.0
 _last_attempt_session: float | None = None
 _last_check_at: float | None = None
+# The last answer was no_allowance; stay quiet until Muse writes a newer session.
+_plan_ended = False
 _probe_process: subprocess.Popen[str] | None = None
 _probe_shutdown = False
 
@@ -301,13 +303,14 @@ def _spawn(args: list[str], cwd: Path | None = None) -> subprocess.Popen[str] | 
 
 
 def _probe_worker(executable: str) -> None:
-    global _probe_running, _retry_after, _probe_process
+    global _probe_running, _retry_after, _probe_process, _plan_ended
     succeeded = False
     process = None
     try:
         result = read_usage(executable)
         if result is NO_ALLOWANCE:
             _delete_cache()
+            _plan_ended = True
             succeeded = True
             return
         if result is None:
@@ -342,6 +345,7 @@ def _probe_worker(executable: str) -> None:
                 result = parse_exhausted_window(stdout, read_cache(), time.time())
         if result is not None:
             _write_cache(result)
+            _plan_ended = False
             succeeded = True
         else:
             logger.warning(
@@ -361,7 +365,7 @@ def _probe_worker(executable: str) -> None:
 
 
 def _usage_check_worker(executable: str, latest: float) -> None:
-    global _last_attempt_session, _probe_process, _probe_running
+    global _last_attempt_session, _probe_process, _probe_running, _plan_ended
     result = None
     try:
         result = read_usage(executable)
@@ -378,14 +382,22 @@ def _usage_check_worker(executable: str, latest: float) -> None:
                 _last_attempt_session is None or latest > _last_attempt_session
             ):
                 _last_attempt_session = latest
+            if result is NO_ALLOWANCE:
+                _plan_ended = True
+            elif result is not None:
+                _plan_ended = False
             _probe_process = None
             _probe_running = False
 
 
-def load_quota_snapshot(*, allow_probe: bool = True) -> tuple[MuseQuotaResult | None, float | None]:
+def load_quota_snapshot(
+    *, allow_paid_probe: bool = True
+) -> tuple[MuseQuotaResult | None, float | None]:
     """Read sessions once and return the snapshot plus its projection context.
 
-    A hidden card (``allow_probe=False``) never starts a background check.
+    A hidden card (``allow_paid_probe=False``) still runs the free ``muse usage`` check, so
+    Claude's quota hints never show a stale or ended plan, but never the ``muse exec`` probe
+    that spends quota.
     """
     global _probe_running, _retry_after, _last_attempt_session, _last_check_at
     cached = read_cache()
@@ -393,7 +405,7 @@ def load_quota_snapshot(*, allow_probe: bool = True) -> tuple[MuseQuotaResult | 
     if executable is None:
         return None, None
     latest = latest_session_mtime()
-    if not allow_probe or latest is None:
+    if latest is None:
         return cached, latest
     with _probe_lock:
         # A worker may have finished since the first cache read.
@@ -403,9 +415,13 @@ def load_quota_snapshot(*, allow_probe: bool = True) -> tuple[MuseQuotaResult | 
             return cached, latest
         if cached is not None and now - cached["checked_at"] <= USAGE_RECHECK_SECONDS:
             return cached, latest
+        # An ended plan is not polled again until Muse is used again or usage restarts.
+        if _plan_ended and _last_attempt_session is not None and latest <= _last_attempt_session:
+            return cached, latest
         monotonic_now = time.monotonic()
         full_probe = (
-            (cached is None or is_stale(cached, latest, now))
+            allow_paid_probe
+            and (cached is None or is_stale(cached, latest, now))
             and monotonic_now >= _retry_after
             and (_last_attempt_session is None or latest > _last_attempt_session)
         )

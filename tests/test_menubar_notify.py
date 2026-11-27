@@ -216,3 +216,85 @@ def test_simple_notification_uses_default_sound(monkeypatch: pytest.MonkeyPatch)
     notify.send_simple_notification("title", "body")
     assert content == {"title": "title", "body": "body", "sound": "default"}
     assert len(sent) == 1
+
+
+def _macos_process_notifications(
+    monkeypatch: pytest.MonkeyPatch,
+    prefs_data: dict[str, object],
+) -> tuple[Any, list[tuple[str, str, float | None]]]:
+    from menubar import app as menubar_app
+    from usage_common import prefs as common_prefs
+
+    common_prefs._save_preferences(prefs_data)
+    monkeypatch.setattr(menubar_app, "_quota_notifications_enabled", lambda: True)
+    sent: list[tuple[str, str, float | None]] = []
+    delegate = menubar_app.AppDelegate.alloc().initWithMock_interval_(False, 60)
+    monkeypatch.setattr(
+        delegate,
+        "_send_quota_notification",
+        lambda event, _state: sent.append((event.channel, event.kind, event.threshold)),
+    )
+    return delegate, sent
+
+
+def test_macos_hidden_provider_suppresses_notifications_while_visible_sends(
+    monkeypatch: pytest.MonkeyPatch, quota_state: PopoverState
+) -> None:
+    delegate, sent = _macos_process_notifications(monkeypatch, {"hide_claude_section": True})
+    quota_state.claude_session = QuotaRowState("Session", 80.0, "80%", "", (0.0, 0.0, 0.0))
+    quota_state.codex_session = QuotaRowState("Session", 80.0, "80%", "", (0.0, 0.0, 0.0))
+    delegate._process_quota_notifications(quota_state)
+    assert sent == []
+
+    quota_state.claude_session = QuotaRowState("Session", 95.0, "95%", "", (0.0, 0.0, 0.0))
+    quota_state.codex_session = QuotaRowState("Session", 95.0, "95%", "", (0.0, 0.0, 0.0))
+    delegate._process_quota_notifications(quota_state)
+    assert sent == [("codex_session", "warn", 90.0)]
+
+
+def test_macos_unhiding_provider_does_not_replay_old_notifications(
+    monkeypatch: pytest.MonkeyPatch, quota_state: PopoverState
+) -> None:
+    from usage_common import prefs as common_prefs
+
+    delegate, sent = _macos_process_notifications(monkeypatch, {"hide_claude_section": True})
+    for pct in (80.0, 95.0, 100.0, 5.0):
+        quota_state.claude_session = QuotaRowState("Session", pct, f"{pct}%", "", (0.0, 0.0, 0.0))
+        delegate._process_quota_notifications(quota_state)
+    assert sent == []
+
+    common_prefs._save_preferences({"hide_claude_section": False})
+    quota_state.claude_session = QuotaRowState("Session", 10.0, "10%", "", (0.0, 0.0, 0.0))
+    delegate._process_quota_notifications(quota_state)
+    assert sent == []
+
+    quota_state.claude_session = QuotaRowState("Session", 92.0, "92%", "", (0.0, 0.0, 0.0))
+    delegate._process_quota_notifications(quota_state)
+    assert sent == [("claude_session", "warn", 90.0)]
+
+
+@pytest.mark.parametrize(
+    ("channel", "hide_key"),
+    [
+        ("claude_session", "hide_claude_section"),
+        ("claude_weekly", "hide_claude_section"),
+        ("codex_session", "hide_codex_section"),
+        ("codex_weekly", "hide_codex_section"),
+        ("agy_session", "hide_agy_section"),
+        ("agy_weekly", "hide_agy_section"),
+        ("muse_session", "hide_muse_section"),
+        ("muse_weekly", "hide_muse_section"),
+    ],
+)
+def test_macos_all_provider_hide_prefs_suppress_quota_notifications(
+    monkeypatch: pytest.MonkeyPatch,
+    quota_state: PopoverState,
+    channel: str,
+    hide_key: str,
+) -> None:
+    delegate, sent = _macos_process_notifications(monkeypatch, {hide_key: True})
+    setattr(quota_state, channel, QuotaRowState("Session", 80.0, "80%", "", (0.0, 0.0, 0.0)))
+    delegate._process_quota_notifications(quota_state)
+    setattr(quota_state, channel, QuotaRowState("Session", 95.0, "95%", "", (0.0, 0.0, 0.0)))
+    delegate._process_quota_notifications(quota_state)
+    assert sent == []
