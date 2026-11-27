@@ -17,7 +17,6 @@ from typing import Any, Protocol
 
 from analyzer import diagnosis_snapshot, history_persist
 from installer import claude_pane
-from menubar import notice_panel
 from updates import checker as update_checker
 from updates import gate as update_gate
 from updates.release_notes import alert_release_notes
@@ -116,6 +115,8 @@ def check_update_in_background(app: _UpdateApp) -> bool:
 
 
 def show_update_alert(app: _UpdateApp, release: update_checker.ReleaseInfo) -> None:
+    # AppKit stays out of module import: Windows tests import this module.
+    from menubar import notice_panel
     from menubar.app import UPDATE_ALERT_BODY_LIMIT
 
     def choose(result: int) -> None:
