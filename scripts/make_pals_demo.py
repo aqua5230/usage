@@ -17,7 +17,9 @@ CLOCK = (
 )
 ZOOM_ONLY = (
     '<style id="zoom-only">.wrap>section.card~section.card,.wrap>section.footer'
-    "{display:none!important}html,body{overflow:hidden}</style>"
+    "{display:none!important}html,body{overflow:hidden}"
+    'html:not(.compact-cards) .card[data-card="claude"]>.row{min-height:56px}'
+    'html:not(.compact-cards) .card[data-card="claude"]>.row+.row{min-height:67px}</style>'
 )
 
 
