@@ -287,85 +287,54 @@ def test_record_before_browser(monkeypatch: pytest.MonkeyPatch, open_notes: bool
     assert events == ["record", "show"] + ([RELEASE.html_url] if open_notes else [])
 
 
+def test_record_failure_still_shows(monkeypatch: pytest.MonkeyPatch) -> None:
+    def fail(preferences: dict[str, Any]) -> None:
+        raise PermissionError("read-only preferences")
+
+    shown: list[ReleaseInfo] = []
+    monkeypatch.setattr(whats_new, "_load_preferences", dict)
+    monkeypatch.setattr(whats_new, "_save_preferences", fail)
+    monkeypatch.setattr(whats_new, "fetch_release", lambda version: ReleaseCheckResult(RELEASE))
+
+    def show(release: ReleaseInfo) -> bool:
+        shown.append(release)
+        return False
+
+    whats_new._fetch_and_dispatch("0.32.5", show, lambda callback: callback())
+    assert shown == [RELEASE]
+
+
 @pytest.mark.skipif(sys.platform != "darwin", reason="requires macOS app imports")
-@pytest.mark.parametrize("clicked", [0, 1])
-def test_macos_notice_and_dispatch(monkeypatch: pytest.MonkeyPatch, clicked: int) -> None:
+@pytest.mark.parametrize("button_title", ["好", "完整说明", None])
+def test_macos_notice_and_dispatch(
+    monkeypatch: pytest.MonkeyPatch, button_title: str | None
+) -> None:
     from menubar import whats_new as mac_notice
 
-    texts: list[str] = []
-    events: list[str] = []
-
-    class Button:
-        def __init__(self, title: str) -> None:
-            self.title = title
-            self.target: Any = None
-            self.action = ""
-            self._tag = -1
-
-        def setTag_(self, tag: int) -> None:
-            self._tag = tag
-
-        def tag(self) -> int:
-            return self._tag
-
-        def setTarget_(self, target: Any) -> None:
-            self.target = target
-
-        def setAction_(self, action: str) -> None:
-            self.action = action
-
-    class Window:
-        def center(self) -> None:
-            pass
-
-        def makeKeyAndOrderFront_(self, sender: Any) -> None:
-            events.append("front")
-
-        def orderOut_(self, sender: Any) -> None:
-            events.append("closed")
-
-    class Alert:
-        def __init__(self) -> None:
-            self._buttons: list[Button] = []
-            self._window = Window()
-
-        def setMessageText_(self, text: str) -> None:
-            texts.append(text)
-
-        def setInformativeText_(self, text: str) -> None:
-            texts.append(text)
-
-        def addButtonWithTitle_(self, text: str) -> None:
-            self._buttons.append(Button(text))
-
-        def buttons(self) -> list[Button]:
-            return self._buttons
-
-        def layout(self) -> None:
-            pass
-
-        def window(self) -> Window:
-            return self._window
-
-        def runModal(self) -> int:
-            pytest.fail("the notice must not block the main thread in runModal")
-
-    alert = Alert()
-    monkeypatch.setattr("menubar.chrome._make_alert", lambda: alert)
-    monkeypatch.setattr(
-        "AppKit.NSApp", SimpleNamespace(activateIgnoringOtherApps_=lambda flag: None)
-    )
-    monkeypatch.setattr("menubar.whats_new.webbrowser.open", events.append)
-    selected = mac_notice.show_notice(
+    opened: list[str] = []
+    monkeypatch.setattr("menubar.whats_new.webbrowser.open", opened.append)
+    # Built but never ordered front, so the test run shows no window.
+    controller = mac_notice.build_notice(
         ReleaseInfo("0.32.5", RELEASE.html_url, "EN\n## 繁體中文\n- **中文**"), "zh-CN"
     )
-    assert texts == ["usage 0.32.5 更新内容", "• 中文"]
-    assert [button.title for button in alert.buttons()] == ["好", "完整说明"]
-    assert selected is False and events == ["front"]
-    button = alert.buttons()[clicked]
-    getattr(button.target, button.action.replace(":", "_"))(button)
-    assert events == ["front", "closed"] + ([RELEASE.html_url] if clicked else [])
+    mac_notice._open_notices.add(controller)
+    panel = controller.panel
+    views = list(panel.contentView().subviews())
+    labels = [view.stringValue() for view in views if view.className() == "NSTextField"]
+    bodies = [view.documentView().string() for view in views if view.className() == "NSScrollView"]
+    buttons = {view.title(): view for view in views if view.className() == "NSButton"}
+    assert labels == ["usage 0.32.5 更新内容"] and bodies == ["• 中文"]
+    assert {title: button.keyEquivalent() for title, button in buttons.items()} == {
+        "好": "\r",
+        "完整说明": "",
+    }
+    assert not panel.becomesKeyOnlyIfNeeded() and not panel.hidesOnDeactivate()
+    if button_title is None:
+        panel.cancelOperation_(None)  # Escape
+    else:
+        buttons[button_title].performClick_(None)
     assert not mac_notice._open_notices
+    assert opened == ([RELEASE.html_url] if button_title == "完整说明" else [])
     callbacks: list[Callable[[], None]] = []
     monkeypatch.setattr("PyObjCTools.AppHelper.callAfter", callbacks.append)
 

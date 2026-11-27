@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import sys
 import time
@@ -2599,6 +2600,30 @@ def test_refresh_error_preserves_codex_quota(monkeypatch: pytest.MonkeyPatch) ->
         ("_applyCodexRefreshResult:", True),
         ("_applyRefreshResult:", False),
     ]
+
+
+def test_refresh_worker_logs_unexpected_error(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    calls: list[str] = []
+
+    def fail(app: object) -> object:
+        raise RuntimeError("source exploded")
+
+    monkeypatch.setattr("menubar.refresh.load_sources", fail)
+
+    class Delegate:
+        def performSelectorOnMainThread_withObject_waitUntilDone_(
+            self, selector: str, result: object, wait: bool
+        ) -> None:
+            calls.append(selector)
+
+    with caplog.at_level(logging.ERROR, logger="menubar.app"):
+        menubar.AppDelegate._refresh_in_background(cast(Any, Delegate()))
+
+    assert calls == ["_clearRefreshInFlight:"]
+    assert "Background refresh failed" in caplog.text
+    assert "source exploded" in caplog.text
 
 
 def test_refresh_error_preserves_project_usage(monkeypatch: pytest.MonkeyPatch) -> None:
