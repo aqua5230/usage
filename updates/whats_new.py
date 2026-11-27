@@ -113,9 +113,9 @@ def _fetch_and_dispatch(
         release = result.release
 
         def finish() -> None:
-            open_notes = show(release)
+            # Record first: a notice nobody answers must not return on every relaunch (#457).
             record_version(version)
-            if open_notes:
+            if show(release):
                 webbrowser.open(release.html_url)
 
         dispatch(finish)
