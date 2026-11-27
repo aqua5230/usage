@@ -286,16 +286,18 @@ def test_failure_cools_down_for_30_minutes(monkeypatch: pytest.MonkeyPatch, fail
     thread.return_value.start.assert_called_once()
 
 
-def test_hidden_card_reads_snapshot_without_probing(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_hidden_card_runs_only_the_free_check(monkeypatch: pytest.MonkeyPatch) -> None:
+    # A hidden card keeps Claude's quota hints current without ever spending Muse quota.
     probe.CACHE_PATH.write_text(json.dumps(quota(0)))
     monkeypatch.setattr(probe, "find_muse", lambda: "/fake/muse")
     monkeypatch.setattr(probe, "latest_session_mtime", lambda: 1001)
     thread = Mock()
     monkeypatch.setattr(threading, "Thread", thread)
 
-    assert probe.load_quota_snapshot(allow_probe=False) == (probe.read_cache(), 1001)
-    thread.assert_not_called()
-    probe.load_quota_snapshot()
+    assert probe.load_quota_snapshot(allow_paid_probe=False) == (probe.read_cache(), 1001)
+    thread.assert_called_once_with(
+        target=probe._usage_check_worker, args=("/fake/muse", 1001), daemon=True
+    )
     thread.return_value.start.assert_called_once()
 
 

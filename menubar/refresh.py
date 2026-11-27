@@ -109,7 +109,7 @@ def load_sources(app: _RefreshApp) -> RefreshSources:
         logger.debug("refresh_timing stage=%s elapsed_ms=%.1f", "grok_load", elapsed_ms)
     grok_projection = grok_result.projection or menubar_grok.fallback_projection(app.language)
     muse_result = menubar_muse.load_refresh_result(
-        app.language, allow_probe=not _hide_muse_enabled()
+        app.language, allow_paid_probe=not _hide_muse_enabled()
     )
     muse_projection = muse_result.projection or menubar_muse.fallback_projection(app.language)
     return RefreshSources(

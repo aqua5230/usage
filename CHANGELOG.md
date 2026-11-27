@@ -9,6 +9,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Fixed
 - **The "update available" and "shared mode" prompts no longer freeze usage either.** Like the "What's New" notice fixed in 0.35.4, they were dialogs that held the whole app until someone clicked them; the shared-mode prompt even kept the menu bar icon from appearing at launch, and came back on every launch if usage was quit before it was answered. Both now use the same floating window: it shows on every Space, does not take keystrokes from the app you are typing in, and Escape or the close button counts as "Later" for the update prompt. (#457)
+- **A hidden Muse card no longer leaves an old Muse reading in front of Claude.** Hiding the card used to stop every Muse check, so the last reading never updated, and the status line hint and `usage status --json` kept showing it as current; after a Muse plan ended, Claude was told Muse still had quota until the old reset time passed. Hiding the card now only hides it: usage keeps running the free `muse usage` check, the same way Codex, Antigravity and Grok keep updating while hidden, and still never runs the `muse exec` probe that spends quota.
 
 ## [0.35.4] - 2026-11-27
 

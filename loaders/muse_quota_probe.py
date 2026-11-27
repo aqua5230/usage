@@ -382,10 +382,14 @@ def _usage_check_worker(executable: str, latest: float) -> None:
             _probe_running = False
 
 
-def load_quota_snapshot(*, allow_probe: bool = True) -> tuple[MuseQuotaResult | None, float | None]:
+def load_quota_snapshot(
+    *, allow_paid_probe: bool = True
+) -> tuple[MuseQuotaResult | None, float | None]:
     """Read sessions once and return the snapshot plus its projection context.
 
-    A hidden card (``allow_probe=False``) never starts a background check.
+    A hidden card (``allow_paid_probe=False``) still runs the free ``muse usage`` check, so
+    Claude's quota hints never show a stale or ended plan, but never the ``muse exec`` probe
+    that spends quota.
     """
     global _probe_running, _retry_after, _last_attempt_session, _last_check_at
     cached = read_cache()
@@ -393,7 +397,7 @@ def load_quota_snapshot(*, allow_probe: bool = True) -> tuple[MuseQuotaResult | 
     if executable is None:
         return None, None
     latest = latest_session_mtime()
-    if not allow_probe or latest is None:
+    if latest is None:
         return cached, latest
     with _probe_lock:
         # A worker may have finished since the first cache read.
@@ -405,7 +409,8 @@ def load_quota_snapshot(*, allow_probe: bool = True) -> tuple[MuseQuotaResult | 
             return cached, latest
         monotonic_now = time.monotonic()
         full_probe = (
-            (cached is None or is_stale(cached, latest, now))
+            allow_paid_probe
+            and (cached is None or is_stale(cached, latest, now))
             and monotonic_now >= _retry_after
             and (_last_attempt_session is None or latest > _last_attempt_session)
         )

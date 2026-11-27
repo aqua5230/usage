@@ -1676,7 +1676,7 @@ class _WindowsTrayController:
         grok = grok_result.projection or menubar_grok.fallback_projection(self.language)
         measure("grok_load", started_at)
         muse_result = menubar_muse.load_refresh_result(
-            self.language, allow_probe=not _hide_muse_enabled()
+            self.language, allow_paid_probe=not _hide_muse_enabled()
         )
         muse = muse_result.projection or menubar_muse.fallback_projection(self.language)
         started_at = time.monotonic() if debug_timing else 0.0
