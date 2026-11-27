@@ -21,8 +21,8 @@ import pytest
 from installer import codex_statusline, setup_hook, statusline_settings
 from usage_hooks import usage_statusline_codex as hook
 
-# The provider is macOS-only, and the clock strings need tzset to pin TZ=UTC.
-pytestmark = pytest.mark.skipif(not hasattr(time, "tzset"), reason="tzset unavailable")
+# Only clock-dependent assertions need tzset to pin TZ=UTC.
+requires_tzset = pytest.mark.skipif(not hasattr(time, "tzset"), reason="tzset unavailable")
 
 NOW = datetime(2026, 11, 26, 10, 13, 20, tzinfo=UTC).timestamp()
 
@@ -78,6 +78,7 @@ def _walk(node: Any) -> Iterator[dict[str, Any]]:
             yield from _walk(child)
 
 
+@requires_tzset
 def test_render_matches_claude_layout_on_one_line() -> None:
     tree = hook.render(_state(), now=NOW, lang="zh-TW")
 
@@ -109,6 +110,7 @@ def test_project_and_branch_come_first(tmp_path: Path) -> None:
     assert text.startswith(f"{tmp_path.name}(feat/x) | 5h:")
 
 
+@requires_tzset
 def test_falls_back_to_usage_snapshot_before_first_response(tmp_path: Path) -> None:
     snapshot = {
         "agents": {
@@ -129,6 +131,7 @@ def test_falls_back_to_usage_snapshot_before_first_response(tmp_path: Path) -> N
     assert "7d:■■■■■■□□ 70% 12:13(2h0m left)" in text
 
 
+@requires_tzset
 def test_expired_window_reads_zero_and_full_window_shows_reset_only() -> None:
     state = _state()
     limits = state["account"]["rate_limits"][0]
@@ -160,6 +163,7 @@ def test_fast_context_growth_lowers_the_warning_threshold() -> None:
     assert hook.heavy_threshold("t", 20.0, NOW + 500) == 70.0
 
 
+@requires_tzset
 def test_session_start_reads_rollout_name_then_first_sight(tmp_path: Path) -> None:
     assert hook.session_start("abc", NOW) == NOW
     assert hook.session_start("abc", NOW + 50) == NOW
@@ -190,6 +194,36 @@ def test_effort_and_language_follow_the_claude_labels() -> None:
 
     assert "GPT-6.1 Terra/標準" in _flat(hook.render(state, now=NOW, lang="ja"))
     assert hook.detect_lang({"USAGE_LANG": "ko_KR.UTF-8", "LANG": "zh_TW.UTF-8"}) == "ko"
+
+
+def test_detect_lang_falls_back_to_windows_system_language(monkeypatch: pytest.MonkeyPatch) -> None:
+    for key in ("USAGE_LANG", "TT_LANG", "LANG"):
+        monkeypatch.delenv(key, raising=False)
+    monkeypatch.setattr(hook, "_windows_system_lang", lambda: "zh_TW")
+
+    assert hook.detect_lang() == "zh-TW"
+
+
+def test_detect_lang_environment_overrides_windows_system_language(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    for key in ("USAGE_LANG", "TT_LANG", "LANG"):
+        monkeypatch.delenv(key, raising=False)
+    monkeypatch.setattr(hook, "_windows_system_lang", lambda: "zh_TW")
+    monkeypatch.setenv("USAGE_LANG", "ja_JP.UTF-8")
+
+    assert hook.detect_lang() == "ja"
+
+
+def test_detect_lang_explicit_env_skips_windows_system_language(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def unexpected_lookup() -> str:
+        pytest.fail("explicit env must not read the Windows system language")
+
+    monkeypatch.setattr(hook, "_windows_system_lang", unexpected_lookup)
+
+    assert hook.detect_lang(env={}) == "en"
 
 
 def test_render_error_still_returns_drawable_text(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -324,11 +358,106 @@ def test_setup_needs_codex_0172(codex_config: Path, monkeypatch: pytest.MonkeyPa
     assert codex_config.read_text(encoding="utf-8") == BASE_CONFIG
 
 
-def test_setup_is_macos_only(codex_config: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(sys, "platform", "win32")
+def test_setup_skips_linux(codex_config: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    before = codex_config.read_bytes()
+    monkeypatch.setattr(sys, "platform", "linux")
+
+    def unexpected_lookup() -> str:
+        pytest.fail("Linux must not resolve Python")
+
+    monkeypatch.setattr(setup_hook, "_find_system_python", unexpected_lookup)
 
     assert codex_statusline.setup() is False
-    assert codex_config.read_text(encoding="utf-8") == BASE_CONFIG
+    assert codex_config.read_bytes() == before
+
+
+def test_setup_on_windows_restores_exact_bytes(
+    codex_config: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(sys, "platform", "win32")
+    python = r"C:\Python313\python.exe"
+    calls: list[bool] = []
+
+    def find_python() -> str:
+        calls.append(True)
+        return python
+
+    monkeypatch.setattr(setup_hook, "_find_system_python", find_python)
+    before = codex_config.read_bytes()
+
+    assert codex_statusline.setup() is True
+    assert len(calls) == 1
+    assert _parsed(codex_config)["mcp_servers"]["usage-statusline"]["command"] == python
+    assert codex_statusline.is_setup() is True
+    installed = codex_config.read_bytes()
+    assert codex_statusline.setup() is True
+    assert codex_config.read_bytes() == installed
+    assert codex_statusline.unsetup() is True
+    assert codex_config.read_bytes() == before
+    assert not codex_statusline.PROVIDER_STATE.exists()
+
+
+def test_setup_on_windows_without_python_leaves_config_whole(
+    codex_config: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(sys, "platform", "win32")
+
+    def missing_python() -> str:
+        raise SystemExit("Windows Python missing")
+
+    monkeypatch.setattr(setup_hook, "_find_system_python", missing_python)
+    before = codex_config.read_bytes()
+
+    assert codex_statusline.setup() is False
+    assert codex_config.read_bytes() == before
+    assert not codex_statusline.PROVIDER_TARGET.exists()
+    assert not codex_statusline.PROVIDER_STATE.exists()
+    assert codex_statusline.is_setup() is False
+    assert codex_statusline.unsetup() is False
+
+
+def test_setup_on_windows_upgrades_an_old_python_path(
+    codex_config: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(sys, "platform", "win32")
+    python = r"C:\Python313\python.exe"
+    monkeypatch.setattr(setup_hook, "_find_system_python", lambda: python)
+    before = codex_config.read_bytes()
+    old = (
+        BASE_CONFIG
+        + "\n[mcp_servers.usage-statusline]\n"
+        + f"command = {json.dumps(r'C:\OldPython\python.exe')}\n"
+        + f"args = {json.dumps(['-u', str(codex_statusline.PROVIDER_TARGET)])}\n"
+    )
+    codex_config.write_text(old, encoding="utf-8")
+
+    assert codex_statusline.setup() is True
+    assert _parsed(codex_config)["mcp_servers"]["usage-statusline"]["command"] == python
+    assert codex_statusline.unsetup() is True
+    assert "usage-statusline" not in _parsed(codex_config)["mcp_servers"]
+    assert codex_config.read_bytes() == before
+
+
+def test_unsetup_on_windows_without_python_removes_our_server(
+    codex_config: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(sys, "platform", "win32")
+    monkeypatch.setattr(setup_hook, "_find_system_python", lambda: r"C:\OldPython\python.exe")
+    before = codex_config.read_bytes()
+    assert codex_statusline.setup() is True
+    installed = codex_config.read_bytes()
+
+    def missing_python() -> str:
+        raise SystemExit("Windows Python missing")
+
+    monkeypatch.setattr(setup_hook, "_find_system_python", missing_python)
+    assert codex_statusline.setup() is False
+    assert codex_statusline.is_setup() is False
+    assert codex_config.read_bytes() == installed
+    assert codex_statusline.unsetup() is True
+    assert "usage-statusline" not in _parsed(codex_config)["mcp_servers"]
+    assert codex_config.read_bytes() == before
+    assert not codex_statusline.PROVIDER_STATE.exists()
 
 
 def test_setup_then_unsetup_restores_the_exact_bytes(codex_config: Path) -> None:
@@ -351,7 +480,7 @@ def test_an_older_install_of_ours_is_upgraded(codex_config: Path) -> None:
     old = (
         BASE_CONFIG
         + '\n[mcp_servers.usage-statusline]\ncommand = "/usr/bin/python3"\n'
-        + f'args = ["-u", "{codex_statusline.PROVIDER_TARGET}"]\n'
+        + f"args = {json.dumps(['-u', str(codex_statusline.PROVIDER_TARGET)])}\n"
     )
     codex_config.write_text(old, encoding="utf-8")
 

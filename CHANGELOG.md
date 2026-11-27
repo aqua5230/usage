@@ -7,6 +7,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+- **usage is now Codex's status line on Windows too.** The status line switch and the "Set Up Status Line" button set up Codex 0.172 or later the same way as on macOS, running the provider with the Python that usage already uses for the other status lines. If that Python moves, for example after you upgrade it, the next setup points Codex at the new one.
+
 ## [0.35.3] - 2026-11-27
 
 ### Added

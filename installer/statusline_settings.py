@@ -105,7 +105,7 @@ def _sync_grok_statusline(enable: bool) -> None:
 
 
 def _sync_codex_provider(enable: bool) -> None:
-    """Mirror the switch onto Codex's MCP status line provider (Codex 0.172+, macOS)."""
+    """Mirror the switch onto Codex's MCP status line provider (Codex 0.172+, macOS and Windows)."""
     from installer import codex_statusline
 
     with contextlib.suppress(Exception):

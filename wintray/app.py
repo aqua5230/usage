@@ -2529,6 +2529,7 @@ class _WindowsTrayController:
                 session_hooks._migrate_bundled_python_commands_if_needed()
                 statusline_settings._sync_agy_statusline(True)
                 statusline_settings._sync_grok_statusline(True)
+                statusline_settings._sync_codex_provider(True)
         except (SystemExit, Exception) as exc:
             if not isinstance(exc, SystemExit) or exc.code:
                 self._message_box(f"{_t(self.language, 'statusline_action_failed')}\n\n{exc}")

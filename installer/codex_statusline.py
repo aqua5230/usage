@@ -4,7 +4,7 @@
 # Part of "usage". Free software licensed under the GNU Affero General Public
 # License v3.0 only; see the LICENSE file for full terms and the warranty disclaimer.
 
-"""Install usage as Codex's MCP status line provider (Codex 0.172+, macOS).
+"""Install usage as Codex's MCP status line provider (Codex 0.172+, macOS and Windows).
 
 Three edits to ~/.codex/config.toml, each validated to touch only its own key:
 an `[mcp_servers.usage-statusline]` table that runs the deployed provider, the
@@ -78,19 +78,30 @@ def codex_version() -> tuple[int, ...] | None:
     return tuple(int(part) for part in match.groups()) if match else None
 
 
-def _server_lines() -> str:
+def _resolve_python() -> str | None:
+    if sys.platform == "darwin":
+        return PYTHON
+    if sys.platform == "win32":
+        try:
+            return setup_hook._find_system_python()
+        except SystemExit:
+            return None
+    return None
+
+
+def _server_lines(python: str) -> str:
     args = json.dumps(["-u", str(PROVIDER_TARGET)], ensure_ascii=False)
     return (
         f"[{TABLE}]\n"
-        f"command = {json.dumps(PYTHON)}\n"
+        f"command = {json.dumps(python)}\n"
         f"args = {args}\n"
         # Codex forwards only a fixed set of variables (LANG among them) to MCP servers.
         'env_vars = ["USAGE_LANG", "TT_LANG", "CODEX_HOME"]\n'
     )
 
 
-def _expected_server() -> dict[str, Any]:
-    return dict(tomllib.loads(_server_lines())["mcp_servers"][SERVER])
+def _expected_server(python: str) -> dict[str, Any]:
+    return dict(tomllib.loads(_server_lines(python))["mcp_servers"][SERVER])
 
 
 def _selection(parsed: dict[str, Any]) -> object:
@@ -109,7 +120,9 @@ def _server(parsed: dict[str, Any]) -> object:
 
 def _is_our_server(value: object) -> bool:
     """A server table runs usage's provider when it launches the deployed script."""
-    args = value.get("args") if isinstance(value, dict) else None
+    if not isinstance(value, dict):
+        return False
+    args = value.get("args")
     return isinstance(args, list) and any(
         isinstance(arg, str) and Path(arg).name == PROVIDER_TARGET.name for arg in args
     )
@@ -120,10 +133,10 @@ def _feature(parsed: dict[str, Any]) -> object:
     return features.get(FEATURE) if isinstance(features, dict) else None
 
 
-def _is_installed(parsed: dict[str, Any]) -> bool:
+def _is_installed(parsed: dict[str, Any], python: str) -> bool:
     return (
         _is_our_selection(_selection(parsed))
-        and _server(parsed) == _expected_server()
+        and _server(parsed) == _expected_server(python)
         and _feature(parsed) is True
     )
 
@@ -157,8 +170,8 @@ def _remove_table(content: str, name: str, parent: str, key: str) -> str:
     return setup_hook._validated_table_edit(content, candidate, parent, key)
 
 
-def _add_server_table(content: str) -> str:
-    candidate = content.rstrip() + "\n\n" + _server_lines()
+def _add_server_table(content: str, python: str) -> str:
+    candidate = content.rstrip() + "\n\n" + _server_lines(python)
     return setup_hook._validated_table_edit(content, candidate, "mcp_servers", SERVER)
 
 
@@ -172,8 +185,13 @@ def _read_state() -> dict[str, Any]:
 
 def is_setup() -> bool:
     """Whether Codex is configured to draw usage's provider."""
+    python = _resolve_python()
+    return python is not None and _is_setup(python)
+
+
+def _is_setup(python: str) -> bool:
     result = setup_hook._read_codex_config()
-    return result is not None and PROVIDER_TARGET.is_file() and _is_installed(result[1])
+    return result is not None and PROVIDER_TARGET.is_file() and _is_installed(result[1], python)
 
 
 def script_is_stale() -> bool:
@@ -191,7 +209,8 @@ def setup() -> bool:
     All three edits land together or not at all: a server without the selection, or a
     selection without the flag, leaves Codex's footer broken or the edit half done.
     """
-    if sys.platform != "darwin":
+    python = _resolve_python()
+    if python is None:
         return False
     result = setup_hook._read_codex_config()
     source = _resolve_source()
@@ -207,14 +226,14 @@ def setup() -> bool:
         return False
 
     updated = content
-    if server != _expected_server():
-        updated = _add_server_table(_remove_table(updated, TABLE, "mcp_servers", SERVER))
+    if server != _expected_server(python):
+        updated = _add_server_table(_remove_table(updated, TABLE, "mcp_servers", SERVER), python)
     if feature is None:
         updated = setup_hook._insert_table_line(updated, "features", f"{FEATURE} = true")
     if selection is None:
         updated = setup_hook._insert_table_line(updated, "tui", _SELECTION_LINE)
     final = _parse(updated)
-    if final is None or not _is_installed(final):
+    if final is None or not _is_installed(final, python):
         return False
     version = codex_version()
     if version is None or version < MIN_CODEX_VERSION:
@@ -235,7 +254,7 @@ def setup() -> bool:
             PROVIDER_STATE.unlink(missing_ok=True)
     except OSError:
         return False
-    return is_setup()
+    return _is_setup(python)
 
 
 def unsetup() -> bool:
