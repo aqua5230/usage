@@ -41,6 +41,7 @@ from menubar import title as menubar_title
 from menubar import update as menubar_update
 from panels import panel_window_state
 from quota.burn_rate import BurnRateTracker
+from updates.checker import ReleaseInfo
 from updates.gate import AutoCheckSchedule
 from usage_common.i18n import _t
 from usage_common.service_status import ServiceStatus
@@ -1103,6 +1104,58 @@ def test_clear_stale_update_cache_keeps_pending_update(
     assert saved == []
 
 
+@pytest.mark.parametrize("code", [1000, 1001, 1002])
+def test_update_alert_choices(monkeypatch: pytest.MonkeyPatch, code: int) -> None:
+    recorded: list[tuple[str, str, list[str], Any, int | None]] = []
+
+    def fake_present(
+        title: str,
+        body: str,
+        buttons: Any,
+        on_choice: Any = None,
+        cancel: int | None = None,
+    ) -> None:
+        recorded.append((title, body, list(buttons), on_choice, cancel))
+
+    prefs: dict[str, Any] = {}
+    save_calls = 0
+
+    def save(data: dict[str, Any]) -> None:
+        nonlocal save_calls
+        save_calls += 1
+        prefs.clear()
+        prefs.update(data)
+
+    opened: list[str] = []
+    monkeypatch.setattr("menubar.notice_panel.present", fake_present)
+    monkeypatch.setattr(menubar_update, "_load_preferences", lambda: dict(prefs))
+    monkeypatch.setattr(menubar_update, "_save_preferences", save)
+    monkeypatch.setattr("menubar.update.webbrowser.open", opened.append)
+
+    release = ReleaseInfo("0.99.0", "https://example.test/releases/v0.99.0", "Notes")
+    app = cast(Any, SimpleNamespace(language="en"))
+    menubar_update.show_update_alert(app, release)
+
+    assert len(recorded) == 1
+    _title, _body, buttons, on_choice, cancel = recorded[0]
+    assert len(buttons) == 3
+    assert cancel == 1001
+
+    on_choice(code)
+    if code == 1000:
+        assert opened == [release.html_url]
+        assert save_calls == 0
+        assert prefs == {}
+    elif code == 1001:
+        assert opened == []
+        assert save_calls == 1
+        assert isinstance(prefs.get("update_dismissed_at"), float)
+    else:
+        assert opened == []
+        assert save_calls == 1
+        assert prefs.get("update_skipped_version") == release.version
+
+
 def test_statusline_enabled_detects_usage_hook(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -1209,37 +1262,29 @@ def test_forwarder_prompt_keep_sets_ack_once(
     )
     monkeypatch.setattr(setup_hook, "_claude_settings_path", lambda: settings)
     calls = {"alerts": 0, "setup": 0}
+    recorded: list[tuple[str, str, list[str], Any, int | None]] = []
 
-    class FakeAlert:
-        @classmethod
-        def alloc(cls) -> type[FakeAlert]:
-            return cls
-
-        @classmethod
-        def init(cls) -> FakeAlert:
-            return cls()
-
-        def setMessageText_(self, value: str) -> None:
-            return None
-
-        def setInformativeText_(self, value: str) -> None:
-            return None
-
-        def addButtonWithTitle_(self, value: str) -> None:
-            return None
-
-        def setIcon_(self, value: object) -> None:
-            return None
-
-        def runModal(self) -> int:
-            calls["alerts"] += 1
-            return 1001
+    def fake_present(
+        title: str,
+        body: str,
+        buttons: Any,
+        on_choice: Any = None,
+        cancel: int | None = None,
+    ) -> None:
+        calls["alerts"] += 1
+        recorded.append((title, body, list(buttons), on_choice, cancel))
+        if on_choice is not None:
+            on_choice(1001)
 
     def fake_setup(*, force_forwarder: bool = False) -> int:
         calls["setup"] += 1
         return 0
 
-    monkeypatch.setattr(menubar_chrome, "NSAlert", FakeAlert)
+    monkeypatch.setattr("menubar.notice_panel.present", fake_present)
+    monkeypatch.setattr(
+        "PyObjCTools.AppHelper.callAfter",
+        lambda func, *args, **kwargs: func(*args, **kwargs),
+    )
     monkeypatch.setattr(setup_hook, "setup", fake_setup)
 
     menubar.show_forwarder_mode_prompt_if_needed(language="en")
@@ -1247,6 +1292,7 @@ def test_forwarder_prompt_keep_sets_ack_once(
     data = json.loads(settings.read_text(encoding="utf-8"))
 
     assert calls == {"alerts": 1, "setup": 0}
+    assert len(recorded) == 1
     assert data["usage"]["forwarderModePromptDismissed"] is True
 
 
@@ -1265,41 +1311,34 @@ def test_forwarder_prompt_enable_calls_forwarder_setup(
     )
     monkeypatch.setattr(setup_hook, "_claude_settings_path", lambda: settings)
     calls: list[bool] = []
+    recorded: list[tuple[str, str, list[str], Any, int | None]] = []
 
-    class FakeAlert:
-        @classmethod
-        def alloc(cls) -> type[FakeAlert]:
-            return cls
-
-        @classmethod
-        def init(cls) -> FakeAlert:
-            return cls()
-
-        def setMessageText_(self, value: str) -> None:
-            return None
-
-        def setInformativeText_(self, value: str) -> None:
-            return None
-
-        def addButtonWithTitle_(self, value: str) -> None:
-            return None
-
-        def setIcon_(self, value: object) -> None:
-            return None
-
-        def runModal(self) -> int:
-            return 1000
+    def fake_present(
+        title: str,
+        body: str,
+        buttons: Any,
+        on_choice: Any = None,
+        cancel: int | None = None,
+    ) -> None:
+        recorded.append((title, body, list(buttons), on_choice, cancel))
+        if on_choice is not None:
+            on_choice(1000)
 
     def fake_setup(*, force_forwarder: bool = False) -> int:
         calls.append(force_forwarder)
         return 0
 
-    monkeypatch.setattr(menubar_chrome, "NSAlert", FakeAlert)
+    monkeypatch.setattr("menubar.notice_panel.present", fake_present)
+    monkeypatch.setattr(
+        "PyObjCTools.AppHelper.callAfter",
+        lambda func, *args, **kwargs: func(*args, **kwargs),
+    )
     monkeypatch.setattr(setup_hook, "setup", fake_setup)
 
     menubar.show_forwarder_mode_prompt_if_needed(language="en")
     data = json.loads(settings.read_text(encoding="utf-8"))
 
+    assert len(recorded) == 1
     assert calls == [True]
     assert data["usage"]["forwarderModePromptDismissed"] is True
 
@@ -3888,10 +3927,14 @@ def test_forwarder_prompt_skips_invalid_settings(
     monkeypatch.setattr(setup_hook, "_claude_settings_path", lambda: settings)
     monkeypatch.setenv("USAGE_DEBUG", debug)
 
-    def unexpected_alert() -> None:
+    def unexpected_present(*args: Any, **kwargs: Any) -> None:
         pytest.fail("invalid settings must skip the prompt")
 
-    monkeypatch.setattr(menubar_actions, "_make_alert", unexpected_alert)
+    monkeypatch.setattr("menubar.notice_panel.present", unexpected_present)
+    monkeypatch.setattr(
+        "PyObjCTools.AppHelper.callAfter",
+        lambda func, *args, **kwargs: func(*args, **kwargs),
+    )
     menubar_actions.show_forwarder_mode_prompt_if_needed("en")
 
     assert settings.read_text() == content
@@ -3942,22 +3985,36 @@ def test_forwarder_prompt_survives_settings_corrupted_during_alert(
     monkeypatch.setattr(setup_hook, "_migrate_from_legacy_usage", lambda: None)
     monkeypatch.setenv("USAGE_DEBUG", "1")
 
-    def show_alert() -> int:
-        settings.write_text("{broken JSON")
-        return result
+    recorded: list[tuple[str, str, list[str], Any, int | None]] = []
+    dismissed_before_corrupt: list[bool] = []
 
-    alert = SimpleNamespace(
-        setMessageText_=lambda text: None,
-        setInformativeText_=lambda text: None,
-        addButtonWithTitle_=lambda text: None,
-        runModal=show_alert,
+    def fake_present(
+        title: str,
+        body: str,
+        buttons: Any,
+        on_choice: Any = None,
+        cancel: int | None = None,
+    ) -> None:
+        recorded.append((title, body, list(buttons), on_choice, cancel))
+        before = json.loads(settings.read_text(encoding="utf-8"))
+        dismissed_before_corrupt.append(
+            before.get(setup_hook.BACKUP_KEY, {}).get("forwarderModePromptDismissed") is True
+        )
+        settings.write_text("{broken JSON")
+        if on_choice is not None:
+            on_choice(result)
+
+    monkeypatch.setattr("menubar.notice_panel.present", fake_present)
+    monkeypatch.setattr(
+        "PyObjCTools.AppHelper.callAfter",
+        lambda func, *args, **kwargs: func(*args, **kwargs),
     )
-    monkeypatch.setattr(menubar_actions, "_make_alert", lambda: alert)
 
     menubar_actions.show_forwarder_mode_prompt_if_needed("en")
 
+    assert len(recorded) == 1
+    assert dismissed_before_corrupt == [True]
     assert settings.read_text() == "{broken JSON"
-    assert "forwarder prompt dismissal failed" in caplog.text
     assert ("forwarder setup failed" in caplog.text) == (result == 1000)
 
 

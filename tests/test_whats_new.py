@@ -305,36 +305,40 @@ def test_record_failure_still_shows(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.mark.skipif(sys.platform != "darwin", reason="requires macOS app imports")
-@pytest.mark.parametrize("button_title", ["好", "完整说明", None])
-def test_macos_notice_and_dispatch(
-    monkeypatch: pytest.MonkeyPatch, button_title: str | None
-) -> None:
+def test_macos_notice_and_dispatch(monkeypatch: pytest.MonkeyPatch) -> None:
     from menubar import whats_new as mac_notice
 
     opened: list[str] = []
+    recorded: list[tuple[str, str, list[str], Any, int | None]] = []
+
+    def fake_present(
+        title: str,
+        body: str,
+        buttons: Any,
+        on_choice: Any = None,
+        cancel: int | None = None,
+    ) -> None:
+        recorded.append((title, body, list(buttons), on_choice, cancel))
+
+    monkeypatch.setattr("menubar.notice_panel.present", fake_present)
     monkeypatch.setattr("menubar.whats_new.webbrowser.open", opened.append)
-    # Built but never ordered front, so the test run shows no window.
-    controller = mac_notice.build_notice(
+
+    returned = mac_notice.show_notice(
         ReleaseInfo("0.32.5", RELEASE.html_url, "EN\n## 繁體中文\n- **中文**"), "zh-CN"
     )
-    mac_notice._open_notices.add(controller)
-    panel = controller.panel
-    views = list(panel.contentView().subviews())
-    labels = [view.stringValue() for view in views if view.className() == "NSTextField"]
-    bodies = [view.documentView().string() for view in views if view.className() == "NSScrollView"]
-    buttons = {view.title(): view for view in views if view.className() == "NSButton"}
-    assert labels == ["usage 0.32.5 更新内容"] and bodies == ["• 中文"]
-    assert {title: button.keyEquivalent() for title, button in buttons.items()} == {
-        "好": "\r",
-        "完整说明": "",
-    }
-    assert not panel.becomesKeyOnlyIfNeeded() and not panel.hidesOnDeactivate()
-    if button_title is None:
-        panel.cancelOperation_(None)  # Escape
-    else:
-        buttons[button_title].performClick_(None)
-    assert not mac_notice._open_notices
-    assert opened == ([RELEASE.html_url] if button_title == "完整说明" else [])
+    assert returned is False
+    assert len(recorded) == 1
+    title, body, buttons, on_choice, cancel = recorded[0]
+    assert title == "usage 0.32.5 更新内容"
+    assert body == "• 中文"
+    assert buttons == ["好", "完整说明"]
+    assert cancel is None
+
+    on_choice(1000)
+    assert opened == []
+    on_choice(1001)
+    assert opened == [RELEASE.html_url]
+
     callbacks: list[Callable[[], None]] = []
     monkeypatch.setattr("PyObjCTools.AppHelper.callAfter", callbacks.append)
 
