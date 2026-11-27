@@ -6,6 +6,9 @@
 
 ## [Unreleased]
 
+### 新增
+- **Windows 上 usage 也能當 Codex 的狀態列。** 狀態列開關和「設定狀態列」按鈕會像 macOS 一樣幫 Codex 0.172 以上設定好，用的是 usage 其他狀態列已經在用的那個 Python。之後 Python 換了位置（例如升級），下次設定會自動改指向新的 Python。
+
 ## [0.35.3] - 2026-11-27
 
 ### 新增

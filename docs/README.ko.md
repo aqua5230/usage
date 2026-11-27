@@ -75,7 +75,7 @@ Codex를 사용한 적이 있다면 `usage`가 기록을 자동으로 가져옵�
 
 동일한 버튼은 Antigravity CLI와 Grok CLI가 설치되어 있을 때 해당 상태 줄도 함께 설정하며, 설치되어 있지 않으면 아무것도 기록하지 않습니다. 직접 설정해 둔 상태 줄은 먼저 백업되며 스위치를 끌 때 복원됩니다. 스위치는 **⚙ 설정 → Claude Code → 상태 표시줄로 사용량 동기화**에 있으며, 끄면 Claude 할당량이 더 이상 업데이트되지 않습니다.
 
-macOS에서 Codex 0.172 이상을 쓰면 이 스위치는 usage를 Codex의 상태 줄 제공자로도 설정합니다. Codex 하단에 Claude Code와 같은 할당량, 세션 시간, 모델, 캐시, 컨텍스트가 표시됩니다. Codex는 제공자에게 한 줄만 주기 때문에 두 줄을 한 줄로 합쳤습니다. Codex의 실험 기능 「Custom status line」이 켜집니다. Codex의 `/statusline`에서 다른 제공자나 기본값을 고르면 usage는 그 선택을 건드리지 않습니다.
+macOS와 Windows에서 Codex 0.172 이상을 쓰면 이 스위치는 usage를 Codex의 상태 줄 제공자로도 설정합니다. Codex 하단에 Claude Code와 같은 할당량, 세션 시간, 모델, 캐시, 컨텍스트가 표시됩니다. Codex는 제공자에게 한 줄만 주기 때문에 두 줄을 한 줄로 합쳤습니다. Codex의 실험 기능 「Custom status line」이 켜집니다. Codex의 `/statusline`에서 다른 제공자나 기본값을 고르면 usage는 그 선택을 건드리지 않습니다.
 
 설정이 완료되면 Claude Code 창 하단에 다음과 같은 상태 줄이 표시됩니다.
 

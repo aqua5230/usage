@@ -156,6 +156,22 @@ _session_starts: Dict[str, Tuple[float, bool]] = {}
 _context_samples: Dict[str, Tuple[float, float, float]] = {}
 
 
+def _windows_system_lang() -> str:
+    if os.name != "nt":
+        return ""
+    try:
+        import ctypes
+        import locale as _locale
+
+        windll = getattr(ctypes, "windll", None)
+        if windll is None:
+            return ""
+        lang_id = int(windll.kernel32.GetUserDefaultUILanguage())
+        return _locale.windows_locale.get(lang_id, "") or ""
+    except Exception:
+        return ""
+
+
 def detect_lang(env: Optional[Dict[str, str]] = None) -> str:
     source = os.environ if env is None else env
     raw = ""
@@ -167,6 +183,8 @@ def detect_lang(env: Optional[Dict[str, str]] = None) -> str:
         if value:
             raw = value
             break
+    if not raw and env is None:
+        raw = _windows_system_lang()
     code = raw.split(".")[0].replace("_", "-")
     table = {
         "zh-TW": "zh-TW",

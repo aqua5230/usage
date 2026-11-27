@@ -75,7 +75,7 @@ Restart the relevant tool afterward (on macOS, fully Cmd+Q Claude Code and re-op
 
 The same button also sets up a status line for the Antigravity CLI and for Grok CLI when they are installed on your machine, and does nothing at all when they aren't. Any status line you configured there yourself is backed up first and restored when you turn the switch off. The switch is **⚙ Settings → Claude Code → Sync quota via status line**; with it off, the Claude quota stops updating.
 
-On macOS with Codex 0.172 or later, the switch also makes usage Codex's status line provider: Codex's footer shows the same quota, session, model, cache, and context line as Claude Code, joined onto one row because Codex gives a provider only one. This turns on Codex's experimental **Custom status line**. If you pick another provider or Codex's default in `/statusline`, usage leaves that choice alone.
+On macOS and Windows with Codex 0.172 or later, the switch also makes usage Codex's status line provider: Codex's footer shows the same quota, session, model, cache, and context line as Claude Code, joined onto one row because Codex gives a provider only one. This turns on Codex's experimental **Custom status line**. If you pick another provider or Codex's default in `/statusline`, usage leaves that choice alone.
 
 Once set up, the bottom of the Claude Code window will show a status line like this:
 
