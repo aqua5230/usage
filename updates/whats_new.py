@@ -82,7 +82,11 @@ def record_version(version: str) -> None:
     # Preserve preferences changed while the network request or dialog was pending.
     preferences = _load_preferences()
     preferences["last_launched_version"] = version
-    _save_preferences(preferences)
+    try:
+        _save_preferences(preferences)
+    except OSError:
+        # The notice still shows; the next launch retries the record.
+        logger.warning("Could not record launched version %s", version, exc_info=True)
 
 
 def start_notice(
@@ -113,9 +117,9 @@ def _fetch_and_dispatch(
         release = result.release
 
         def finish() -> None:
-            open_notes = show(release)
+            # Record first: a notice nobody answers must not return on every relaunch (#457).
             record_version(version)
-            if open_notes:
+            if show(release):
                 webbrowser.open(release.html_url)
 
         dispatch(finish)

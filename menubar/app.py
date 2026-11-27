@@ -745,6 +745,9 @@ class AppDelegate(NSObject):
                 False,
             )
             submitted = True
+        except Exception:
+            # Uncaught, it reaches only stderr, which an app bundle discards (#457).
+            logger.exception("Background refresh failed")
         finally:
             if not submitted:
                 self.performSelectorOnMainThread_withObject_waitUntilDone_(

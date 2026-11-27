@@ -8,6 +8,7 @@ import urllib.error
 from collections.abc import Callable
 from email.message import Message
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
@@ -122,11 +123,11 @@ def test_bad_response_retries(monkeypatch: pytest.MonkeyPatch, payload: bytes) -
     assert whats_new.fetch_release("0.32.5").failed
 
 
-def test_background_dispatch_and_record_after_alert(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_background_dispatch_and_record_before_alert(monkeypatch: pytest.MonkeyPatch) -> None:
     workers: list[Callable[[], None]] = []
     callbacks: list[Callable[[], None]] = []
     events: list[str] = []
-    preferences = {"changed_during_request": True}
+    preferences: dict[str, Any] = {"changed_during_request": True}
     monkeypatch.setattr(whats_new, "_load_preferences", lambda: dict(preferences))
     monkeypatch.setattr(whats_new, "_save_preferences", lambda value: preferences.update(value))
     monkeypatch.setattr(whats_new, "fetch_release", lambda version: ReleaseCheckResult(RELEASE))
@@ -144,7 +145,7 @@ def test_background_dispatch_and_record_after_alert(monkeypatch: pytest.MonkeyPa
     monkeypatch.setattr("updates.whats_new.threading.Thread", Thread)
 
     def show(release: ReleaseInfo) -> bool:
-        assert "last_launched_version" not in preferences
+        assert preferences["last_launched_version"] == "0.32.5"
         events.append("show")
         return False
 
@@ -238,7 +239,6 @@ def test_windows_localized_notice(monkeypatch: pytest.MonkeyPatch, answer: int) 
 
 def test_startup_snapshot_precedes_repair(monkeypatch: pytest.MonkeyPatch) -> None:
     import sys
-    from types import SimpleNamespace
 
     import main
 
@@ -284,37 +284,57 @@ def test_record_before_browser(monkeypatch: pytest.MonkeyPatch, open_notes: bool
         return open_notes
 
     whats_new._fetch_and_dispatch("0.32.5", show, lambda callback: callback())
-    assert events == ["show", "record"] + ([RELEASE.html_url] if open_notes else [])
+    assert events == ["record", "show"] + ([RELEASE.html_url] if open_notes else [])
+
+
+def test_record_failure_still_shows(monkeypatch: pytest.MonkeyPatch) -> None:
+    def fail(preferences: dict[str, Any]) -> None:
+        raise PermissionError("read-only preferences")
+
+    shown: list[ReleaseInfo] = []
+    monkeypatch.setattr(whats_new, "_load_preferences", dict)
+    monkeypatch.setattr(whats_new, "_save_preferences", fail)
+    monkeypatch.setattr(whats_new, "fetch_release", lambda version: ReleaseCheckResult(RELEASE))
+
+    def show(release: ReleaseInfo) -> bool:
+        shown.append(release)
+        return False
+
+    whats_new._fetch_and_dispatch("0.32.5", show, lambda callback: callback())
+    assert shown == [RELEASE]
 
 
 @pytest.mark.skipif(sys.platform != "darwin", reason="requires macOS app imports")
-@pytest.mark.parametrize("button", [1000, 1001])
-def test_macos_notice_and_dispatch(monkeypatch: pytest.MonkeyPatch, button: int) -> None:
+@pytest.mark.parametrize("button_title", ["好", "完整说明", None])
+def test_macos_notice_and_dispatch(
+    monkeypatch: pytest.MonkeyPatch, button_title: str | None
+) -> None:
     from menubar import whats_new as mac_notice
 
-    texts: list[str] = []
-    buttons: list[str] = []
-
-    class Alert:
-        def setMessageText_(self, text: str) -> None:
-            texts.append(text)
-
-        def setInformativeText_(self, text: str) -> None:
-            texts.append(text)
-
-        def addButtonWithTitle_(self, text: str) -> None:
-            buttons.append(text)
-
-        def runModal(self) -> int:
-            return button
-
-    monkeypatch.setattr("menubar.chrome._make_alert", Alert)
-    selected = mac_notice.show_notice(
+    opened: list[str] = []
+    monkeypatch.setattr("menubar.whats_new.webbrowser.open", opened.append)
+    # Built but never ordered front, so the test run shows no window.
+    controller = mac_notice.build_notice(
         ReleaseInfo("0.32.5", RELEASE.html_url, "EN\n## 繁體中文\n- **中文**"), "zh-CN"
     )
-    assert texts == ["usage 0.32.5 更新内容", "• 中文"]
-    assert buttons == ["好", "完整说明"]
-    assert selected == (button == 1001)
+    mac_notice._open_notices.add(controller)
+    panel = controller.panel
+    views = list(panel.contentView().subviews())
+    labels = [view.stringValue() for view in views if view.className() == "NSTextField"]
+    bodies = [view.documentView().string() for view in views if view.className() == "NSScrollView"]
+    buttons = {view.title(): view for view in views if view.className() == "NSButton"}
+    assert labels == ["usage 0.32.5 更新内容"] and bodies == ["• 中文"]
+    assert {title: button.keyEquivalent() for title, button in buttons.items()} == {
+        "好": "\r",
+        "完整说明": "",
+    }
+    assert not panel.becomesKeyOnlyIfNeeded() and not panel.hidesOnDeactivate()
+    if button_title is None:
+        panel.cancelOperation_(None)  # Escape
+    else:
+        buttons[button_title].performClick_(None)
+    assert not mac_notice._open_notices
+    assert opened == ([RELEASE.html_url] if button_title == "完整说明" else [])
     callbacks: list[Callable[[], None]] = []
     monkeypatch.setattr("PyObjCTools.AppHelper.callAfter", callbacks.append)
 
@@ -326,8 +346,6 @@ def test_macos_notice_and_dispatch(monkeypatch: pytest.MonkeyPatch, button: int)
 
 
 def test_windows_message_box_call(monkeypatch: pytest.MonkeyPatch) -> None:
-    from types import SimpleNamespace
-
     from wintray import whats_new as windows_notice
 
     calls: list[tuple[Any, ...]] = []
