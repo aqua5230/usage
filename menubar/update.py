@@ -17,6 +17,7 @@ from typing import Any, Protocol
 
 from analyzer import diagnosis_snapshot, history_persist
 from installer import claude_pane
+from menubar import notice_panel
 from updates import checker as update_checker
 from updates import gate as update_gate
 from updates.release_notes import alert_release_notes
@@ -114,24 +115,29 @@ def check_update_in_background(app: _UpdateApp) -> bool:
     return False
 
 
-def show_update_alert(app: _UpdateApp, release: update_checker.ReleaseInfo, alert: Any) -> None:
+def show_update_alert(app: _UpdateApp, release: update_checker.ReleaseInfo) -> None:
     from menubar.app import UPDATE_ALERT_BODY_LIMIT
 
-    alert.setMessageText_(_t(app.language, "update_alert_title", version=release.version))
-    alert.setInformativeText_(
-        alert_release_notes(release.body, app.language, UPDATE_ALERT_BODY_LIMIT)
-    )
-    alert.addButtonWithTitle_(_t(app.language, "update_btn_download"))
-    alert.addButtonWithTitle_(_t(app.language, "update_btn_later"))
-    alert.addButtonWithTitle_(_t(app.language, "update_btn_skip"))
-    result = int(alert.runModal())
-    action, pref_updates = update_gate.resolve_alert_choice(result, release.version)
-    if action == "open":
-        webbrowser.open(release.html_url)
-        return
+    def choose(result: int) -> None:
+        action, pref_updates = update_gate.resolve_alert_choice(result, release.version)
+        if action == "open":
+            webbrowser.open(release.html_url)
+            return
 
-    prefs = _load_preferences()
-    prefs.update(pref_updates)
-    if action == "dismiss":
-        prefs["update_dismissed_at"] = time.time()
-    _save_preferences(prefs)
+        prefs = _load_preferences()
+        prefs.update(pref_updates)
+        if action == "dismiss":
+            prefs["update_dismissed_at"] = time.time()
+        _save_preferences(prefs)
+
+    notice_panel.present(
+        _t(app.language, "update_alert_title", version=release.version),
+        alert_release_notes(release.body, app.language, UPDATE_ALERT_BODY_LIMIT),
+        [
+            _t(app.language, "update_btn_download"),
+            _t(app.language, "update_btn_later"),
+            _t(app.language, "update_btn_skip"),
+        ],
+        on_choice=choose,
+        cancel=notice_panel.FIRST_BUTTON + 1,
+    )

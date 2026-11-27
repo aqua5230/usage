@@ -24,6 +24,7 @@ from installer.statusline_settings import (
     _set_forwarder_mode_prompt_dismissed,
     _toggle_statusline_settings,
 )
+from menubar import notice_panel
 from menubar.chrome import _make_alert
 from menubar.new_badge import dismiss_badge
 from usage_app.self_command import self_command_argv
@@ -200,26 +201,32 @@ def show_forwarder_mode_prompt_if_needed(language: str | None = None) -> None:
         return
 
     lang = language or detect_lang()
-    alert = _make_alert()
-    alert.setMessageText_(_t(lang, "alert_forwarder_title"))
-    alert.setInformativeText_(_t(lang, "alert_forwarder_body"))
-    alert.addButtonWithTitle_(_t(lang, "alert_forwarder_enable"))
-    alert.addButtonWithTitle_(_t(lang, "alert_forwarder_keep"))
-    result = int(alert.runModal())
-
+    # Recording first means a prompt nobody answers does not return on every launch (#457).
     try:
-        if result == 1000:
-            setup_hook.setup(force_forwarder=True)
-            session_hooks._migrate_bundled_python_commands_if_needed()
+        _set_forwarder_mode_prompt_dismissed()
     except (Exception, SystemExit):
         if os.environ.get("USAGE_DEBUG") == "1":
-            logger.warning("forwarder setup failed", exc_info=True)
-    finally:
+            logger.warning("forwarder prompt dismissal failed", exc_info=True)
+
+    def choose(result: int) -> None:
+        if result != notice_panel.FIRST_BUTTON:
+            return
         try:
-            _set_forwarder_mode_prompt_dismissed()
+            setup_hook.setup(force_forwarder=True)
+            session_hooks._migrate_bundled_python_commands_if_needed()
         except (Exception, SystemExit):
             if os.environ.get("USAGE_DEBUG") == "1":
-                logger.warning("forwarder prompt dismissal failed", exc_info=True)
+                logger.warning("forwarder setup failed", exc_info=True)
+
+    from PyObjCTools.AppHelper import callAfter
+
+    callAfter(
+        notice_panel.present,
+        _t(lang, "alert_forwarder_title"),
+        _t(lang, "alert_forwarder_body"),
+        [_t(lang, "alert_forwarder_enable"), _t(lang, "alert_forwarder_keep")],
+        choose,
+    )
 
 
 class _PaneApp(_ActionApp, Protocol):

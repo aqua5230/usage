@@ -591,7 +591,7 @@ class AppDelegate(NSObject):
         return menubar_update.check_update_in_background(self)
 
     def _showUpdateAlert_(self, release: update_checker.ReleaseInfo) -> None:
-        menubar_update.show_update_alert(self, release, _make_alert())
+        menubar_update.show_update_alert(self, release)
 
     def _set_active_panel_id(self, panel_id: str) -> None:
         panel = panels.get_panel(panel_id)
