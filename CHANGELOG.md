@@ -7,11 +7,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.35.4] - 2026-11-27
+
 ### Added
 - **usage is now Codex's status line on Windows too.** The status line switch and the "Set Up Status Line" button set up Codex 0.172 or later the same way as on macOS, running the provider with the Python that usage already uses for the other status lines. If that Python moves, for example after you upgrade it, the next setup points Codex at the new one.
 
 ### Fixed
 - **Skyline's status pill no longer jumps to a second line when the panel opens.** In Chinese, "↻ Refreshing…" was a few pixels too wide to sit beside the rate, so the status dropped below it for about a second and came back once the refresh finished. The pills are slightly tighter now so both fit on one line.
+- **The "What's New" notice after an update no longer freezes usage.** It used to be a dialog that held the whole app until someone clicked it. After an unattended update, or when it opened on another display or Space, usage looked alive but stopped responding and ignored Quit, and killing it brought the same dialog back on every launch. It is now a small floating window that shows on every Space, does not take keystrokes from the app you are typing in, and closes with Return, Escape or its close button. It does not come back after a relaunch. (#457)
+- **A background refresh that fails now leaves a record in the app log.** Such errors used to be discarded, so a refresh that kept failing left no trace. They are now written to `~/Library/Logs/usage/usage-app.log`.
 
 ## [0.35.3] - 2026-11-27
 
