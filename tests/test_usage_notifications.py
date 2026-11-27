@@ -203,3 +203,48 @@ def test_rotating_all_agy_groups_sends_nothing_new() -> None:
     assert show("Gemini") == ["depleted"]
     for group in ("Claude / GPT", "Argon", "Gemini", "Claude / GPT", "Gemini", "Argon"):
         assert show(group) == []
+
+
+@pytest.mark.parametrize(
+    ("hidden_channel", "hide_key", "visible_channel"),
+    [
+        ("claude_session", "hide_claude_section", "codex_session"),
+        ("claude_weekly", "hide_claude_section", "codex_weekly"),
+        ("codex_session", "hide_codex_section", "claude_session"),
+        ("codex_weekly", "hide_codex_section", "claude_weekly"),
+        ("agy_session", "hide_agy_section", "claude_session"),
+        ("agy_weekly", "hide_agy_section", "claude_weekly"),
+        ("muse_session", "hide_muse_section", "codex_session"),
+        ("muse_weekly", "hide_muse_section", "codex_weekly"),
+    ],
+)
+def test_visible_notification_events_filters_hidden_provider_and_keeps_others(
+    hidden_channel: str, hide_key: str, visible_channel: str
+) -> None:
+    from menubar.prefs import visible_notification_events
+
+    notifier = QuotaNotifier([90.0])
+    notifier.update({hidden_channel: (80.0, True), visible_channel: (80.0, True)})
+    events = notifier.update({hidden_channel: (95.0, True), visible_channel: (95.0, True)})
+    visible = visible_notification_events(events, {hide_key: True})
+
+    assert [(e.channel, e.kind, e.threshold) for e in visible] == [(visible_channel, "warn", 90.0)]
+
+
+def test_visible_notification_events_unhiding_does_not_replay_old_events() -> None:
+    from menubar.prefs import visible_notification_events
+
+    notifier = QuotaNotifier([90.0])
+    hidden_prefs = {"hide_agy_section": True}
+
+    for pct in (80.0, 95.0, 100.0, 5.0):
+        events = notifier.update({"agy_session": (pct, True)})
+        assert visible_notification_events(events, hidden_prefs) == []
+
+    visible_prefs = {"hide_agy_section": False}
+    events = notifier.update({"agy_session": (10.0, True)})
+    assert visible_notification_events(events, visible_prefs) == []
+    rearmed = visible_notification_events(
+        notifier.update({"agy_session": (92.0, True)}), visible_prefs
+    )
+    assert [(e.channel, e.kind, e.threshold) for e in rearmed] == [("agy_session", "warn", 90.0)]

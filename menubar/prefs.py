@@ -6,9 +6,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 
-from quota.notifications import QuotaNotifier
+from quota.notifications import NotificationEvent, QuotaNotifier, channel_hide_pref_key
 from usage_common.prefs import _load_preferences, _save_preferences
 
 DEFAULT_QUOTA_CARD_ORDER = ("claude", "codex", "agy", "grok", "muse")
@@ -45,6 +45,19 @@ def _hide_grok_enabled(prefs: Mapping[str, object] | None = None) -> bool:
 def _hide_muse_enabled(prefs: Mapping[str, object] | None = None) -> bool:
     data = _resolved_preferences(prefs)
     return data.get("hide_muse_section") is True
+
+
+def visible_notification_events(
+    events: Iterable[NotificationEvent],
+    prefs: Mapping[str, object] | None = None,
+) -> list[NotificationEvent]:
+    """Drop quota notifications for a provider whose card is hidden."""
+    data = _resolved_preferences(prefs)
+    return [
+        event
+        for event in events
+        if (key := channel_hide_pref_key(event.channel)) is None or data.get(key) is not True
+    ]
 
 
 def _panel_flavor(prefs: Mapping[str, object] | None = None) -> str:

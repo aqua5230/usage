@@ -4408,3 +4408,65 @@ def test_shim_marks_windows_before_panel_scripts_run() -> None:
     html = wintray.panel_html("felt.html")
     marker = html.index('window.usageHost = "windows";')
     assert marker < html.index("const canShare")
+
+
+def test_windows_hidden_provider_suppresses_notifications_while_visible_sends(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from quota.notifications import QuotaNotifier
+    from usage_common import prefs as common_prefs
+
+    common_prefs._save_preferences({"hide_claude_section": True})
+    monkeypatch.setattr(wintray, "_quota_notifications_enabled", lambda: True)
+    state = menubar_state._empty_state()
+    sent: list[tuple[str, str, float | None]] = []
+    controller = SimpleNamespace(
+        _quota_notifier=QuotaNotifier(),
+        mock=False,
+        _send_quota_notification=lambda event, _state: sent.append(
+            (event.channel, event.kind, event.threshold)
+        ),
+    )
+
+    state.claude_session = replace(state.claude_session, percent=80.0, available=True)
+    state.codex_session = replace(state.codex_session, percent=80.0, available=True)
+    wintray._WindowsTrayController._process_quota_notifications(cast(Any, controller), state)
+    assert sent == []
+
+    state.claude_session = replace(state.claude_session, percent=95.0, available=True)
+    state.codex_session = replace(state.codex_session, percent=95.0, available=True)
+    wintray._WindowsTrayController._process_quota_notifications(cast(Any, controller), state)
+    assert sent == [("codex_session", "warn", 90.0)]
+
+
+def test_windows_unhiding_provider_does_not_replay_old_notifications(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from quota.notifications import QuotaNotifier
+    from usage_common import prefs as common_prefs
+
+    common_prefs._save_preferences({"hide_muse_section": True})
+    monkeypatch.setattr(wintray, "_quota_notifications_enabled", lambda: True)
+    state = menubar_state._empty_state()
+    sent: list[tuple[str, str, float | None]] = []
+    controller = SimpleNamespace(
+        _quota_notifier=QuotaNotifier(),
+        mock=False,
+        _send_quota_notification=lambda event, _state: sent.append(
+            (event.channel, event.kind, event.threshold)
+        ),
+    )
+
+    for pct in (80.0, 95.0, 100.0, 5.0):
+        state.muse_weekly = replace(state.muse_weekly, percent=pct, available=True)
+        wintray._WindowsTrayController._process_quota_notifications(cast(Any, controller), state)
+    assert sent == []
+
+    common_prefs._save_preferences({"hide_muse_section": False})
+    state.muse_weekly = replace(state.muse_weekly, percent=10.0, available=True)
+    wintray._WindowsTrayController._process_quota_notifications(cast(Any, controller), state)
+    assert sent == []
+
+    state.muse_weekly = replace(state.muse_weekly, percent=92.0, available=True)
+    wintray._WindowsTrayController._process_quota_notifications(cast(Any, controller), state)
+    assert sent == [("muse_weekly", "warn", 90.0)]

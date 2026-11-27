@@ -52,6 +52,7 @@ from menubar.prefs import (
     _save_quota_card_order,
     _window_keeper_enabled,
     toggle_quota_threshold,
+    visible_notification_events,
 )
 from menubar.quota_countdown import _quota_countdown
 from panels.catalog import PANEL_SPECS
@@ -2191,7 +2192,7 @@ class _WindowsTrayController:
                 },
             )
             if _quota_notifications_enabled() and not self.mock:
-                for event in events:
+                for event in visible_notification_events(events):
                     self._send_quota_notification(event, state)
         except Exception:
             if os.environ.get("USAGE_DEBUG") == "1":

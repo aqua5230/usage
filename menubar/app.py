@@ -93,6 +93,7 @@ from menubar.prefs import (
     _quota_notification_thresholds,
     _quota_notifications_enabled,
     _window_keeper_enabled,
+    visible_notification_events,
 )
 from menubar.state import (
     CLAUDE_COLOR as CLAUDE_COLOR,
@@ -855,8 +856,8 @@ class AppDelegate(NSObject):
                 menubar_notify.notification_channels(state),
                 menubar_notify.notification_scopes(state),
             )
-            for event in events:
-                if _quota_notifications_enabled() and not self.mock:
+            if _quota_notifications_enabled() and not self.mock:
+                for event in visible_notification_events(events):
                     self._send_quota_notification(event, state)
         except Exception:
             if os.environ.get("USAGE_DEBUG") == "1":

@@ -38,6 +38,21 @@ VALID_CHANNELS = frozenset(
     }
 )
 
+CHANNEL_HIDE_PREF_KEYS: dict[str, str] = {
+    "claude_": "hide_claude_section",
+    "codex_": "hide_codex_section",
+    "agy_": "hide_agy_section",
+    "muse_": "hide_muse_section",
+}
+
+
+def channel_hide_pref_key(channel: str) -> str | None:
+    """Return the preference key that hides ``channel``'s card, or ``None``."""
+    for prefix, pref_key in CHANNEL_HIDE_PREF_KEYS.items():
+        if channel.startswith(prefix):
+            return pref_key
+    return None
+
 
 @dataclass(slots=True)
 class NotificationEvent:
