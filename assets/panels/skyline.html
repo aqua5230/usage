@@ -908,12 +908,13 @@
     .meta {
       display: flex;
       flex-wrap: wrap;
-      gap: 4px;
+      gap: 3px;
       max-width: calc(100% - 140px);
     }
 
     .meta > div {
-      padding: 2px 6.5px;
+      /* Tight enough that "↻ Refreshing" fits beside the rate in zh, so the status pill does not jump a line on every refresh. */
+      padding: 2px 5px;
       border-radius: 999px;
       background: var(--button);
       border: 1.1px solid var(--button-border);

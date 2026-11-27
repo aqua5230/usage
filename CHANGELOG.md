@@ -10,6 +10,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ### Added
 - **usage is now Codex's status line on Windows too.** The status line switch and the "Set Up Status Line" button set up Codex 0.172 or later the same way as on macOS, running the provider with the Python that usage already uses for the other status lines. If that Python moves, for example after you upgrade it, the next setup points Codex at the new one.
 
+### Fixed
+- **Skyline's status pill no longer jumps to a second line when the panel opens.** In Chinese, "↻ Refreshing…" was a few pixels too wide to sit beside the rate, so the status dropped below it for about a second and came back once the refresh finished. The pills are slightly tighter now so both fit on one line.
+
 ## [0.35.3] - 2026-11-27
 
 ### Added
